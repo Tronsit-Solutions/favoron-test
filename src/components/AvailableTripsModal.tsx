@@ -1,7 +1,6 @@
 import React, { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, Plane, Calendar, Download, Eye, X } from "lucide-react";
 import { usePublicTrips } from "@/hooks/usePublicTrips";
@@ -10,7 +9,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import html2canvas from "html2canvas";
 import { InstagramTripPreview } from "./InstagramTripPreview";
-import { InstagramCaptureSimplified } from "./InstagramCaptureSimplified";
 
 interface AvailableTripsModalProps {
   isOpen: boolean;
@@ -24,7 +22,6 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [userRoles, setUserRoles] = useState<any[]>([]);
   const [showPreview, setShowPreview] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [currentCapturePage, setCurrentCapturePage] = useState<number>(1);
   const modalRef = useRef<HTMLDivElement>(null);
   const captureRef = useRef<HTMLDivElement>(null);
@@ -76,28 +73,47 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
     setIsGenerating(true);
     
     try {
-      // Calcular el número total de páginas
       const TRIPS_PER_PAGE = 10;
       const totalPages = Math.ceil(filteredTrips.length / TRIPS_PER_PAGE);
       
-      // Enhanced font loading - wait longer on mobile
-      await document.fonts?.ready;
-      const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      await new Promise(resolve => setTimeout(resolve, isMobile ? 1500 : 800));
+      // Precargar fuentes explícitamente con pesos específicos
+      try {
+        await Promise.all([
+          document.fonts.load('700 52px "Bricolage Grotesque"'),
+          document.fonts.load('700 42px "Bricolage Grotesque"'),
+          document.fonts.load('600 18px "Inter"'),
+          document.fonts.load('600 16px "Inter"'),
+        ]);
+        console.log('Fonts preloaded successfully');
+      } catch (e) {
+        console.log('Font preload warning:', e);
+      }
       
-      // Capturar cada página secuencialmente
+      // Esperar a que las fuentes estén listas
+      await document.fonts?.ready;
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
-        // Actualizar el estado para renderizar la página actual
         setCurrentCapturePage(pageNumber);
         
         // Esperar a que React renderice la nueva página
-        await new Promise(resolve => setTimeout(resolve, isMobile ? 1500 : 800));
+        await new Promise(resolve => setTimeout(resolve, 800));
         
         const element = captureRef.current;
         
+        // Hacer visible temporalmente para mejor captura
+        element.style.opacity = '1';
+        element.style.position = 'fixed';
+        element.style.left = '-9999px';
+        element.style.top = '0';
+        element.style.zIndex = '-1';
+        
+        // Esperar a que se apliquen los estilos
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         const canvas = await html2canvas(element, {
           backgroundColor: '#f5f5f5',
-          scale: 2,
+          scale: 3, // Mayor escala para mejor calidad
           useCORS: true,
           allowTaint: false,
           logging: false,
@@ -108,28 +124,46 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           scrollX: 0,
           scrollY: 0,
           imageTimeout: 0,
-          foreignObjectRendering: false,
+          foreignObjectRendering: true, // Mejor renderizado de fuentes
           removeContainer: false,
-          onclone: (clonedDoc) => {
-            // Force consistent font rendering in cloned document
-            const clonedElement = clonedDoc.querySelector('[data-capture-element]');
-            if (clonedElement) {
-              const element = clonedElement as HTMLElement;
-              element.style.transform = 'scale(1)';
-              (element.style as any).webkitFontSmoothing = 'antialiased';
-              (element.style as any).mozOsxFontSmoothing = 'grayscale';
-            }
+          onclone: (clonedDoc, clonedElement) => {
+            // Forzar visibilidad y estilos en el clon
+            clonedElement.style.opacity = '1';
+            clonedElement.style.position = 'static';
+            clonedElement.style.left = 'auto';
+            clonedElement.style.top = 'auto';
+            
+            // Forzar antialiasing en todos los elementos de texto
+            const allElements = clonedElement.querySelectorAll('*');
+            allElements.forEach((el) => {
+              const htmlEl = el as HTMLElement;
+              if (htmlEl.style) {
+                (htmlEl.style as any).webkitFontSmoothing = 'antialiased';
+                (htmlEl.style as any).mozOsxFontSmoothing = 'grayscale';
+                htmlEl.style.textRendering = 'optimizeLegibility';
+              }
+            });
           }
         });
         
-        // Ensure final image is exactly 1080x1080 regardless of device
+        // Restaurar elemento oculto
+        element.style.opacity = '0';
+        element.style.position = 'fixed';
+        element.style.left = '0';
+        element.style.top = '0';
+        
+        // Asegurar que la imagen final sea exactamente 1080x1080
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = 1080;
         finalCanvas.height = 1080;
         const ctx = finalCanvas.getContext('2d');
-        ctx?.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, 1080, 1080);
+        if (ctx) {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, 1080, 1080);
+        }
         
-        // Convert canvas to data URL and download
+        // Convertir canvas a data URL y descargar
         const dataURL = finalCanvas.toDataURL('image/png', 1.0);
         const link = document.createElement('a');
         const fileName = totalPages > 1 
@@ -148,7 +182,7 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
       }
       
       setShowPreview(false);
-      setCurrentCapturePage(1); // Reset
+      setCurrentCapturePage(1);
     } catch (error) {
       console.error('Error generating PNG:', error);
     } finally {
@@ -243,34 +277,29 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
           </div>
         </div>
         
-        {/* Hidden element for capture - positioned for html2canvas */}
-        <div 
-          className="fixed top-0 left-0 z-[-1]"
-          style={{
-            opacity: 0,
-            pointerEvents: 'none'
-          }}
-        >
+        {/* Hidden element for capture - positioned off-screen */}
         <div 
           ref={captureRef}
-          style={{ 
-            width: '1080px', 
+          style={{
+            opacity: 0,
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: '1080px',
             height: '1080px',
             backgroundColor: '#f5f5f5',
             overflow: 'hidden',
-            position: 'relative',
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            zIndex: -1,
+            pointerEvents: 'none'
           }}
         >
-          <div style={{ width: '100%', height: '100%' }}>
-            <InstagramTripPreview 
-              trips={trips} 
-              searchTerm={searchTerm} 
-              forCapture={true}
-              currentPage={currentCapturePage}
-            />
-          </div>
-        </div>
+          <InstagramTripPreview 
+            trips={trips} 
+            searchTerm={searchTerm} 
+            forCapture={true}
+            currentPage={currentCapturePage}
+          />
         </div>
       </DialogContent>
 
@@ -283,10 +312,11 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
               <div className="flex gap-2">
                 <Button 
                   onClick={handleDownloadJPEG}
+                  disabled={isGenerating}
                   className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bricolage"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Descargar para Instagram
+                  {isGenerating ? "Generando..." : "Descargar para Instagram"}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -311,13 +341,11 @@ const AvailableTripsModal = ({ isOpen, onClose }: AvailableTripsModalProps) => {
                   🎨 Diseño optimizado para Instagram
                 </p>
                 <p className="text-sm text-gray-600 font-medium">
-                  Formato cuadrado 1080x1080px • Colores de marca Favoron
+                  Formato cuadrado 1080x1080px • Bricolage Grotesque + Inter
                 </p>
               </div>
             </div>
           </div>
-
-            {/* hidden preview moved */}
         </DialogContent>
       </Dialog>
     </Dialog>
