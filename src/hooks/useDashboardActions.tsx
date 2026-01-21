@@ -1773,18 +1773,12 @@ export const useDashboardActions = (
   // Handler for travelers to dismiss expired quotes from their view
   const handleDismissExpiredPackage = async (packageId: string) => {
     try {
-      if (!updatePackage) {
-        console.error('updatePackage function not available');
-        return;
-      }
-
-      // Set traveler_dismissed_at and clear matched_trip_id to free the package
-      await updatePackage(packageId, {
-        traveler_dismissed_at: new Date().toISOString(),
-        matched_trip_id: null,
-        traveler_address: null,
-        matched_trip_dates: null,
+      // Use the SECURITY DEFINER function to bypass RLS safely
+      const { error } = await supabase.rpc('traveler_dismiss_package', {
+        _package_id: packageId
       });
+
+      if (error) throw error;
 
       toast({
         title: "Paquete descartado",
