@@ -102,7 +102,7 @@ const AdminControl = () => {
         quote: baseQuote,
         quote_expires_at: pkg.quote_expires_at,
         products_data: baseProduct,
-        cancellation_reason: pkg.status === 'cancelled' ? 'Prueba de cancelación' : null,
+        rejection_reason: pkg.status === 'cancelled' ? 'Prueba de cancelación' : null,
       }));
 
       const { error: insertError } = await supabase
