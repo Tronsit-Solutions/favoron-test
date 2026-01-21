@@ -608,6 +608,7 @@ export type Database = {
           tracking_info: Json | null
           traveler_address: Json | null
           traveler_confirmation: Json | null
+          traveler_dismissal: Json | null
           traveler_dismissed_at: string | null
           traveler_rejection: Json | null
           updated_at: string
@@ -650,6 +651,7 @@ export type Database = {
           tracking_info?: Json | null
           traveler_address?: Json | null
           traveler_confirmation?: Json | null
+          traveler_dismissal?: Json | null
           traveler_dismissed_at?: string | null
           traveler_rejection?: Json | null
           updated_at?: string
@@ -692,6 +694,7 @@ export type Database = {
           tracking_info?: Json | null
           traveler_address?: Json | null
           traveler_confirmation?: Json | null
+          traveler_dismissal?: Json | null
           traveler_dismissed_at?: string | null
           traveler_rejection?: Json | null
           updated_at?: string
