@@ -1732,6 +1732,10 @@ export type Database = {
       refresh_platform_stats: { Args: never; Returns: undefined }
       send_assignment_warnings: { Args: never; Returns: undefined }
       send_quote_reminders: { Args: never; Returns: undefined }
+      traveler_dismiss_package: {
+        Args: { _package_id: string }
+        Returns: undefined
+      }
       traveler_reject_assignment:
         | {
             Args: {
