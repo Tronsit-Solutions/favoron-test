@@ -1,10 +1,13 @@
 import React from "react";
+import { formatDate } from "@/utils/dateHelpers";
+import { MapPin, Package, Plane } from "lucide-react";
+import favoronLogo from "@/assets/favoron-logo.png";
 
 interface InstagramTripPreviewProps {
   trips: any[];
   searchTerm: string;
   forCapture?: boolean;
-  currentPage?: number;
+  currentPage?: number; // Renderizar solo una página específica para captura
 }
 
 export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, currentPage }: InstagramTripPreviewProps) => {
@@ -21,169 +24,143 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
     };
   };
 
-  // 7 viajes por página para el nuevo diseño con cards horizontales
-  const TRIPS_PER_PAGE = 7;
+  const TRIPS_PER_PAGE = 10;
   const pages = [];
   for (let i = 0; i < filteredTrips.length; i += TRIPS_PER_PAGE) {
     pages.push(filteredTrips.slice(i, i + TRIPS_PER_PAGE));
   }
 
-  const formatCityName = (city: string) => {
-    if (city === "Guatemala City") return "Guatemala";
-    // Capitalize first letter of each word
-    return city.split(' ').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-    ).join(' ');
-  };
-
-  const renderTripPage = (pageTrips: any[], pageNumber: number) => (
+  const renderTripPage = (trips: any[], pageNumber: number) => (
     <div 
       data-capture-element="true"
-      style={{
-        width: forCapture ? '1080px' : '100%',
-        height: forCapture ? '1350px' : 'auto',
-        aspectRatio: forCapture ? undefined : '4 / 5',
-        background: 'linear-gradient(180deg, #f8fafc 0%, #e8eef3 100%)',
-        position: 'relative',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-        boxSizing: 'border-box',
-        paddingTop: forCapture ? '48px' : '36px',
-        paddingBottom: forCapture ? '48px' : '36px'
+      className={`relative overflow-hidden flex flex-col ${
+        forCapture 
+          ? 'w-[1080px] h-[1080px]' 
+          : 'w-full aspect-square'
+      }`}
+      style={forCapture ? { 
+        width: '1080px', 
+        height: '1080px',
+        backgroundColor: '#f5f5f5',
+        position: 'relative'
+      } : {
+        backgroundColor: '#f5f5f5'
       }}
     >
-      {/* Header - Only on first page */}
-      {pageNumber === 1 && (
-        <header style={{ 
-          position: 'relative', 
-          zIndex: 20, 
-          padding: forCapture ? '0 64px 32px' : '0 48px 24px',
-          textAlign: 'center'
-        }}>
+      {/* Header - Promotional Title */}
+      <header className="relative z-20 py-4 px-8">
+        <div className="text-center">
           <h1 
+            className="text-5xl font-bold leading-tight font-bricolage"
+            style={{ 
+              color: '#1a1a1a',
+              fontWeight: 700,
+              letterSpacing: '0.02em',
+              fontFamily: '"Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+            }}
+          >
+            Pide un <span style={{ color: '#3a8ec1', letterSpacing: '0.02em' }}>FAVORÓN</span> con los
+          </h1>
+          <h2 
+            className="text-5xl font-bold leading-tight font-bricolage mt-2"
             style={{ 
               color: '#3a8ec1',
               fontWeight: 700,
-              fontSize: forCapture ? '56px' : '44px',
-              lineHeight: 1.2,
-              letterSpacing: '-0.01em',
-              fontFamily: '"Bricolage Grotesque", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-              WebkitFontSmoothing: 'antialiased',
-              MozOsxFontSmoothing: 'grayscale',
-              margin: 0
+              letterSpacing: '0.02em',
+              fontFamily: '"Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
             }}
           >
-            Próximos Viajes
-          </h1>
-        </header>
-      )}
+            PRÓXIMOS VIAJEROS
+          </h2>
+        </div>
+      </header>
 
-      {/* Trips Cards - Itinerary Style */}
-      <main style={{ 
-        position: 'relative', 
-        zIndex: 10, 
-        flex: 1, 
-        padding: forCapture ? '8px 64px 0' : '6px 48px 0',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start'
-      }}>
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: forCapture ? '14px' : '10px'
-        }}>
-          {pageTrips.map((trip) => {
+      {/* Icons with Labels */}
+      <div className="relative z-10 px-8 py-4">
+        <div className="grid grid-cols-3 gap-6">
+          <div className="flex flex-col items-center">
+            <Package className="w-10 h-10 mb-2" style={{ color: '#1a1a1a' }} />
+            <span className="text-xl font-bold" style={{ color: '#1a1a1a', letterSpacing: '0.02em', fontFamily: '"Bricolage Grotesque", sans-serif' }}>ORIGEN</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <MapPin className="w-10 h-10 mb-2" style={{ color: '#1a1a1a' }} />
+            <span className="text-xl font-bold" style={{ color: '#1a1a1a', letterSpacing: '0.02em', fontFamily: '"Bricolage Grotesque", sans-serif' }}>DESTINO</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <Plane className="w-10 h-10 mb-2" style={{ color: '#1a1a1a' }} />
+            <span className="text-xl font-bold" style={{ color: '#1a1a1a', letterSpacing: '0.02em', fontFamily: '"Bricolage Grotesque", sans-serif' }}>SALIDA</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Trips Cards */}
+      <main className="relative z-10 flex-1 px-8 py-4">
+        <div className="flex flex-col gap-3 mb-6">
+          {trips.map((trip, index) => {
             const dateInfo = formatCalendarDate(trip.arrival_date);
             return (
               <article
                 key={trip.id}
-                style={{
-                  backgroundColor: '#ffffff',
-                  borderRadius: forCapture ? '16px' : '12px',
-                  padding: forCapture ? '20px 28px' : '16px 22px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: forCapture ? '16px' : '12px'
-                }}
+                className="grid grid-cols-3 gap-4 font-bricolage"
               >
-                {/* Route: Origin → Destination */}
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: forCapture ? '14px' : '10px', 
-                  flex: 1,
-                  minWidth: 0
-                }}>
-                  <span 
-                    style={{
-                      fontFamily: '"Bricolage Grotesque", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                      fontSize: forCapture ? '22px' : '18px',
-                      fontWeight: 700,
-                      color: '#1a1a1a',
-                      WebkitFontSmoothing: 'antialiased',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {formatCityName(trip.from_city)}
-                  </span>
-                  <span style={{ 
-                    color: '#94a3b8', 
-                    fontSize: forCapture ? '24px' : '20px',
-                    fontWeight: 300,
-                    lineHeight: 1
-                  }}>
-                    →
-                  </span>
-                  <span 
-                    style={{
-                      fontFamily: '"Bricolage Grotesque", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                      fontSize: forCapture ? '22px' : '18px',
-                      fontWeight: 700,
-                      color: '#3a8ec1',
-                      WebkitFontSmoothing: 'antialiased',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {formatCityName(trip.to_city)}
-                  </span>
-                </div>
-
-                {/* Date Badge */}
+                {/* Origin */}
                 <div 
+                  className="py-4 px-3 rounded-lg flex items-center justify-center"
                   style={{
-                    backgroundColor: '#3a8ec1',
-                    borderRadius: forCapture ? '10px' : '8px',
-                    padding: forCapture ? '10px 16px' : '8px 12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: forCapture ? '8px' : '6px',
-                    flexShrink: 0
+                    backgroundColor: '#3a8ec1'
                   }}
                 >
-                  <span 
-                    style={{ 
-                      fontSize: forCapture ? '16px' : '14px',
-                      lineHeight: 1
+                  <div 
+                    className="font-bold text-xl text-center leading-tight"
+                    style={{
+                      color: '#ffffff',
+                      fontWeight: 700,
+                      letterSpacing: '0.02em',
+                      fontFamily: '"Bricolage Grotesque", sans-serif'
                     }}
                   >
-                    ✈️
-                  </span>
-                  <span 
+                    {trip.from_city === "Guatemala City" ? "GUATEMALA" : trip.from_city.toUpperCase()}
+                  </div>
+                </div>
+
+                {/* Destination */}
+                <div 
+                  className="py-4 px-3 rounded-lg flex items-center justify-center"
+                  style={{
+                    backgroundColor: '#3a8ec1'
+                  }}
+                >
+                  <div 
+                    className="font-bold text-xl text-center leading-tight"
                     style={{
-                      fontFamily: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-                      fontSize: forCapture ? '15px' : '13px',
-                      fontWeight: 600,
                       color: '#ffffff',
-                      WebkitFontSmoothing: 'antialiased',
-                      whiteSpace: 'nowrap'
+                      fontWeight: 700,
+                      letterSpacing: '0.02em',
+                      fontFamily: '"Bricolage Grotesque", sans-serif'
+                    }}
+                  >
+                    {trip.to_city === "Guatemala City" ? "GUATEMALA" : trip.to_city.toUpperCase()}
+                  </div>
+                </div>
+
+                {/* Date */}
+                <div 
+                  className="py-4 px-3 rounded-lg flex items-center justify-center"
+                  style={{
+                    backgroundColor: '#3a8ec1'
+                  }}
+                >
+                  <div 
+                    className="font-bold text-xl text-center leading-tight"
+                    style={{
+                      color: '#ffffff',
+                      fontWeight: 700,
+                      letterSpacing: '0.02em',
+                      fontFamily: '"Bricolage Grotesque", sans-serif'
                     }}
                   >
                     {dateInfo.day} {dateInfo.month}
-                  </span>
+                  </div>
                 </div>
               </article>
             );
@@ -191,6 +168,19 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
         </div>
       </main>
 
+      {/* Page Number - Bottom Right */}
+      {pageNumber > 1 && (
+        <div className="absolute bottom-8 right-8 z-20">
+          <p 
+            className="text-base font-bold leading-none font-bricolage"
+            style={{ 
+              color: '#666666'
+            }}
+          >
+            PÁGINA {pageNumber}
+          </p>
+        </div>
+      )}
     </div>
   );
 
@@ -205,7 +195,7 @@ export const InstagramTripPreview = ({ trips, searchTerm, forCapture = false, cu
 
   // Si no, renderizar todas las páginas
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', backgroundColor: 'white' }}>
+    <div className="flex flex-col space-y-8 bg-white">
       {pages.map((pageTrips, index) => renderTripPage(pageTrips, index + 1))}
     </div>
   );
