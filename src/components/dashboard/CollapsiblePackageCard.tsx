@@ -834,7 +834,7 @@ const CollapsiblePackageCard = ({
               }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
                       <CreditCard className="h-3 w-3 mr-1 flex-shrink-0" />
                       <span className="truncate">Pagar</span>
-                    </Button> : pkg.status === 'pending_purchase' || pkg.status === 'in_transit' && (!pkg.purchase_confirmation || !pkg.tracking_info) ? <Button size="sm" variant="success" onClick={e => {
+                    </Button> : (pkg.status === 'pending_purchase' || (pkg.status === 'in_transit' && (!pkg.purchase_confirmation || !pkg.tracking_info))) ? <Button size="sm" variant="success" onClick={e => {
                 e.stopPropagation();
                 setShowShippingInfoModal(true);
               }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
