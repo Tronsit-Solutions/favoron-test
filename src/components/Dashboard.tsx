@@ -923,7 +923,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
                         })
                         .map(pkg => {
-                          const hasPendingAction = ['matched', 'in_transit', 'pending_office_confirmation'].includes(pkg.status);
+                          const hasPendingAction = ['matched', 'pending_office_confirmation'].includes(pkg.status);
                           const now = Date.now();
                           const hasCountdown = (pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now;
                           
