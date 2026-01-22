@@ -213,19 +213,6 @@ const CollapsibleTravelerPackageCard = ({
     return <>{prefix}Pedido de {products.length} productos: {productElements}</>;
   };
 
-  const getPackageDescription = () => {
-    const tipAmount = getTipAmount();
-    
-    if (pkg.products && pkg.products.length > 0) {
-      const total = pkg.products
-        .filter((product: any) => !product.cancelled)
-        .reduce((sum: number, product: any) => 
-          sum + parseFloat(product.estimatedPrice || 0), 0
-        ).toFixed(2);
-      return `Precio: $${total} • Tip: Q${tipAmount.toFixed(2)}`;
-    }
-    return `Precio: $${pkg.estimated_price}${tipAmount > 0 ? ` • Tip: Q${tipAmount.toFixed(2)}` : ''}`;
-  };
 
   const getTipAmount = () => {
     // First try to get tip from products_data, fallback to admin_assigned_tip
@@ -312,10 +299,6 @@ const CollapsibleTravelerPackageCard = ({
                   </div>
                 </div>
 
-                {/* Description */}
-                <CardDescription className="text-xs leading-tight text-muted-foreground break-words max-w-full">
-                  {getPackageDescription()}
-                </CardDescription>
 
                 {/* Status message - mobile optimized */}
                 <div className="text-xs w-full">
@@ -383,9 +366,6 @@ const CollapsibleTravelerPackageCard = ({
 
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                   <div className="flex-1 min-w-0">
-                    <CardDescription className="text-xs sm:text-sm leading-tight">
-                      <span className="block sm:truncate">{getPackageDescription()}</span>
-                    </CardDescription>
                     
                     {/* Status message moved here - below price/tip on left side */}
                     <div className="text-xs mt-2 text-left">
