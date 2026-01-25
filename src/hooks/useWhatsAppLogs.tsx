@@ -16,6 +16,10 @@ export interface WhatsAppLog {
   skip_reason: string | null;
   created_at: string;
   response_data: any;
+  // Delivery tracking fields from Twilio webhook
+  delivery_status: string | null;
+  delivery_error_code: string | null;
+  delivered_at: string | null;
 }
 
 export interface WhatsAppStats {

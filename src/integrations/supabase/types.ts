@@ -1306,6 +1306,9 @@ export type Database = {
       whatsapp_notification_logs: {
         Row: {
           created_at: string | null
+          delivered_at: string | null
+          delivery_error_code: string | null
+          delivery_status: string | null
           error_code: number | null
           error_message: string | null
           id: string
@@ -1321,6 +1324,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          delivered_at?: string | null
+          delivery_error_code?: string | null
+          delivery_status?: string | null
           error_code?: number | null
           error_message?: string | null
           id?: string
@@ -1336,6 +1342,9 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          delivered_at?: string | null
+          delivery_error_code?: string | null
+          delivery_status?: string | null
           error_code?: number | null
           error_message?: string | null
           id?: string
