@@ -1431,8 +1431,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const renderPackageForm = () => (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden px-6 md:px-8">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-xl md:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden px-6 md:px-8">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center space-x-2">
             <Package className="h-5 w-5 text-primary" />
             <span>{editMode ? `Editar Solicitud ${initialData?.id ? `#${initialData.id}` : ''}` : 'Nueva Solicitud de Paquete'}</span>
@@ -1446,16 +1446,19 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         </DialogHeader>
 
         {/* Step Indicator - only show for actual form steps (1-4) */}
-        {currentStep >= 1 && <StepIndicator />}
+        {currentStep >= 1 && <div className="flex-shrink-0"><StepIndicator /></div>}
 
-        {/* Using div instead of form to prevent browser auto-submit behavior */}
-        <div className="space-y-6">
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 min-h-0">
           {currentStep === 0 && renderStep0()}
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
           {currentStep === 4 && renderStep4()}
-          
+        </div>
+        
+        {/* Sticky navigation buttons - always visible at bottom */}
+        <div className="flex-shrink-0 pt-4 border-t border-border bg-background">
           {renderNavigationButtons()}
         </div>
       </DialogContent>
