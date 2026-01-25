@@ -146,12 +146,19 @@ const sendWhatsAppTemplate = async (
   const toWhatsApp = `whatsapp:${normalizedTo}`;
   
   const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
+  
+  // Build status callback URL for delivery tracking
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const statusCallbackUrl = supabaseUrl 
+    ? `${supabaseUrl}/functions/v1/twilio-status-webhook`
+    : null;
 
   console.log("📤 Sending WhatsApp template:", {
     from: fromWhatsApp,
     to: toWhatsApp,
     contentSid,
     variables: contentVariables,
+    statusCallback: statusCallbackUrl ? 'configured' : 'not configured'
   });
 
   const body = new URLSearchParams({
@@ -159,6 +166,11 @@ const sendWhatsAppTemplate = async (
     To: toWhatsApp,
     ContentSid: contentSid,
   });
+  
+  // Add status callback URL if available
+  if (statusCallbackUrl) {
+    body.append('StatusCallback', statusCallbackUrl);
+  }
 
   if (contentVariables && Object.keys(contentVariables).length > 0) {
     body.append('ContentVariables', JSON.stringify(contentVariables));

@@ -274,6 +274,80 @@ const AdminWhatsApp = () => {
     setResending(null);
   };
 
+  // Get the real delivery status (from Twilio webhook) with priority over initial status
+  const getDeliveryStatusBadge = (log: WhatsAppLog) => {
+    // If we have a delivery_status from webhook, use that
+    const deliveryStatus = log.delivery_status;
+    
+    if (deliveryStatus) {
+      switch (deliveryStatus) {
+        case 'delivered':
+          return (
+            <Badge className="bg-green-100 text-green-800 border-green-200">
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              Entregado
+            </Badge>
+          );
+        case 'read':
+          return (
+            <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              Leído
+            </Badge>
+          );
+        case 'undelivered':
+        case 'failed':
+          return (
+            <Badge className="bg-red-100 text-red-800 border-red-200">
+              <XCircle className="h-3 w-3 mr-1" />
+              No entregado
+            </Badge>
+          );
+        case 'sent':
+          return (
+            <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+              <Send className="h-3 w-3 mr-1" />
+              En camino
+            </Badge>
+          );
+        case 'queued':
+          return (
+            <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+              <Send className="h-3 w-3 mr-1" />
+              En cola
+            </Badge>
+          );
+      }
+    }
+    
+    // Fallback to original status if no delivery_status yet
+    switch (log.status) {
+      case 'sent':
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+            <Send className="h-3 w-3 mr-1" />
+            Aceptado
+          </Badge>
+        );
+      case 'failed':
+        return (
+          <Badge className="bg-red-100 text-red-800 border-red-200">
+            <XCircle className="h-3 w-3 mr-1" />
+            Error
+          </Badge>
+        );
+      case 'skipped':
+        return (
+          <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+            <SkipForward className="h-3 w-3 mr-1" />
+            Omitido
+          </Badge>
+        );
+      default:
+        return <Badge variant="secondary">{log.status}</Badge>;
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'sent':
@@ -603,7 +677,8 @@ const AdminWhatsApp = () => {
                         <TableHead>Fecha/Hora</TableHead>
                         <TableHead>Usuario</TableHead>
                         <TableHead>Template</TableHead>
-                        <TableHead>Estado</TableHead>
+                        <TableHead>Envío</TableHead>
+                        <TableHead>Entrega</TableHead>
                         <TableHead className="text-right">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -645,9 +720,28 @@ const AdminWhatsApp = () => {
                               </div>
                             )}
                             {log.skip_reason && (
-                              <div className="text-xs text-yellow-600 mt-1">
+                              <div className="text-xs text-yellow-600 mt-1 max-w-[150px] truncate" title={log.skip_reason}>
                                 {log.skip_reason}
                               </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {log.status === 'sent' ? (
+                              <>
+                                {getDeliveryStatusBadge(log)}
+                                {log.delivery_error_code && (
+                                  <div className="text-xs text-red-600 mt-1">
+                                    Error: {log.delivery_error_code}
+                                  </div>
+                                )}
+                                {log.delivered_at && (
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {format(new Date(log.delivered_at), 'HH:mm:ss')}
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
                             )}
                           </TableCell>
                           <TableCell className="text-right">
@@ -703,8 +797,14 @@ const AdminWhatsApp = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Estado</p>
+                    <p className="text-sm text-muted-foreground">Estado de envío</p>
                     {getStatusBadge(selectedLog.status)}
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Estado de entrega</p>
+                    {selectedLog.status === 'sent' ? getDeliveryStatusBadge(selectedLog) : (
+                      <span className="text-sm text-muted-foreground">-</span>
+                    )}
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Template</p>
@@ -719,15 +819,29 @@ const AdminWhatsApp = () => {
                     <p className="font-medium">{selectedLog.phone_number}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Fecha</p>
+                    <p className="text-sm text-muted-foreground">Enviado</p>
                     <p className="font-medium">
                       {format(new Date(selectedLog.created_at), 'dd MMM yyyy HH:mm:ss', { locale: es })}
                     </p>
                   </div>
+                  {selectedLog.delivered_at && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Entregado</p>
+                      <p className="font-medium">
+                        {format(new Date(selectedLog.delivered_at), 'dd MMM yyyy HH:mm:ss', { locale: es })}
+                      </p>
+                    </div>
+                  )}
                   {selectedLog.twilio_sid && (
                     <div>
                       <p className="text-sm text-muted-foreground">Twilio SID</p>
                       <p className="font-mono text-xs">{selectedLog.twilio_sid}</p>
+                    </div>
+                  )}
+                  {selectedLog.delivery_error_code && (
+                    <div className="col-span-2">
+                      <p className="text-sm text-muted-foreground">Error de entrega</p>
+                      <p className="text-red-600 font-medium">{selectedLog.delivery_error_code}</p>
                     </div>
                   )}
                 </div>
