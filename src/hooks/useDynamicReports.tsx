@@ -157,6 +157,11 @@ export const useDynamicReports = (months: number = 12) => {
         const userMonth = u.created_at?.substring(0, 7);
         return userMonth === monthKey;
       });
+      
+      // Debug log para enero 2026
+      if (monthKey === '2026-01') {
+        console.log('[DEBUG] January 2026:', { monthKey, totalUsersInData: usersData.length, matchingUsers: monthUsers.length });
+      }
       const newUsers = monthUsers.length;
 
       // Packages for this month - use ISO string comparison for UTC consistency
