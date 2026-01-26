@@ -118,9 +118,8 @@ export const useDynamicReports = (months: number = 12) => {
       return { monthlyData: [], kpis: getEmptyKPIs() };
     }
 
-    // Generate last N months
+    // Generate monthly data
     const monthlyData: MonthlyDataPoint[] = [];
-    let accumulatedUsers = 0;
     
     // Find earliest data point
     const allDates = [
@@ -142,14 +141,6 @@ export const useDynamicReports = (months: number = 12) => {
     
     const monthsToProcess = Math.min(monthsDiff, months);
 
-    // Count users before the first month for accumulated total
-    const firstProcessMonth = subMonths(now, monthsToProcess - 1);
-    const usersBeforeFirstMonth = usersData.filter(u => {
-      const createdAt = new Date(u.created_at);
-      return createdAt < startOfMonth(firstProcessMonth);
-    }).length;
-    accumulatedUsers = usersBeforeFirstMonth;
-
     // Use exact total from countsData for accurate accumulated users
     const exactTotalUsers = countsData?.totalUsers ?? usersData.length;
 
@@ -159,7 +150,6 @@ export const useDynamicReports = (months: number = 12) => {
       const monthEnd = endOfMonth(monthDate);
       const monthKey = format(monthDate, 'yyyy-MM');
       const monthLabel = format(monthDate, 'MMM yy', { locale: es });
-      const isCurrentMonth = i === 0;
 
       // Users for this month
       const monthUsers = usersData.filter(u => {
@@ -167,10 +157,6 @@ export const useDynamicReports = (months: number = 12) => {
         return createdAt >= monthStart && createdAt <= monthEnd;
       });
       const newUsers = monthUsers.length;
-      accumulatedUsers += newUsers;
-      
-      // For the current month, use exact count from database to ensure accuracy
-      const displayAccumulatedUsers = isCurrentMonth ? exactTotalUsers : accumulatedUsers;
 
       // Packages for this month
       const monthPackages = packagesData.filter(p => {
@@ -227,7 +213,7 @@ export const useDynamicReports = (months: number = 12) => {
         month: monthKey,
         monthLabel,
         newUsers,
-        accumulatedUsers: displayAccumulatedUsers,
+        accumulatedUsers: 0, // Will be recalculated below
         totalPackages,
         completedPackages,
         pendingPackages,
@@ -243,6 +229,13 @@ export const useDynamicReports = (months: number = 12) => {
         profitMargin: gmv > 0 ? (favoronRevenue / gmv) * 100 : 0,
         avgPackageValue,
       });
+    }
+
+    // Recalculate accumulated users precisely by working backwards from exact total
+    let runningTotal = exactTotalUsers;
+    for (let i = monthlyData.length - 1; i >= 0; i--) {
+      monthlyData[i].accumulatedUsers = runningTotal;
+      runningTotal -= monthlyData[i].newUsers;
     }
 
     // Calculate KPIs - use exact counts from countsData
