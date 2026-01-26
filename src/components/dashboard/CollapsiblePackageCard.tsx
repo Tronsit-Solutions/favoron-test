@@ -150,7 +150,7 @@ const CollapsiblePackageCard = ({
       case 'payment_pending_approval':
         return 'Pago enviado - Esperando aprobación';
       case 'pending_purchase':
-        return "Pago confirmado - Viajero comprará el producto";
+        return "Pago confirmado - Procede a realizar tu compra";
       case 'in_transit':
         // Check if there are multiple products and if any are received
         if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
@@ -161,7 +161,7 @@ const CollapsiblePackageCard = ({
             return `${receivedCount}/${totalCount} productos recibidos`;
           }
         }
-        return 'Paquete en tránsito a la dirección del viajero. El viajero confirmará al recibir el paquete';
+        return 'Tu paquete está en camino. El viajero confirmará cuando lo reciba';
       case 'received_by_traveler':
         return "Recibido por viajero";
       case 'pending_office_confirmation':
