@@ -48,7 +48,7 @@ export interface DynamicReportsData {
 export const useDynamicReports = (months: number = 12) => {
   // Fetch exact counts (not limited by default 1000 row limit)
   const { data: countsData, isLoading: countsLoading } = useQuery({
-    queryKey: ['dynamic-reports-counts'],
+    queryKey: ['dynamic-reports-counts', 'v2'],
     queryFn: async () => {
       const [usersCount, packagesCount, tripsCount] = await Promise.all([
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
@@ -67,7 +67,7 @@ export const useDynamicReports = (months: number = 12) => {
 
   // Fetch users data with higher limit for monthly calculations
   const { data: usersData, isLoading: usersLoading } = useQuery({
-    queryKey: ['dynamic-reports-users', months],
+    queryKey: ['dynamic-reports-users', months, 'v2'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
@@ -83,7 +83,7 @@ export const useDynamicReports = (months: number = 12) => {
 
   // Fetch packages data with higher limit
   const { data: packagesData, isLoading: packagesLoading } = useQuery({
-    queryKey: ['dynamic-reports-packages', months],
+    queryKey: ['dynamic-reports-packages', months, 'v2'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('packages')
@@ -99,7 +99,7 @@ export const useDynamicReports = (months: number = 12) => {
 
   // Fetch trips data with higher limit
   const { data: tripsData, isLoading: tripsLoading } = useQuery({
-    queryKey: ['dynamic-reports-trips', months],
+    queryKey: ['dynamic-reports-trips', months, 'v2'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('trips')
