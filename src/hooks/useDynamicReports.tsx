@@ -1,8 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo } from "react";
-import { format, subMonths, startOfMonth, endOfMonth, parseISO } from "date-fns";
+import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { es } from "date-fns/locale";
+
+interface MonthlyUserCount {
+  month: string;
+  user_count: number;
+}
+
+interface MonthlyPackageStats {
+  month: string;
+  total_count: number;
+  completed_count: number;
+  pending_count: number;
+  cancelled_count: number;
+  gmv: number;
+  service_fee: number;
+  delivery_fee: number;
+}
+
+interface MonthlyTripStats {
+  month: string;
+  total_count: number;
+  approved_count: number;
+  completed_count: number;
+}
 
 interface MonthlyDataPoint {
   month: string;
@@ -48,7 +71,7 @@ export interface DynamicReportsData {
 export const useDynamicReports = (months: number = 12) => {
   // Fetch exact counts (not limited by default 1000 row limit)
   const { data: countsData, isLoading: countsLoading } = useQuery({
-    queryKey: ['dynamic-reports-counts', 'v3'],
+    queryKey: ['dynamic-reports-counts', 'v4'],
     queryFn: async () => {
       const [usersCount, packagesCount, tripsCount] = await Promise.all([
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
@@ -65,154 +88,100 @@ export const useDynamicReports = (months: number = 12) => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch users data with higher limit for monthly calculations
-  const { data: usersData, isLoading: usersLoading } = useQuery({
-    queryKey: ['dynamic-reports-users', months, 'v3'],
+  // Fetch aggregated user counts by month using RPC
+  const { data: monthlyUsersData, isLoading: usersLoading } = useQuery({
+    queryKey: ['dynamic-reports-users-rpc', 'v4'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, created_at')
-        .order('created_at', { ascending: true })
-        .limit(10000);
-      
+      const { data, error } = await supabase.rpc('get_monthly_user_counts');
       if (error) throw error;
-      return data;
+      return data as MonthlyUserCount[];
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch packages data with higher limit
-  const { data: packagesData, isLoading: packagesLoading } = useQuery({
-    queryKey: ['dynamic-reports-packages', months, 'v3'],
+  // Fetch aggregated package stats by month using RPC
+  const { data: monthlyPackagesData, isLoading: packagesLoading } = useQuery({
+    queryKey: ['dynamic-reports-packages-rpc', 'v4'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('packages')
-        .select('id, created_at, status, quote')
-        .order('created_at', { ascending: true })
-        .limit(10000);
-      
+      const { data, error } = await supabase.rpc('get_monthly_package_stats');
       if (error) throw error;
-      return data;
+      return data as MonthlyPackageStats[];
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch trips data with higher limit
-  const { data: tripsData, isLoading: tripsLoading } = useQuery({
-    queryKey: ['dynamic-reports-trips', months, 'v3'],
+  // Fetch aggregated trip stats by month using RPC
+  const { data: monthlyTripsData, isLoading: tripsLoading } = useQuery({
+    queryKey: ['dynamic-reports-trips-rpc', 'v4'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('trips')
-        .select('id, created_at, status')
-        .order('created_at', { ascending: true })
-        .limit(10000);
-      
+      const { data, error } = await supabase.rpc('get_monthly_trip_stats');
       if (error) throw error;
-      return data;
+      return data as MonthlyTripStats[];
     },
     staleTime: 5 * 60 * 1000,
   });
 
   const processedData = useMemo(() => {
-    if (!usersData || !packagesData || !tripsData || !countsData) {
+    if (!monthlyUsersData || !monthlyPackagesData || !monthlyTripsData || !countsData) {
       return { monthlyData: [], kpis: getEmptyKPIs() };
     }
 
-    // Generate monthly data
-    const monthlyData: MonthlyDataPoint[] = [];
-    
-    // Find earliest data point
-    const allDates = [
-      ...usersData.map(u => u.created_at),
-      ...packagesData.map(p => p.created_at),
-      ...tripsData.map(t => t.created_at)
-    ].filter(Boolean);
-    
-    if (allDates.length === 0) {
+    // Create lookup maps for quick access
+    const usersMap = new Map(monthlyUsersData.map(u => [u.month, Number(u.user_count)]));
+    const packagesMap = new Map(monthlyPackagesData.map(p => [p.month, p]));
+    const tripsMap = new Map(monthlyTripsData.map(t => [t.month, t]));
+
+    // Find all months with data
+    const allMonths = new Set([
+      ...monthlyUsersData.map(u => u.month),
+      ...monthlyPackagesData.map(p => p.month),
+      ...monthlyTripsData.map(t => t.month),
+    ]);
+
+    if (allMonths.size === 0) {
       return { monthlyData: [], kpis: getEmptyKPIs() };
     }
 
-    const earliestDate = new Date(Math.min(...allDates.map(d => new Date(d).getTime())));
+    // Sort months and limit to requested range
+    const sortedMonths = Array.from(allMonths).sort();
     const now = new Date();
+    const currentMonth = now.toISOString().substring(0, 7);
     
-    // Calculate number of months between earliest and now
-    const monthsDiff = (now.getFullYear() - earliestDate.getFullYear()) * 12 + 
-                       (now.getMonth() - earliestDate.getMonth()) + 1;
-    
-    const monthsToProcess = Math.min(monthsDiff, months);
+    // Generate months to display (last N months)
+    const monthsToDisplay: string[] = [];
+    for (let i = months - 1; i >= 0; i--) {
+      const monthDate = subMonths(now, i);
+      const monthKey = monthDate.toISOString().substring(0, 7);
+      monthsToDisplay.push(monthKey);
+    }
 
     // Use exact total from countsData for accurate accumulated users
-    const exactTotalUsers = countsData?.totalUsers ?? usersData.length;
+    const exactTotalUsers = countsData?.totalUsers ?? 0;
 
-    for (let i = monthsToProcess - 1; i >= 0; i--) {
-      const monthDate = subMonths(now, i);
-      const monthStart = startOfMonth(monthDate);
-      const monthEnd = endOfMonth(monthDate);
-      const monthKey = monthDate.toISOString().substring(0, 7);
+    // Build monthly data points
+    const monthlyData: MonthlyDataPoint[] = [];
+    
+    for (const monthKey of monthsToDisplay) {
+      const monthDate = new Date(monthKey + '-01');
       const monthLabel = format(monthDate, 'MMM yy', { locale: es });
 
-      // Users for this month - use ISO string comparison for UTC consistency
-      const monthUsers = usersData.filter(u => {
-        // Extract YYYY-MM from ISO timestamp to avoid timezone issues
-        const userMonth = u.created_at?.substring(0, 7);
-        return userMonth === monthKey;
-      });
-      
-      // Debug log para enero 2026
-      if (monthKey === '2026-01') {
-        console.log('[DEBUG] January 2026:', { monthKey, totalUsersInData: usersData.length, matchingUsers: monthUsers.length });
-      }
-      const newUsers = monthUsers.length;
+      const newUsers = usersMap.get(monthKey) || 0;
+      const pkgStats = packagesMap.get(monthKey);
+      const tripStats = tripsMap.get(monthKey);
 
-      // Packages for this month - use ISO string comparison for UTC consistency
-      const monthPackages = packagesData.filter(p => {
-        const pkgMonth = p.created_at?.substring(0, 7);
-        return pkgMonth === monthKey;
-      });
-      
-      const totalPackages = monthPackages.length;
-      const completedPackages = monthPackages.filter(p => 
-        ['completed', 'delivered_to_office'].includes(p.status)
-      ).length;
-      const pendingPackages = monthPackages.filter(p => 
-        ['pending_approval', 'approved', 'matched', 'awaiting_quote', 'quote_pending'].includes(p.status)
-      ).length;
-      const cancelledPackages = monthPackages.filter(p => 
-        ['rejected', 'cancelled', 'admin_rejected'].includes(p.status)
-      ).length;
-      
-      // Calculate financials from completed packages
-      let gmv = 0;
-      let favoronRevenue = 0;
-      let travelerTips = 0;
-      
-      monthPackages.forEach(pkg => {
-        if (pkg.quote && ['completed', 'delivered_to_office'].includes(pkg.status)) {
-          const quote = pkg.quote as any;
-          const totalPrice = parseFloat(quote.totalPrice || quote.completePrice || 0);
-          const serviceFee = parseFloat(quote.serviceFee || 0);
-          const deliveryFee = parseFloat(quote.deliveryFee || 0);
-          
-          gmv += totalPrice;
-          favoronRevenue += serviceFee;
-          travelerTips += Math.max(0, totalPrice - serviceFee - deliveryFee);
-        }
-      });
+      const totalPackages = pkgStats ? Number(pkgStats.total_count) : 0;
+      const completedPackages = pkgStats ? Number(pkgStats.completed_count) : 0;
+      const pendingPackages = pkgStats ? Number(pkgStats.pending_count) : 0;
+      const cancelledPackages = pkgStats ? Number(pkgStats.cancelled_count) : 0;
+      const gmv = pkgStats ? Number(pkgStats.gmv) : 0;
+      const serviceFee = pkgStats ? Number(pkgStats.service_fee) : 0;
+      const deliveryFee = pkgStats ? Number(pkgStats.delivery_fee) : 0;
 
-      // Trips for this month - use ISO string comparison for UTC consistency
-      const monthTrips = tripsData.filter(t => {
-        const tripMonth = t.created_at?.substring(0, 7);
-        return tripMonth === monthKey;
-      });
-      
-      const totalTrips = monthTrips.length;
-      const approvedTrips = monthTrips.filter(t => 
-        ['approved', 'active', 'completed'].includes(t.status)
-      ).length;
-      const completedTrips = monthTrips.filter(t => 
-        t.status === 'completed'
-      ).length;
+      const totalTrips = tripStats ? Number(tripStats.total_count) : 0;
+      const approvedTrips = tripStats ? Number(tripStats.approved_count) : 0;
+      const completedTrips = tripStats ? Number(tripStats.completed_count) : 0;
 
+      const travelerTips = Math.max(0, gmv - serviceFee - deliveryFee);
       const avgPackageValue = completedPackages > 0 ? gmv / completedPackages : 0;
 
       monthlyData.push({
@@ -230,9 +199,9 @@ export const useDynamicReports = (months: number = 12) => {
         completedTrips,
         tripApprovalRate: totalTrips > 0 ? (approvedTrips / totalTrips) * 100 : 0,
         gmv,
-        favoronRevenue,
+        favoronRevenue: serviceFee,
         travelerTips,
-        profitMargin: gmv > 0 ? (favoronRevenue / gmv) * 100 : 0,
+        profitMargin: gmv > 0 ? (serviceFee / gmv) * 100 : 0,
         avgPackageValue,
       });
     }
@@ -244,45 +213,38 @@ export const useDynamicReports = (months: number = 12) => {
       runningTotal -= monthlyData[i].newUsers;
     }
 
-    // Calculate KPIs - use exact counts from countsData
-    const totalUsers = countsData?.totalUsers ?? usersData.length;
-    const totalPackages = countsData?.totalPackages ?? packagesData.length;
-    const completedPackagesTotal = packagesData.filter(p => 
-      ['completed', 'delivered_to_office'].includes(p.status)
-    ).length;
-    const totalTrips = countsData?.totalTrips ?? tripsData.length;
+    // Calculate KPIs
+    const totalUsers = countsData?.totalUsers ?? 0;
+    const totalPackages = countsData?.totalPackages ?? 0;
+    const totalTrips = countsData?.totalTrips ?? 0;
     
+    // Aggregate totals from all monthly data (not just displayed months)
     let totalRevenue = 0;
     let totalTips = 0;
     let totalGMV = 0;
+    let totalCompletedPackages = 0;
     
-    packagesData.forEach(pkg => {
-      if (pkg.quote && ['completed', 'delivered_to_office'].includes(pkg.status)) {
-        const quote = pkg.quote as any;
-        const totalPrice = parseFloat(quote.totalPrice || quote.completePrice || 0);
-        const serviceFee = parseFloat(quote.serviceFee || 0);
-        const deliveryFee = parseFloat(quote.deliveryFee || 0);
-        
-        totalGMV += totalPrice;
-        totalRevenue += serviceFee;
-        totalTips += Math.max(0, totalPrice - serviceFee - deliveryFee);
-      }
+    monthlyPackagesData.forEach(pkg => {
+      totalGMV += Number(pkg.gmv);
+      totalRevenue += Number(pkg.service_fee);
+      totalTips += Math.max(0, Number(pkg.gmv) - Number(pkg.service_fee) - Number(pkg.delivery_fee));
+      totalCompletedPackages += Number(pkg.completed_count);
     });
 
     // MoM calculations
-    const currentMonth = monthlyData[monthlyData.length - 1];
+    const currentMonth2 = monthlyData[monthlyData.length - 1];
     const previousMonth = monthlyData[monthlyData.length - 2];
     
     const momUserGrowth = previousMonth && previousMonth.newUsers > 0
-      ? ((currentMonth?.newUsers || 0) - previousMonth.newUsers) / previousMonth.newUsers * 100
+      ? ((currentMonth2?.newUsers || 0) - previousMonth.newUsers) / previousMonth.newUsers * 100
       : 0;
     
     const momPackageGrowth = previousMonth && previousMonth.totalPackages > 0
-      ? ((currentMonth?.totalPackages || 0) - previousMonth.totalPackages) / previousMonth.totalPackages * 100
+      ? ((currentMonth2?.totalPackages || 0) - previousMonth.totalPackages) / previousMonth.totalPackages * 100
       : 0;
     
     const momRevenueGrowth = previousMonth && previousMonth.favoronRevenue > 0
-      ? ((currentMonth?.favoronRevenue || 0) - previousMonth.favoronRevenue) / previousMonth.favoronRevenue * 100
+      ? ((currentMonth2?.favoronRevenue || 0) - previousMonth.favoronRevenue) / previousMonth.favoronRevenue * 100
       : 0;
 
     const kpis: KPIData = {
@@ -291,15 +253,15 @@ export const useDynamicReports = (months: number = 12) => {
       totalTrips,
       totalRevenue,
       totalTips,
-      completionRate: totalPackages > 0 ? (completedPackagesTotal / totalPackages) * 100 : 0,
-      avgPackageValue: completedPackagesTotal > 0 ? totalGMV / completedPackagesTotal : 0,
+      completionRate: totalPackages > 0 ? (totalCompletedPackages / totalPackages) * 100 : 0,
+      avgPackageValue: totalCompletedPackages > 0 ? totalGMV / totalCompletedPackages : 0,
       momUserGrowth,
       momPackageGrowth,
       momRevenueGrowth,
     };
 
     return { monthlyData, kpis };
-  }, [usersData, packagesData, tripsData, countsData, months]);
+  }, [monthlyUsersData, monthlyPackagesData, monthlyTripsData, countsData, months]);
 
   const isLoading = usersLoading || packagesLoading || tripsLoading || countsLoading;
 
