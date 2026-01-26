@@ -151,17 +151,18 @@ export const useDynamicReports = (months: number = 12) => {
       const monthKey = format(monthDate, 'yyyy-MM');
       const monthLabel = format(monthDate, 'MMM yy', { locale: es });
 
-      // Users for this month
+      // Users for this month - use ISO string comparison for UTC consistency
       const monthUsers = usersData.filter(u => {
-        const createdAt = new Date(u.created_at);
-        return createdAt >= monthStart && createdAt <= monthEnd;
+        // Extract YYYY-MM from ISO timestamp to avoid timezone issues
+        const userMonth = u.created_at?.substring(0, 7);
+        return userMonth === monthKey;
       });
       const newUsers = monthUsers.length;
 
-      // Packages for this month
+      // Packages for this month - use ISO string comparison for UTC consistency
       const monthPackages = packagesData.filter(p => {
-        const createdAt = new Date(p.created_at);
-        return createdAt >= monthStart && createdAt <= monthEnd;
+        const pkgMonth = p.created_at?.substring(0, 7);
+        return pkgMonth === monthKey;
       });
       
       const totalPackages = monthPackages.length;
@@ -193,10 +194,10 @@ export const useDynamicReports = (months: number = 12) => {
         }
       });
 
-      // Trips for this month
+      // Trips for this month - use ISO string comparison for UTC consistency
       const monthTrips = tripsData.filter(t => {
-        const createdAt = new Date(t.created_at);
-        return createdAt >= monthStart && createdAt <= monthEnd;
+        const tripMonth = t.created_at?.substring(0, 7);
+        return tripMonth === monthKey;
       });
       
       const totalTrips = monthTrips.length;
