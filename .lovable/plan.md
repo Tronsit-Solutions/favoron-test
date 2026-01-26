@@ -1,94 +1,67 @@
 
 
-# Plan: Corregir Documentos No Visibles en Pestaña Docs
+# Plan: Corregir Mensajes Incorrectos sobre Quién Compra el Producto
 
-## Problema Identificado
+## Problema Crítico
 
-Hay dos problemas relacionados:
+El mensaje "Pago confirmado - Viajero comprará el producto" es **completamente incorrecto**. En el flujo de Favoron:
 
-### Problema 1: Botón "Ver dirección y comprar" aparece cuando no debería
-El paquete "cámaras desechables" está en estado `in_transit` y tiene ambos documentos (`purchase_confirmation` y `tracking_info`) guardados en la base de datos, pero el botón sigue apareciendo.
+| Rol | Responsabilidad |
+|-----|-----------------|
+| **Shopper** | Compra el producto en la tienda online y lo envía a la dirección del viajero |
+| **Viajero** | Recibe el paquete en su dirección y lo transporta a Guatemala |
 
-**Causa raíz:** La consulta optimizada en `useOptimizedPackagesData.tsx` no incluye los campos `purchase_confirmation` ni `tracking_info` en el SELECT. Esto hace que:
-- `pkg.purchase_confirmation` sea `undefined`
-- `pkg.tracking_info` sea `undefined`
-- La condición `!pkg.purchase_confirmation || !pkg.tracking_info` sea `true` aunque los documentos existen
+El texto actual confunde a los usuarios al sugerir que el viajero es quien compra.
 
-### Problema 2: Pestaña "Docs" está vacía
-El componente `UploadedDocumentsRegistry` verifica si hay documentos, pero como los campos no se cargan, el conteo es 0 y no muestra nada.
+## Ubicaciones del Error
 
-## Datos del paquete (verificados en base de datos)
+### Archivo: `src/components/dashboard/CollapsiblePackageCard.tsx`
 
-| Campo | Valor |
-|-------|-------|
-| ID | 047cae8d-78bc-4f0e-b346-7ea7e4844b5c |
-| Status | in_transit |
-| purchase_confirmation | { filePath: "...", filename: "favoron-hub-viajes-2026-01-21-pagina-4.png", ... } |
-| tracking_info | { trackingNumber: "f3473", timestamp: "2026-01-22T10:37:28.784Z", ... } |
+| Línea | Texto Actual (Incorrecto) | Texto Corregido |
+|-------|---------------------------|-----------------|
+| 153 | "Pago confirmado - Viajero comprará el producto" | "Pago confirmado - Procede a realizar tu compra" |
+| 164 | "Paquete en tránsito a la dirección del viajero. El viajero confirmará al recibir el paquete" | "Tu paquete está en camino. El viajero confirmará cuando lo reciba" |
 
-Los documentos EXISTEN en la base de datos, pero no se están cargando en la UI.
+### Nota sobre "Ver dirección y comprar" (Línea 841)
 
-## Solución
+Este texto del botón es **correcto** porque se muestra al shopper, indicándole que debe ver la dirección del viajero y realizar la compra. No requiere cambio.
 
-### Archivo a modificar:
-`src/hooks/useOptimizedPackagesData.tsx`
+## Cambios Propuestos
 
-### Cambio:
-Agregar los campos faltantes a la consulta SELECT (líneas 102-167):
+### Cambio 1: Estado `pending_purchase` (Línea 153)
 
 ```typescript
-const { data, error } = await supabase
-  .from('packages')
-  .select(`
-    id,
-    user_id,
-    status,
-    item_description,
-    item_link,
-    estimated_price,
-    products_data,
-    purchase_origin,
-    package_destination,
-    matched_trip_id,
-    created_at,
-    updated_at,
-    delivery_deadline,
-    delivery_method,
-    quote,
-    quote_expires_at,
-    matched_assignment_expires_at,
-    label_number,
-    incident_flag,
-    rejection_reason,
-    wants_requote,
-    admin_assigned_tip,
-    admin_rejection,
-    quote_rejection,
-    traveler_rejection,
-    confirmed_delivery_address,
-    traveler_address,
-    matched_trip_dates,
-    payment_receipt,
-    purchase_confirmation,   // <-- AGREGAR
-    tracking_info,           // <-- AGREGAR
-    office_delivery,         // <-- AGREGAR (para futuras validaciones)
-    traveler_dismissed_at,
-    traveler_confirmation,
-    additional_notes,
-    internal_notes,
-    profiles:user_id(...),
-    trips:matched_trip_id(...)
-  `)
+// ANTES (incorrecto):
+case 'pending_purchase':
+  return "Pago confirmado - Viajero comprará el producto";
+
+// DESPUÉS (correcto):
+case 'pending_purchase':
+  return "Pago confirmado - Procede a realizar tu compra";
 ```
 
-## Resultado Esperado
+**Razón:** El shopper ya pagó a Favoron, ahora debe comprar el producto en la tienda y enviarlo a la dirección del viajero.
 
-Después del cambio:
-1. El paquete "cámaras desechables" NO mostrará el botón "Ver dirección y comprar" (ya que tiene ambos documentos)
-2. La pestaña "Docs" mostrará los 2 documentos subidos (confirmación de compra + tracking)
+### Cambio 2: Estado `in_transit` (Línea 164)
+
+```typescript
+// ANTES:
+return 'Paquete en tránsito a la dirección del viajero. El viajero confirmará al recibir el paquete';
+
+// DESPUÉS:
+return 'Tu paquete está en camino. El viajero confirmará cuando lo reciba';
+```
+
+**Razón:** Simplificar el mensaje manteniendo claridad sin mencionar quién compra.
+
+## Resumen de Archivos a Modificar
+
+| Archivo | Líneas | Cambio |
+|---------|--------|--------|
+| `src/components/dashboard/CollapsiblePackageCard.tsx` | 153, 164 | Corregir mensajes de estado para reflejar que el shopper compra |
 
 ## Impacto
 
-- **Rendimiento:** Mínimo impacto, estos campos JSONB son pequeños comparados con otros ya incluidos como `products_data` y `quote`
-- **Riesgo:** Muy bajo, solo agrega campos al SELECT sin modificar lógica existente
+- **UI/UX:** El shopper verá mensajes claros que le indican que debe realizar la compra
+- **Riesgo:** Muy bajo, solo cambios de texto informativo
 
