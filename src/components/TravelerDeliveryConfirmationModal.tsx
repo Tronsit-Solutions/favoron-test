@@ -128,8 +128,8 @@ const TravelerDeliveryConfirmationModal = ({
       }
 
       toast({
-        title: "Declaración de entrega registrada",
-        description: "El equipo de Favorón debe confirmar la recepción antes de procesar tu pago.",
+        title: "¡Entrega registrada correctamente!",
+        description: "Una vez que el equipo de Favorón confirme la recepción de los paquetes, podrás crear tu orden de cobro desde tu dashboard.",
       });
 
       onConfirmDelivery();
