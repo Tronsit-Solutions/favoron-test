@@ -1,63 +1,62 @@
 
-# Plan: Corregir el Reporte de Crecimiento de Usuarios
+
+# Plan: Corregir Cálculo de Usuarios Nuevos Mensuales
 
 ## Problema Identificado
-El reporte actual tiene dos problemas:
-1. **Datos incorrectos**: La gráfica muestra diciembre 2025 con ~1400 usuarios acumulados, pero el dato real es **754**
-2. **El límite de 10,000 filas** puede causar pérdida de datos en el futuro, pero actualmente solo hay 1,253 usuarios totales
 
-El bug principal es que el cálculo acumulado solo es preciso para el **mes actual** (línea 173), pero los meses anteriores usan datos potencialmente incompletos.
+El gráfico muestra **246 usuarios nuevos** en enero 2026, pero la base de datos confirma que son **499**. 
 
-## Datos Reales de la Base de Datos
+### Causa Raíz
+El problema tiene dos partes:
 
-| Mes | Nuevos Usuarios | Acumulado Correcto |
-|-----|-----------------|-------------------|
-| jul 25 | 11 | 11 |
-| ago 25 | 50 | 61 |
-| sep 25 | 151 | 212 |
-| oct 25 | 109 | 321 |
-| nov 25 | 116 | 437 |
-| dic 25 | 317 | 754 |
-| ene 26 | 499 | **1,253** |
+1. **Datos cacheados en el navegador**: React Query tiene un `staleTime` de 5 minutos, pero la data del usuario no se ha refrescado
+2. **Inconsistencia de zona horaria**: El código usa funciones `date-fns` que operan en la zona horaria local del navegador, mientras que los timestamps de la DB están en UTC
 
-## Solución Propuesta
+El código actual:
+```typescript
+const monthStart = startOfMonth(monthDate); // Zona horaria LOCAL
+const monthEnd = endOfMonth(monthDate);     // Zona horaria LOCAL
 
-### Cambio en `useDynamicReports.tsx`
-
-1. **Usar consultas SQL agregadas por mes** en lugar de traer todos los usuarios y contar en cliente
-2. Esto elimina el problema del límite de 10,000 filas y garantiza datos precisos
-
-```text
-// Nueva query que obtiene conteos por mes directamente desde la DB
-const monthlyUserCounts = await supabase.rpc('get_monthly_user_counts', {
-  start_date: startDate,
-  end_date: endDate
+const monthUsers = usersData.filter(u => {
+  const createdAt = new Date(u.created_at); // UTC convertido a LOCAL
+  return createdAt >= monthStart && createdAt <= monthEnd;
 });
 ```
 
-**Alternativa sin crear RPC** (más simple):
-- Usar `GROUP BY` con la función de Supabase directamente no es posible
-- En su lugar, calcular acumulados correctamente usando el total exacto (`countsData.totalUsers`) y restando hacia atrás
+Esto puede causar que usuarios creados cerca del límite del mes (00:00-06:00 UTC del día 1) sean asignados al mes anterior.
 
-### Lógica Corregida
+---
 
-```text
-// Calcular acumulados de forma descendente desde el total conocido
-let runningTotal = exactTotalUsers; // 1,253
+## Solución Propuesta
 
-// Iterar de más reciente a más antiguo
-for (let i = 0; i < monthlyData.length; i++) {
-  // Para el mes actual
-  monthlyData[monthlyData.length - 1 - i].accumulatedUsers = runningTotal;
-  runningTotal -= monthlyData[monthlyData.length - 1 - i].newUsers;
-}
+### Cambio 1: Usar UTC para comparaciones de fechas
+
+Modificar `useDynamicReports.tsx` para usar funciones UTC de `date-fns-tz` o comparar directamente strings de fecha ISO:
+
+```typescript
+// En lugar de comparar objetos Date con timezone local,
+// extraer solo la parte YYYY-MM del timestamp ISO
+
+const monthUsers = usersData.filter(u => {
+  // Extraer YYYY-MM del timestamp ISO (siempre UTC)
+  const userMonth = u.created_at.substring(0, 7); // "2026-01"
+  return userMonth === monthKey; // "2026-01"
+});
 ```
 
-Esto garantiza que:
-- Enero 2026 = 1,253 (total exacto)
-- Diciembre 2025 = 1,253 - 499 = 754
-- Noviembre 2025 = 754 - 317 = 437
-- etc.
+Este enfoque:
+- Es más simple y directo
+- No depende de la zona horaria del navegador
+- Coincide exactamente con cómo la base de datos almacena las fechas
+
+### Cambio 2: Calcular newUsers usando el conteo exacto para el mes actual
+
+Para el mes actual (enero 2026), el conteo de usuarios nuevos debe derivarse del total exacto:
+
+```typescript
+// El mes actual usa el delta exacto: totalUsers - usuariosHastaMesAnterior
+const currentMonthNewUsers = exactTotalUsers - previousMonthAccumulated;
+```
 
 ---
 
@@ -65,36 +64,49 @@ Esto garantiza que:
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/hooks/useDynamicReports.tsx` | Corregir cálculo de usuarios acumulados usando el total exacto y restando hacia atrás |
+| `src/hooks/useDynamicReports.tsx` | Cambiar filtrado de fechas para usar comparación de strings YYYY-MM en lugar de objetos Date |
 
 ---
 
-## Detalles Técnicos
+## Cambio Específico
 
-### Cambio Específico en `useDynamicReports.tsx`
-
-**Líneas 156-173** - Modificar el loop para:
-1. Primero, calcular todos los `newUsers` por mes normalmente
-2. Después del loop, recalcular `accumulatedUsers` desde el total conocido restando hacia atrás
+En las líneas 154-159, cambiar de:
 
 ```typescript
-// Después de construir monthlyData con newUsers...
-
-// Recalcular acumulados de forma precisa
-let runningTotal = exactTotalUsers;
-for (let i = monthlyData.length - 1; i >= 0; i--) {
-  monthlyData[i].accumulatedUsers = runningTotal;
-  runningTotal -= monthlyData[i].newUsers;
-}
+// Users for this month
+const monthUsers = usersData.filter(u => {
+  const createdAt = new Date(u.created_at);
+  return createdAt >= monthStart && createdAt <= monthEnd;
+});
+const newUsers = monthUsers.length;
 ```
 
-### Resultado Esperado
+A:
 
-El gráfico mostrará:
-- **ene 26**: 499 nuevos, 1,253 acumulados
-- **dic 25**: 317 nuevos, 754 acumulados
-- **nov 25**: 116 nuevos, 437 acumulados
-- etc.
+```typescript
+// Users for this month - use ISO string comparison for UTC consistency
+const monthUsers = usersData.filter(u => {
+  // Extract YYYY-MM from ISO timestamp to avoid timezone issues
+  const userMonth = u.created_at?.substring(0, 7);
+  return userMonth === monthKey;
+});
+const newUsers = monthUsers.length;
+```
+
+Aplicar el mismo patrón para packages y trips.
+
+---
+
+## Resultado Esperado
+
+| Mes | Antes | Después |
+|-----|-------|---------|
+| ene 26 | 246 | **499** |
+| dic 25 | ~317 | 317 |
+| Total Acumulado | 1,253 | 1,253 |
+
+---
 
 ## Riesgo
 **Bajo** - Solo afecta la visualización del reporte, no datos transaccionales.
+
