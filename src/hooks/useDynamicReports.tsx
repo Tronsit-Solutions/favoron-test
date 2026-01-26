@@ -48,7 +48,7 @@ export interface DynamicReportsData {
 export const useDynamicReports = (months: number = 12) => {
   // Fetch exact counts (not limited by default 1000 row limit)
   const { data: countsData, isLoading: countsLoading } = useQuery({
-    queryKey: ['dynamic-reports-counts', 'v2'],
+    queryKey: ['dynamic-reports-counts', 'v3'],
     queryFn: async () => {
       const [usersCount, packagesCount, tripsCount] = await Promise.all([
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
@@ -67,7 +67,7 @@ export const useDynamicReports = (months: number = 12) => {
 
   // Fetch users data with higher limit for monthly calculations
   const { data: usersData, isLoading: usersLoading } = useQuery({
-    queryKey: ['dynamic-reports-users', months, 'v2'],
+    queryKey: ['dynamic-reports-users', months, 'v3'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
@@ -83,7 +83,7 @@ export const useDynamicReports = (months: number = 12) => {
 
   // Fetch packages data with higher limit
   const { data: packagesData, isLoading: packagesLoading } = useQuery({
-    queryKey: ['dynamic-reports-packages', months, 'v2'],
+    queryKey: ['dynamic-reports-packages', months, 'v3'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('packages')
@@ -99,7 +99,7 @@ export const useDynamicReports = (months: number = 12) => {
 
   // Fetch trips data with higher limit
   const { data: tripsData, isLoading: tripsLoading } = useQuery({
-    queryKey: ['dynamic-reports-trips', months, 'v2'],
+    queryKey: ['dynamic-reports-trips', months, 'v3'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('trips')
@@ -148,7 +148,7 @@ export const useDynamicReports = (months: number = 12) => {
       const monthDate = subMonths(now, i);
       const monthStart = startOfMonth(monthDate);
       const monthEnd = endOfMonth(monthDate);
-      const monthKey = format(monthDate, 'yyyy-MM');
+      const monthKey = monthDate.toISOString().substring(0, 7);
       const monthLabel = format(monthDate, 'MMM yy', { locale: es });
 
       // Users for this month - use ISO string comparison for UTC consistency
