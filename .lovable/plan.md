@@ -1,121 +1,94 @@
 
-# Plan: Validar Estado Real de Paquetes en TripPaymentSummary
+
+# Plan: Corregir Documentos No Visibles en Pestaña Docs
 
 ## Problema Identificado
 
-El `TripPaymentSummary` usa `tripPayment.all_packages_delivered` del accumulator como fuente de verdad (línea 138). Sin embargo, cuando un admin revierte manualmente el estado de un paquete (por ejemplo, de `completed` a `pending_office_confirmation`), el accumulator no se actualiza automáticamente.
+Hay dos problemas relacionados:
 
-### Datos del caso específico:
-- **Paquete:** `31302208-2540-4525-b810-2311180a16c3`
-- **Estado actual:** `pending_office_confirmation`
-- **Accumulator dice:** `all_packages_delivered: true`, `delivered_packages_count: 1/1`
+### Problema 1: Botón "Ver dirección y comprar" aparece cuando no debería
+El paquete "cámaras desechables" está en estado `in_transit` y tiene ambos documentos (`purchase_confirmation` y `tracking_info`) guardados en la base de datos, pero el botón sigue apareciendo.
 
-Esto causa que el viajero vea "Listo" y el botón "Solicitar Q10.00" aunque el paquete no está realmente confirmado.
+**Causa raíz:** La consulta optimizada en `useOptimizedPackagesData.tsx` no incluye los campos `purchase_confirmation` ni `tracking_info` en el SELECT. Esto hace que:
+- `pkg.purchase_confirmation` sea `undefined`
+- `pkg.tracking_info` sea `undefined`
+- La condición `!pkg.purchase_confirmation || !pkg.tracking_info` sea `true` aunque los documentos existen
 
-## Solución Propuesta
+### Problema 2: Pestaña "Docs" está vacía
+El componente `UploadedDocumentsRegistry` verifica si hay documentos, pero como los campos no se cargan, el conteo es 0 y no muestra nada.
 
-Modificar `TripPaymentSummary` para que calcule el estado real de los paquetes en tiempo real, en lugar de confiar ciegamente en los valores del accumulator.
+## Datos del paquete (verificados en base de datos)
+
+| Campo | Valor |
+|-------|-------|
+| ID | 047cae8d-78bc-4f0e-b346-7ea7e4844b5c |
+| Status | in_transit |
+| purchase_confirmation | { filePath: "...", filename: "favoron-hub-viajes-2026-01-21-pagina-4.png", ... } |
+| tracking_info | { trackingNumber: "f3473", timestamp: "2026-01-22T10:37:28.784Z", ... } |
+
+Los documentos EXISTEN en la base de datos, pero no se están cargando en la UI.
+
+## Solución
 
 ### Archivo a modificar:
-`src/components/dashboard/TripPaymentSummary.tsx`
+`src/hooks/useOptimizedPackagesData.tsx`
 
-### Cambios:
-
-#### 1. Mejorar `fetchPackageCounts` para detectar estados reales (líneas 42-71)
-
-Agregar lógica para verificar si el estado guardado en el accumulator coincide con la realidad:
+### Cambio:
+Agregar los campos faltantes a la consulta SELECT (líneas 102-167):
 
 ```typescript
-const fetchPackageCounts = useCallback(async () => {
-  try {
-    const { data, error } = await supabase
-      .from('packages')
-      .select('status, office_delivery')
-      .eq('matched_trip_id', trip.id)
-      .not('status', 'in', '(rejected,cancelled)');
-
-    if (error) throw error;
-
-    // Estados que realmente cuentan como "entregado" para pagos
-    const realDeliveredStatuses = ['completed', 'ready_for_pickup', 'ready_for_delivery'];
-    
-    const total = data?.length || 0;
-    const realDelivered = data?.filter(pkg => {
-      // Estados directamente entregados
-      if (realDeliveredStatuses.includes(pkg.status)) return true;
-      // delivered_to_office SOLO cuenta si tiene confirmación admin
-      if (pkg.status === 'delivered_to_office' && pkg.office_delivery?.admin_confirmation) return true;
-      return false;
-    }).length || 0;
-    
-    setPackageCounts({ total, completed: realDelivered });
-  } catch (error) {
-    console.error('Error fetching package counts:', error);
-    setPackageCounts({ total: 0, completed: 0 });
-  }
-}, [trip.id]);
+const { data, error } = await supabase
+  .from('packages')
+  .select(`
+    id,
+    user_id,
+    status,
+    item_description,
+    item_link,
+    estimated_price,
+    products_data,
+    purchase_origin,
+    package_destination,
+    matched_trip_id,
+    created_at,
+    updated_at,
+    delivery_deadline,
+    delivery_method,
+    quote,
+    quote_expires_at,
+    matched_assignment_expires_at,
+    label_number,
+    incident_flag,
+    rejection_reason,
+    wants_requote,
+    admin_assigned_tip,
+    admin_rejection,
+    quote_rejection,
+    traveler_rejection,
+    confirmed_delivery_address,
+    traveler_address,
+    matched_trip_dates,
+    payment_receipt,
+    purchase_confirmation,   // <-- AGREGAR
+    tracking_info,           // <-- AGREGAR
+    office_delivery,         // <-- AGREGAR (para futuras validaciones)
+    traveler_dismissed_at,
+    traveler_confirmation,
+    additional_notes,
+    internal_notes,
+    profiles:user_id(...),
+    trips:matched_trip_id(...)
+  `)
 ```
 
-#### 2. Usar estado real en lugar del accumulator para determinar si mostrar botón (líneas 137-140)
+## Resultado Esperado
 
-```typescript
-// Calcular estado real de entregas basado en packageCounts fresco
-const realAllDelivered = packageCounts && packageCounts.total > 0 && 
-                         packageCounts.completed === packageCounts.total;
+Después del cambio:
+1. El paquete "cámaras desechables" NO mostrará el botón "Ver dirección y comprar" (ya que tiene ambos documentos)
+2. La pestaña "Docs" mostrará los 2 documentos subidos (confirmación de compra + tracking)
 
-// Usar estado real, no el del accumulator
-const isAllPackagesDelivered = realAllDelivered ?? tripPayment.all_packages_delivered;
-```
+## Impacto
 
-#### 3. Actualizar automáticamente el accumulator si hay discrepancia
+- **Rendimiento:** Mínimo impacto, estos campos JSONB son pequeños comparados con otros ya incluidos como `products_data` y `quote`
+- **Riesgo:** Muy bajo, solo agrega campos al SELECT sin modificar lógica existente
 
-Si detectamos que el accumulator está desactualizado, actualizarlo:
-
-```typescript
-useEffect(() => {
-  if (tripPayment && packageCounts) {
-    const realAllDelivered = packageCounts.total > 0 && 
-                             packageCounts.completed === packageCounts.total;
-    
-    // Si hay discrepancia, actualizar el accumulator
-    if (tripPayment.all_packages_delivered !== realAllDelivered) {
-      console.warn('⚠️ Discrepancia detectada en accumulator, actualizando...');
-      handleCreateAccumulator(); // Recalcula todo
-    }
-  }
-}, [tripPayment, packageCounts]);
-```
-
-## Flujo Visual Corregido
-
-```text
-ANTES (incorrecto):
-┌─────────────────────────────────────────────┐
-│  Paquete: pending_office_confirmation       │
-│  Accumulator: all_packages_delivered=true   │
-│  UI muestra: ✓ Listo + Botón Solicitar      │ ← ERROR
-└─────────────────────────────────────────────┘
-
-DESPUÉS (correcto):
-┌─────────────────────────────────────────────┐
-│  Paquete: pending_office_confirmation       │
-│  Accumulator: all_packages_delivered=true   │
-│  Verificación real: completed=0/1           │
-│  UI muestra: ⏳ Pendiente entrega           │ ← CORRECTO
-└─────────────────────────────────────────────┘
-```
-
-## Archivos a Modificar
-
-| Archivo | Líneas | Cambio |
-|---------|--------|--------|
-| `src/components/dashboard/TripPaymentSummary.tsx` | 42-71, 137-140, nuevo useEffect | Validar estado real de paquetes |
-
-## Beneficios
-
-1. El viajero no verá "Listo" cuando el paquete aún está pendiente de confirmación
-2. El accumulator se auto-corregirá si hay discrepancias
-3. Previene solicitudes de pago prematuras
-
-## Riesgo
-**Bajo** - Solo agrega validación adicional sin cambiar flujos existentes.
