@@ -1,112 +1,100 @@
 
-## Plan: Secure Storage Buckets with Private Access
+# Plan: Corregir el Reporte de Crecimiento de Usuarios
 
-### Summary
-Make three storage buckets private and create proper RLS policies so only authorized users can view files. The application already uses `createSignedUrl()` which will work correctly with private buckets.
+## Problema Identificado
+El reporte actual tiene dos problemas:
+1. **Datos incorrectos**: La gráfica muestra diciembre 2025 con ~1400 usuarios acumulados, pero el dato real es **754**
+2. **El límite de 10,000 filas** puede causar pérdida de datos en el futuro, pero actualmente solo hay 1,253 usuarios totales
 
----
+El bug principal es que el cálculo acumulado solo es preciso para el **mes actual** (línea 173), pero los meses anteriores usan datos potencialmente incompletos.
 
-### Changes Required
+## Datos Reales de la Base de Datos
 
-#### 1. Make Buckets Private
-Set `public = false` on all three buckets:
-- `quote-payment-receipts`
-- `tip-payment-receipts`
-- `traveler-confirmations`
+| Mes | Nuevos Usuarios | Acumulado Correcto |
+|-----|-----------------|-------------------|
+| jul 25 | 11 | 11 |
+| ago 25 | 50 | 61 |
+| sep 25 | 151 | 212 |
+| oct 25 | 109 | 321 |
+| nov 25 | 116 | 437 |
+| dic 25 | 317 | 754 |
+| ene 26 | 499 | **1,253** |
 
-#### 2. Drop Public SELECT Policies
-Remove the overly permissive policies that allow anyone to read:
-- "Public read quote payment receipts"
-- "Public read tip payment receipts"
-- "Public read traveler confirmations"
+## Solución Propuesta
 
-#### 3. Create Restrictive SELECT Policies
+### Cambio en `useDynamicReports.tsx`
 
-**quote-payment-receipts** (Owner + Admin):
-- File path: `{shopper_id}/{filename}`
-- Owner check: `split_part(name, '/', 1)::uuid = auth.uid()`
-- Admin check: `has_role(auth.uid(), 'admin')`
+1. **Usar consultas SQL agregadas por mes** en lugar de traer todos los usuarios y contar en cliente
+2. Esto elimina el problema del límite de 10,000 filas y garantiza datos precisos
 
-**tip-payment-receipts** (Traveler + Admin):
-- File path: `payment_receipt_{order_id}_{timestamp}.{ext}`
-- Traveler check: Match via `payment_orders.receipt_url` where `traveler_id = auth.uid()`
-- Admin check: `has_role(auth.uid(), 'admin')`
-
-**traveler-confirmations** (Already has good policy):
-- Keep existing "Users can view confirmation photos for their packages" policy
-- Only remove the public override policy
-
----
-
-### Technical Details
-
-**Migration SQL:**
-
-```sql
--- 1. Make buckets private
-UPDATE storage.buckets SET public = false WHERE id = 'quote-payment-receipts';
-UPDATE storage.buckets SET public = false WHERE id = 'tip-payment-receipts';
-UPDATE storage.buckets SET public = false WHERE id = 'traveler-confirmations';
-
--- 2. Drop public read policies
-DROP POLICY IF EXISTS "Public read quote payment receipts" ON storage.objects;
-DROP POLICY IF EXISTS "Public read tip payment receipts" ON storage.objects;
-DROP POLICY IF EXISTS "Public read traveler confirmations" ON storage.objects;
-
--- 3. Create restricted SELECT for quote-payment-receipts (owner + admin)
-CREATE POLICY "Owner or admin can read quote payment receipts"
-ON storage.objects FOR SELECT
-USING (
-  bucket_id = 'quote-payment-receipts'
-  AND (
-    has_role(auth.uid(), 'admin')
-    OR split_part(name, '/', 1)::uuid = auth.uid()
-  )
-);
-
--- 4. Create restricted SELECT for tip-payment-receipts (traveler + admin)
-CREATE POLICY "Traveler or admin can read tip payment receipts"
-ON storage.objects FOR SELECT
-USING (
-  bucket_id = 'tip-payment-receipts'
-  AND (
-    has_role(auth.uid(), 'admin')
-    OR EXISTS (
-      SELECT 1 FROM payment_orders po
-      WHERE po.traveler_id = auth.uid()
-      AND (
-        po.receipt_url = name
-        OR po.receipt_url = 'payment-receipts/' || name
-      )
-    )
-  )
-);
+```text
+// Nueva query que obtiene conteos por mes directamente desde la DB
+const monthlyUserCounts = await supabase.rpc('get_monthly_user_counts', {
+  start_date: startDate,
+  end_date: endDate
+});
 ```
 
-Note: The `traveler-confirmations` bucket already has the correct authenticated policy ("Users can view confirmation photos for their packages") - we only need to remove the public override.
+**Alternativa sin crear RPC** (más simple):
+- Usar `GROUP BY` con la función de Supabase directamente no es posible
+- En su lugar, calcular acumulados correctamente usando el total exacto (`countsData.totalUsers`) y restando hacia atrás
+
+### Lógica Corregida
+
+```text
+// Calcular acumulados de forma descendente desde el total conocido
+let runningTotal = exactTotalUsers; // 1,253
+
+// Iterar de más reciente a más antiguo
+for (let i = 0; i < monthlyData.length; i++) {
+  // Para el mes actual
+  monthlyData[monthlyData.length - 1 - i].accumulatedUsers = runningTotal;
+  runningTotal -= monthlyData[monthlyData.length - 1 - i].newUsers;
+}
+```
+
+Esto garantiza que:
+- Enero 2026 = 1,253 (total exacto)
+- Diciembre 2025 = 1,253 - 499 = 754
+- Noviembre 2025 = 754 - 317 = 437
+- etc.
 
 ---
 
-### Why This Is Safe
+## Archivos a Modificar
 
-1. **No code changes required**: The application already uses `createSignedUrl()` for all three buckets
-2. **Signed URLs work with private buckets**: They bypass RLS after being generated by an authenticated user
-3. **INSERT/UPDATE/DELETE policies unchanged**: Only fixing SELECT access
-
----
-
-### Files to Create
-
-| File | Purpose |
-|------|---------|
-| `supabase/migrations/[timestamp]_secure_storage_buckets.sql` | Database migration to secure the three buckets |
+| Archivo | Cambio |
+|---------|--------|
+| `src/hooks/useDynamicReports.tsx` | Corregir cálculo de usuarios acumulados usando el total exacto y restando hacia atrás |
 
 ---
 
-### Verification After Deployment
+## Detalles Técnicos
 
-1. Test that shoppers can view their own quote payment receipts
-2. Test that travelers can view their tip payment receipts
-3. Test that shoppers can see traveler confirmation photos for their packages
-4. Verify admins can access all files
-5. Verify unauthenticated users cannot access any files (even with direct URLs)
+### Cambio Específico en `useDynamicReports.tsx`
+
+**Líneas 156-173** - Modificar el loop para:
+1. Primero, calcular todos los `newUsers` por mes normalmente
+2. Después del loop, recalcular `accumulatedUsers` desde el total conocido restando hacia atrás
+
+```typescript
+// Después de construir monthlyData con newUsers...
+
+// Recalcular acumulados de forma precisa
+let runningTotal = exactTotalUsers;
+for (let i = monthlyData.length - 1; i >= 0; i--) {
+  monthlyData[i].accumulatedUsers = runningTotal;
+  runningTotal -= monthlyData[i].newUsers;
+}
+```
+
+### Resultado Esperado
+
+El gráfico mostrará:
+- **ene 26**: 499 nuevos, 1,253 acumulados
+- **dic 25**: 317 nuevos, 754 acumulados
+- **nov 25**: 116 nuevos, 437 acumulados
+- etc.
+
+## Riesgo
+**Bajo** - Solo afecta la visualización del reporte, no datos transaccionales.
