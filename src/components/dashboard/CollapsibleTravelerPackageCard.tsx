@@ -440,14 +440,24 @@ const CollapsibleTravelerPackageCard = ({
                         </div>
                       )}
                       {pkg.status === 'pending_office_confirmation' && (
-                        <div className="font-medium text-amber-600">
-                          ⏳ Entregado - Esperando confirmación de oficina
+                        <div className="space-y-1">
+                          <div className="font-medium text-amber-600">
+                            ⏳ Esperando confirmación de oficina
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Has declarado la entrega. Podrás crear tu orden de cobro una vez que Favorón confirme la recepción.
+                          </div>
                         </div>
                       )}
                       {pkg.status === 'delivered_to_office' && (
-                         <div className="font-medium text-green-600">
-                           🏢 Listo para recolectar
-                         </div>
+                        <div className="space-y-1">
+                          <div className="font-medium text-green-600">
+                            ✅ Entrega confirmada por Favorón
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            El paquete está listo para que el shopper lo recoja.
+                          </div>
+                        </div>
                       )}
                       {pkg.status === 'completed' && (
                         <div className="font-medium text-green-600">
