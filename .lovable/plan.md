@@ -1,124 +1,112 @@
 
-## Diagnóstico: Por qué el landing page tarda en cargar
+## Plan: Secure Storage Buckets with Private Access
 
-### Problema encontrado
+### Summary
+Make three storage buckets private and create proper RLS policies so only authorized users can view files. The application already uses `createSignedUrl()` which will work correctly with private buckets.
 
-El landing page tiene un **bloqueo total de renderizado** mientras espera que la autenticación se complete. Esto significa que:
+---
 
-1. **Usuario con sesión existente**: Espera mínimo **~1.5 segundos** antes de ver cualquier contenido:
-   - 600ms delay intencional para compatibilidad iOS Safari (línea 115 de useAuth.tsx)
-   - 100ms delay adicional entre requests de perfil y roles  
-   - Tiempo de red para 2 llamadas a Supabase (`profiles` + `user_roles`)
-   - Tiempo de procesamiento
+### Changes Required
 
-2. **Usuario nuevo (sin sesión)**: También espera porque `loading` inicia en `true` y solo cambia después de verificar `getSession()`.
+#### 1. Make Buckets Private
+Set `public = false` on all three buckets:
+- `quote-payment-receipts`
+- `tip-payment-receipts`
+- `traveler-confirmations`
 
-### Código actual problemático
+#### 2. Drop Public SELECT Policies
+Remove the overly permissive policies that allow anyone to read:
+- "Public read quote payment receipts"
+- "Public read tip payment receipts"
+- "Public read traveler confirmations"
 
-```tsx
-// src/pages/Index.tsx línea 40-49
-if (loading) {
-  return (
-    <div className="min-h-screen...">
-      <div>Cargando...</div>  // ← BLOQUEA TODO hasta que auth termine
-    </div>
-  );
-}
+#### 3. Create Restrictive SELECT Policies
+
+**quote-payment-receipts** (Owner + Admin):
+- File path: `{shopper_id}/{filename}`
+- Owner check: `split_part(name, '/', 1)::uuid = auth.uid()`
+- Admin check: `has_role(auth.uid(), 'admin')`
+
+**tip-payment-receipts** (Traveler + Admin):
+- File path: `payment_receipt_{order_id}_{timestamp}.{ext}`
+- Traveler check: Match via `payment_orders.receipt_url` where `traveler_id = auth.uid()`
+- Admin check: `has_role(auth.uid(), 'admin')`
+
+**traveler-confirmations** (Already has good policy):
+- Keep existing "Users can view confirmation photos for their packages" policy
+- Only remove the public override policy
+
+---
+
+### Technical Details
+
+**Migration SQL:**
+
+```sql
+-- 1. Make buckets private
+UPDATE storage.buckets SET public = false WHERE id = 'quote-payment-receipts';
+UPDATE storage.buckets SET public = false WHERE id = 'tip-payment-receipts';
+UPDATE storage.buckets SET public = false WHERE id = 'traveler-confirmations';
+
+-- 2. Drop public read policies
+DROP POLICY IF EXISTS "Public read quote payment receipts" ON storage.objects;
+DROP POLICY IF EXISTS "Public read tip payment receipts" ON storage.objects;
+DROP POLICY IF EXISTS "Public read traveler confirmations" ON storage.objects;
+
+-- 3. Create restricted SELECT for quote-payment-receipts (owner + admin)
+CREATE POLICY "Owner or admin can read quote payment receipts"
+ON storage.objects FOR SELECT
+USING (
+  bucket_id = 'quote-payment-receipts'
+  AND (
+    has_role(auth.uid(), 'admin')
+    OR split_part(name, '/', 1)::uuid = auth.uid()
+  )
+);
+
+-- 4. Create restricted SELECT for tip-payment-receipts (traveler + admin)
+CREATE POLICY "Traveler or admin can read tip payment receipts"
+ON storage.objects FOR SELECT
+USING (
+  bucket_id = 'tip-payment-receipts'
+  AND (
+    has_role(auth.uid(), 'admin')
+    OR EXISTS (
+      SELECT 1 FROM payment_orders po
+      WHERE po.traveler_id = auth.uid()
+      AND (
+        po.receipt_url = name
+        OR po.receipt_url = 'payment-receipts/' || name
+      )
+    )
+  )
+);
 ```
 
-El flujo actual:
+Note: The `traveler-confirmations` bucket already has the correct authenticated policy ("Users can view confirmation photos for their packages") - we only need to remove the public override.
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│ Usuario abre favoron.app                                     │
-├─────────────────────────────────────────────────────────────┤
-│  loading=true → "Cargando..."                                │
-│  ↓                                                           │
-│  getSession() → ¿Tiene sesión?                               │
-│  ↓                                                           │
-│  SÍ: loadProfile() → 600ms delay + 2 queries + 100ms delay   │
-│  NO: setLoading(false) (rápido)                              │
-│  ↓                                                           │
-│  loading=false → Se renderiza el landing page                │
-└─────────────────────────────────────────────────────────────┘
-```
+---
 
-### Solución propuesta: Mostrar landing inmediatamente
+### Why This Is Safe
 
-Cambiar la arquitectura para que el landing page se muestre **inmediatamente** sin esperar autenticación. La personalización (nombre del usuario, menú de cuenta) puede aparecer después.
+1. **No code changes required**: The application already uses `createSignedUrl()` for all three buckets
+2. **Signed URLs work with private buckets**: They bypass RLS after being generated by an authenticated user
+3. **INSERT/UPDATE/DELETE policies unchanged**: Only fixing SELECT access
 
-#### Cambio en Index.tsx
+---
 
-Eliminar el bloqueo por `loading` y mostrar un estado "cargando" solo en el NavBar:
+### Files to Create
 
-```tsx
-// ANTES (bloquea todo)
-if (loading) {
-  return <LoadingSpinner />;
-}
+| File | Purpose |
+|------|---------|
+| `supabase/migrations/[timestamp]_secure_storage_buckets.sql` | Database migration to secure the three buckets |
 
-// DESPUÉS (renderiza inmediatamente)
-// Eliminar este if completamente
-// El NavBar maneja su propio estado de loading
-```
+---
 
-#### Cambio en NavBar.tsx
+### Verification After Deployment
 
-Mostrar un skeleton/placeholder mientras carga en lugar de ocultar los botones:
-
-```tsx
-// Cuando loading=true, mostrar skeleton discreto
-{loading ? (
-  <div className="h-8 w-24 bg-muted animate-pulse rounded-md" />
-) : isAuthenticated ? (
-  // Menú de usuario...
-) : (
-  // Botones login/registro...
-)}
-```
-
-#### Cambio en HeroSection.tsx
-
-Mostrar versión genérica mientras carga, luego actualizar con nombre:
-
-```tsx
-// No depender del loading state para mostrar contenido
-// Mostrar título genérico "Conectamos compradores con viajeros"
-// Si después loading=false y hay userName, actualizar el saludo
-```
-
-### Resultado esperado
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│ Usuario abre favoron.app                                     │
-├─────────────────────────────────────────────────────────────┤
-│  → Landing page visible INMEDIATAMENTE (~100ms)              │
-│  → NavBar muestra skeleton/placeholder                       │
-│  → Hero muestra versión genérica                             │
-│  ↓                                                           │
-│  (en background) getSession() + loadProfile()                │
-│  ↓                                                           │
-│  loading=false → NavBar actualiza con avatar/menú            │
-│  → Hero actualiza con "¡Bienvenido, Lucas!"                  │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Archivos a modificar
-
-1. **`src/pages/Index.tsx`**: Eliminar el guard de loading
-2. **`src/components/NavBar.tsx`**: Agregar skeleton state para cuando loading=true
-3. **`src/components/HeroSection.tsx`**: Mostrar versión genérica por defecto
-
-### Beneficios
-
-- El landing page se ve instantáneamente (mejora percepción de velocidad)
-- Los datos del usuario aparecen progresivamente cuando están listos
-- Mantiene toda la funcionalidad actual
-- No afecta rutas protegidas (Dashboard sigue requiriendo auth)
-
-### Sección técnica
-
-El delay de 600ms en `useAuth.tsx` (línea 113-115) es necesario para iOS Safari y no debe eliminarse. La solución es hacer que el landing no dependa de este delay para mostrarse.
-
-La estrategia es conocida como "skeleton loading" o "progressive hydration" - mostrar UI inmediatamente con placeholders y reemplazarlos cuando los datos están listos.
+1. Test that shoppers can view their own quote payment receipts
+2. Test that travelers can view their tip payment receipts
+3. Test that shoppers can see traveler confirmation photos for their packages
+4. Verify admins can access all files
+5. Verify unauthenticated users cannot access any files (even with direct URLs)
