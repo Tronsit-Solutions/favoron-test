@@ -106,6 +106,12 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenti
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+            ) : loading ? (
+              // Show skeleton while auth is loading
+              <div className="flex items-center space-x-3">
+                <div className="hidden sm:block h-8 w-28 bg-muted animate-pulse rounded-md" />
+                <div className="h-8 w-20 bg-muted animate-pulse rounded-md" />
+              </div>
             ) : (
               // Show login/register buttons when not authenticated
               <>

@@ -37,16 +37,8 @@ const Index = () => {
     navigate('/auth', { state: { mode } });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
+  // No blocking on auth - landing page renders immediately
+  // User-specific content (NavBar, HeroSection) handles its own loading state
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
