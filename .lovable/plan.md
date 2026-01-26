@@ -1,83 +1,186 @@
 
-# Plan: Corregir Discrepancia en Cálculo de Usuarios Mensuales
+# Plan: Usar Agregaciones SQL en Lugar de Fetch de Todos los Registros
 
-## Problema Confirmado
+## Problema Raíz Identificado
 
-El reporte muestra **246 nuevos usuarios** en enero 2026 cuando deberían ser **499**. La base de datos tiene los datos correctos, pero el frontend los está calculando mal.
+El query actual está limitado a **1000 filas** por el servidor de Supabase (`PGRST_MAX_ROWS`), independientemente del `.limit(10000)` especificado en el cliente.
 
-## Diagnóstico Técnico Detallado
+Como los datos están ordenados de más antiguo a más reciente:
+- Se traen los primeros 1000 usuarios (julio 2025 → parte de enero 2026)
+- Los últimos 253 usuarios de enero 2026 NO se incluyen
+- Solo 246 de los 499 usuarios de enero están en el dataset
 
-Después de una investigación exhaustiva, identifiqué la causa raíz:
+## Solución: Agregación en el Servidor
 
-### El problema está en la línea 151:
-```typescript
-const monthKey = format(monthDate, 'yyyy-MM'); // USA TIMEZONE LOCAL
+En lugar de traer todos los registros y filtrar en el frontend, usaremos queries agregados que calculan los conteos directamente en la base de datos.
+
+## Arquitectura Propuesta
+
+```text
+┌──────────────────────────────────────────────────────────────────┐
+│                    ANTES (Problemático)                          │
+├──────────────────────────────────────────────────────────────────┤
+│  1. Fetch 10,000 rows (limitado a 1000 por servidor)             │
+│  2. Filtrar en frontend por mes                                  │
+│  3. Contar en JavaScript                                         │
+│  → Resultado: Datos incompletos                                  │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│                    DESPUÉS (Correcto)                            │
+├──────────────────────────────────────────────────────────────────┤
+│  1. Query SQL con GROUP BY mes                                   │
+│  2. Devuelve conteos ya calculados                               │
+│  3. No hay límite de filas (solo ~12 resultados)                 │
+│  → Resultado: Datos completos y precisos                         │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
-Mientras que la línea 157 usa:
+## Cambios en el Código
+
+### Archivo: `src/hooks/useDynamicReports.tsx`
+
+#### 1. Nuevo Query para Usuarios por Mes (líneas 68-82)
+
+Reemplazar el query actual de usuarios:
 ```typescript
-const userMonth = u.created_at?.substring(0, 7); // USA UTC (del ISO string)
+// ANTES: Fetch de filas individuales
+const { data, error } = await supabase
+  .from('profiles')
+  .select('id, created_at')
+  .order('created_at', { ascending: true })
+  .limit(10000);
+
+// DESPUÉS: Agregación SQL usando RPC o función view
+const { data, error } = await supabase
+  .rpc('get_monthly_user_counts');
 ```
 
-**La comparación `userMonth === monthKey` es inconsistente** porque compara un valor UTC con un valor en timezone local.
+#### 2. Crear RPC Function en Supabase (nueva migración)
 
-### Impacto Real
-Aunque inicialmente parecía que esto solo afectaría usuarios en el límite del mes, el problema es más sutil:
-
-1. **El `monthKey` generado localmente puede ser diferente al esperado** cuando hay diferencias de timezone
-2. Si el `monthKey` local es `"2025-12"` cuando debería ser `"2026-01"`, todos los usuarios de enero (499) no encontrarán coincidencia con ese monthKey
-3. Pero 246 usuarios SÍ están siendo contados, lo que sugiere que algunos timestamps locales sí coinciden
-
-## Causa Más Probable: Datos Incompletos + Timezone
-
-El array `usersData` solo contiene usuarios que el query pudo recuperar en el momento de la primera carga (cuando se cacheó con v2). Si esa carga ocurrió antes de que todos los usuarios de enero se registraran, esos usuarios no están en el caché local.
-
-## Solución Propuesta
-
-### Paso 1: Garantizar Consistencia UTC (Arreglo Fundamental)
-
-Cambiar la línea 151 para usar UTC consistentemente:
-
-```typescript
-// ANTES (línea 151):
-const monthKey = format(monthDate, 'yyyy-MM');
-
-// DESPUÉS:
-const monthKey = monthDate.toISOString().substring(0, 7);
+```sql
+CREATE OR REPLACE FUNCTION get_monthly_user_counts()
+RETURNS TABLE(month text, user_count bigint) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    TO_CHAR(created_at, 'YYYY-MM') as month,
+    COUNT(*)::bigint as user_count
+  FROM profiles
+  GROUP BY TO_CHAR(created_at, 'YYYY-MM')
+  ORDER BY month;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
 
-### Paso 2: Forzar Cache Refresh (Asegurar Datos Frescos)
+#### 3. Similar para Packages y Trips
 
-Actualizar todos los queryKeys a `'v3'` para invalidar cualquier caché residual:
+Crear funciones RPC para:
+- `get_monthly_package_counts` - con desglose por status
+- `get_monthly_trip_counts` - con desglose por status
 
-```typescript
-queryKey: ['dynamic-reports-counts', 'v3'],
-queryKey: ['dynamic-reports-users', months, 'v3'],
-queryKey: ['dynamic-reports-packages', months, 'v3'],
-queryKey: ['dynamic-reports-trips', months, 'v3'],
+## Archivos a Crear/Modificar
+
+| Archivo | Acción |
+|---------|--------|
+| `supabase/migrations/XXXX_add_monthly_report_functions.sql` | Crear - 3 funciones RPC |
+| `src/hooks/useDynamicReports.tsx` | Modificar - Usar RPC en lugar de fetch individual |
+
+## Migración SQL Completa
+
+```sql
+-- Función para conteo mensual de usuarios
+CREATE OR REPLACE FUNCTION get_monthly_user_counts()
+RETURNS TABLE(month text, user_count bigint) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    TO_CHAR(created_at, 'YYYY-MM') as month,
+    COUNT(*)::bigint as user_count
+  FROM profiles
+  GROUP BY TO_CHAR(created_at, 'YYYY-MM')
+  ORDER BY month;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función para conteo mensual de paquetes con status
+CREATE OR REPLACE FUNCTION get_monthly_package_stats()
+RETURNS TABLE(
+  month text, 
+  total_count bigint,
+  completed_count bigint,
+  pending_count bigint,
+  cancelled_count bigint,
+  gmv numeric,
+  service_fee numeric,
+  delivery_fee numeric
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    TO_CHAR(created_at, 'YYYY-MM') as month,
+    COUNT(*)::bigint as total_count,
+    COUNT(*) FILTER (WHERE status IN ('completed', 'delivered_to_office'))::bigint as completed_count,
+    COUNT(*) FILTER (WHERE status IN ('pending_approval', 'approved', 'matched', 'awaiting_quote', 'quote_pending'))::bigint as pending_count,
+    COUNT(*) FILTER (WHERE status IN ('rejected', 'cancelled', 'admin_rejected'))::bigint as cancelled_count,
+    COALESCE(SUM(
+      CASE WHEN status IN ('completed', 'delivered_to_office') 
+      THEN COALESCE((quote->>'totalPrice')::numeric, (quote->>'completePrice')::numeric, 0)
+      ELSE 0 END
+    ), 0) as gmv,
+    COALESCE(SUM(
+      CASE WHEN status IN ('completed', 'delivered_to_office')
+      THEN COALESCE((quote->>'serviceFee')::numeric, 0)
+      ELSE 0 END
+    ), 0) as service_fee,
+    COALESCE(SUM(
+      CASE WHEN status IN ('completed', 'delivered_to_office')
+      THEN COALESCE((quote->>'deliveryFee')::numeric, 0)
+      ELSE 0 END
+    ), 0) as delivery_fee
+  FROM packages
+  GROUP BY TO_CHAR(created_at, 'YYYY-MM')
+  ORDER BY month;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función para conteo mensual de viajes con status
+CREATE OR REPLACE FUNCTION get_monthly_trip_stats()
+RETURNS TABLE(
+  month text,
+  total_count bigint,
+  approved_count bigint,
+  completed_count bigint
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    TO_CHAR(created_at, 'YYYY-MM') as month,
+    COUNT(*)::bigint as total_count,
+    COUNT(*) FILTER (WHERE status IN ('approved', 'active', 'completed'))::bigint as approved_count,
+    COUNT(*) FILTER (WHERE status = 'completed')::bigint as completed_count
+  FROM trips
+  GROUP BY TO_CHAR(created_at, 'YYYY-MM')
+  ORDER BY month;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
 
-## Cambios Específicos en el Archivo
+## Actualización del Hook
 
-| Línea | Cambio |
-|-------|--------|
-| 51 | `queryKey: ['dynamic-reports-counts', 'v3']` |
-| 70 | `queryKey: ['dynamic-reports-users', months, 'v3']` |
-| 86 | `queryKey: ['dynamic-reports-packages', months, 'v3']` |
-| 102 | `queryKey: ['dynamic-reports-trips', months, 'v3']` |
-| 151 | `const monthKey = monthDate.toISOString().substring(0, 7);` |
-
-## Archivo a Modificar
-
-`src/hooks/useDynamicReports.tsx`
+El hook `useDynamicReports.tsx` usará estas funciones RPC para obtener datos agregados directamente, eliminando:
+1. El límite de 1000 filas
+2. El procesamiento de filtrado en el frontend
+3. La inconsistencia de timezone
 
 ## Resultado Esperado
 
 | Métrica | Antes | Después |
 |---------|-------|---------|
-| Nuevos usuarios ene 26 | 246 | **499** |
+| Usuarios enero 2026 | 246 | **499** |
 | Total acumulado | 1,253 | 1,253 |
-| Crecimiento MoM | -22.4% | **+57.4%** |
+| Filas transferidas | 1000 | ~12 (solo agregados) |
+| Precisión | ~75% | **100%** |
 
 ## Riesgo
-**Bajo** - Solo afecta la visualización del reporte de crecimiento.
+**Bajo** - Las funciones RPC son de solo lectura y no afectan datos existentes.
