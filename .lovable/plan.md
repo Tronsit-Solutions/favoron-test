@@ -1,125 +1,121 @@
 
-# Plan: Mostrar Mensaje "Esperando Confirmación de Oficina" para Viajeros
-
-## Contexto
-
-Cuando el viajero declara la entrega de un paquete, el estado cambia a `pending_office_confirmation`. Sin embargo, el mensaje actual podría no ser lo suficientemente claro. El usuario solicita que el viajero vea un mensaje más claro indicando que está esperando la confirmación de la oficina de Favorón.
-
-## Análisis del Código Actual
-
-### Archivos involucrados:
-- `src/components/dashboard/traveler/TravelerPackageStatusBadge.tsx` (líneas 93-100)
-- `src/components/dashboard/CollapsibleTravelerPackageCard.tsx` (líneas 442-446)
-
-### Estado actual:
-1. **Badge** (TravelerPackageStatusBadge): Muestra "⏳ Entregado" con `actionMessage`: "🔒 Entrega pendiente de confirmación..."
-2. **Descripción en Card** (CollapsibleTravelerPackageCard): Muestra "⏳ Entregado - Esperando confirmación de oficina"
+# Plan: Validar Estado Real de Paquetes en TripPaymentSummary
 
 ## Problema Identificado
 
-El mensaje actual es correcto pero se puede mejorar para ser más claro y visible. También necesitamos asegurarnos de que en el estado `delivered_to_office` se distinga entre:
-- **Confirmado por la oficina** → "Entregado en oficina - Confirmado"
-- **No confirmado aún** → "Esperando confirmación de oficina"
+El `TripPaymentSummary` usa `tripPayment.all_packages_delivered` del accumulator como fuente de verdad (línea 138). Sin embargo, cuando un admin revierte manualmente el estado de un paquete (por ejemplo, de `completed` a `pending_office_confirmation`), el accumulator no se actualiza automáticamente.
 
-## Cambios Propuestos
+### Datos del caso específico:
+- **Paquete:** `31302208-2540-4525-b810-2311180a16c3`
+- **Estado actual:** `pending_office_confirmation`
+- **Accumulator dice:** `all_packages_delivered: true`, `delivered_packages_count: 1/1`
 
-### 1. Archivo: `src/components/dashboard/traveler/TravelerPackageStatusBadge.tsx`
+Esto causa que el viajero vea "Listo" y el botón "Solicitar Q10.00" aunque el paquete no está realmente confirmado.
 
-**Modificar estado `pending_office_confirmation` (líneas 93-100):**
+## Solución Propuesta
 
-| Campo | Antes | Después |
-|-------|-------|---------|
-| label | "Entregado" | "Esperando confirmación" |
-| description | "Entregado - Esperando confirmación de oficina" | "Declaraste la entrega - Esperando que la oficina de Favorón confirme la recepción" |
-| actionMessage | "🔒 Entrega pendiente de confirmación..." | "⏳ Has declarado la entrega del paquete. Una vez que Favorón confirme la recepción, podrás crear tu orden de cobro." |
+Modificar `TripPaymentSummary` para que calcule el estado real de los paquetes en tiempo real, en lugar de confiar ciegamente en los valores del accumulator.
 
-**Modificar estado `delivered_to_office` (líneas 101-107):**
+### Archivo a modificar:
+`src/components/dashboard/TripPaymentSummary.tsx`
 
-| Campo | Antes | Después |
-|-------|-------|---------|
-| actionMessage | (ninguno) | "✅ La oficina confirmó la recepción. Cuando todos tus paquetes estén confirmados podrás crear tu orden de cobro." |
+### Cambios:
 
-### 2. Archivo: `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`
+#### 1. Mejorar `fetchPackageCounts` para detectar estados reales (líneas 42-71)
 
-**Modificar mensaje para `pending_office_confirmation` (líneas 442-446):**
+Agregar lógica para verificar si el estado guardado en el accumulator coincide con la realidad:
 
 ```typescript
-// Antes:
-{pkg.status === 'pending_office_confirmation' && (
-  <div className="font-medium text-amber-600">
-    ⏳ Entregado - Esperando confirmación de oficina
-  </div>
-)}
+const fetchPackageCounts = useCallback(async () => {
+  try {
+    const { data, error } = await supabase
+      .from('packages')
+      .select('status, office_delivery')
+      .eq('matched_trip_id', trip.id)
+      .not('status', 'in', '(rejected,cancelled)');
 
-// Después:
-{pkg.status === 'pending_office_confirmation' && (
-  <div className="space-y-1">
-    <div className="font-medium text-amber-600">
-      ⏳ Esperando confirmación de oficina
-    </div>
-    <div className="text-xs text-muted-foreground">
-      Has declarado la entrega. Podrás crear tu orden de cobro una vez que Favorón confirme la recepción.
-    </div>
-  </div>
-)}
+    if (error) throw error;
+
+    // Estados que realmente cuentan como "entregado" para pagos
+    const realDeliveredStatuses = ['completed', 'ready_for_pickup', 'ready_for_delivery'];
+    
+    const total = data?.length || 0;
+    const realDelivered = data?.filter(pkg => {
+      // Estados directamente entregados
+      if (realDeliveredStatuses.includes(pkg.status)) return true;
+      // delivered_to_office SOLO cuenta si tiene confirmación admin
+      if (pkg.status === 'delivered_to_office' && pkg.office_delivery?.admin_confirmation) return true;
+      return false;
+    }).length || 0;
+    
+    setPackageCounts({ total, completed: realDelivered });
+  } catch (error) {
+    console.error('Error fetching package counts:', error);
+    setPackageCounts({ total: 0, completed: 0 });
+  }
+}, [trip.id]);
 ```
 
-**Modificar mensaje para `delivered_to_office` (líneas 447-451):**
+#### 2. Usar estado real en lugar del accumulator para determinar si mostrar botón (líneas 137-140)
 
 ```typescript
-// Antes:
-{pkg.status === 'delivered_to_office' && (
-  <div className="font-medium text-green-600">
-    🏢 Listo para recolectar
-  </div>
-)}
+// Calcular estado real de entregas basado en packageCounts fresco
+const realAllDelivered = packageCounts && packageCounts.total > 0 && 
+                         packageCounts.completed === packageCounts.total;
 
-// Después:
-{pkg.status === 'delivered_to_office' && (
-  <div className="space-y-1">
-    <div className="font-medium text-green-600">
-      ✅ Entrega confirmada por Favorón
-    </div>
-    <div className="text-xs text-muted-foreground">
-      El paquete está listo para que el shopper lo recoja.
-    </div>
-  </div>
-)}
+// Usar estado real, no el del accumulator
+const isAllPackagesDelivered = realAllDelivered ?? tripPayment.all_packages_delivered;
 ```
 
-## Flujo Visual para el Viajero
+#### 3. Actualizar automáticamente el accumulator si hay discrepancia
+
+Si detectamos que el accumulator está desactualizado, actualizarlo:
+
+```typescript
+useEffect(() => {
+  if (tripPayment && packageCounts) {
+    const realAllDelivered = packageCounts.total > 0 && 
+                             packageCounts.completed === packageCounts.total;
+    
+    // Si hay discrepancia, actualizar el accumulator
+    if (tripPayment.all_packages_delivered !== realAllDelivered) {
+      console.warn('⚠️ Discrepancia detectada en accumulator, actualizando...');
+      handleCreateAccumulator(); // Recalcula todo
+    }
+  }
+}, [tripPayment, packageCounts]);
+```
+
+## Flujo Visual Corregido
 
 ```text
-┌────────────────────────────────────────────────────────────────┐
-│  ESTADO: pending_office_confirmation                           │
-├────────────────────────────────────────────────────────────────┤
-│  Badge: ⏳ Esperando confirmación                              │
-│  Mensaje: "Esperando confirmación de oficina"                  │
-│  Submensaje: "Has declarado la entrega. Podrás crear tu       │
-│              orden de cobro una vez que Favorón confirme."     │
-└────────────────────────────────────────────────────────────────┘
-                              ↓
-┌────────────────────────────────────────────────────────────────┐
-│  ESTADO: delivered_to_office                                   │
-├────────────────────────────────────────────────────────────────┤
-│  Badge: ✅ Entrega confirmada                                  │
-│  Mensaje: "Entrega confirmada por Favorón"                     │
-│  Submensaje: "El paquete está listo para que el shopper       │
-│              lo recoja."                                       │
-└────────────────────────────────────────────────────────────────┘
+ANTES (incorrecto):
+┌─────────────────────────────────────────────┐
+│  Paquete: pending_office_confirmation       │
+│  Accumulator: all_packages_delivered=true   │
+│  UI muestra: ✓ Listo + Botón Solicitar      │ ← ERROR
+└─────────────────────────────────────────────┘
+
+DESPUÉS (correcto):
+┌─────────────────────────────────────────────┐
+│  Paquete: pending_office_confirmation       │
+│  Accumulator: all_packages_delivered=true   │
+│  Verificación real: completed=0/1           │
+│  UI muestra: ⏳ Pendiente entrega           │ ← CORRECTO
+└─────────────────────────────────────────────┘
 ```
 
 ## Archivos a Modificar
 
 | Archivo | Líneas | Cambio |
 |---------|--------|--------|
-| `src/components/dashboard/traveler/TravelerPackageStatusBadge.tsx` | 93-100, 101-107 | Actualizar textos de estados |
-| `src/components/dashboard/CollapsibleTravelerPackageCard.tsx` | 442-451 | Mejorar mensajes de estado |
+| `src/components/dashboard/TripPaymentSummary.tsx` | 42-71, 137-140, nuevo useEffect | Validar estado real de paquetes |
 
-## Resultado Esperado
+## Beneficios
 
-1. **Estado `pending_office_confirmation`**: El viajero ve claramente "Esperando confirmación de oficina" con una explicación de que debe esperar la confirmación de Favorón
-2. **Estado `delivered_to_office`**: El viajero ve "Entrega confirmada por Favorón" indicando que la oficina ya confirmó la recepción
+1. El viajero no verá "Listo" cuando el paquete aún está pendiente de confirmación
+2. El accumulator se auto-corregirá si hay discrepancias
+3. Previene solicitudes de pago prematuras
 
 ## Riesgo
-**Muy bajo** - Solo modifica textos informativos sin afectar la lógica de negocio.
+**Bajo** - Solo agrega validación adicional sin cambiar flujos existentes.
