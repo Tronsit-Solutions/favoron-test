@@ -1636,9 +1636,38 @@ export type Database = {
           trip_id: string
         }[]
       }
+      get_monthly_package_stats: {
+        Args: never
+        Returns: {
+          cancelled_count: number
+          completed_count: number
+          delivery_fee: number
+          gmv: number
+          month: string
+          pending_count: number
+          service_fee: number
+          total_count: number
+        }[]
+      }
       get_monthly_reports: {
         Args: { end_date?: string; start_date?: string }
         Returns: Json
+      }
+      get_monthly_trip_stats: {
+        Args: never
+        Returns: {
+          approved_count: number
+          completed_count: number
+          month: string
+          total_count: number
+        }[]
+      }
+      get_monthly_user_counts: {
+        Args: never
+        Returns: {
+          month: string
+          user_count: number
+        }[]
       }
       get_next_label_number: { Args: never; Returns: number }
       get_operations_packages: {
