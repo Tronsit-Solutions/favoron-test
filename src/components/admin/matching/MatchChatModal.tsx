@@ -14,13 +14,11 @@ interface MatchChatModalProps {
 }
 
 export const MatchChatModal = ({ selectedPackage, trips, modalDataCache, onClose, onMarkAsRead }: MatchChatModalProps) => {
-  if (!selectedPackage) return null;
-
-  const statusInfo = getStatusInfo(selectedPackage.status);
+  const statusInfo = selectedPackage ? getStatusInfo(selectedPackage.status) : null;
   
   // Smart traveler lookup with cache fallback
   const findTravelerInfo = () => {
-    if (!selectedPackage.matched_trip_id) return null;
+    if (!selectedPackage?.matched_trip_id) return null;
     
     // Try current trips first
     const currentTrip = trips.find(t => t.id === selectedPackage.matched_trip_id);
@@ -39,7 +37,7 @@ export const MatchChatModal = ({ selectedPackage, trips, modalDataCache, onClose
     return 'Cargando...';
   };
   
-  const travelerInfo = findTravelerInfo();
+  const travelerInfo = selectedPackage ? findTravelerInfo() : null;
 
   // Mark messages as read when modal opens
   useEffect(() => {
@@ -48,9 +46,11 @@ export const MatchChatModal = ({ selectedPackage, trips, modalDataCache, onClose
     }
   }, [selectedPackage?.id, onMarkAsRead]);
 
+  if (!selectedPackage) return null;
+
   return (
     <Dialog open={!!selectedPackage} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+      <DialogContent className="max-w-4xl h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <MessageCircle className="h-5 w-5" />
@@ -58,30 +58,30 @@ export const MatchChatModal = ({ selectedPackage, trips, modalDataCache, onClose
           </DialogTitle>
         </DialogHeader>
         
-        <div className="flex-1 overflow-hidden">
-          <div className="mb-4 p-3 bg-muted rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-sm">{selectedPackage.item_description}</p>
-                <p className="text-xs text-muted-foreground">
-                  Shopper: {selectedPackage.user_id} | 
-                  {selectedPackage.matched_trip_id && (
-                    <span> Viajero: {travelerInfo}</span>
-                  )}
-                </p>
-              </div>
-              <Badge className={`text-xs ${statusInfo.color}`}>
-                {statusInfo.icon} {statusInfo.label}
-              </Badge>
+        {/* Info del paquete - altura fija */}
+        <div className="mb-2 p-3 bg-muted rounded-lg shrink-0">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-sm">{selectedPackage.item_description}</p>
+              <p className="text-xs text-muted-foreground">
+                Shopper: {selectedPackage.user_id} | 
+                {selectedPackage.matched_trip_id && (
+                  <span> Viajero: {travelerInfo}</span>
+                )}
+              </p>
             </div>
+            <Badge className={`text-xs ${statusInfo.color}`}>
+              {statusInfo.icon} {statusInfo.label}
+            </Badge>
           </div>
-          
-          <div className="h-[500px] overflow-hidden">
-            <PackageTimeline 
-              pkg={selectedPackage} 
-              className="h-full"
-            />
-          </div>
+        </div>
+        
+        {/* PackageTimeline - ocupa resto del espacio */}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <PackageTimeline 
+            pkg={selectedPackage} 
+            className="h-full"
+          />
         </div>
       </DialogContent>
     </Dialog>
