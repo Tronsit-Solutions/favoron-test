@@ -238,7 +238,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     'Otro': ['Otra ciudad']
   };
 
-  const purchaseOrigins = [
+  // Para compra online - sin Guatemala (tiendas extranjeras)
+  const onlinePurchaseOrigins = [
+    { value: 'Estados Unidos', label: 'Estados Unidos' },
+    { value: 'España', label: 'España' },
+    { value: 'México', label: 'México' },
+    { value: 'Otro', label: 'Otro' }
+  ];
+
+  // Para pedido personal - con Guatemala (paquete puede estar localmente)
+  const personalPackageOrigins = [
     { value: 'Guatemala', label: 'Guatemala' },
     { value: 'Estados Unidos', label: 'Estados Unidos' },
     { value: 'España', label: 'España' },
@@ -774,7 +783,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               <SelectValue placeholder="Selecciona el país de origen" />
             </SelectTrigger>
             <SelectContent>
-              {purchaseOrigins.map((origin) => (
+              {(formRequestType === 'personal' ? personalPackageOrigins : onlinePurchaseOrigins).map((origin) => (
                 <SelectItem key={origin.value} value={origin.value}>
                   <div className="flex items-center space-x-2">
                     <Globe className="h-4 w-4" />
