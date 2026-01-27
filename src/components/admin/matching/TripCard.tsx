@@ -34,22 +34,12 @@ export const TripCard = ({
                 </div>
                 
                 {/* Traveler contact info */}
-                <div className="space-y-1 text-xs text-muted-foreground mb-2">
+                <div className="text-xs text-muted-foreground mb-2">
                   <div className="flex items-center space-x-3">
                     <span>👤 {trip.first_name && trip.last_name 
                       ? `${trip.first_name} ${trip.last_name}` 
                       : trip.username || 'Usuario sin nombre'}</span>
                     <span>📧 {trip.email || 'Sin email'}</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <span>📱 {trip.phone_number || 'Sin teléfono'}</span>
-                    <span>🆔 {trip.user_id?.slice(0, 8)}...</span>
-                    <span>📋 {trip.status}</span>
-                  </div>
-                  
-                  {/* Traveler origin city */}
-                  <div className="text-xs text-blue-600">
-                    📍 Origen: {trip.from_city}
                   </div>
                 </div>
                 
