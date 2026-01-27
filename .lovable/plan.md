@@ -1,72 +1,120 @@
 
 
-# Plan: Guatemala Solo en Pedido Personal
+# Plan: Crear Payment Accumulator y Orden de Cobro para Daniela Ortiz-Miron
 
-## Problema
+## Datos Identificados
 
-Guatemala se agregó al array `purchaseOrigins` que se usa para **ambos** tipos de solicitud:
-- **Compra Online**: "¿En qué país está la TIENDA?" - Guatemala NO debe aparecer
-- **Pedido Personal**: "¿En qué país está tu PAQUETE?" - Guatemala SÍ debe aparecer
+### Viaje
+| Campo | Valor |
+|-------|-------|
+| Trip ID | `4fb91dad-1df0-4ea7-97b2-60fc8ac9d270` |
+| Traveler ID | `3c364aa5-172d-4f60-a106-9935a752fc6e` |
+| Origen | Hamburgo, Alemania |
+| Destino | Guatemala City |
+| Llegada | 4 de enero 2026 |
 
-## Solución
+### Paquetes Asignados
+| ID | Descripción | Estado | Tip | Elegible |
+|----|-------------|--------|-----|----------|
+| `d1b27084-a4b8-444f-a39d-b00c261a3e8f` | 2 Protectores para caballos | `completed` | Q100.00 | Sí |
+| `4f68c3df-234d-4d87-ba06-893437ddca5a` | Pantalón para Equitación | `quote_expired` | Q70.00 | No |
 
-Crear dos arrays separados: uno para compra online (sin Guatemala) y otro para pedido personal (con Guatemala).
+### Información Bancaria
+| Campo | Valor |
+|-------|-------|
+| Banco | Banco Industrial |
+| Titular | Daniela Ortiz |
+| Cuenta | 8090013015 |
+| Tipo | Monetaria |
 
 ---
 
-## Cambio Requerido
+## Paso 1: Crear Trip Payment Accumulator
 
-**Archivo:** `src/components/PackageRequestForm.tsx`
+Insertar registro en `trip_payment_accumulator`:
 
-### 1. Separar los arrays de origen (líneas 241-247)
-
-```typescript
-// Para compra online - sin Guatemala (tiendas extranjeras)
-const onlinePurchaseOrigins = [
-  { value: 'Estados Unidos', label: 'Estados Unidos' },
-  { value: 'España', label: 'España' },
-  { value: 'México', label: 'México' },
-  { value: 'Otro', label: 'Otro' }
-];
-
-// Para pedido personal - con Guatemala (paquete puede estar localmente)
-const personalPackageOrigins = [
-  { value: 'Guatemala', label: 'Guatemala' },
-  { value: 'Estados Unidos', label: 'Estados Unidos' },
-  { value: 'España', label: 'España' },
-  { value: 'México', label: 'México' },
-  { value: 'Otro', label: 'Otro' }
-];
+```sql
+INSERT INTO trip_payment_accumulator (
+  trip_id,
+  traveler_id,
+  accumulated_amount,
+  delivered_packages_count,
+  total_packages_count,
+  all_packages_delivered,
+  payment_order_created
+) VALUES (
+  '4fb91dad-1df0-4ea7-97b2-60fc8ac9d270',
+  '3c364aa5-172d-4f60-a106-9935a752fc6e',
+  100.00,  -- Solo el paquete completed cuenta
+  1,       -- 1 paquete entregado
+  1,       -- 1 paquete elegible (el otro está quote_expired)
+  true,    -- Todos los elegibles entregados
+  false    -- Aún no se crea la payment order
+);
 ```
 
-### 2. Usar el array correcto según el tipo (línea 777)
+---
 
-```tsx
-{(formRequestType === 'personal' ? personalPackageOrigins : onlinePurchaseOrigins).map((origin) => (
-  <SelectItem key={origin.value} value={origin.value}>
-    <div className="flex items-center space-x-2">
-      <Globe className="h-4 w-4" />
-      <span>{origin.label}</span>
-    </div>
-  </SelectItem>
-))}
+## Paso 2: Crear Payment Order
+
+Insertar registro en `payment_orders`:
+
+```sql
+INSERT INTO payment_orders (
+  trip_id,
+  traveler_id,
+  amount,
+  bank_name,
+  bank_account_holder,
+  bank_account_number,
+  bank_account_type,
+  payment_type,
+  status,
+  historical_packages
+) VALUES (
+  '4fb91dad-1df0-4ea7-97b2-60fc8ac9d270',
+  '3c364aa5-172d-4f60-a106-9935a752fc6e',
+  100.00,
+  'Banco Industrial',
+  'Daniela Ortiz',
+  '8090013015',
+  'monetaria',
+  'trip_payment',
+  'pending',
+  '[{"package_id": "d1b27084-a4b8-444f-a39d-b00c261a3e8f", "tip": 100.00, "description": "2 Protectores para caballos"}]'
+);
 ```
 
 ---
 
-## Resumen
+## Paso 3: Actualizar Accumulator
 
-| Archivo | Líneas | Cambio |
-|---------|--------|--------|
-| `PackageRequestForm.tsx` | 241-247 | Separar en 2 arrays: `onlinePurchaseOrigins` y `personalPackageOrigins` |
-| `PackageRequestForm.tsx` | 777 | Condicionar qué array usar según `formRequestType` |
+Marcar que la payment order fue creada:
+
+```sql
+UPDATE trip_payment_accumulator
+SET payment_order_created = true,
+    updated_at = now()
+WHERE trip_id = '4fb91dad-1df0-4ea7-97b2-60fc8ac9d270'
+  AND traveler_id = '3c364aa5-172d-4f60-a106-9935a752fc6e';
+```
 
 ---
 
-## Resultado
+## Resumen de Operaciones
 
-| Tipo de Solicitud | Opciones Mostradas |
-|-------------------|-------------------|
-| **Compra Online** | Estados Unidos, España, México, Otro |
-| **Pedido Personal** | **Guatemala**, Estados Unidos, España, México, Otro |
+| Tabla | Operación | Monto |
+|-------|-----------|-------|
+| `trip_payment_accumulator` | INSERT | Q100.00 acumulado |
+| `payment_orders` | INSERT | Q100.00 a pagar |
+| `trip_payment_accumulator` | UPDATE | `payment_order_created = true` |
+
+---
+
+## Resultado Esperado
+
+Daniela Ortiz-Miron tendrá:
+1. Un **payment accumulator** mostrando Q100.00 acumulados
+2. Una **orden de cobro pendiente** por Q100.00 en el panel de administración
+3. La orden aparecerá en la pestaña "Pagos a Viajeros" lista para ser procesada
 
