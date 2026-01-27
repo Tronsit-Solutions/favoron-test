@@ -1,67 +1,76 @@
 
+# Plan: Simplificar TripCard Eliminando Información Redundante
 
-# Plan: Corregir Mensajes Incorrectos sobre Quién Compra el Producto
-
-## Problema Crítico
-
-El mensaje "Pago confirmado - Viajero comprará el producto" es **completamente incorrecto**. En el flujo de Favoron:
-
-| Rol | Responsabilidad |
-|-----|-----------------|
-| **Shopper** | Compra el producto en la tienda online y lo envía a la dirección del viajero |
-| **Viajero** | Recibe el paquete en su dirección y lo transporta a Guatemala |
-
-El texto actual confunde a los usuarios al sugerir que el viajero es quien compra.
-
-## Ubicaciones del Error
-
-### Archivo: `src/components/dashboard/CollapsiblePackageCard.tsx`
-
-| Línea | Texto Actual (Incorrecto) | Texto Corregido |
-|-------|---------------------------|-----------------|
-| 153 | "Pago confirmado - Viajero comprará el producto" | "Pago confirmado - Procede a realizar tu compra" |
-| 164 | "Paquete en tránsito a la dirección del viajero. El viajero confirmará al recibir el paquete" | "Tu paquete está en camino. El viajero confirmará cuando lo reciba" |
-
-### Nota sobre "Ver dirección y comprar" (Línea 841)
-
-Este texto del botón es **correcto** porque se muestra al shopper, indicándole que debe ver la dirección del viajero y realizar la compra. No requiere cambio.
+## Problema
+Las tarjetas de viajes en el panel de matching muestran información redundante o innecesaria:
+- **Teléfono** (📱): No es crítico para la vista previa
+- **ID** (🆔): Información técnica innecesaria en preview
+- **Status** (📋 approved): Redundante ya que están en la pestaña de viajes aprobados
+- **Origen** (📍 Origen: Charleston, SC): Duplicado del título que ya dice "Charleston, SC → Guatemala City"
 
 ## Cambios Propuestos
 
-### Cambio 1: Estado `pending_purchase` (Línea 153)
+### Archivo: `src/components/admin/matching/TripCard.tsx`
 
-```typescript
-// ANTES (incorrecto):
-case 'pending_purchase':
-  return "Pago confirmado - Viajero comprará el producto";
-
-// DESPUÉS (correcto):
-case 'pending_purchase':
-  return "Pago confirmado - Procede a realizar tu compra";
+**Antes (líneas 36-54):**
+```tsx
+{/* Traveler contact info */}
+<div className="space-y-1 text-xs text-muted-foreground mb-2">
+  <div className="flex items-center space-x-3">
+    <span>👤 {trip.first_name && trip.last_name 
+      ? `${trip.first_name} ${trip.last_name}` 
+      : trip.username || 'Usuario sin nombre'}</span>
+    <span>📧 {trip.email || 'Sin email'}</span>
+  </div>
+  <div className="flex items-center space-x-3">
+    <span>📱 {trip.phone_number || 'Sin teléfono'}</span>      <!-- ELIMINAR -->
+    <span>🆔 {trip.user_id?.slice(0, 8)}...</span>             <!-- ELIMINAR -->
+    <span>📋 {trip.status}</span>                              <!-- ELIMINAR -->
+  </div>
+  
+  {/* Traveler origin city */}                                  <!-- ELIMINAR -->
+  <div className="text-xs text-blue-600">                       <!-- ELIMINAR -->
+    📍 Origen: {trip.from_city}                                 <!-- ELIMINAR -->
+  </div>                                                        <!-- ELIMINAR -->
+</div>
 ```
 
-**Razón:** El shopper ya pagó a Favoron, ahora debe comprar el producto en la tienda y enviarlo a la dirección del viajero.
-
-### Cambio 2: Estado `in_transit` (Línea 164)
-
-```typescript
-// ANTES:
-return 'Paquete en tránsito a la dirección del viajero. El viajero confirmará al recibir el paquete';
-
-// DESPUÉS:
-return 'Tu paquete está en camino. El viajero confirmará cuando lo reciba';
+**Después:**
+```tsx
+{/* Traveler contact info */}
+<div className="text-xs text-muted-foreground mb-2">
+  <div className="flex items-center space-x-3">
+    <span>👤 {trip.first_name && trip.last_name 
+      ? `${trip.first_name} ${trip.last_name}` 
+      : trip.username || 'Usuario sin nombre'}</span>
+    <span>📧 {trip.email || 'Sin email'}</span>
+  </div>
+</div>
 ```
 
-**Razón:** Simplificar el mensaje manteniendo claridad sin mencionar quién compra.
+## Resultado Visual
 
-## Resumen de Archivos a Modificar
+**Antes:**
+```
+✈️ Charleston, SC → Guatemala City
+👤 Bryan Gil  📧 bryangil19@gmail.com
+📱 42379069  🆔 fd1f02d...  📋 approved
+📍 Origen: Charleston, SC
+💰 Total: $811.92
+📅 Fecha de viaje: 27/1/2026
+...
+```
 
-| Archivo | Líneas | Cambio |
-|---------|--------|--------|
-| `src/components/dashboard/CollapsiblePackageCard.tsx` | 153, 164 | Corregir mensajes de estado para reflejar que el shopper compra |
+**Después (limpio):**
+```
+✈️ Charleston, SC → Guatemala City
+👤 Bryan Gil  📧 bryangil19@gmail.com
+💰 Total: $811.92
+📅 Fecha de viaje: 27/1/2026
+...
+```
 
 ## Impacto
-
-- **UI/UX:** El shopper verá mensajes claros que le indican que debe realizar la compra
-- **Riesgo:** Muy bajo, solo cambios de texto informativo
-
+- **Visual:** Tarjetas más limpias y fáciles de leer
+- **UX:** Información esencial sin ruido
+- **Riesgo:** Ninguno - la información completa sigue disponible al hacer clic en "Ver"
