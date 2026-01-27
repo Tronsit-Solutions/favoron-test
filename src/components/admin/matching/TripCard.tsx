@@ -33,14 +33,11 @@ export const TripCard = ({
                   </h4>
                 </div>
                 
-                {/* Traveler contact info */}
+                {/* Traveler name */}
                 <div className="text-xs text-muted-foreground mb-2">
-                  <div className="flex items-center space-x-3">
-                    <span>👤 {trip.first_name && trip.last_name 
-                      ? `${trip.first_name} ${trip.last_name}` 
-                      : trip.username || 'Usuario sin nombre'}</span>
-                    <span>📧 {trip.email || 'Sin email'}</span>
-                  </div>
+                  <span>👤 {trip.first_name && trip.last_name 
+                    ? `${trip.first_name} ${trip.last_name}` 
+                    : trip.username || 'Usuario sin nombre'}</span>
                 </div>
                 
                 {/* Packages total badge */}
