@@ -50,8 +50,8 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
 
   return (
     <Card className={`${className} bg-gradient-to-br from-background to-muted/20 border-0 shadow-lg flex flex-col`}>
-      {/* Chat container with fixed height */}
-      <div className="flex flex-col h-[500px] p-4">
+      {/* Chat container - inherits height from parent */}
+      <div className="flex flex-col h-full p-4">
         {/* Enhanced Chat Header */}
         <div className="flex items-center gap-3 pb-3 mb-3 border-b border-gradient-to-r from-primary/20 via-primary/10 to-transparent shrink-0">
           <div className="flex items-center gap-2">
