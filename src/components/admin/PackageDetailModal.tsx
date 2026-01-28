@@ -166,6 +166,7 @@ const [editForm, setEditForm] = useState({
     adminAssignedTip?: number;
     requestType?: string;
     weight?: string;
+    instructions?: string;
     [key: string]: any;
   }>>([]);
   const [paymentOrder, setPaymentOrder] = useState<any>(null);
@@ -1294,6 +1295,22 @@ const [editForm, setEditForm] = useState({
                                 className="mt-1"
                               />
                             </div>
+                            
+                            {/* Instructions field for personal orders */}
+                            {(product.requestType === 'personal' || product.instructions) && (
+                              <div className="md:col-span-2">
+                                <label className="text-xs font-medium text-muted-foreground">
+                                  Instrucciones para pedido personal
+                                </label>
+                                <Textarea
+                                  value={product.instructions || ''}
+                                  onChange={(e) => handleProductChange(idx, 'instructions', e.target.value)}
+                                  placeholder="Instrucciones especiales para el viajero..."
+                                  className="mt-1"
+                                  rows={3}
+                                />
+                              </div>
+                            )}
                             
                             {/* Weight field if exists */}
                             {product.weight !== undefined && (
