@@ -241,9 +241,8 @@ const AdminDashboard = ({
               matched_trip_id: matchingTrip,
               admin_assigned_tip: adminTip,
               matched_assignment_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-              updated_at: new Date().toISOString(),
-              traveler_dismissed_at: null, // Clear dismissal for re-assigned packages
-              traveler_dismissal: null
+              updated_at: new Date().toISOString()
+              // Note: traveler_dismissed_at cleanup removed - expire_old_quotes now auto-cleans matched_trip_id
             } : pkg
           )
         );

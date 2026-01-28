@@ -269,12 +269,9 @@ const Dashboard = ({ user }: DashboardProps) => {
   });
   
   // Get packages assigned to user's trips (for traveler view)
+  // Note: traveler_dismissed_at filter removed - we now rely solely on matched_trip_id
+  // When quotes expire, the cron job auto-cleans matched_trip_id so packages don't appear here
   const assignedPackages = packages.filter(pkg => {
-    // Exclude dismissed packages
-    if (pkg.traveler_dismissed_at) {
-      return false;
-    }
-    
     // Check if package is assigned to any of user's trips
     if (pkg.matched_trip_id && userTrips.some(trip => trip.id === pkg.matched_trip_id)) {
       return true;

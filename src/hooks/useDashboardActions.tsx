@@ -910,16 +910,15 @@ export const useDashboardActions = (
       } : null;
 
       // Update package in Supabase with match information
-      // Clear any previous quote data and dismissal flags to ensure fresh start
+      // Clear any previous quote data to ensure fresh start
       const updateData: any = {
         status: 'matched',
         matched_trip_id: tripId,
         quote: null, // Clear any previous quote from previous match
         admin_assigned_tip: adminTip,
         traveler_address: travelerAddress,
-        matched_trip_dates: matchedTripDates,
-        traveler_dismissed_at: null, // Clear dismissal so traveler can see re-assigned package
-        traveler_dismissal: null // Clear dismissal metadata
+        matched_trip_dates: matchedTripDates
+        // Note: traveler_dismissed_at cleanup removed - expire_old_quotes now auto-cleans matched_trip_id
       };
 
       // If this is a multi-product order with individual tips, update products_data
