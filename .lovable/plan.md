@@ -1,84 +1,62 @@
 
-
-# Plan: Agregar Campo de Instrucciones en Modo Edición Admin
+# Plan: Corregir Visibilidad de Paquetes Reasignados
 
 ## Problema Identificado
 
-Cuando un administrador edita pedidos personales (`requestType === 'personal'`), el campo "Instrucciones" no está disponible para editar, aunque sí se muestra en modo visualización.
+Cuando un paquete es reasignado al mismo viaje despues de haber sido descartado por el viajero, el campo `traveler_dismissed_at` permanece con valor, causando que el paquete quede oculto en el dashboard del viajero.
 
-**Ubicación del problema:**
-- Archivo: `src/components/admin/PackageDetailModal.tsx`
-- Modo visualización (líneas 1500-1506): El campo `instructions` SÍ se muestra
-- Modo edición (líneas 1285-1296): Solo existe el campo `additionalNotes`, pero falta `instructions`
+**Caso actual de Leslie Lopez:**
+- "Bagsmart small marron grisaceo" - descartado el 27 enero, reasignado con timer hasta 29 enero
+- "Kit fellow 16 oz" - descartado el 26 enero, reasignado con timer hasta 29 enero
 
-## Solución Propuesta
+Ambos estan en status `matched` con timer activo pero Leslie no los ve porque `traveler_dismissed_at` no fue limpiado.
 
-Agregar un campo de texto para editar las instrucciones cuando el producto es de tipo "personal", justo después del campo de notas adicionales en el formulario de edición.
+## Solucion en Dos Partes
 
-## Cambios Técnicos
+### Parte 1: Correccion Inmediata (SQL Manual)
 
-### 1. Actualizar el Tipo de Estado `editProducts`
+Ejecutar en Supabase SQL Editor para restaurar visibilidad de los paquetes de Leslie:
 
-**Ubicación:** Líneas 160-170
+```sql
+UPDATE packages 
+SET traveler_dismissed_at = NULL
+WHERE id IN (
+  '5b9e06d6-2150-403d-a288-3ccfaef729ae',  -- Bagsmart small
+  'cc8089c0-cbed-406e-893e-01b56746c615'   -- Kit fellow 16 oz
+);
+```
 
-Agregar `instructions` al tipo del estado:
+### Parte 2: Prevencion Futura (Codigo)
+
+Modificar la logica de asignacion/reasignacion de paquetes para limpiar `traveler_dismissed_at` automaticamente.
+
+#### Archivo: src/components/admin/matching/MatchCard.tsx o funcion de asignacion
+
+Cuando admin asigna un paquete a un viaje, agregar:
 
 ```typescript
-const [editProducts, setEditProducts] = useState<Array<{
-  itemDescription: string;
-  estimatedPrice: string;
-  quantity: string;
-  itemLink: string;
-  additionalNotes?: string;
-  adminAssignedTip?: number;
-  requestType?: string;
-  weight?: string;
-  instructions?: string;  // <-- AGREGAR
-  [key: string]: any;
-}>>([]);
+traveler_dismissed_at: null
 ```
 
-### 2. Agregar Campo de Instrucciones en Modo Edición
+al objeto de actualizacion del paquete.
 
-**Ubicación:** Después de línea 1296 (campo de notas adicionales)
+#### Archivo: src/hooks/usePackageActions.tsx (si existe logica de asignacion)
 
-Agregar el siguiente bloque condicional:
+Buscar donde se hace `UPDATE packages SET matched_trip_id = ...` y asegurar que incluya:
 
-```tsx
-{/* Instructions field for personal orders */}
-{(product.requestType === 'personal' || product.instructions) && (
-  <div className="md:col-span-2">
-    <label className="text-xs font-medium text-muted-foreground">
-      Instrucciones para pedido personal
-    </label>
-    <Textarea
-      value={product.instructions || ''}
-      onChange={(e) => handleProductChange(idx, 'instructions', e.target.value)}
-      placeholder="Instrucciones especiales para el viajero..."
-      className="mt-1"
-      rows={3}
-    />
-  </div>
-)}
+```typescript
+traveler_dismissed_at: null
 ```
 
-## Comportamiento Esperado
-
-| Escenario | Antes | Después |
-|-----------|-------|---------|
-| Producto tipo "personal" con instrucciones | Campo no visible para editar | Campo visible y editable |
-| Producto tipo "online" sin instrucciones | Sin cambio | Sin cambio (campo oculto) |
-| Producto con `instructions` pero sin `requestType` | Campo no visible | Campo visible (como fallback) |
-
-## Archivos a Modificar
+## Archivos a Revisar/Modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/admin/PackageDetailModal.tsx` | Agregar tipo `instructions` al estado y campo de edición condicional |
+| Admin matching components | Agregar limpieza de `traveler_dismissed_at` al asignar |
+| Edge functions de asignacion | Verificar que limpien el campo al reasignar |
+| RPCs de Supabase | Si hay funciones de asignacion, actualizar para limpiar el campo |
 
-## Notas Importantes
+## Resultado Esperado
 
-- El campo `instructions` ya se preserva en la inicialización gracias al spread `...p` en línea 199
-- La función `handleProductChange` existente funcionará sin modificaciones
-- El campo solo aparecerá para productos de tipo "personal" o que ya tengan instrucciones
-
+1. **Inmediato**: Leslie vera los 2 paquetes despues de ejecutar el SQL
+2. **Futuro**: Cualquier paquete reasignado sera visible automaticamente sin intervencion manual
