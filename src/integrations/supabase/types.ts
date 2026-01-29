@@ -1782,7 +1782,6 @@ export type Database = {
           _additional_comments?: string
           _package_id: string
           _rejection_reason?: string
-          _wants_requote?: boolean
         }
         Returns: undefined
       }
