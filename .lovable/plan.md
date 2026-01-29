@@ -1,37 +1,68 @@
 
-# Plan: Reducir tamaño del cuadro de texto del chat
+# Plan: Agregar lógica condicional de entrega en EditTripModal
 
-## Problema
+## Problema Identificado
 
-En la imagen se ve claramente que:
-1. El área de entrada de mensajes ocupa ~40% del espacio del modal
-2. Solo se ve un mensaje parcialmente cortado
-3. El textarea tiene `min-h-[50px]` que es demasiado alto para un chat
-4. Hay espaciado excesivo entre elementos
+En el modal de edición de viajes (`EditTripModal`), la sección "Entrega de paquetes en Guatemala" siempre muestra las opciones:
+- "Entrego en oficina de Favorón (zona 14)"
+- "Entrega a mensajero Favorón"
+
+Esto es incorrecto cuando el destino del viaje es fuera de Guatemala (ej: España, USA). En esos casos debería mostrar:
+- "Lo envío por correo"
+- "Me coordino con el shopper"
+
+El `TripForm.tsx` (formulario de creación) ya tiene esta lógica implementada correctamente, pero el `EditTripModal` no la tiene.
 
 ## Solución
 
-### Archivo: `src/components/chat/MessageInput.tsx`
+Implementar la misma lógica condicional del `TripForm` en el `EditTripModal`:
 
-Compactar el diseño del input:
+### Archivo: `src/components/EditTripModal.tsx`
 
-| Línea | Antes | Después |
-|-------|-------|---------|
-| 123 | `p-2` | `p-1.5` (reducir padding externo) |
-| 142 | `space-y-2` | `space-y-1` (reducir gap vertical) |
-| 149 | `min-h-[50px] ... py-2` | `min-h-[36px] max-h-[60px] ... py-1.5` (altura mínima reducida, máxima limitada) |
-| 157 | `gap-2` | `gap-1` (reducir gap botones) |
-| 166 | `h-8` | `h-7` (botón más pequeño) |
-| 190 | `h-8 px-3` | `h-7 px-2` (botón enviar más pequeño) |
+**1. Agregar import del hook de delivery points:**
+```typescript
+import { useDeliveryPoints } from "@/hooks/useDeliveryPoints";
+```
 
-### Archivo: `src/components/chat/PackageTimeline.tsx`
+**2. Agregar lógica de detección de destino (después de la línea 168):**
+```typescript
+// Fetch delivery points for international destinations
+const { getDeliveryPointByCity } = useDeliveryPoints();
 
-Reducir padding del contenedor del input:
+// Determine if destination has official delivery options
+const destinationDeliveryPoint = formData.toCity && formData.toCountry 
+  ? getDeliveryPointByCity(formData.toCity, formData.toCountry)
+  : null;
 
-| Línea | Antes | Después |
-|-------|-------|---------|
-| 97 | `p-2` | `p-1.5` (reducir padding del wrapper) |
+const isDestinationGuatemala = formData.toCountry?.toLowerCase() === 'guatemala';
+const hasInternationalDeliveryPoint = !!destinationDeliveryPoint;
+const hasOfficialDeliveryOptions = isDestinationGuatemala || hasInternationalDeliveryPoint;
+```
 
-## Resultado esperado
+**3. Actualizar la sección 3 de entrega (líneas 473-600):**
+- Cambiar el título de la sección según el destino
+- Mostrar opciones de Guatemala (oficina/mensajero) solo cuando `hasOfficialDeliveryOptions` es true
+- Mostrar opciones internacionales (correo/coordinación) cuando no hay opciones oficiales
 
-El área de entrada pasará de ~150px de altura a ~70px, liberando ~80px adicionales para mostrar más mensajes del chat.
+**4. Ajustar la validación del formulario:**
+- Permitir los nuevos valores de `deliveryMethod`: 'correo' y 'coordinacion_shopper'
+- Cuando el destino cambia, resetear el `deliveryMethod` si ya no es válido
+
+## Cambios Específicos
+
+| Línea | Cambio |
+|-------|--------|
+| 11 | Agregar import de `useDeliveryPoints` |
+| ~168 | Agregar lógica de detección de destino |
+| 277-283 | Al cambiar destino, resetear método de entrega si es inválido |
+| 473-479 | Título dinámico según destino |
+| 482-493 | Opciones condicionales de entrega |
+
+## Flujo esperado
+
+| Destino | Opciones mostradas |
+|---------|-------------------|
+| Guatemala | "Entrego en oficina de Favorón" / "Entrega a mensajero Favorón" |
+| España | "Lo envío por correo" / "Me coordino con el shopper" |
+| USA | "Entrego en oficina de Favorón" / "Entrega a mensajero Favorón" (si hay delivery point) |
+| Otro país sin delivery point | "Lo envío por correo" / "Me coordino con el shopper" |
