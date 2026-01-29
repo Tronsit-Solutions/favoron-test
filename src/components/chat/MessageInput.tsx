@@ -120,7 +120,7 @@ export const MessageInput = ({ onSendMessage, onFileUpload, disabled }: MessageI
   return (
     <div 
       className={cn(
-        "relative bg-background/80 backdrop-blur-sm rounded-md border p-2 transition-all duration-200",
+        "relative bg-background/80 backdrop-blur-sm rounded-md border p-1.5 transition-all duration-200",
         isDragging 
           ? "border-primary border-2 bg-primary/5" 
           : "border-border/60"
@@ -139,14 +139,14 @@ export const MessageInput = ({ onSendMessage, onFileUpload, disabled }: MessageI
         </div>
       )}
       
-      <div className="space-y-2">
+      <div className="space-y-1">
         <div className="relative">
           <Textarea
             placeholder="Escribe un mensaje..."
             value={message}
             onChange={(e) => setMessage(e.target.value.slice(0, 300))}
             onKeyDown={handleKeyDown}
-            className="min-h-[50px] resize-none text-sm pr-4 pl-3 py-2 border-0 bg-muted/40 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+            className="min-h-[36px] max-h-[60px] resize-none text-sm pr-4 pl-3 py-1.5 border-0 bg-muted/40 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all duration-200"
             disabled={isSending || disabled}
           />
           <div className="absolute bottom-1 right-2 text-xs text-muted-foreground/70 font-mono">
@@ -154,8 +154,8 @@ export const MessageInput = ({ onSendMessage, onFileUpload, disabled }: MessageI
           </div>
         </div>
         
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-1">
+          <div className="flex items-center gap-1">
             <label htmlFor="file-upload">
               <Button
                 type="button"
@@ -163,7 +163,7 @@ export const MessageInput = ({ onSendMessage, onFileUpload, disabled }: MessageI
                 variant="ghost"
                 disabled={isUploading || disabled}
                 asChild
-                className="h-8 px-2 text-sm hover:bg-muted/60 transition-colors"
+                className="h-7 px-2 text-sm hover:bg-muted/60 transition-colors"
               >
                 <span className="cursor-pointer flex items-center gap-1">
                   <Paperclip className="h-3 w-3" />
@@ -187,7 +187,7 @@ export const MessageInput = ({ onSendMessage, onFileUpload, disabled }: MessageI
             size="sm" 
             onClick={handleSendMessage}
             disabled={!message.trim() || isSending || disabled}
-            className="h-8 px-3 text-sm font-medium bg-primary hover:bg-primary/90 transition-all duration-200 shadow-sm"
+            className="h-7 px-2 text-sm font-medium bg-primary hover:bg-primary/90 transition-all duration-200 shadow-sm"
           >
             <Send className="h-3 w-3 mr-1" />
             {isSending ? 'Enviando...' : 'Enviar'}
