@@ -1,74 +1,91 @@
 
 
-# Plan: Agregar botón de edición de tip en el Resumen del Pedido
+# Plan: Hacer editable el tip por producto en la sección "Editar Productos"
 
-## Objetivo
+## Problema
 
-Añadir un botón de edición (icono de lápiz) junto al valor de "Tips Asignados" en la sección "Resumen del Pedido" del `PackageDetailModal`, permitiendo al admin editar los tips rápidamente sin tener que bajar hasta la sección de "Cotización".
+En la sección "Editar Productos" del `PackageDetailModal`, el tip de cada producto se muestra como un Badge de solo lectura ("Tip: Q90", "Tip: Q25"), pero el admin necesita poder editarlo directamente en esa misma vista.
+
+## Solución
+
+Reemplazar el Badge de solo lectura por un campo Input editable que permita modificar el `adminAssignedTip` de cada producto.
 
 ## Archivo a modificar
 
 **`src/components/admin/PackageDetailModal.tsx`**
 
-## Cambio específico (líneas 1599-1604)
+## Cambio específico (líneas 1219-1226)
 
 **Código actual:**
 ```tsx
-{totalAdminTips > 0 && (
-  <div className="text-center">
-    <p className="font-medium text-muted-foreground">Tips Asignados</p>
-    <p className="text-base font-bold text-green-600">Q{totalAdminTips.toFixed(2)}</p>
-  </div>
-)}
+<div className="flex items-center justify-between">
+  <Badge variant="secondary">Producto #{idx + 1}</Badge>
+  {product.adminAssignedTip > 0 && (
+    <Badge variant="outline" className="bg-green-50 text-green-700">
+      Tip: Q{product.adminAssignedTip}
+    </Badge>
+  )}
+</div>
 ```
 
 **Código nuevo:**
 ```tsx
-{totalAdminTips > 0 && (
-  <div className="text-center">
-    <p className="font-medium text-muted-foreground">Tips Asignados</p>
-    <div className="flex items-center justify-center gap-1">
-      <p className="text-base font-bold text-green-600">Q{totalAdminTips.toFixed(2)}</p>
-      {pkg.quote && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setQuoteEditModalOpen(true)}
-          className="h-5 w-5 p-0 text-muted-foreground hover:text-primary"
-          title="Editar tip"
-        >
-          <Edit2 className="h-3 w-3" />
-        </Button>
-      )}
+<div className="flex items-center justify-between gap-2">
+  <Badge variant="secondary">Producto #{idx + 1}</Badge>
+  <div className="flex items-center gap-1">
+    <label className="text-xs text-muted-foreground">Tip:</label>
+    <div className="relative w-24">
+      <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">Q</span>
+      <Input
+        type="number"
+        step="0.01"
+        min="0"
+        value={product.adminAssignedTip || ''}
+        onChange={(e) => handleProductChange(idx, 'adminAssignedTip', e.target.value)}
+        placeholder="0"
+        className="h-7 pl-6 text-xs font-mono text-right"
+      />
     </div>
   </div>
-)}
+</div>
 ```
 
-## Verificaciones necesarias
+## Verificación adicional
 
-- El icono `Edit2` ya está importado en el archivo (verificado)
-- El estado `quoteEditModalOpen` y `setQuoteEditModalOpen` ya existen
-- El componente `QuoteEditModal` ya está renderizado en el modal
+El `handleProductChange` ya existe y soporta actualizar cualquier campo:
 
-## Comportamiento esperado
+```tsx
+const handleProductChange = (index: number, field: string, value: string) => {
+  setEditProducts(prev => {
+    const updated = [...prev];
+    updated[index] = {
+      ...updated[index],
+      [field]: value
+    };
+    return updated;
+  });
+};
+```
 
-| Tipo de pedido | Acción al hacer clic |
-|----------------|---------------------|
-| Un solo producto | Abre modal para editar tip, service fee y delivery fee directamente |
-| Múltiples productos | Abre modal intermedio que lleva al editor de tips por producto (`ProductTipAssignmentModal`) |
+Para `adminAssignedTip`, necesitamos convertir a número al guardar. Verificaré si el `handleSavePackageEdit` ya lo maneja correctamente.
 
-## Resultado visual
+## Beneficio
+
+El admin podrá editar los tips de cada producto directamente en la sección "Editar Productos" sin necesidad de usar un modal separado, haciendo la edición más fluida y rápida.
+
+## Resultado visual esperado
 
 ```text
-+----------------------------------+
-| Resumen del Pedido:              |
-+----------------------------------+
-| Total Productos | Valor Total    |
-|        2        |    $75.00      |
-|                                  |
-| Tips Asignados  | Método Entrega |
-|  Q115.00 ✏️     | Envío domicilio|
-+----------------------------------+
++-----------------------------------------------+
+| [Producto #1]                    Tip: [Q|90 ] |
++-----------------------------------------------+
+| Descripción del producto                      |
+| [Yeti water bottle 64oz                     ] |
+|                                               |
+| Precio (USD)    | Cantidad                    |
+| [65            ]| [1                        ] |
+|                 ...                           |
+|                         Subtotal: $65.00      |
++-----------------------------------------------+
 ```
 
