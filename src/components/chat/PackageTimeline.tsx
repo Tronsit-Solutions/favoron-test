@@ -49,9 +49,9 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
   }
 
   return (
-    <Card className={`${className} bg-gradient-to-br from-background to-muted/20 border-0 shadow-lg flex flex-col`}>
-      {/* Chat container - inherits height from parent */}
-      <div className="flex flex-col h-full p-4">
+    <Card className={`${className} bg-gradient-to-br from-background to-muted/20 border-0 shadow-lg flex flex-col overflow-hidden`}>
+      {/* Chat container - flex-1 para ocupar todo el espacio disponible */}
+      <div className="flex flex-col flex-1 min-h-0 p-4">
         {/* Enhanced Chat Header */}
         <div className="flex items-center gap-3 pb-3 mb-3 border-b border-gradient-to-r from-primary/20 via-primary/10 to-transparent shrink-0">
           <div className="flex items-center gap-2">
@@ -66,7 +66,7 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
         </div>
 
         {/* Messages Container with fixed height and scroll */}
-        <div className="flex-1 bg-gradient-to-br from-muted/30 to-muted/10 rounded-xl border border-border/30 shadow-inner p-2 mb-3 min-h-0">
+        <div className="flex-1 min-h-0 bg-gradient-to-br from-muted/30 to-muted/10 rounded-xl border border-border/30 shadow-inner p-2 mb-3 overflow-hidden">
           <ScrollArea className="h-full w-full">
             <div className="space-y-2 pr-2">
               {messages.length === 0 ? (
