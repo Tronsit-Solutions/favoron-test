@@ -917,8 +917,10 @@ export const useDashboardActions = (
         quote: null, // Clear any previous quote from previous match
         admin_assigned_tip: adminTip,
         traveler_address: travelerAddress,
-        matched_trip_dates: matchedTripDates
-        // Note: traveler_dismissed_at cleanup removed - expire_old_quotes now auto-cleans matched_trip_id
+        matched_trip_dates: matchedTripDates,
+        // Clear dismissal fields from previous trip assignment so package is visible to new traveler
+        traveler_dismissal: null,
+        traveler_dismissed_at: null
       };
 
       // If this is a multi-product order with individual tips, update products_data
