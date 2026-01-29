@@ -154,6 +154,21 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Kill switch - check if email notifications are disabled
+  const EMAIL_NOTIFICATIONS_ENABLED = Deno.env.get("EMAIL_NOTIFICATIONS_ENABLED") !== "false";
+  
+  if (!EMAIL_NOTIFICATIONS_ENABLED) {
+    console.log('⏸️ Email notifications are disabled via EMAIL_NOTIFICATIONS_ENABLED=false');
+    return new Response(JSON.stringify({ 
+      success: true, 
+      message: 'Email notifications disabled',
+      skipped: true 
+    }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
+    });
+  }
+
   try {
     // Validate origin for security (except for internal DB calls)
     if (!isValidOrigin(req)) {
