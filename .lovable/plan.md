@@ -1,68 +1,74 @@
 
-# Plan: Agregar lógica condicional de entrega en EditTripModal
 
-## Problema Identificado
+# Plan: Agregar botón de edición de tip en el Resumen del Pedido
 
-En el modal de edición de viajes (`EditTripModal`), la sección "Entrega de paquetes en Guatemala" siempre muestra las opciones:
-- "Entrego en oficina de Favorón (zona 14)"
-- "Entrega a mensajero Favorón"
+## Objetivo
 
-Esto es incorrecto cuando el destino del viaje es fuera de Guatemala (ej: España, USA). En esos casos debería mostrar:
-- "Lo envío por correo"
-- "Me coordino con el shopper"
+Añadir un botón de edición (icono de lápiz) junto al valor de "Tips Asignados" en la sección "Resumen del Pedido" del `PackageDetailModal`, permitiendo al admin editar los tips rápidamente sin tener que bajar hasta la sección de "Cotización".
 
-El `TripForm.tsx` (formulario de creación) ya tiene esta lógica implementada correctamente, pero el `EditTripModal` no la tiene.
+## Archivo a modificar
 
-## Solución
+**`src/components/admin/PackageDetailModal.tsx`**
 
-Implementar la misma lógica condicional del `TripForm` en el `EditTripModal`:
+## Cambio específico (líneas 1599-1604)
 
-### Archivo: `src/components/EditTripModal.tsx`
-
-**1. Agregar import del hook de delivery points:**
-```typescript
-import { useDeliveryPoints } from "@/hooks/useDeliveryPoints";
+**Código actual:**
+```tsx
+{totalAdminTips > 0 && (
+  <div className="text-center">
+    <p className="font-medium text-muted-foreground">Tips Asignados</p>
+    <p className="text-base font-bold text-green-600">Q{totalAdminTips.toFixed(2)}</p>
+  </div>
+)}
 ```
 
-**2. Agregar lógica de detección de destino (después de la línea 168):**
-```typescript
-// Fetch delivery points for international destinations
-const { getDeliveryPointByCity } = useDeliveryPoints();
-
-// Determine if destination has official delivery options
-const destinationDeliveryPoint = formData.toCity && formData.toCountry 
-  ? getDeliveryPointByCity(formData.toCity, formData.toCountry)
-  : null;
-
-const isDestinationGuatemala = formData.toCountry?.toLowerCase() === 'guatemala';
-const hasInternationalDeliveryPoint = !!destinationDeliveryPoint;
-const hasOfficialDeliveryOptions = isDestinationGuatemala || hasInternationalDeliveryPoint;
+**Código nuevo:**
+```tsx
+{totalAdminTips > 0 && (
+  <div className="text-center">
+    <p className="font-medium text-muted-foreground">Tips Asignados</p>
+    <div className="flex items-center justify-center gap-1">
+      <p className="text-base font-bold text-green-600">Q{totalAdminTips.toFixed(2)}</p>
+      {pkg.quote && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setQuoteEditModalOpen(true)}
+          className="h-5 w-5 p-0 text-muted-foreground hover:text-primary"
+          title="Editar tip"
+        >
+          <Edit2 className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
+  </div>
+)}
 ```
 
-**3. Actualizar la sección 3 de entrega (líneas 473-600):**
-- Cambiar el título de la sección según el destino
-- Mostrar opciones de Guatemala (oficina/mensajero) solo cuando `hasOfficialDeliveryOptions` es true
-- Mostrar opciones internacionales (correo/coordinación) cuando no hay opciones oficiales
+## Verificaciones necesarias
 
-**4. Ajustar la validación del formulario:**
-- Permitir los nuevos valores de `deliveryMethod`: 'correo' y 'coordinacion_shopper'
-- Cuando el destino cambia, resetear el `deliveryMethod` si ya no es válido
+- El icono `Edit2` ya está importado en el archivo (verificado)
+- El estado `quoteEditModalOpen` y `setQuoteEditModalOpen` ya existen
+- El componente `QuoteEditModal` ya está renderizado en el modal
 
-## Cambios Específicos
+## Comportamiento esperado
 
-| Línea | Cambio |
-|-------|--------|
-| 11 | Agregar import de `useDeliveryPoints` |
-| ~168 | Agregar lógica de detección de destino |
-| 277-283 | Al cambiar destino, resetear método de entrega si es inválido |
-| 473-479 | Título dinámico según destino |
-| 482-493 | Opciones condicionales de entrega |
+| Tipo de pedido | Acción al hacer clic |
+|----------------|---------------------|
+| Un solo producto | Abre modal para editar tip, service fee y delivery fee directamente |
+| Múltiples productos | Abre modal intermedio que lleva al editor de tips por producto (`ProductTipAssignmentModal`) |
 
-## Flujo esperado
+## Resultado visual
 
-| Destino | Opciones mostradas |
-|---------|-------------------|
-| Guatemala | "Entrego en oficina de Favorón" / "Entrega a mensajero Favorón" |
-| España | "Lo envío por correo" / "Me coordino con el shopper" |
-| USA | "Entrego en oficina de Favorón" / "Entrega a mensajero Favorón" (si hay delivery point) |
-| Otro país sin delivery point | "Lo envío por correo" / "Me coordino con el shopper" |
+```text
++----------------------------------+
+| Resumen del Pedido:              |
++----------------------------------+
+| Total Productos | Valor Total    |
+|        2        |    $75.00      |
+|                                  |
+| Tips Asignados  | Método Entrega |
+|  Q115.00 ✏️     | Envío domicilio|
++----------------------------------+
+```
+
