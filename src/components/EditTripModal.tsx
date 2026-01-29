@@ -8,12 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plane, MapPin, Package, Phone, Building2, Target } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, Phone, Building2, Target, Mail, Users } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Combobox } from "@/components/ui/combobox";
 import { COUNTRIES, MAIN_COUNTRIES, COUNTRY_QUICK_OPTIONS } from "@/lib/countries";
 import { getCitiesByCountry, countryHasCities } from "@/lib/cities";
+import { useDeliveryPoints } from "@/hooks/useDeliveryPoints";
 interface EditTripModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -166,6 +167,31 @@ const EditTripModal = ({
     }));
   };
   const displayToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
+  
+  // Fetch delivery points for conditional delivery options
+  const { getDeliveryPointByCity } = useDeliveryPoints();
+  
+  // Determine if destination has official delivery options
+  const destinationDeliveryPoint = formData.toCity && formData.toCountry 
+    ? getDeliveryPointByCity(formData.toCity, formData.toCountry)
+    : null;
+  
+  const isDestinationGuatemala = formData.toCountry?.toLowerCase() === 'guatemala';
+  const hasInternationalDeliveryPoint = !!destinationDeliveryPoint;
+  const hasOfficialDeliveryOptions = isDestinationGuatemala || hasInternationalDeliveryPoint;
+  
+  // Reset delivery method when destination changes and method becomes invalid
+  useEffect(() => {
+    const guatemalaOptions = ['oficina', 'mensajero'];
+    const internationalOptions = ['correo', 'coordinacion_shopper'];
+    
+    if (hasOfficialDeliveryOptions && internationalOptions.includes(formData.deliveryMethod)) {
+      setFormData(prev => ({ ...prev, deliveryMethod: '' }));
+    } else if (!hasOfficialDeliveryOptions && guatemalaOptions.includes(formData.deliveryMethod)) {
+      setFormData(prev => ({ ...prev, deliveryMethod: '' }));
+    }
+  }, [formData.toCountry, formData.toCity, hasOfficialDeliveryOptions]);
+  
   if (!tripData) return null;
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
@@ -470,26 +496,66 @@ const EditTripModal = ({
             </div>
           </div>
 
-          {/* 🟦 3. Entrega de paquetes en Guatemala */}
+          {/* 🟦 3. Entrega de paquetes */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2 pb-2 border-b border-primary/20">
               <div className="w-4 h-4 bg-primary rounded-sm flex items-center justify-center">
                 <span className="text-xs text-primary-foreground font-bold">3</span>
               </div>
-              <h3 className="text-lg font-semibold text-primary">Entrega de paquetes en Guatemala</h3>
+              <h3 className="text-lg font-semibold text-primary">
+                {hasOfficialDeliveryOptions 
+                  ? `Entrega de paquetes en ${isDestinationGuatemala ? 'Guatemala' : formData.toCity || 'destino'}`
+                  : 'Entrega de paquetes al shopper'
+                }
+              </h3>
             </div>
             
             <div className="space-y-3">
-              <Label className="text-base font-medium">¿Cómo vas a entregar los paquetes a Favorón? *</Label>
+              <Label className="text-base font-medium">
+                {hasOfficialDeliveryOptions 
+                  ? '¿Cómo vas a entregar los paquetes a Favorón? *'
+                  : '¿Cómo vas a entregar los paquetes al shopper? *'
+                }
+              </Label>
               <RadioGroup value={formData.deliveryMethod} onValueChange={value => handleInputChange('deliveryMethod', value)} className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="oficina" id="oficina" />
-                  <Label htmlFor="oficina" className="cursor-pointer">Entrego en oficina de Favorón (zona 14)</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="mensajero" id="mensajero" />
-                  <Label htmlFor="mensajero" className="cursor-pointer">Entrega a mensajero Favorón (Q25–Q40 según dirección)</Label>
-                </div>
+                {hasOfficialDeliveryOptions ? (
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="oficina" id="oficina" />
+                      <Label htmlFor="oficina" className="cursor-pointer flex items-center gap-2">
+                        <Building2 className="h-4 w-4" />
+                        {isDestinationGuatemala 
+                          ? 'Entrego en oficina de Favorón (zona 14)'
+                          : `Entrego en punto de entrega Favorón (${destinationDeliveryPoint?.name || formData.toCity})`
+                        }
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="mensajero" id="mensajero" />
+                      <Label htmlFor="mensajero" className="cursor-pointer flex items-center gap-2">
+                        <Package className="h-4 w-4" />
+                        Entrega a mensajero Favorón (Q25–Q40 según dirección)
+                      </Label>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="correo" id="correo" />
+                      <Label htmlFor="correo" className="cursor-pointer flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        Lo envío por correo al shopper
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="coordinacion_shopper" id="coordinacion_shopper" />
+                      <Label htmlFor="coordinacion_shopper" className="cursor-pointer flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Me coordino directamente con el shopper
+                      </Label>
+                    </div>
+                  </>
+                )}
               </RadioGroup>
               
               {formData.deliveryMethod === 'mensajero' && (
