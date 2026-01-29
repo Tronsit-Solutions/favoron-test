@@ -1599,7 +1599,20 @@ const [editForm, setEditForm] = useState({
                     {totalAdminTips > 0 && (
                       <div className="text-center">
                         <p className="font-medium text-muted-foreground">Tips Asignados</p>
-                        <p className="text-base font-bold text-green-600">Q{totalAdminTips.toFixed(2)}</p>
+                        <div className="flex items-center justify-center gap-1">
+                          <p className="text-base font-bold text-green-600">Q{totalAdminTips.toFixed(2)}</p>
+                          {pkg.quote && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setQuoteEditModalOpen(true)}
+                              className="h-5 w-5 p-0 text-muted-foreground hover:text-primary"
+                              title="Editar tip"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     )}
                     <div className="text-center">
