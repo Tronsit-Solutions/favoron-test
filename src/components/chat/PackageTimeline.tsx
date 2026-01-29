@@ -98,7 +98,7 @@ export const PackageTimeline = ({ pkg, className }: PackageTimelineProps) => {
         </div>
 
         {/* Enhanced Message Input Section - Fixed at bottom */}
-        <div className="bg-gradient-to-r from-background to-muted/20 rounded-lg border border-border/30 p-2 shrink-0">
+        <div className="bg-gradient-to-r from-background to-muted/20 rounded-lg border border-border/30 p-1.5 shrink-0">
           <MessageInput
             onSendMessage={handleSendMessage}
             onFileUpload={handleFileUpload}
