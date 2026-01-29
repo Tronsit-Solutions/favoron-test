@@ -1,57 +1,37 @@
 
-# Plan: Corregir visualización del Chat en Modal
+# Plan: Reducir tamaño del cuadro de texto del chat
 
-## Problema Identificado
+## Problema
 
-En la imagen se ve que el área de mensajes está cortada - solo se ve parcialmente el mensaje de "Maria Martinez" y no hay espacio suficiente para mostrar el contenido completo. El problema está en la cadena de flex heights que no se propaga correctamente desde el modal hasta el `ScrollArea`.
-
-## Causa Raíz
-
-El `PackageTimeline` usa un layout flex con `flex-1` para el área de mensajes, pero:
-1. El `Card` wrapper añade padding interno que no está considerado en el cálculo
-2. El contenedor de mensajes (línea 69) tiene `flex-1` pero su padre inmediato no tiene altura explícita
-3. La clase `h-full` pasada al componente no se propaga al contenedor flex interno
+En la imagen se ve claramente que:
+1. El área de entrada de mensajes ocupa ~40% del espacio del modal
+2. Solo se ve un mensaje parcialmente cortado
+3. El textarea tiene `min-h-[50px]` que es demasiado alto para un chat
+4. Hay espaciado excesivo entre elementos
 
 ## Solución
 
+### Archivo: `src/components/chat/MessageInput.tsx`
+
+Compactar el diseño del input:
+
+| Línea | Antes | Después |
+|-------|-------|---------|
+| 123 | `p-2` | `p-1.5` (reducir padding externo) |
+| 142 | `space-y-2` | `space-y-1` (reducir gap vertical) |
+| 149 | `min-h-[50px] ... py-2` | `min-h-[36px] max-h-[60px] ... py-1.5` (altura mínima reducida, máxima limitada) |
+| 157 | `gap-2` | `gap-1` (reducir gap botones) |
+| 166 | `h-8` | `h-7` (botón más pequeño) |
+| 190 | `h-8 px-3` | `h-7 px-2` (botón enviar más pequeño) |
+
 ### Archivo: `src/components/chat/PackageTimeline.tsx`
 
-Corregir la estructura de layout para que la altura se propague correctamente:
+Reducir padding del contenedor del input:
 
-```typescript
-// ANTES (línea 51-52):
-return (
-  <Card className={`${className} bg-gradient-to-br from-background to-muted/20 border-0 shadow-lg flex flex-col`}>
-    {/* Chat container - inherits height from parent */}
-    <div className="flex flex-col h-full p-4">
+| Línea | Antes | Después |
+|-------|-------|---------|
+| 97 | `p-2` | `p-1.5` (reducir padding del wrapper) |
 
-// DESPUÉS:
-return (
-  <Card className={`${className} bg-gradient-to-br from-background to-muted/20 border-0 shadow-lg flex flex-col overflow-hidden`}>
-    {/* Chat container - flex-1 para ocupar todo el espacio disponible */}
-    <div className="flex flex-col flex-1 min-h-0 p-4">
-```
+## Resultado esperado
 
-Y también asegurar que el contenedor del ScrollArea tenga altura explícita:
-
-```typescript
-// ANTES (línea 69-70):
-<div className="flex-1 bg-gradient-to-br from-muted/30 to-muted/10 rounded-xl border border-border/30 shadow-inner p-2 mb-3 min-h-0">
-  <ScrollArea className="h-full w-full">
-
-// DESPUÉS:
-<div className="flex-1 min-h-0 bg-gradient-to-br from-muted/30 to-muted/10 rounded-xl border border-border/30 shadow-inner p-2 mb-3 overflow-hidden">
-  <ScrollArea className="h-full w-full">
-```
-
-## Cambios Específicos
-
-| Línea | Cambio |
-|-------|--------|
-| 52 | Añadir `overflow-hidden` al Card |
-| 54 | Cambiar `h-full` por `flex-1 min-h-0` en el contenedor interno |
-| 69 | Añadir `overflow-hidden` al contenedor del ScrollArea |
-
-## Resultado Esperado
-
-El chat mostrará correctamente todos los mensajes con scroll funcional, el área de mensajes ocupará el espacio disponible entre el header y el input, y el input de mensaje se mantendrá fijo en la parte inferior.
+El área de entrada pasará de ~150px de altura a ~70px, liberando ~80px adicionales para mostrar más mensajes del chat.
