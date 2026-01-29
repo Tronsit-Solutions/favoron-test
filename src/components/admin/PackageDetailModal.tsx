@@ -1216,13 +1216,23 @@ const [editForm, setEditForm] = useState({
                     {editProducts.map((product, idx) => (
                       <Card key={idx} className="border-l-4 border-l-primary bg-muted/10">
                         <CardContent className="p-4 space-y-3">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between gap-2">
                             <Badge variant="secondary">Producto #{idx + 1}</Badge>
-                            {product.adminAssignedTip > 0 && (
-                              <Badge variant="outline" className="bg-green-50 text-green-700">
-                                Tip: Q{product.adminAssignedTip}
-                              </Badge>
-                            )}
+                            <div className="flex items-center gap-1">
+                              <label className="text-xs text-muted-foreground">Tip:</label>
+                              <div className="relative w-24">
+                                <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">Q</span>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={product.adminAssignedTip || ''}
+                                  onChange={(e) => handleProductChange(idx, 'adminAssignedTip', e.target.value)}
+                                  placeholder="0"
+                                  className="h-7 pl-6 text-xs font-mono text-right"
+                                />
+                              </div>
+                            </div>
                           </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
