@@ -1,45 +1,29 @@
 
-## Eliminar avisos preventivos de asignación
+## Desactivar A/B Test - Todos los usuarios al Grupo A
 
-### Contexto actual
-La función `send_assignment_warnings()` envía 3 notificaciones preventivas a los viajeros antes de que expire su asignación:
-
-| Tiempo restante | Título | Prioridad |
-|----------------|--------|-----------|
-| 12 horas | "⏰ Recordatorio: 12 horas restantes" | normal |
-| 4 horas | "⚠️ Solo quedan 4 horas" | high |
-| 1 hora | "🚨 ¡Última hora para responder!" | urgent |
+### Análisis
+El grupo A (tono familiar) tiene **2.2x mejor conversión** que el grupo B:
+- Grupo A: 0.97% de conversión (6/621)
+- Grupo B: 0.44% de conversión (3/675)
 
 ### Cambio propuesto
-Vaciar el cuerpo de la función `send_assignment_warnings()` para que no haga nada, pero manteniendo la función para evitar errores si el cron job la sigue llamando.
+Modificar la función `handle_new_user()` para que todos los nuevos usuarios sean asignados automáticamente al **Grupo A**.
 
 ### Detalle técnico
-Crear una migración SQL que redefina la función con cuerpo vacío:
+Actualizar la línea de asignación de grupo en la función:
 
-```sql
-CREATE OR REPLACE FUNCTION public.send_assignment_warnings()
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public'
-AS $function$
-BEGIN
-  -- Función deshabilitada: los avisos preventivos fueron eliminados
-  -- para reducir el ruido de notificaciones a viajeros
-  NULL;
-END;
-$function$;
+```text
+-- ANTES:
+CASE WHEN random() < 0.5 THEN 'A' ELSE 'B' END
+
+-- DESPUÉS:
+'A'  -- A/B test desactivado: Grupo A tiene mejor conversión
 ```
 
-### Alternativa
-Opcionalmente, también podríamos eliminar el cron job `favoron-assignment-warnings-hourly` que ejecuta esta función cada hora, para ahorrar recursos:
-
-```sql
-SELECT cron.unschedule('favoron-assignment-warnings-hourly');
-SELECT cron.unschedule('send-assignment-warnings');
-```
+### Archivos a modificar
+1. **Nueva migración SQL** - Redefinir `public.handle_new_user()` con la asignación fija a 'A'
 
 ### Resultado esperado
-- Los viajeros ya no recibirán avisos preventivos a las 12h, 4h, y 1h antes de expirar la asignación
-- La notificación de **expiración** (cuando ya expiró) seguirá funcionando normalmente a través de `expire_unresponded_assignments()`
-- Menos notificaciones = menos ruido para los usuarios
+- Todos los nuevos usuarios recibirán el email de bienvenida del **Grupo A** (tono familiar y cercano)
+- Los usuarios existentes mantienen su grupo asignado (no afecta datos históricos)
+- La edge function `send-welcome-email` seguirá funcionando igual - simplemente siempre recibirá `ab_test_group: 'A'`
