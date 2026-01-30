@@ -1,30 +1,47 @@
 
-## Ajustes a Notificaciones por Email
 
-### Análisis del Estado Actual
+## Notificación al Viajero por Comprobante de Pago Subido
 
-Revisé todas las funciones RPC y encontré lo siguiente:
+### Resumen
 
-| Notificación | Estado Actual | Acción Requerida |
-|--------------|---------------|------------------|
-| Cotización expirada (shopper) | ✅ Ya eliminada | Ninguna |
-| Cotización expirada (traveler) | ❌ Envía con prioridad 'normal' | Eliminar |
-| Paquete rechazado por viajero (shopper) | ✅ No envía | Ninguna |
-| Paquete disponible para reasignación (shopper) | ✅ Ya eliminada | Ninguna |
+Agregar una notificación por email al viajero cuando el admin sube el comprobante de pago de su viaje, permitiéndole ver y descargar el comprobante desde su dashboard.
 
 ---
 
-### Sobre tus Preguntas
+### Flujo Actual
 
-**Recordatorio de cotización pendiente (`send_quote_reminders`):**
-- Se envía a los **shoppers** cuando su cotización está por expirar
-- **36 horas antes**: Título "⏰ Recordatorio: Cotización por expirar" - prioridad `normal` (email solo si preferencia habilitada)
-- **1-2 horas antes**: Título "🚨 ¡Última oportunidad para pagar!" - prioridad `urgent` (siempre envía email)
+```text
+Admin sube comprobante en FavoronPaymentReceiptUpload
+       │
+       ▼
+Actualiza payment_orders (receipt_url, status='completed')
+       │
+       ▼
+TRIGGER: sync_payment_receipt_trigger
+       │
+       ▼
+Sincroniza datos a trip_payment_accumulator
+       │
+       ▼
+(FIN - Sin notificación al viajero)
+```
 
-**Cambios de estado de paquetes:**
-- **NO existe** notificación automática por email cuando un paquete cambia de estado
-- Solo hay un `pg_notify` interno para análisis
-- Las únicas notificaciones de estado son las manuales (ej: cuando admin envía cotización)
+### Flujo Propuesto
+
+```text
+Admin sube comprobante en FavoronPaymentReceiptUpload
+       │
+       ▼
+Actualiza payment_orders (receipt_url, status='completed')
+       │
+       ▼
+TRIGGER: sync_payment_receipt_trigger (ACTUALIZADO)
+       │
+       ├──► Sincroniza datos a trip_payment_accumulator
+       │
+       └──► NUEVO: Notifica al viajero con prioridad 'high'
+                   "Pago de viaje completado - Comprobante disponible"
+```
 
 ---
 
@@ -32,88 +49,83 @@ Revisé todas las funciones RPC y encontré lo siguiente:
 
 **Archivo**: Nueva migración SQL
 
-Actualizar `expire_old_quotes` para **eliminar** la notificación al viajero cuando una cotización expira:
+Actualizar la función `sync_payment_receipt_to_accumulator()` para incluir la notificación al viajero:
 
-```text
--- ANTES (líneas 38-52):
-IF trip_record.user_id IS NOT NULL THEN
-  BEGIN
-    PERFORM public.create_notification(
-      trip_record.user_id,
-      'Asignación expirada',
-      'Un paquete fue removido de tu lista...',
-      'assignment',
-      'normal',
-      ...
-    );
-  EXCEPTION ...
-  END;
-END IF;
-
--- DESPUÉS:
--- (Eliminar este bloque completamente)
-```
-
-### Justificación
-
-- El viajero no necesita saber que el shopper no pagó
-- El paquete simplemente desaparece de su lista automáticamente (ya se limpia `matched_trip_id`)
-- Reduce carga de notificaciones innecesarias
-
----
-
-### Flujo Simplificado Resultante
-
-```text
-COTIZACIÓN EXPIRA
-       │
-       ├──► Shopper: Ve "Cotización expirada" en dashboard (sin email)
-       │
-       └──► Traveler: Paquete desaparece silenciosamente de su lista
-```
+| Campo | Valor |
+|-------|-------|
+| **Destinatario** | Viajero (`NEW.traveler_id`) |
+| **Título** | "💳 Pago de viaje completado" |
+| **Mensaje** | "Favorón ha completado el pago de tu viaje. Monto: Q{amount}. El comprobante está disponible en tu dashboard." |
+| **Tipo** | `payment` |
+| **Prioridad** | `high` (envía email) |
+| **Action URL** | `/dashboard?tab=trips` |
 
 ---
 
 ### Sección Técnica
 
-**Migración SQL**:
+**Migración SQL a ejecutar**:
+
 ```sql
-CREATE OR REPLACE FUNCTION public.expire_old_quotes()
-RETURNS void
+CREATE OR REPLACE FUNCTION public.sync_payment_receipt_to_accumulator()
+RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  package_record RECORD;
+SET search_path = 'public'
+AS $function$
 BEGIN
-  FOR package_record IN
-    SELECT p.id, p.user_id, p.matched_trip_id, p.item_description
-    FROM public.packages p
-    WHERE p.status IN ('quote_sent', 'payment_pending')
-      AND p.quote_expires_at IS NOT NULL
-      AND p.quote_expires_at < NOW()
-  LOOP
-    -- Update package status and clear trip assignment
-    UPDATE public.packages
+  -- Solo actualizar cuando se complete un pago y se suba un comprobante
+  IF NEW.status = 'completed' AND NEW.receipt_url IS NOT NULL 
+     AND (OLD.status IS NULL OR OLD.status != 'completed' OR OLD.receipt_url IS NULL) THEN
+    
+    -- Actualizar el trip_payment_accumulator correspondiente
+    UPDATE public.trip_payment_accumulator
     SET 
-      status = 'quote_expired',
-      matched_trip_id = NULL,
-      traveler_address = NULL,
-      matched_trip_dates = NULL,
+      payment_receipt_url = NEW.receipt_url,
+      payment_receipt_filename = NEW.receipt_filename,
+      payment_completed_at = NEW.completed_at,
+      payment_completed_by = auth.uid(),
       updated_at = NOW()
-    WHERE id = package_record.id;
-
-    -- Traveler notification REMOVED
-    -- Shopper notification already removed
-
-    RAISE NOTICE 'Expired quote for package %', package_record.id;
-  END LOOP;
+    WHERE trip_id = NEW.trip_id 
+      AND traveler_id = NEW.traveler_id;
+      
+    RAISE NOTICE 'Synced payment receipt to accumulator for trip % and traveler %', NEW.trip_id, NEW.traveler_id;
+    
+    -- NUEVA NOTIFICACIÓN: Notificar al viajero que el pago fue completado
+    BEGIN
+      PERFORM public.create_notification(
+        NEW.traveler_id,
+        '💳 Pago de viaje completado',
+        'Favorón ha completado el pago de tu viaje. Monto: Q' || NEW.amount::text || '. El comprobante está disponible en tu dashboard.',
+        'payment',
+        'high',
+        '/dashboard?tab=trips',
+        jsonb_build_object(
+          'payment_order_id', NEW.id,
+          'trip_id', NEW.trip_id,
+          'amount', NEW.amount,
+          'receipt_url', NEW.receipt_url
+        )
+      );
+      RAISE NOTICE 'Sent payment completion notification to traveler %', NEW.traveler_id;
+    EXCEPTION WHEN OTHERS THEN
+      RAISE WARNING 'Failed to send payment notification to traveler %: %', NEW.traveler_id, SQLERRM;
+    END;
+  END IF;
+  
+  RETURN NEW;
 END;
-$$;
+$function$;
 ```
 
-**Resultado**: Cuando una cotización expira:
-- El paquete se desvincula del viaje silenciosamente
-- Ni shopper ni traveler reciben email
-- Ambos ven el cambio reflejado en sus dashboards
+---
+
+### Resultado Esperado
+
+Cuando el admin sube el comprobante de pago:
+
+1. El viajero recibe una notificación en la app
+2. El viajero recibe un email (si tiene habilitadas las preferencias de `payment`)
+3. El email incluye el monto pagado y un botón para ver el dashboard
+4. El comprobante se muestra automáticamente en la tarjeta del viaje
+
