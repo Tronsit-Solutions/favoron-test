@@ -1,29 +1,119 @@
 
-## Desactivar A/B Test - Todos los usuarios al Grupo A
+## Ajustes a Notificaciones por Email
 
-### Análisis
-El grupo A (tono familiar) tiene **2.2x mejor conversión** que el grupo B:
-- Grupo A: 0.97% de conversión (6/621)
-- Grupo B: 0.44% de conversión (3/675)
+### Análisis del Estado Actual
 
-### Cambio propuesto
-Modificar la función `handle_new_user()` para que todos los nuevos usuarios sean asignados automáticamente al **Grupo A**.
+Revisé todas las funciones RPC y encontré lo siguiente:
 
-### Detalle técnico
-Actualizar la línea de asignación de grupo en la función:
+| Notificación | Estado Actual | Acción Requerida |
+|--------------|---------------|------------------|
+| Cotización expirada (shopper) | ✅ Ya eliminada | Ninguna |
+| Cotización expirada (traveler) | ❌ Envía con prioridad 'normal' | Eliminar |
+| Paquete rechazado por viajero (shopper) | ✅ No envía | Ninguna |
+| Paquete disponible para reasignación (shopper) | ✅ Ya eliminada | Ninguna |
+
+---
+
+### Sobre tus Preguntas
+
+**Recordatorio de cotización pendiente (`send_quote_reminders`):**
+- Se envía a los **shoppers** cuando su cotización está por expirar
+- **36 horas antes**: Título "⏰ Recordatorio: Cotización por expirar" - prioridad `normal` (email solo si preferencia habilitada)
+- **1-2 horas antes**: Título "🚨 ¡Última oportunidad para pagar!" - prioridad `urgent` (siempre envía email)
+
+**Cambios de estado de paquetes:**
+- **NO existe** notificación automática por email cuando un paquete cambia de estado
+- Solo hay un `pg_notify` interno para análisis
+- Las únicas notificaciones de estado son las manuales (ej: cuando admin envía cotización)
+
+---
+
+### Cambio a Realizar
+
+**Archivo**: Nueva migración SQL
+
+Actualizar `expire_old_quotes` para **eliminar** la notificación al viajero cuando una cotización expira:
 
 ```text
--- ANTES:
-CASE WHEN random() < 0.5 THEN 'A' ELSE 'B' END
+-- ANTES (líneas 38-52):
+IF trip_record.user_id IS NOT NULL THEN
+  BEGIN
+    PERFORM public.create_notification(
+      trip_record.user_id,
+      'Asignación expirada',
+      'Un paquete fue removido de tu lista...',
+      'assignment',
+      'normal',
+      ...
+    );
+  EXCEPTION ...
+  END;
+END IF;
 
 -- DESPUÉS:
-'A'  -- A/B test desactivado: Grupo A tiene mejor conversión
+-- (Eliminar este bloque completamente)
 ```
 
-### Archivos a modificar
-1. **Nueva migración SQL** - Redefinir `public.handle_new_user()` con la asignación fija a 'A'
+### Justificación
 
-### Resultado esperado
-- Todos los nuevos usuarios recibirán el email de bienvenida del **Grupo A** (tono familiar y cercano)
-- Los usuarios existentes mantienen su grupo asignado (no afecta datos históricos)
-- La edge function `send-welcome-email` seguirá funcionando igual - simplemente siempre recibirá `ab_test_group: 'A'`
+- El viajero no necesita saber que el shopper no pagó
+- El paquete simplemente desaparece de su lista automáticamente (ya se limpia `matched_trip_id`)
+- Reduce carga de notificaciones innecesarias
+
+---
+
+### Flujo Simplificado Resultante
+
+```text
+COTIZACIÓN EXPIRA
+       │
+       ├──► Shopper: Ve "Cotización expirada" en dashboard (sin email)
+       │
+       └──► Traveler: Paquete desaparece silenciosamente de su lista
+```
+
+---
+
+### Sección Técnica
+
+**Migración SQL**:
+```sql
+CREATE OR REPLACE FUNCTION public.expire_old_quotes()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  package_record RECORD;
+BEGIN
+  FOR package_record IN
+    SELECT p.id, p.user_id, p.matched_trip_id, p.item_description
+    FROM public.packages p
+    WHERE p.status IN ('quote_sent', 'payment_pending')
+      AND p.quote_expires_at IS NOT NULL
+      AND p.quote_expires_at < NOW()
+  LOOP
+    -- Update package status and clear trip assignment
+    UPDATE public.packages
+    SET 
+      status = 'quote_expired',
+      matched_trip_id = NULL,
+      traveler_address = NULL,
+      matched_trip_dates = NULL,
+      updated_at = NOW()
+    WHERE id = package_record.id;
+
+    -- Traveler notification REMOVED
+    -- Shopper notification already removed
+
+    RAISE NOTICE 'Expired quote for package %', package_record.id;
+  END LOOP;
+END;
+$$;
+```
+
+**Resultado**: Cuando una cotización expira:
+- El paquete se desvincula del viaje silenciosamente
+- Ni shopper ni traveler reciben email
+- Ambos ven el cambio reflejado en sus dashboards
