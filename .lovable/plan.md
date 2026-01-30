@@ -1,46 +1,45 @@
 
-## Corregir condición para mostrar Guatemala en selector de origen
+## Eliminar avisos preventivos de asignación
 
-### Problema
-El código actual usa `pkg?.request_type` que **no existe como columna** en la base de datos. El tipo de pedido (`personal` u `online`) está guardado dentro del campo JSONB `products_data[0].requestType`.
+### Contexto actual
+La función `send_assignment_warnings()` envía 3 notificaciones preventivas a los viajeros antes de que expire su asignación:
 
-### Evidencia de la base de datos
+| Tiempo restante | Título | Prioridad |
+|----------------|--------|-----------|
+| 12 horas | "⏰ Recordatorio: 12 horas restantes" | normal |
+| 4 horas | "⚠️ Solo quedan 4 horas" | high |
+| 1 hora | "🚨 ¡Última hora para responder!" | urgent |
+
+### Cambio propuesto
+Vaciar el cuerpo de la función `send_assignment_warnings()` para que no haga nada, pero manteniendo la función para evitar errores si el cron job la sigue llamando.
+
+### Detalle técnico
+Crear una migración SQL que redefina la función con cuerpo vacío:
+
 ```sql
-SELECT products_data->0->>'requestType' as request_type FROM packages
--- Retorna: 'personal' o 'online'
+CREATE OR REPLACE FUNCTION public.send_assignment_warnings()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+BEGIN
+  -- Función deshabilitada: los avisos preventivos fueron eliminados
+  -- para reducir el ruido de notificaciones a viajeros
+  NULL;
+END;
+$function$;
 ```
 
-### Solución
-Cambiar la línea 1166 de `PackageDetailModal.tsx`:
+### Alternativa
+Opcionalmente, también podríamos eliminar el cron job `favoron-assignment-warnings-hourly` que ejecuta esta función cada hora, para ahorrar recursos:
 
-**De:**
-```typescript
-{(pkg?.request_type === 'personal' ? personalPackageOrigins : onlinePurchaseOrigins).map((origin) => (
+```sql
+SELECT cron.unschedule('favoron-assignment-warnings-hourly');
+SELECT cron.unschedule('send-assignment-warnings');
 ```
-
-**A:**
-```typescript
-{((Array.isArray(pkg?.products_data) && pkg?.products_data[0]?.requestType === 'personal') ? personalPackageOrigins : onlinePurchaseOrigins).map((origin) => (
-```
-
-### Alternativa más limpia
-Extraer el tipo de request al inicio del componente:
-
-```typescript
-// Cerca de la línea 158-159, después de definir 'pkg'
-const packageRequestType = Array.isArray(pkg?.products_data) 
-  ? (pkg?.products_data[0] as any)?.requestType 
-  : 'online';
-```
-
-Y luego en el Select:
-```typescript
-{(packageRequestType === 'personal' ? personalPackageOrigins : onlinePurchaseOrigins).map((origin) => (
-```
-
-### Archivo a modificar
-`src/components/admin/PackageDetailModal.tsx`
 
 ### Resultado esperado
-- Pedidos personales: mostrarán Guatemala, Estados Unidos, España, México, Otro
-- Compras online: mostrarán Estados Unidos, España, México, Otro (sin Guatemala)
+- Los viajeros ya no recibirán avisos preventivos a las 12h, 4h, y 1h antes de expirar la asignación
+- La notificación de **expiración** (cuando ya expiró) seguirá funcionando normalmente a través de `expire_unresponded_assignments()`
+- Menos notificaciones = menos ruido para los usuarios
