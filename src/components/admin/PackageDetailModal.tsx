@@ -41,7 +41,7 @@ const citiesByCountry: Record<string, string[]> = {
     'Cobán', 'Huehuetenango', 'Mazatenango', 'Puerto Barrios',
     'Retalhuleu', 'Zacapa', 'Petén/Flores', 'Otra ciudad'
   ],
-  'USA': [
+  'Estados Unidos': [
     'Miami', 'New York', 'Los Angeles', 'Houston', 'Chicago',
     'San Francisco', 'Dallas', 'Atlanta', 'Phoenix',
     'Las Vegas', 'Orlando', 'Washington D.C.', 'Otra ciudad'
