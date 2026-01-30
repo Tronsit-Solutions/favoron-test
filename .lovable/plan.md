@@ -1,56 +1,42 @@
 
 
-## Corregir Dropdown de Ciudades al Editar Destino de Paquete
+## Agregar Opción "Cualquier Ciudad" al Selector de Destino
 
-### Problema Identificado
+### Resumen
 
-En `PackageDetailModal.tsx` existe una inconsistencia entre las claves del objeto `citiesByCountry` y los valores de `destinationCountries`:
-
-| `destinationCountries` value | Clave en `citiesByCountry` |
-|------------------------------|---------------------------|
-| `'Guatemala'` | `'Guatemala'` ✓ |
-| `'Estados Unidos'` | `'USA'` ✗ **MISMATCH** |
-| `'España'` | `'España'` ✓ |
-| `'México'` | `'México'` ✓ |
-| `'Otro'` | `'Otro'` ✓ |
-
-Cuando el admin selecciona "Estados Unidos", el código ejecuta:
-```javascript
-citiesByCountry[selectedDestinationCountry]?.map(...)
-// = citiesByCountry['Estados Unidos']
-// = undefined
-```
-
-Por eso el dropdown de ciudades aparece vacío.
+Agregar la opción "Cualquier ciudad" al inicio del dropdown de ciudades en el modal de edición de paquetes del admin, permitiendo seleccionar un país sin especificar una ciudad exacta.
 
 ---
 
-### Solución
+### Cambio a Realizar
 
-Cambiar la clave `'USA'` a `'Estados Unidos'` en el objeto `citiesByCountry` para que coincida con el valor del selector de países.
+**Archivo**: `src/components/admin/PackageDetailModal.tsx` (líneas 38-60)
 
----
+Agregar "Cualquier ciudad" como primera opción en todos los arrays de ciudades:
 
-### Archivo a Modificar
-
-**`src/components/admin/PackageDetailModal.tsx`** (línea 44)
-
-```diff
+```typescript
 const citiesByCountry: Record<string, string[]> = {
   'Guatemala': [
-    'Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla',
+    'Cualquier ciudad', 'Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla',
     'Cobán', 'Huehuetenango', 'Mazatenango', 'Puerto Barrios',
     'Retalhuleu', 'Zacapa', 'Petén/Flores', 'Otra ciudad'
   ],
--  'USA': [
-+  'Estados Unidos': [
-    'Miami', 'New York', 'Los Angeles', 'Houston', 'Chicago',
+  'Estados Unidos': [
+    'Cualquier ciudad', 'Miami', 'New York', 'Los Angeles', 'Houston', 'Chicago',
     'San Francisco', 'Dallas', 'Atlanta', 'Phoenix',
     'Las Vegas', 'Orlando', 'Washington D.C.', 'Otra ciudad'
   ],
-  'España': [...],
-  'México': [...],
-  'Otro': ['Otra ciudad']
+  'España': [
+    'Cualquier ciudad', 'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Málaga',
+    'Bilbao', 'Zaragoza', 'Granada', 'Palma de Mallorca',
+    'San Sebastián', 'Otra ciudad'
+  ],
+  'México': [
+    'Cualquier ciudad', 'Ciudad de México', 'Guadalajara', 'Monterrey', 'Cancún',
+    'Tijuana', 'Puebla', 'León', 'Mérida', 'Querétaro',
+    'Toluca', 'Otra ciudad'
+  ],
+  'Otro': ['Cualquier ciudad', 'Otra ciudad']
 };
 ```
 
@@ -58,8 +44,12 @@ const citiesByCountry: Record<string, string[]> = {
 
 ### Resultado Esperado
 
-1. Admin selecciona "Estados Unidos" como país destino
-2. El dropdown de ciudades se llena con: Miami, New York, Los Angeles, Houston, etc.
-3. Admin puede seleccionar la ciudad correcta
-4. El paquete se guarda con el destino actualizado
+| Antes | Después |
+|-------|---------|
+| Miami, New York, Los Angeles... | **Cualquier ciudad**, Miami, New York, Los Angeles... |
+
+El admin podrá seleccionar "Cualquier ciudad" cuando:
+- El shopper no especificó una ciudad exacta
+- El paquete puede ir a cualquier lugar dentro del país
+- Se necesita flexibilidad para el matching de viajes
 
