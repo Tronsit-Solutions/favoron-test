@@ -37,26 +37,26 @@ const destinationCountries = [
 
 const citiesByCountry: Record<string, string[]> = {
   'Guatemala': [
-    'Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla',
+    'Cualquier ciudad', 'Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla',
     'Cobán', 'Huehuetenango', 'Mazatenango', 'Puerto Barrios',
     'Retalhuleu', 'Zacapa', 'Petén/Flores', 'Otra ciudad'
   ],
   'Estados Unidos': [
-    'Miami', 'New York', 'Los Angeles', 'Houston', 'Chicago',
+    'Cualquier ciudad', 'Miami', 'New York', 'Los Angeles', 'Houston', 'Chicago',
     'San Francisco', 'Dallas', 'Atlanta', 'Phoenix',
     'Las Vegas', 'Orlando', 'Washington D.C.', 'Otra ciudad'
   ],
   'España': [
-    'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Málaga',
+    'Cualquier ciudad', 'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Málaga',
     'Bilbao', 'Zaragoza', 'Granada', 'Palma de Mallorca',
     'San Sebastián', 'Otra ciudad'
   ],
   'México': [
-    'Ciudad de México', 'Guadalajara', 'Monterrey', 'Cancún',
+    'Cualquier ciudad', 'Ciudad de México', 'Guadalajara', 'Monterrey', 'Cancún',
     'Tijuana', 'Puebla', 'León', 'Mérida', 'Querétaro',
     'Toluca', 'Otra ciudad'
   ],
-  'Otro': ['Otra ciudad']
+  'Otro': ['Cualquier ciudad', 'Otra ciudad']
 };
 import AdminProductCancellationModal from "./AdminProductCancellationModal";
 import { canCancelProduct } from "@/lib/refundCalculations";
