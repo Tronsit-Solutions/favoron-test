@@ -1,73 +1,46 @@
 
-## Corregir selector de país de origen en modal de edición de paquetes
+## Corregir condición para mostrar Guatemala en selector de origen
 
-### Problema identificado
-El modal `PackageDetailModal.tsx` usa una lista estática de países de origen que NO incluye Guatemala:
-```typescript
-const purchaseOrigins = [
-  { value: 'Estados Unidos', label: 'Estados Unidos' },
-  { value: 'España', label: 'España' },
-  { value: 'México', label: 'México' },
-  { value: 'Otro', label: 'Otro' }
-];
+### Problema
+El código actual usa `pkg?.request_type` que **no existe como columna** en la base de datos. El tipo de pedido (`personal` u `online`) está guardado dentro del campo JSONB `products_data[0].requestType`.
+
+### Evidencia de la base de datos
+```sql
+SELECT products_data->0->>'requestType' as request_type FROM packages
+-- Retorna: 'personal' o 'online'
 ```
-
-El formulario de creación (`PackageRequestForm.tsx`) SÍ tiene la lógica correcta con dos listas separadas.
 
 ### Solución
-Agregar la misma lógica condicional del formulario de creación al modal de edición:
+Cambiar la línea 1166 de `PackageDetailModal.tsx`:
 
-1. **Crear dos listas de orígenes** en `PackageDetailModal.tsx`:
-   - `onlinePurchaseOrigins`: USA, España, México, Otro (compras de tiendas extranjeras)
-   - `personalPackageOrigins`: Guatemala, USA, España, México, Otro (paquetes que pueden estar localmente)
-
-2. **Usar el campo `request_type` del paquete** para determinar qué lista mostrar:
-   - Si `request_type === 'personal'` -> mostrar `personalPackageOrigins` (incluye Guatemala)
-   - Si `request_type === 'online'` -> mostrar `onlinePurchaseOrigins` (sin Guatemala)
-
-### Detalle técnico
-
-**Archivo a modificar:** `src/components/admin/PackageDetailModal.tsx`
-
-**Cambios:**
+**De:**
 ```typescript
-// Reemplazar la constante actual (líneas 13-18)
-// De:
-const purchaseOrigins = [
-  { value: 'Estados Unidos', label: 'Estados Unidos' },
-  { value: 'España', label: 'España' },
-  { value: 'México', label: 'México' },
-  { value: 'Otro', label: 'Otro' }
-];
-
-// A:
-const onlinePurchaseOrigins = [
-  { value: 'Estados Unidos', label: 'Estados Unidos' },
-  { value: 'España', label: 'España' },
-  { value: 'México', label: 'México' },
-  { value: 'Otro', label: 'Otro' }
-];
-
-const personalPackageOrigins = [
-  { value: 'Guatemala', label: 'Guatemala' },
-  { value: 'Estados Unidos', label: 'Estados Unidos' },
-  { value: 'España', label: 'España' },
-  { value: 'México', label: 'México' },
-  { value: 'Otro', label: 'Otro' }
-];
+{(pkg?.request_type === 'personal' ? personalPackageOrigins : onlinePurchaseOrigins).map((origin) => (
 ```
 
-**En el render del Select (~línea 1156):**
+**A:**
 ```typescript
-// Cambiar de:
-{purchaseOrigins.map((origin) => ...)}
-
-// A:
-{(pkg?.request_type === 'personal' ? personalPackageOrigins : onlinePurchaseOrigins).map((origin) => ...)}
+{((Array.isArray(pkg?.products_data) && pkg?.products_data[0]?.requestType === 'personal') ? personalPackageOrigins : onlinePurchaseOrigins).map((origin) => (
 ```
+
+### Alternativa más limpia
+Extraer el tipo de request al inicio del componente:
+
+```typescript
+// Cerca de la línea 158-159, después de definir 'pkg'
+const packageRequestType = Array.isArray(pkg?.products_data) 
+  ? (pkg?.products_data[0] as any)?.requestType 
+  : 'online';
+```
+
+Y luego en el Select:
+```typescript
+{(packageRequestType === 'personal' ? personalPackageOrigins : onlinePurchaseOrigins).map((origin) => (
+```
+
+### Archivo a modificar
+`src/components/admin/PackageDetailModal.tsx`
 
 ### Resultado esperado
 - Pedidos personales: mostrarán Guatemala, Estados Unidos, España, México, Otro
 - Compras online: mostrarán Estados Unidos, España, México, Otro (sin Guatemala)
-
-Esto mantiene paridad con el formulario de creación de paquetes y respeta la lógica de negocio donde los pedidos personales pueden originarse localmente.
