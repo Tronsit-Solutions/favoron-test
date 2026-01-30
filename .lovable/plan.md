@@ -1,48 +1,73 @@
 
+## Corregir selector de país de origen en modal de edición de paquetes
 
-## Eliminar Notificación de Cotización Expirada al Shopper
-
-### Objetivo
-Eliminar completamente la notificación que se envía al shopper cuando su cotización expira, para reducir el spam de emails y evitar timeouts en la función.
-
-### Cambio Requerido
-
-Crear una nueva migración SQL que modifique la función `expire_old_quotes()` para **eliminar las líneas 56-69** que envían la notificación al shopper.
-
-#### Código a Eliminar
-
-```sql
--- ELIMINAR ESTE BLOQUE COMPLETO:
--- Create notification for shopper about expired quote
-BEGIN
-  PERFORM public.create_notification(
-    package_record.user_id,
-    'Cotización expirada',
-    'Tu cotización ha expirado porque no se completó el pago a tiempo.',
-    'quote',
-    'normal',
-    '/dashboard',
-    jsonb_build_object('package_id', package_record.id)
-  );
-EXCEPTION WHEN OTHERS THEN
-  RAISE WARNING 'Failed to create shopper notification for package %: %', package_record.id, SQLERRM;
-END;
+### Problema identificado
+El modal `PackageDetailModal.tsx` usa una lista estática de países de origen que NO incluye Guatemala:
+```typescript
+const purchaseOrigins = [
+  { value: 'Estados Unidos', label: 'Estados Unidos' },
+  { value: 'España', label: 'España' },
+  { value: 'México', label: 'México' },
+  { value: 'Otro', label: 'Otro' }
+];
 ```
 
-### Justificación
+El formulario de creación (`PackageRequestForm.tsx`) SÍ tiene la lógica correcta con dos listas separadas.
 
-1. **El shopper ya sabe**: El UI ya muestra "Cotización expirada" cuando el usuario ve su paquete en el dashboard
-2. **Reduce spam**: Elimina emails innecesarios que el usuario no necesita
-3. **Mejora rendimiento**: Reduce 1 HTTP call por paquete expirado, evitando timeouts
-4. **La información persiste**: El estado `quote_expired` en la base de datos es suficiente para informar al usuario
+### Solución
+Agregar la misma lógica condicional del formulario de creación al modal de edición:
 
-### Archivo a Crear
+1. **Crear dos listas de orígenes** en `PackageDetailModal.tsx`:
+   - `onlinePurchaseOrigins`: USA, España, México, Otro (compras de tiendas extranjeras)
+   - `personalPackageOrigins`: Guatemala, USA, España, México, Otro (paquetes que pueden estar localmente)
 
-| Archivo | Acción |
-|---------|--------|
-| `supabase/migrations/[timestamp]_remove_shopper_expiration_notification.sql` | Nueva migración |
+2. **Usar el campo `request_type` del paquete** para determinar qué lista mostrar:
+   - Si `request_type === 'personal'` -> mostrar `personalPackageOrigins` (incluye Guatemala)
+   - Si `request_type === 'online'` -> mostrar `onlinePurchaseOrigins` (sin Guatemala)
 
-### Nota sobre Notificación al Viajero
+### Detalle técnico
 
-La notificación al viajero ("Asignación expirada") **se mantiene** por ahora, ya que es importante que el viajero sepa que el paquete fue removido de su lista. Si también deseas eliminarla, puedo incluirla en el mismo cambio.
+**Archivo a modificar:** `src/components/admin/PackageDetailModal.tsx`
 
+**Cambios:**
+```typescript
+// Reemplazar la constante actual (líneas 13-18)
+// De:
+const purchaseOrigins = [
+  { value: 'Estados Unidos', label: 'Estados Unidos' },
+  { value: 'España', label: 'España' },
+  { value: 'México', label: 'México' },
+  { value: 'Otro', label: 'Otro' }
+];
+
+// A:
+const onlinePurchaseOrigins = [
+  { value: 'Estados Unidos', label: 'Estados Unidos' },
+  { value: 'España', label: 'España' },
+  { value: 'México', label: 'México' },
+  { value: 'Otro', label: 'Otro' }
+];
+
+const personalPackageOrigins = [
+  { value: 'Guatemala', label: 'Guatemala' },
+  { value: 'Estados Unidos', label: 'Estados Unidos' },
+  { value: 'España', label: 'España' },
+  { value: 'México', label: 'México' },
+  { value: 'Otro', label: 'Otro' }
+];
+```
+
+**En el render del Select (~línea 1156):**
+```typescript
+// Cambiar de:
+{purchaseOrigins.map((origin) => ...)}
+
+// A:
+{(pkg?.request_type === 'personal' ? personalPackageOrigins : onlinePurchaseOrigins).map((origin) => ...)}
+```
+
+### Resultado esperado
+- Pedidos personales: mostrarán Guatemala, Estados Unidos, España, México, Otro
+- Compras online: mostrarán Estados Unidos, España, México, Otro (sin Guatemala)
+
+Esto mantiene paridad con el formulario de creación de paquetes y respeta la lógica de negocio donde los pedidos personales pueden originarse localmente.
