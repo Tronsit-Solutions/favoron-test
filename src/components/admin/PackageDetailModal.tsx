@@ -10,7 +10,17 @@ import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCi
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Country/city options (same as PackageRequestForm)
-const purchaseOrigins = [
+// Online purchases: foreign stores only (no Guatemala)
+const onlinePurchaseOrigins = [
+  { value: 'Estados Unidos', label: 'Estados Unidos' },
+  { value: 'España', label: 'España' },
+  { value: 'México', label: 'México' },
+  { value: 'Otro', label: 'Otro' }
+];
+
+// Personal packages: can originate from Guatemala
+const personalPackageOrigins = [
+  { value: 'Guatemala', label: 'Guatemala' },
   { value: 'Estados Unidos', label: 'Estados Unidos' },
   { value: 'España', label: 'España' },
   { value: 'México', label: 'México' },
@@ -1153,7 +1163,7 @@ const [editForm, setEditForm] = useState({
                           <SelectValue placeholder="Selecciona país de origen" />
                         </SelectTrigger>
                         <SelectContent>
-                          {purchaseOrigins.map((origin) => (
+                          {(pkg?.request_type === 'personal' ? personalPackageOrigins : onlinePurchaseOrigins).map((origin) => (
                             <SelectItem key={origin.value} value={origin.value}>
                               {origin.label}
                             </SelectItem>
