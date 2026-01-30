@@ -157,6 +157,11 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   // Merge light and heavy data
   const pkg = pkgLight && heavyDetails ? { ...pkgLight, ...heavyDetails } : pkgLight;
   
+  // Extract request type from products_data JSONB field
+  const packageRequestType = Array.isArray(pkg?.products_data) 
+    ? (pkg?.products_data[0] as any)?.requestType 
+    : 'online';
+  
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{url: string, title: string, filename: string} | null>(null);
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
@@ -1163,7 +1168,7 @@ const [editForm, setEditForm] = useState({
                           <SelectValue placeholder="Selecciona país de origen" />
                         </SelectTrigger>
                         <SelectContent>
-                          {(pkg?.request_type === 'personal' ? personalPackageOrigins : onlinePurchaseOrigins).map((origin) => (
+                          {(packageRequestType === 'personal' ? personalPackageOrigins : onlinePurchaseOrigins).map((origin) => (
                             <SelectItem key={origin.value} value={origin.value}>
                               {origin.label}
                             </SelectItem>
