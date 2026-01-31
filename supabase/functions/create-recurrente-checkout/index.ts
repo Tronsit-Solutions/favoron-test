@@ -40,6 +40,20 @@ serve(async (req) => {
       );
     }
 
+    // Initialize Supabase client early to clear previous checkout
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Clear any previous checkout to avoid webhook conflicts
+    const { error: clearError } = await supabase
+      .from('packages')
+      .update({ recurrente_checkout_id: null })
+      .eq('id', package_id);
+
+    if (clearError) {
+      console.warn('Failed to clear previous checkout:', clearError);
+      // Continue anyway - this is not critical
+    }
+
     // Convert amount to cents (Recurrente uses cents)
     const amountInCents = Math.round(amount * 100);
 
@@ -78,7 +92,13 @@ serve(async (req) => {
     console.log('Recurrente response:', JSON.stringify(recurrenteData));
 
     if (!recurrenteResponse.ok) {
-      console.error('Recurrente API error:', recurrenteData);
+      console.error('Recurrente rejection:', {
+        status: recurrenteResponse.status,
+        statusText: recurrenteResponse.statusText,
+        body: recurrenteData,
+        package_id,
+        amount
+      });
       return new Response(
         JSON.stringify({ error: 'Failed to create checkout', details: recurrenteData }),
         { status: recurrenteResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -98,8 +118,6 @@ serve(async (req) => {
     }
 
     // Update package with Recurrente checkout ID
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    
     const { error: updateError } = await supabase
       .from('packages')
       .update({

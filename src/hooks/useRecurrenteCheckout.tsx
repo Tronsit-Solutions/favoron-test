@@ -41,7 +41,7 @@ export function useRecurrenteCheckout() {
           user_id: userId,
           amount,
           item_description: itemDescription,
-          success_url: `${window.location.origin}/payment-callback?payment=success&package_id=${packageId}`,
+          success_url: `${window.location.origin}/payment-callback?payment=success&package_id=${packageId}&amount=${amount}`,
           cancel_url: `${window.location.origin}/payment-callback?payment=cancelled&package_id=${packageId}`
         }
       });
