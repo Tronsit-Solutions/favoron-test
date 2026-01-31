@@ -1,75 +1,62 @@
 
-## Corregir Dropdown de Ciudades en Formulario de Solicitud de Paquetes
 
-### Problema Identificado
+## Solución: Mejorar el Flujo de Reintento de Pagos con Tarjeta
 
-En `PackageRequestForm.tsx` existe la misma inconsistencia que corregimos en `PackageDetailModal.tsx`:
+### Problema Raíz
 
-| Selector de países (línea 211) | Objeto citiesByCountry (línea 223) |
-|--------------------------------|-----------------------------------|
-| `'Estados Unidos'` | `'USA'` ✗ **NO COINCIDEN** |
+El sistema crea un nuevo checkout de Recurrente cada vez que el usuario intenta pagar, sin verificar si existe uno previo. Esto puede causar:
+- Confusión con múltiples checkouts para el mismo paquete
+- Webhooks del checkout anterior que podrían llegar desordenados
+- Links de pago que expiran o se invalidan
 
-Cuando el usuario selecciona "Estados Unidos", el código busca `citiesByCountry['Estados Unidos']` pero la clave es `'USA'`, retornando `undefined`.
+### Solución Propuesta
 
----
-
-### Solución
-
-Cambiar la clave `'USA'` a `'Estados Unidos'` y agregar "Cualquier ciudad" como primera opción en todos los países (para mantener paridad con el modal de admin).
+Modificar el flujo para limpiar el checkout anterior antes de crear uno nuevo, y agregar el monto al URL de callback para tracking.
 
 ---
 
-### Archivo a Modificar
+### Cambios a Realizar
 
-**`src/components/PackageRequestForm.tsx`** (líneas 217-239)
+#### 1. Hook `useRecurrenteCheckout.tsx` (líneas 42-47)
 
-**Código actual:**
+Agregar el monto al URL de callback para Meta Pixel:
+
 ```typescript
-const citiesByCountry: Record<string, string[]> = {
-  'Guatemala': [
-    'Guatemala City', 'Antigua Guatemala', ...
-  ],
-  'USA': [  // ← CLAVE INCORRECTA
-    'Miami', 'New York', ...
-  ],
-  'España': [...],
-  'México': [...],
-  'Otro': ['Otra ciudad']
-};
+success_url: `${window.location.origin}/payment-callback?payment=success&package_id=${packageId}&amount=${amount}`,
 ```
 
-**Código corregido:**
+#### 2. Edge Function `create-recurrente-checkout/index.ts` (líneas 40-45)
+
+Antes de crear el checkout, limpiar cualquier checkout_id previo para evitar confusiones:
+
 ```typescript
-const citiesByCountry: Record<string, string[]> = {
-  'Guatemala': [
-    'Cualquier ciudad', 'Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla',
-    'Cobán', 'Huehuetenango', 'Mazatenango', 'Puerto Barrios',
-    'Retalhuleu', 'Zacapa', 'Petén/Flores', 'Otra ciudad'
-  ],
-  'Estados Unidos': [  // ← CLAVE CORREGIDA
-    'Cualquier ciudad', 'Miami', 'New York', 'Los Angeles', 'Houston', 'Chicago',
-    'San Francisco', 'Dallas', 'Atlanta', 'Phoenix',
-    'Las Vegas', 'Orlando', 'Washington D.C.', 'Otra ciudad'
-  ],
-  'España': [
-    'Cualquier ciudad', 'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Málaga',
-    'Bilbao', 'Zaragoza', 'Granada', 'Palma de Mallorca',
-    'San Sebastián', 'Otra ciudad'
-  ],
-  'México': [
-    'Cualquier ciudad', 'Ciudad de México', 'Guadalajara', 'Monterrey', 'Cancún',
-    'Tijuana', 'Puebla', 'León', 'Mérida', 'Querétaro',
-    'Toluca', 'Otra ciudad'
-  ],
-  'Otro': ['Cualquier ciudad', 'Otra ciudad']
-};
+// Clear any previous checkout to avoid webhook conflicts
+await supabase
+  .from('packages')
+  .update({ recurrente_checkout_id: null })
+  .eq('id', package_id);
+```
+
+#### 3. Agregar validación de respuesta en el edge function
+
+Mejorar el manejo de errores para detectar cuando Recurrente rechaza la creación:
+
+```typescript
+if (!recurrenteResponse.ok) {
+  // Log specific error for debugging
+  console.error('Recurrente rejection:', {
+    status: recurrenteResponse.status,
+    body: recurrenteData
+  });
+}
 ```
 
 ---
 
 ### Resultado Esperado
 
-1. Usuario selecciona "Estados Unidos" en país destino
-2. El dropdown de ciudades muestra: Cualquier ciudad, Miami, New York, Los Angeles, etc.
-3. Usuario puede seleccionar la ciudad deseada
-4. La solicitud de paquete se crea correctamente
+1. Al reintentar un pago, se limpia el checkout anterior
+2. Se crea un nuevo checkout limpio sin conflictos
+3. El webhook solo necesita procesar el checkout activo
+4. Mejor tracking del monto en Meta Pixel para conversiones
+
