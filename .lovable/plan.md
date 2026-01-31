@@ -1,62 +1,70 @@
 
+## Corregir: Notas Adicionales de Productos No Se Guardan
 
-## Solución: Mejorar el Flujo de Reintento de Pagos con Tarjeta
+### Problema Identificado
 
-### Problema Raíz
+En `useDashboardActions.tsx`, el código sobrescribe las notas individuales de cada producto con las notas a nivel de paquete:
 
-El sistema crea un nuevo checkout de Recurrente cada vez que el usuario intenta pagar, sin verificar si existe uno previo. Esto puede causar:
-- Confusión con múltiples checkouts para el mismo paquete
-- Webhooks del checkout anterior que podrían llegar desordenados
-- Links de pago que expiran o se invalidan
+| Campo | Propósito | Qué pasa |
+|-------|-----------|----------|
+| `products_data[].additionalNotes` | Notas por producto | ❌ Se sobrescribe |
+| `package.additional_notes` | Notas generales del paquete | Se usa para sobrescribir |
 
-### Solución Propuesta
-
-Modificar el flujo para limpiar el checkout anterior antes de crear uno nuevo, y agregar el monto al URL de callback para tracking.
+```typescript
+// Líneas 1749-1755 - CÓDIGO PROBLEMÁTICO
+updateData.products_data = updateData.products_data.map((product: any) => ({
+  ...product,
+  additionalNotes: updateData.additional_notes || null  // ← Sobrescribe notas del producto
+}));
+```
 
 ---
 
-### Cambios a Realizar
+### Solución
 
-#### 1. Hook `useRecurrenteCheckout.tsx` (líneas 42-47)
+**Eliminar** el bloque que sobrescribe las notas de productos, ya que cada producto ya trae su `additionalNotes` correcto desde el modal de edición.
 
-Agregar el monto al URL de callback para Meta Pixel:
+---
 
+### Archivo a Modificar
+
+**`src/hooks/useDashboardActions.tsx`** (líneas 1746-1758)
+
+**Código actual:**
 ```typescript
-success_url: `${window.location.origin}/payment-callback?payment=success&package_id=${packageId}&amount=${amount}`,
-```
+// Prepare update data (remove ID and set status)
+const { id, ...updateData } = editedPackageData;
+updateData.status = needsReapproval ? 'pending_approval' : originalPackage.status;
 
-#### 2. Edge Function `create-recurrente-checkout/index.ts` (líneas 40-45)
-
-Antes de crear el checkout, limpiar cualquier checkout_id previo para evitar confusiones:
-
-```typescript
-// Clear any previous checkout to avoid webhook conflicts
-await supabase
-  .from('packages')
-  .update({ recurrente_checkout_id: null })
-  .eq('id', package_id);
-```
-
-#### 3. Agregar validación de respuesta en el edge function
-
-Mejorar el manejo de errores para detectar cuando Recurrente rechaza la creación:
-
-```typescript
-if (!recurrenteResponse.ok) {
-  // Log specific error for debugging
-  console.error('Recurrente rejection:', {
-    status: recurrenteResponse.status,
-    body: recurrenteData
-  });
+// Add additional notes to products_data if it exists
+if (updateData.products_data && Array.isArray(updateData.products_data)) {
+  updateData.products_data = updateData.products_data.map((product: any) => ({
+    ...product,
+    additionalNotes: updateData.additional_notes || null
+  }));
 }
+
+// Update package in Supabase
+await updatePackage(id, updateData);
+```
+
+**Código corregido:**
+```typescript
+// Prepare update data (remove ID and set status)
+const { id, ...updateData } = editedPackageData;
+updateData.status = needsReapproval ? 'pending_approval' : originalPackage.status;
+
+// products_data already contains correct additionalNotes from PackageDetailModal
+// No need to overwrite - each product has its own notes
+
+// Update package in Supabase
+await updatePackage(id, updateData);
 ```
 
 ---
 
 ### Resultado Esperado
 
-1. Al reintentar un pago, se limpia el checkout anterior
-2. Se crea un nuevo checkout limpio sin conflictos
-3. El webhook solo necesita procesar el checkout activo
-4. Mejor tracking del monto en Meta Pixel para conversiones
-
+1. Admin edita un producto y agrega notas en "Notas adicionales (opcional)"
+2. Al guardar, las notas se preservan correctamente en `products_data[].additionalNotes`
+3. Notas a nivel de paquete (`additional_notes`) se guardan por separado sin interferir
