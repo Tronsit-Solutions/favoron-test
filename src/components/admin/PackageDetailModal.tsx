@@ -166,6 +166,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   const [selectedImage, setSelectedImage] = useState<{url: string, title: string, filename: string} | null>(null);
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [inlineNotesEdit, setInlineNotesEdit] = useState(false);
+  const [inlineNotesValue, setInlineNotesValue] = useState('');
 const [editForm, setEditForm] = useState({
     purchase_origin: '',
     package_destination: '',
@@ -638,6 +640,21 @@ const [editForm, setEditForm] = useState({
     }
     setEditMode(false);
     closeModal(modalId);
+  };
+
+  // Handle inline notes save (quick edit without full modal edit mode)
+  const handleSaveInlineNotes = async () => {
+    if (onUpdatePackage) {
+      const updates = {
+        additional_notes: inlineNotesValue?.trim() || null
+      };
+      onUpdatePackage(pkg.id, updates);
+      toast({
+        title: "Notas guardadas",
+        description: "Las notas adicionales se han actualizado correctamente."
+      });
+    }
+    setInlineNotesEdit(false);
   };
 
   // Handle form field changes
@@ -1654,16 +1671,26 @@ const [editForm, setEditForm] = useState({
                     </div>
                   </div>
                   
-                  {/* Additional Notes from Shopper */}
+                  {/* Additional Notes from Shopper - with inline edit capability */}
                   <div className="mt-3 pt-3 border-t border-primary/20">
                     <h5 className="font-medium text-xs text-muted-foreground mb-2 flex items-center gap-2">
                       Notas Adicionales del Shopper:
-                      {!editMode && (
-                        <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => setEditMode(true)}>
+                      {!editMode && !inlineNotesEdit && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-5 w-5 p-0" 
+                          onClick={() => {
+                            setInlineNotesValue(pkg.additional_notes || '');
+                            setInlineNotesEdit(true);
+                          }}
+                        >
                           <Edit2 className="h-3 w-3" />
                         </Button>
                       )}
                     </h5>
+                    
+                    {/* Full edit mode - uses editForm */}
                     {editMode ? (
                       <Textarea
                         value={editForm.additional_notes}
@@ -1672,7 +1699,29 @@ const [editForm, setEditForm] = useState({
                         className="text-xs"
                         rows={3}
                       />
+                    ) : inlineNotesEdit ? (
+                      /* Inline edit mode - independent quick edit */
+                      <div className="space-y-2">
+                        <Textarea
+                          value={inlineNotesValue}
+                          onChange={(e) => setInlineNotesValue(e.target.value)}
+                          placeholder="Notas adicionales del shopper..."
+                          className="text-xs"
+                          rows={3}
+                          autoFocus
+                        />
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={handleSaveInlineNotes} className="text-xs">
+                            <Save className="h-3 w-3 mr-1" />
+                            Guardar
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => setInlineNotesEdit(false)} className="text-xs">
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
                     ) : (
+                      /* Read-only view */
                       <p className="text-xs text-foreground bg-muted/30 p-2 rounded">
                         {pkg.additional_notes || 'Sin notas adicionales'}
                       </p>
