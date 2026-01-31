@@ -1746,13 +1746,8 @@ export const useDashboardActions = (
       const { id, ...updateData } = editedPackageData;
       updateData.status = needsReapproval ? 'pending_approval' : originalPackage.status;
       
-      // Add additional notes to products_data if it exists
-      if (updateData.products_data && Array.isArray(updateData.products_data)) {
-        updateData.products_data = updateData.products_data.map((product: any) => ({
-          ...product,
-          additionalNotes: updateData.additional_notes || null
-        }));
-      }
+      // products_data already contains correct additionalNotes from PackageDetailModal
+      // No need to overwrite - each product has its own notes
 
       // Update package in Supabase (this automatically updates local state)
       await updatePackage(id, updateData);
