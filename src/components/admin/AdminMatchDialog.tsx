@@ -70,30 +70,44 @@ const AdminMatchDialog = ({
     };
   }, [selectedPackage, heavyDetails]);
 
-  // Function to calculate total value of packages for a specific trip
-  const calculateTripPackagesTotal = (tripId: string) => {
-    // Include all statuses from quote_sent onwards, excluding quote_expired and quote_rejected
-    const validStatuses = ['quote_sent', 'payment_pending', 'paid', 'pending_purchase', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'completed'];
-    
-    const tripPackages = packages.filter(pkg => 
-      pkg.matched_trip_id === tripId && 
-      validStatuses.includes(pkg.status)
-    );
+  // Function to calculate package value
+  const calculatePackageValue = (pkg: any): number => {
+    if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+      return pkg.products_data.reduce((productSum: number, product: any) => {
+        const price = parseFloat(product.estimatedPrice || '0');
+        const quantity = parseInt(product.quantity || '1');
+        return productSum + (price * quantity);
+      }, 0);
+    }
+    return parseFloat(pkg.estimated_price || '0');
+  };
 
-    return tripPackages.reduce((total, pkg) => {
-      if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
-        // Sum all products: quantity * estimatedPrice
-        const productsTotal = pkg.products_data.reduce((productSum, product) => {
-          const price = parseFloat(product.estimatedPrice || '0');
-          const quantity = parseInt(product.quantity || '1');
-          return productSum + (price * quantity);
-        }, 0);
-        return total + productsTotal;
-      } else {
-        // Fallback to estimated_price
-        return total + parseFloat(pkg.estimated_price || '0');
+  // Function to calculate totals by category (pending vs confirmed)
+  const calculateTripPackagesTotals = (tripId: string) => {
+    const pendingStatuses = ['matched', 'quote_sent', 'payment_pending', 'payment_pending_approval'];
+    const confirmedStatuses = ['paid', 'pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
+    
+    const tripPackages = packages.filter(pkg => pkg.matched_trip_id === tripId);
+    
+    let pendingTotal = 0;
+    let confirmedTotal = 0;
+    
+    tripPackages.forEach(pkg => {
+      const value = calculatePackageValue(pkg);
+      if (pendingStatuses.includes(pkg.status)) {
+        pendingTotal += value;
+      } else if (confirmedStatuses.includes(pkg.status)) {
+        confirmedTotal += value;
       }
-    }, 0);
+    });
+    
+    return { pendingTotal, confirmedTotal };
+  };
+
+  // Legacy function for backward compatibility
+  const calculateTripPackagesTotal = (tripId: string) => {
+    const { pendingTotal, confirmedTotal } = calculateTripPackagesTotals(tripId);
+    return pendingTotal + confirmedTotal;
   };
 
   // Normalize country names to handle variations
@@ -947,19 +961,29 @@ const AdminMatchDialog = ({
                                  </div>
                                </div>
 
-                               {/* Total Value Container */}
+                               {/* Total Value Containers - Pending & Confirmed */}
                                {(() => {
-                                 const total = calculateTripPackagesTotal(trip.id);
-                                 return total > 0 ? (
-                                    <div className="flex items-center space-x-2 min-w-fit">
-                                      <div>
-                                       <p className="text-xs text-green-600 font-medium">Maleta</p>
-                                       <p className="text-sm font-medium text-green-700">
-                                         ${total.toFixed(2)}
-                                       </p>
-                                     </div>
+                                 const { pendingTotal, confirmedTotal } = calculateTripPackagesTotals(trip.id);
+                                 return (
+                                   <div className="flex items-center space-x-3 min-w-fit">
+                                     {pendingTotal > 0 && (
+                                       <div>
+                                         <p className="text-xs text-amber-600 font-medium">Pendiente</p>
+                                         <p className="text-sm font-medium text-amber-700">
+                                           ${pendingTotal.toFixed(2)}
+                                         </p>
+                                       </div>
+                                     )}
+                                     {confirmedTotal > 0 && (
+                                       <div>
+                                         <p className="text-xs text-green-600 font-medium">Confirmado</p>
+                                         <p className="text-sm font-medium text-green-700">
+                                           ${confirmedTotal.toFixed(2)}
+                                         </p>
+                                       </div>
+                                     )}
                                    </div>
-                                 ) : null;
+                                 );
                                })()}
                             </div>
 
@@ -1130,19 +1154,29 @@ const AdminMatchDialog = ({
                                   </div>
                                 </div>
 
-                                {/* Total Value Container */}
+                                {/* Total Value Containers - Pending & Confirmed */}
                                 {(() => {
-                                  const total = calculateTripPackagesTotal(trip.id);
-                                  return total > 0 ? (
-                                    <div className="flex items-center space-x-2 min-w-fit">
-                                      <div>
-                                        <p className="text-xs text-green-600 font-medium">Maleta</p>
-                                        <p className="text-sm font-medium text-green-700">
-                                          ${total.toFixed(2)}
-                                        </p>
-                                      </div>
+                                  const { pendingTotal, confirmedTotal } = calculateTripPackagesTotals(trip.id);
+                                  return (
+                                    <div className="flex items-center space-x-3 min-w-fit">
+                                      {pendingTotal > 0 && (
+                                        <div>
+                                          <p className="text-xs text-amber-600 font-medium">Pendiente</p>
+                                          <p className="text-sm font-medium text-amber-700">
+                                            ${pendingTotal.toFixed(2)}
+                                          </p>
+                                        </div>
+                                      )}
+                                      {confirmedTotal > 0 && (
+                                        <div>
+                                          <p className="text-xs text-green-600 font-medium">Confirmado</p>
+                                          <p className="text-sm font-medium text-green-700">
+                                            ${confirmedTotal.toFixed(2)}
+                                          </p>
+                                        </div>
+                                      )}
                                     </div>
-                                  ) : null;
+                                  );
                                 })()}
                               </div>
 
