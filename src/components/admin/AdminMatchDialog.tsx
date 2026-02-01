@@ -313,6 +313,48 @@ const AdminMatchDialog = ({
     }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
   }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
 
+  // Count trips to OTHER cities in Spain (same origin, different Spanish city)
+  const otherSpainCityTrips = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const packageOriginNormalized = normalizeCountry(selectedPackage?.purchase_origin || '');
+    const packageDestinationCity = selectedPackage?.package_destination?.toLowerCase().trim() || '';
+    
+    // Spanish cities
+    const spainCities = ['madrid', 'barcelona', 'valencia', 'sevilla', 'zaragoza', 
+                         'málaga', 'malaga', 'murcia', 'palma', 'bilbao', 
+                         'alicante', 'córdoba', 'cordoba', 'valladolid', 'las palmas'];
+    
+    // Check if package destination is in Spain
+    const packageDestNormalized = normalizeCountry(selectedPackage?.package_destination || '');
+    const isPackageToSpain = packageDestNormalized === 'espana' || 
+                             spainCities.some(city => packageDestinationCity.includes(city));
+    
+    if (!isPackageToSpain) return [];
+    
+    return availableTrips.filter(trip => {
+      const isNotExpired = new Date(trip.arrival_date) >= today;
+      const tripOriginNormalized = normalizeCountry(trip.from_country || '');
+      const tripDestinationCity = trip.to_city?.toLowerCase().trim() || '';
+      const tripDestNormalized = normalizeCountry(trip.to_city || '');
+      
+      // Same origin country
+      const matchesOrigin = tripOriginNormalized === packageOriginNormalized;
+      
+      // Trip goes to Spain
+      const tripToSpain = tripDestNormalized === 'espana' ||
+                          trip.to_country?.toLowerCase().includes('españa') ||
+                          trip.to_country?.toLowerCase().includes('espana') ||
+                          spainCities.some(city => tripDestinationCity.includes(city));
+      
+      // Different city
+      const differentCity = tripDestinationCity !== packageDestinationCity;
+      
+      return isNotExpired && matchesOrigin && tripToSpain && differentCity;
+    }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
+  }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
+
   // Reset showAllTrips and showOtherCities when selected package changes
   useEffect(() => {
     setShowAllTrips(false);
@@ -351,7 +393,7 @@ const AdminMatchDialog = ({
   // Fetch traveler profiles when dialog opens and trips are available
   useEffect(() => {
     // Combine all trips from different sections
-    const allTrips = [...validTrips, ...otherCityTrips, ...otherUSCityTrips];
+    const allTrips = [...validTrips, ...otherCityTrips, ...otherUSCityTrips, ...otherSpainCityTrips];
     
     if (showMatchDialog && allTrips.length > 0) {
       const fetchTravelerProfiles = async () => {
@@ -1149,6 +1191,135 @@ const AdminMatchDialog = ({
                                       {trip.to_city}
                                     </span>
                                     <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 text-xs ml-1">
+                                      📍 Ciudad diferente
+                                    </Badge>
+                                  </div>
+                                </div>
+
+                                {/* Total Value Containers - Pending & Confirmed */}
+                                {(() => {
+                                  const { pendingTotal, confirmedTotal } = calculateTripPackagesTotals(trip.id);
+                                  return (
+                                    <div className="flex items-center space-x-3 min-w-fit">
+                                      {pendingTotal > 0 && (
+                                        <div>
+                                          <p className="text-xs text-amber-600 font-medium">Pendiente</p>
+                                          <p className="text-sm font-medium text-amber-700">
+                                            ${pendingTotal.toFixed(2)}
+                                          </p>
+                                        </div>
+                                      )}
+                                      {confirmedTotal > 0 && (
+                                        <div>
+                                          <p className="text-xs text-green-600 font-medium">Confirmado</p>
+                                          <p className="text-sm font-medium text-green-700">
+                                            ${confirmedTotal.toFixed(2)}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+
+                              {/* Right side - Dates and Badges */}
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                                <div className="flex items-center justify-between sm:justify-start space-x-4 min-w-fit">
+                                  <div className="text-center">
+                                    <p className="text-xs text-gray-500 font-medium">LLEGADA</p>
+                                    <p className="text-sm font-semibold text-gray-800">
+                                      {trip.arrival_date ? new Date(trip.arrival_date).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
+                                    </p>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="text-xs text-gray-500 font-medium">ENTREGA</p>
+                                    <p className="text-sm font-semibold text-gray-800">
+                                      {trip.delivery_date ? new Date(trip.delivery_date).toLocaleDateString('es-GT', { month: 'short', day: 'numeric' }) : 'N/A'}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center sm:flex-col sm:items-center justify-between sm:justify-start space-x-2 sm:space-x-0 sm:space-y-1 min-w-fit">
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-xs ${trip.delivery_method === 'oficina' ? 'border-green-300 text-green-700' : 'border-blue-300 text-blue-700'}`}
+                                  >
+                                    <Truck className="h-3 w-3 mr-1" />
+                                    {trip.delivery_method === 'oficina' ? 'Oficina' : 'Mensajero'}
+                                  </Badge>
+                                  <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs">
+                                    {trip.available_space}kg
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </>
+                )}
+
+                {/* Other Spain Cities Section */}
+                {otherSpainCityTrips.length > 0 && validTrips.length > 0 && (
+                  <>
+                    <div className="border-t border-dashed border-gray-300 my-4 pt-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Globe className="h-4 w-4 text-orange-600" />
+                        <span className="text-sm font-medium text-orange-700">
+                          Otras ciudades en España ({otherSpainCityTrips.length})
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {otherSpainCityTrips.map((trip) => {
+                      const wasPreviouslyRejected = selectedPackage?.traveler_rejection?.rejected_by === trip.user_id;
+                      
+                      return (
+                        <Card 
+                          key={`spain-${trip.id}`} 
+                          className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                            selectedTripId === trip.id 
+                              ? 'ring-2 ring-primary bg-primary/5' 
+                              : wasPreviouslyRejected
+                                ? 'bg-red-50 border-2 border-red-300 hover:bg-red-100'
+                                : 'hover:bg-orange-50/50 border-orange-200'
+                          }`}
+                          onClick={() => handleTripSelection(trip.id)}
+                        >
+                          <CardContent className="p-2 sm:p-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
+                                {/* Traveler */}
+                                <div className="flex items-center space-x-2 min-w-fit">
+                                  <div className="w-8 h-8 bg-orange-200 rounded-full flex items-center justify-center text-xs font-medium text-orange-800">
+                                    {trip.user_id?.toString().slice(-2) || '00'}
+                                  </div>
+                                  <div>
+                                    <p 
+                                      className="font-medium text-sm text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleTravelerClick(trip);
+                                      }}
+                                    >
+                                      {getTravelerName(trip.user_id)}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Route */}
+                                <div className="flex items-center space-x-2 min-w-fit">
+                                  <MapPin className="h-4 w-4 text-gray-400" />
+                                  <div className="flex items-center space-x-2 flex-wrap">
+                                    <span className="text-sm font-medium text-gray-700">
+                                      {trip.from_city || 'No especificado'}
+                                    </span>
+                                    <span className="text-gray-400">→</span>
+                                    <span className="text-sm font-medium text-gray-900">
+                                      {trip.to_city}
+                                    </span>
+                                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-300 text-xs ml-1">
                                       📍 Ciudad diferente
                                     </Badge>
                                   </div>
