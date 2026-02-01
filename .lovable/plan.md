@@ -1,162 +1,145 @@
 
+# Plan: Registrar historial de viajeros que rechazaron paquetes
 
-## Plan: Habilitar Edición de Notas Adicionales del Shopper para Admin
+## Problema
+Cuando un viajero rechaza un paquete, el `matched_trip_id` se limpia y actualmente no hay forma de saber qué viajeros rechazaron ese paquete anteriormente. El campo `traveler_rejection` guarda el `previous_trip_id` pero **se sobrescribe** con cada nuevo rechazo.
 
-### Problema Identificado
+## Solución
+Modificar la función RPC `traveler_reject_assignment` para que también agregue una entrada en `admin_actions_log` con la información completa del rechazo, incluyendo el `previous_trip_id` y `previous_traveler_id`.
 
-Al revisar el código, encontré que cuando el admin hace clic en el ícono de lápiz junto a "Notas Adicionales del Shopper", se activa el modo de edición COMPLETO del modal (todos los campos se vuelven editables), lo cual puede ser confuso y potencialmente causar que los cambios no se guarden correctamente si el admin no completa el flujo de guardado.
+## Cambio en Base de Datos
 
-### Análisis del Código Actual
+### Actualizar función `traveler_reject_assignment`
 
-```text
-+---------------------------+
-|  Flujo actual (confuso)   |
-+---------------------------+
-| 1. Admin ve "Sin notas"   |
-|    con ícono de lápiz     |
-|                           |
-| 2. Click en lápiz →       |
-|    TODO el modal entra    |
-|    en modo edición        |
-|                           |
-| 3. Textarea aparece AQUÍ  |
-|    + 20 campos más        |
-|                           |
-| 4. Debe buscar "Guardar"  |
-|    en header del modal    |
-+---------------------------+
+Agregar al final del UPDATE (antes del WHERE), la actualización del `admin_actions_log`:
+
+```sql
+admin_actions_log = COALESCE(admin_actions_log, '[]'::jsonb) || jsonb_build_object(
+  'timestamp', NOW(),
+  'admin_id', _current_user_id,
+  'action_type', 'traveler_rejection',
+  'description', 'Traveler rejected admin-assigned package',
+  'additional_data', jsonb_build_object(
+    'rejection_reason', _rejection_reason,
+    'additional_comments', _additional_comments,
+    'previous_trip_id', _package_record.matched_trip_id,
+    'previous_traveler_id', _current_user_id
+  )
+)
 ```
 
-**Problema clave**: El admin podría no darse cuenta que necesita hacer clic en "Guardar" en la parte superior del modal, o podría cerrar el modal sin guardar.
+## Resultado
+Con este cambio, cada vez que un viajero rechace un paquete:
+1. Se registrará en `admin_actions_log` con `action_type: 'traveler_rejection'`
+2. Incluirá `previous_trip_id` y `previous_traveler_id` en `additional_data`
+3. Podrás consultar el historial completo de rechazos desde la UI de admin
+
+## Consulta de ejemplo para ver historial de rechazos
+```sql
+SELECT id, item_description,
+       jsonb_array_elements(admin_actions_log) as rejection_log
+FROM packages 
+WHERE admin_actions_log @> '[{"action_type": "traveler_rejection"}]';
+```
+
+## Mejora adicional en UI (opcional)
+Agregar al modal de match de solicitud un indicador visual si el paquete tiene historial de rechazos previos, mostrando qué viajeros lo rechazaron y por qué.
 
 ---
 
-### Solución Propuesta
+## Detalle Técnico
 
-Agregar un modo de **edición inline** específico para las notas adicionales, independiente del modo de edición completo del modal.
+**Migración SQL completa:**
 
----
+```sql
+CREATE OR REPLACE FUNCTION public.traveler_reject_assignment(
+  _package_id uuid,
+  _rejection_reason text DEFAULT NULL,
+  _additional_comments text DEFAULT NULL
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $function$
+DECLARE
+  _current_user_id uuid := auth.uid();
+  _package_record RECORD;
+  _trip_record RECORD;
+BEGIN
+  -- Verify authenticated user
+  IF _current_user_id IS NULL THEN
+    RAISE EXCEPTION 'No autenticado';
+  END IF;
 
-### Cambios Técnicos
+  -- Get package and verify it belongs to user's matched trip
+  SELECT p.*, t.user_id as trip_owner_id, t.id as trip_id
+  INTO _package_record
+  FROM packages p
+  JOIN trips t ON t.id = p.matched_trip_id
+  WHERE p.id = _package_id
+    AND t.user_id = _current_user_id
+    AND p.status = 'matched';
 
-#### 1. Agregar nuevo estado para edición inline de notas
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'No tienes permisos para rechazar este paquete o no está en estado matched';
+  END IF;
 
-**Archivo**: `src/components/admin/PackageDetailModal.tsx`
+  -- Store trip info before clearing
+  SELECT * INTO _trip_record FROM trips WHERE id = _package_record.matched_trip_id;
 
-**Líneas ~168-173** - Agregar estado:
-```typescript
-const [editMode, setEditMode] = useState(false);
-const [inlineNotesEdit, setInlineNotesEdit] = useState(false); // NUEVO
-const [inlineNotesValue, setInlineNotesValue] = useState('');   // NUEVO
+  -- Update package: reset to approved, clear match data, save rejection info
+  UPDATE packages
+  SET
+    status = 'approved',
+    matched_trip_id = NULL,
+    traveler_address = NULL,
+    matched_trip_dates = NULL,
+    quote = NULL,
+    quote_expires_at = NULL,
+    matched_assignment_expires_at = NULL,
+    admin_assigned_tip = NULL,
+    rejection_reason = _rejection_reason,
+    internal_notes = CASE 
+      WHEN _additional_comments IS NOT NULL THEN 
+        COALESCE(internal_notes, '') || E'\n[Traveler Rejection] ' || _additional_comments
+      ELSE internal_notes
+    END,
+    traveler_rejection = jsonb_build_object(
+      'rejected_at', NOW(),
+      'rejection_reason', _rejection_reason,
+      'additional_comments', _additional_comments,
+      'previous_trip_id', _package_record.matched_trip_id,
+      'previous_traveler_id', _current_user_id
+    ),
+    -- NUEVO: Agregar al historial de acciones
+    admin_actions_log = COALESCE(admin_actions_log, '[]'::jsonb) || jsonb_build_object(
+      'timestamp', NOW(),
+      'admin_id', _current_user_id,
+      'action_type', 'traveler_rejection',
+      'description', 'Traveler rejected admin-assigned package',
+      'additional_data', jsonb_build_object(
+        'rejection_reason', _rejection_reason,
+        'additional_comments', _additional_comments,
+        'previous_trip_id', _package_record.matched_trip_id,
+        'previous_traveler_id', _current_user_id
+      )
+    ),
+    -- Clean product-level tips from products_data
+    products_data = (
+      SELECT jsonb_agg(
+        product - 'adminAssignedTip'
+      )
+      FROM jsonb_array_elements(COALESCE(products_data, '[]'::jsonb)) AS product
+    ),
+    updated_at = NOW()
+  WHERE id = _package_id;
+END;
+$function$;
 ```
 
-#### 2. Agregar función para guardar notas inline
-
-**Líneas ~640-650** - Nueva función:
-```typescript
-// Handle inline notes save (quick edit without full modal edit mode)
-const handleSaveInlineNotes = async () => {
-  if (onUpdatePackage) {
-    const updates = {
-      additional_notes: inlineNotesValue?.trim() || null
-    };
-    onUpdatePackage(pkg.id, updates);
-    toast({
-      title: "Notas guardadas",
-      description: "Las notas adicionales se han actualizado correctamente."
-    });
-  }
-  setInlineNotesEdit(false);
-};
-```
-
-#### 3. Modificar la sección de notas adicionales
-
-**Líneas ~1657-1680** - Reemplazar con:
-```typescript
-{/* Additional Notes from Shopper - with inline edit capability */}
-<div className="mt-3 pt-3 border-t border-primary/20">
-  <h5 className="font-medium text-xs text-muted-foreground mb-2 flex items-center gap-2">
-    Notas Adicionales del Shopper:
-    {!editMode && !inlineNotesEdit && (
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="h-5 w-5 p-0" 
-        onClick={() => {
-          setInlineNotesValue(pkg.additional_notes || '');
-          setInlineNotesEdit(true);
-        }}
-      >
-        <Edit2 className="h-3 w-3" />
-      </Button>
-    )}
-  </h5>
-  
-  {/* Full edit mode - uses editForm */}
-  {editMode ? (
-    <Textarea
-      value={editForm.additional_notes}
-      onChange={(e) => handleFormChange('additional_notes', e.target.value)}
-      placeholder="Notas adicionales del shopper..."
-      className="text-xs"
-      rows={3}
-    />
-  ) : inlineNotesEdit ? (
-    /* Inline edit mode - independent quick edit */
-    <div className="space-y-2">
-      <Textarea
-        value={inlineNotesValue}
-        onChange={(e) => setInlineNotesValue(e.target.value)}
-        placeholder="Notas adicionales del shopper..."
-        className="text-xs"
-        rows={3}
-        autoFocus
-      />
-      <div className="flex gap-2">
-        <Button size="sm" onClick={handleSaveInlineNotes} className="text-xs">
-          <Save className="h-3 w-3 mr-1" />
-          Guardar
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => setInlineNotesEdit(false)} className="text-xs">
-          Cancelar
-        </Button>
-      </div>
-    </div>
-  ) : (
-    /* Read-only view */
-    <p className="text-xs text-foreground bg-muted/30 p-2 rounded">
-      {pkg.additional_notes || 'Sin notas adicionales'}
-    </p>
-  )}
-</div>
-```
-
----
-
-### Resultado Esperado
-
-```text
-+---------------------------+
-|   Nuevo flujo (simple)    |
-+---------------------------+
-| 1. Admin ve "Sin notas"   |
-|    con ícono de lápiz     |
-|                           |
-| 2. Click en lápiz →       |
-|    SOLO aparece Textarea  |
-|    con botones inline     |
-|                           |
-| 3. Escribe las notas      |
-|                           |
-| 4. Click "Guardar" →      |
-|    Se guarda directamente |
-|    sin cerrar el modal    |
-+---------------------------+
-```
-
-1. El admin puede editar las notas SIN entrar en modo de edición completo
-2. Los botones "Guardar" y "Cancelar" aparecen junto al campo
-3. El guardado es inmediato y muestra confirmación
-4. El modo de edición completo sigue funcionando igual
-
+**Beneficios:**
+- Historial completo e inmutable de todos los rechazos
+- Cada entrada incluye: timestamp, traveler_id, trip_id, razón del rechazo
+- Compatible con el sistema actual de logs
+- No se pierde información al reasignar el paquete a otro viajero
