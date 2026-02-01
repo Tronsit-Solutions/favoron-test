@@ -1,77 +1,118 @@
 
-# Plan: Separar indicador "Maleta" en dos categorías
+# Plan: Agregar soporte para mostrar viajes a otras ciudades de España
 
 ## Problema Actual
-El badge "Maleta" en verde muestra el total combinado de todos los paquetes asignados a un viaje, sin distinguir entre:
-- Paquetes pendientes de confirmación (cotización enviada, esperando pago)
-- Paquetes ya pagados (en proceso de compra, tránsito, etc.)
+Cuando un paquete tiene destino "Barcelona" (España):
+- Solo se muestran viajes que van exactamente a Barcelona
+- No se ofrece opción de ver viajes a Madrid, Valencia, Sevilla u otras ciudades españolas
+- La lógica de "otras ciudades" solo existe para Guatemala y USA
 
-## Solución Propuesta
-Crear dos indicadores separados con colores distintos:
-
-1. **"Pendiente"** (amarillo/naranja): Total de paquetes en estados pre-pago
-   - `matched`, `quote_sent`, `payment_pending`, `payment_pending_approval`
-   
-2. **"Confirmado"** (verde): Total de paquetes ya pagados
-   - `paid`, `pending_purchase`, `in_transit`, `received_by_traveler`, `pending_office_confirmation`, `delivered_to_office`, `completed`
+## Solución
+Agregar `otherSpainCityTrips` con la misma estructura que `otherUSCityTrips`.
 
 ## Cambios Técnicos
 
 ### Archivo: `src/components/admin/AdminMatchDialog.tsx`
 
-1. **Crear nueva función** para calcular totales por categoría:
+**1. Agregar lista de ciudades españolas (después de línea 314)**
 
 ```typescript
-const calculateTripPackagesTotals = (tripId: string) => {
-  const pendingStatuses = ['matched', 'quote_sent', 'payment_pending', 'payment_pending_approval'];
-  const confirmedStatuses = ['paid', 'pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
+// Count trips to OTHER cities in Spain
+const otherSpainCityTrips = useMemo(() => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   
-  const tripPackages = packages.filter(pkg => pkg.matched_trip_id === tripId);
+  const packageOriginNormalized = normalizeCountry(selectedPackage?.purchase_origin || '');
+  const packageDestinationCity = selectedPackage?.package_destination?.toLowerCase().trim() || '';
   
-  let pendingTotal = 0;
-  let confirmedTotal = 0;
+  // Spanish cities
+  const spainCities = ['madrid', 'barcelona', 'valencia', 'sevilla', 'zaragoza', 
+                       'málaga', 'malaga', 'murcia', 'palma', 'bilbao', 
+                       'alicante', 'córdoba', 'cordoba', 'valladolid'];
   
-  tripPackages.forEach(pkg => {
-    const value = calculatePackageValue(pkg);
-    if (pendingStatuses.includes(pkg.status)) {
-      pendingTotal += value;
-    } else if (confirmedStatuses.includes(pkg.status)) {
-      confirmedTotal += value;
-    }
-  });
+  // Check if package destination is in Spain
+  const packageDestNormalized = normalizeCountry(selectedPackage?.package_destination || '');
+  const isPackageToSpain = packageDestNormalized === 'espana' || 
+                           spainCities.some(city => packageDestinationCity.includes(city));
   
-  return { pendingTotal, confirmedTotal };
-};
+  if (!isPackageToSpain) return [];
+  
+  return availableTrips.filter(trip => {
+    const isNotExpired = new Date(trip.arrival_date) >= today;
+    const tripOriginNormalized = normalizeCountry(trip.from_country || '');
+    const tripDestinationCity = trip.to_city?.toLowerCase().trim() || '';
+    const tripDestNormalized = normalizeCountry(trip.to_city || '');
+    
+    // Same origin country
+    const matchesOrigin = tripOriginNormalized === packageOriginNormalized;
+    
+    // Trip goes to Spain
+    const tripToSpain = tripDestNormalized === 'espana' ||
+                        trip.to_country?.toLowerCase().includes('españa') ||
+                        trip.to_country?.toLowerCase().includes('espana') ||
+                        spainCities.some(city => tripDestinationCity.includes(city));
+    
+    // Different city
+    const differentCity = tripDestinationCity !== packageDestinationCity;
+    
+    return isNotExpired && matchesOrigin && tripToSpain && differentCity;
+  }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
+}, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
 ```
 
-2. **Actualizar UI** para mostrar ambos indicadores:
+**2. Actualizar la UI para mostrar el toggle de España**
 
-```text
+Agregar después del bloque de `otherUSCityTrips.length > 0`:
+
+```typescript
+{otherSpainCityTrips.length > 0 && (
+  <Button
+    variant="ghost"
+    size="sm"
+    onClick={() => setShowOtherCities(!showOtherCities)}
+    className="text-xs text-muted-foreground hover:text-primary"
+  >
+    {showOtherCities ? 'Ocultar' : `Ver ${otherSpainCityTrips.length} viajes a otras ciudades de España`}
+    <ChevronDown className={`h-3 w-3 ml-1 transition-transform ${showOtherCities ? 'rotate-180' : ''}`} />
+  </Button>
+)}
+```
+
+**3. Incluir viajes de España en la lista expandida**
+
+Actualizar la condición de viajes a mostrar:
+```typescript
+// Cuando showOtherCities está activo, incluir también viajes de España
+const tripsToShow = showOtherCities 
+  ? [...validTrips, ...otherCityTrips, ...otherUSCityTrips, ...otherSpainCityTrips]
+  : validTrips;
+```
+
+## Resultado Esperado
+
+| Destino del paquete | Viajes mostrados |
+|---------------------|------------------|
+| Barcelona | Viajes a Barcelona + opción "Ver X viajes a otras ciudades de España" |
+| Madrid | Viajes a Madrid + opción expandible |
+
+```
 Antes:
-┌──────────────┐
-│ Maleta       │  (verde)
-│ $387.87      │
-└──────────────┘
+┌─────────────────────────────────────┐
+│ Viajes Disponibles (1)              │
+│ Frances Díaz → Barcelona            │
+│ (Sin opción de ver Madrid)          │
+└─────────────────────────────────────┘
 
 Después:
-┌──────────────┐  ┌──────────────┐
-│ Pendiente    │  │ Confirmado   │  
-│ $150.00      │  │ $237.87      │
-│ (amarillo)   │  │ (verde)      │
-└──────────────┘  └──────────────┘
+┌─────────────────────────────────────┐
+│ Viajes Disponibles (1)              │
+│ Frances Díaz → Barcelona            │
+│                                     │
+│ [Ver 2 viajes a otras ciudades      │
+│  de España ▼]                       │
+│                                     │
+│ (Expandido:)                        │
+│ Juan → Madrid                       │
+│ Ana → Valencia                      │
+└─────────────────────────────────────┘
 ```
-
-## Detalles de Implementación
-
-- Aplicar en las dos secciones donde aparece "Maleta" (líneas ~954 y ~1137)
-- Solo mostrar cada badge si el total correspondiente es > 0
-- Mantener el diseño compacto para no afectar el espacio horizontal
-
-## Resultado Visual Esperado
-
-| Estado del viaje | Indicadores mostrados |
-|------------------|----------------------|
-| Solo paquetes pendientes | 🟡 "Pendiente $X" |
-| Solo paquetes confirmados | 🟢 "Confirmado $X" |
-| Ambos tipos | 🟡 "Pendiente $X" + 🟢 "Confirmado $X" |
-| Sin paquetes | (ninguno) |
