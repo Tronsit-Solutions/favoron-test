@@ -1,29 +1,30 @@
 
-# Plan: Agregar `to_country` al RPC `get_admin_trips_with_user`
+# Plan: Corregir tipo de dato en RPC `get_admin_trips_with_user`
 
 ## Problema Identificado
 
-El RPC `get_admin_trips_with_user` que carga los viajes para el admin **no incluye** el campo `to_country`. Esto causa que la lógica de matching en `AdminMatchDialog.tsx` falle porque:
+El RPC `get_admin_trips_with_user` está fallando con error **"integer out of range"** porque:
 
-1. El código usa: `normalizeCountry(trip.to_country || trip.to_city)`
-2. Como `to_country` es `undefined`, usa `to_city` (ej: "Miami")  
-3. `normalizeCountry("Miami")` no normaliza a "usa" porque "Miami" no está en la lista de variantes de países
-4. Por lo tanto, el filtro de destino falla y no muestra viajes
+1. La columna `available_space` en la tabla `trips` es de tipo `numeric`
+2. En el RPC, se declaró como `integer`
+3. Hay un valor en la base de datos (`12312323123123132000000`) que excede el máximo de un integer
 
 ## Solución
 
-### Modificar el RPC `get_admin_trips_with_user`
+### Migración SQL
 
-Agregar `t.to_country` al SELECT del RPC:
+Actualizar el RPC cambiando `available_space integer` → `available_space numeric`:
 
 ```sql
-CREATE OR REPLACE FUNCTION public.get_admin_trips_with_user()
+DROP FUNCTION IF EXISTS public.get_admin_trips_with_user();
+
+CREATE FUNCTION public.get_admin_trips_with_user()
 RETURNS TABLE (
   id uuid,
   from_city text,
   to_city text,
   from_country text,
-  to_country text,          -- NUEVO
+  to_country text,
   arrival_date text,
   delivery_date text,
   first_day_packages text,
@@ -41,33 +42,19 @@ RETURNS TABLE (
   phone_number text,
   username text,
   user_display_name text,
-  available_space integer
+  available_space numeric  -- CAMBIADO de integer a numeric
 )
 LANGUAGE sql
 SECURITY DEFINER
 AS $$
   SELECT
-    t.id,
-    t.from_city,
-    t.to_city,
-    t.from_country,
-    t.to_country,            -- NUEVO
-    t.arrival_date::text,
-    t.delivery_date::text,
-    t.first_day_packages::text,
-    t.last_day_packages::text,
-    t.delivery_method,
-    t.messenger_pickup_info,
-    t.package_receiving_address,
-    t.status,
-    t.created_at::text,
-    t.updated_at::text,
-    t.user_id,
-    p.first_name,
-    p.last_name,
-    p.email,
-    p.phone_number,
-    p.username,
+    t.id, t.from_city, t.to_city, t.from_country, t.to_country,
+    t.arrival_date::text, t.delivery_date::text,
+    t.first_day_packages::text, t.last_day_packages::text,
+    t.delivery_method, t.messenger_pickup_info,
+    t.package_receiving_address, t.status,
+    t.created_at::text, t.updated_at::text, t.user_id,
+    p.first_name, p.last_name, p.email, p.phone_number, p.username,
     CONCAT(p.first_name, ' ', p.last_name) as user_display_name,
     t.available_space
   FROM public.trips t
@@ -80,11 +67,9 @@ $$;
 
 | Antes | Después |
 |-------|---------|
-| Viajes Disponibles (0) | Viajes con destino USA correctamente filtrados |
-| `trip.to_country = undefined` | `trip.to_country = "estados-unidos"` |
-| Filtro compara "miami" ≠ "usa" | Filtro compara "usa" = "usa" ✅ |
+| Error: integer out of range | Viajes cargados correctamente |
+| 0 viajes disponibles | Todos los viajes del sistema |
 
-## Alcance
+## Cambios Adicionales
 
-- 1 migración SQL para actualizar el RPC
-- No requiere cambios en el código frontend (ya usa `trip.to_country` con fallback)
+- Actualizar `src/integrations/supabase/types.ts` para reflejar el cambio de tipo (`available_space: number` permanece igual en TypeScript)
