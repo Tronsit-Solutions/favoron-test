@@ -13,6 +13,7 @@ import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { usePackageHistory } from "@/hooks/usePackageHistory";
 import { PackageHistoryIndicator } from "./PackageHistoryIndicator";
 import { getDeliveryFee } from "@/lib/pricing";
+import { getCountryLabel } from "@/lib/countries";
 
 import { LoadMoreButton } from "@/components/admin/LoadMoreButton";
 
@@ -299,7 +300,9 @@ const PendingRequestsTab = ({
                     : (pkg as any)?.profiles?.username || 'Sin nombre'}
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
-                  📦 Origen: {pkg.purchase_origin || 'No especificado'} → 🎯 Destino: {pkg.package_destination || 'Guatemala'}
+                  📦 Origen: {pkg.purchase_origin || 'No especificado'} → 🎯 Destino: {pkg.package_destination_country 
+                    ? `${getCountryLabel(pkg.package_destination_country) || pkg.package_destination_country}, ${pkg.package_destination}`
+                    : pkg.package_destination || 'Guatemala'}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Entrega: {pkg.delivery_method === 'delivery' 
