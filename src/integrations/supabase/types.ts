@@ -1538,6 +1538,20 @@ export type Database = {
         }
         Returns: string
       }
+      create_refund_order_safe: {
+        Args: {
+          p_amount: number
+          p_bank_account_holder: string
+          p_bank_account_number: string
+          p_bank_account_type: string
+          p_bank_name: string
+          p_cancelled_products: Json
+          p_package_id: string
+          p_reason: string
+          p_shopper_id: string
+        }
+        Returns: string
+      }
       expire_old_quotes: { Args: never; Returns: undefined }
       expire_prime_memberships: { Args: never; Returns: undefined }
       expire_unresponded_assignments: { Args: never; Returns: undefined }
