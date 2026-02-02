@@ -120,7 +120,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     addressData: (editMode && initialData?.delivery_address) ? initialData.delivery_address : null,
     formRequestType: editMode ? getInitialRequestType() : 'online' as 'online' | 'personal',
     selectedCountry: '' as string,
-    showAddressForm: false
+    showAddressForm: false,
+    isReturn: false
   });
 
   // Auto-guardado del formulario completo (solo en modo create)
@@ -177,6 +178,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const setFormRequestType = (newType: typeof formRequestType) => updateField('formRequestType', newType);
   const setSelectedCountry = (country: string) => updateField('selectedCountry', country);
   const setShowAddressForm = (show: boolean) => updateField('showAddressForm', show);
+  
+  // Helper para estado de devolución
+  const isReturn = formState.isReturn || false;
+  const setIsReturn = (value: boolean) => updateField('isReturn', value);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -689,6 +694,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const renderStep1 = () => {
   const handleTypeSelect = (type: 'online' | 'personal') => {
     setFormRequestType(type);
+    // Reset isReturn when switching away from personal
+    if (type === 'online') {
+      setIsReturn(false);
+    }
   };
 
     return (
@@ -769,6 +778,36 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             </div>
           </button>
         </div>
+
+        {/* Pregunta de devolución - solo para Pedido Personal */}
+        {formRequestType === 'personal' && (
+          <div className="mt-4 p-4 border rounded-lg bg-muted/50">
+            <Label className="text-base font-medium">¿Tu pedido es una devolución?</Label>
+            <RadioGroup
+              value={isReturn ? 'yes' : 'no'}
+              onValueChange={(value) => setIsReturn(value === 'yes')}
+              className="mt-3 space-y-2"
+            >
+              <div className="flex items-center space-x-3">
+                <RadioGroupItem value="no" id="return-no" />
+                <Label htmlFor="return-no" className="cursor-pointer">
+                  No - Es un pedido normal
+                </Label>
+              </div>
+              <div className="flex items-center space-x-3">
+                <RadioGroupItem value="yes" id="return-yes" />
+                <Label htmlFor="return-yes" className="cursor-pointer">
+                  Sí - Necesito devolver un producto
+                </Label>
+              </div>
+            </RadioGroup>
+            {isReturn && (
+              <p className="text-xs text-muted-foreground mt-2 pl-6">
+                El viajero entregará tu paquete en un punto de devolución en el país de destino
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Origen del paquete */}
         <div className="space-y-2 pt-2">
@@ -1130,7 +1169,67 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       </div>
 
       {/* Sección de Entrega - solo se muestra si hay destino seleccionado */}
-      {isGuatemalaDestination ? (
+      {isReturn && isGuatemalaDestination ? (
+        /* Opciones de entrega para DEVOLUCIONES */
+        <div className="space-y-4 pt-2 border-t border-border">
+          <Label className="text-base font-medium">
+            ¿Cómo debe entregar el viajero tu paquete en {selectedCountry}? *
+          </Label>
+          <div className="space-y-3">
+            {/* Opción 1: Punto de devolución */}
+            <div 
+              onClick={() => handleInputChange('deliveryMethod', 'return_dropoff')}
+              className={cn(
+                "border-2 rounded-lg p-4 cursor-pointer transition-all",
+                formData.deliveryMethod === 'return_dropoff' 
+                  ? 'border-primary bg-primary/5' 
+                  : 'border-border hover:border-muted-foreground'
+              )}
+            >
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-medium">Entregarlo en un punto de devolución</p>
+                  <p className="text-sm text-muted-foreground">
+                    El viajero lo dejará en UPS Store, FedEx Office, etc.
+                  </p>
+                </div>
+              </div>
+              {formData.deliveryMethod === 'return_dropoff' && (
+                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center ml-auto -mt-8">
+                  <div className="w-2 h-2 rounded-full bg-primary-foreground"></div>
+                </div>
+              )}
+            </div>
+            
+            {/* Opción 2: Pickup programado */}
+            <div 
+              onClick={() => handleInputChange('deliveryMethod', 'return_pickup')}
+              className={cn(
+                "border-2 rounded-lg p-4 cursor-pointer transition-all",
+                formData.deliveryMethod === 'return_pickup' 
+                  ? 'border-primary bg-primary/5' 
+                  : 'border-border hover:border-muted-foreground'
+              )}
+            >
+              <div className="flex items-start gap-3">
+                <Truck className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-medium">Una empresa recogerá el paquete en tu domicilio en {selectedCountry}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Ya tienes programado un pickup en la dirección del viajero
+                  </p>
+                </div>
+              </div>
+              {formData.deliveryMethod === 'return_pickup' && (
+                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center ml-auto -mt-8">
+                  <div className="w-2 h-2 rounded-full bg-primary-foreground"></div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : isGuatemalaDestination ? (
         <div className="space-y-4 pt-2 border-t border-border">
           <Label className="text-base font-medium">
             Forma de entrega en {formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination} *
@@ -1213,6 +1312,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             </div>
           )}
           
+          {/* Notas de costos - solo mostrar si NO es devolución */}
           {isGuatemalaCityDestination ? (
             <div className="bg-primary/10 border border-primary/20 rounded p-3">
               <p className="text-sm text-primary">
