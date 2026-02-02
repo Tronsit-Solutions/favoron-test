@@ -1562,6 +1562,7 @@ export type Database = {
           phone_number: string
           status: string
           to_city: string
+          to_country: string
           updated_at: string
           user_display_name: string
           user_id: string
