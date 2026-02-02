@@ -1,23 +1,33 @@
 
-# Plan: Agregar País a Destino de Paquetes ✅ COMPLETADO
+# Plan: Actualizar package_destination_country al Editar Paquete
 
-## Resumen de Cambios Implementados
+## Problema Identificado
+En el archivo `src/components/admin/PackageDetailModal.tsx`, cuando el admin edita el destino de un paquete:
+- Se guarda `package_destination` (la ciudad)
+- **NO** se guarda `package_destination_country` (el país)
 
-### 1. Migración de Base de Datos ✅
-- Nueva columna `package_destination_country` (TEXT, default 'guatemala')
+El estado `selectedDestinationCountry` ya existe (línea 176) pero no se incluye en el objeto `updates` de `handleSaveChanges`.
 
-### 2. Formulario de Solicitud ✅
-- `PackageRequestForm.tsx`: Ahora pasa `packageDestinationCountry: selectedCountry` en submit
+## Solución
 
-### 3. Dashboard Actions ✅
-- `useDashboardActions.tsx`: Guarda `package_destination_country` al crear paquetes
+### Archivo: `src/components/admin/PackageDetailModal.tsx`
 
-### 4. Lógica de Matching ✅
-- `AdminMatchDialog.tsx`: Usa `package_destination_country` para filtrar viajes (con fallback)
+**Cambio en `handleSaveChanges` (líneas 629-637)**:
 
-### 5. Displays Admin ✅
-- `AdminApprovalsTab.tsx`: Muestra "País - Ciudad" en destino
+Agregar `package_destination_country` al objeto de actualizaciones:
 
-## Compatibilidad Hacia Atrás
-Los paquetes existentes tienen `package_destination_country = 'guatemala'` por defecto.
-La lógica de matching usa fallback para inferir país de la ciudad si el campo está vacío.
+```typescript
+const updates = {
+  products_data: normalizedProducts,
+  item_description: autoDescription,
+  item_link: normalizedProducts[0]?.itemLink || null,
+  estimated_price: totalPrice,
+  purchase_origin: editForm.purchase_origin,
+  package_destination: editForm.package_destination,
+  package_destination_country: selectedDestinationCountry || 'guatemala', // AGREGAR
+  additional_notes: editForm.additional_notes?.trim() || null
+};
+```
+
+## Resultado
+Cuando el admin cambie el destino del paquete, tanto el país como la ciudad se actualizarán en la base de datos, manteniendo la consistencia de datos.
