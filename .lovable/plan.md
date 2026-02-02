@@ -1,73 +1,77 @@
 
-# Plan: Mostrar País y Ciudad en Sección "Ruta" del Resumen
+# Plan: Corregir Guardado de `to_country` en Viajes
 
 ## Problema Identificado
 
-En el paso 4 (Confirmar) del formulario de paquetes, la sección "Ruta" muestra:
+### Causa Raíz
+En `src/hooks/useDashboardActions.tsx`, línea 168-181, la función `handleTripSubmit` NO mapea el campo `toCountry` del formulario al campo `to_country` de la base de datos:
 
+```javascript
+const dbTripData = {
+  from_city: tripData.fromCity,
+  from_country: tripData.fromCountry, // ✅ Origen sí se mapea
+  to_city: tripData.toCity,
+  // ❌ to_country: tripData.toCountry  <-- FALTA ESTA LÍNEA
+  ...
+};
 ```
-Estados Unidos → Cualquier ciudad
-```
 
-Pero debería mostrar el país de destino también:
+### Evidencia en Base de Datos
+La consulta muestra que `to_country` es "Guatemala" para todos los viajes, incluso para destinos como Miami, Madrid, Houston, Las Vegas:
 
-```
-Estados Unidos → Guatemala, Cualquier ciudad
-```
+| to_city | to_country | Debería ser |
+|---------|------------|-------------|
+| Miami | Guatemala | estados-unidos |
+| Madrid | Guatemala | espana |
+| Houston | Guatemala | estados-unidos |
+| Las Vegas | Guatemala | estados-unidos |
 
-## Ubicación del Código
+### Impacto
+El modal de "Hacer Match" (AdminMatchDialog.tsx) usa `to_country` para filtrar viajes disponibles. Como todos tienen "Guatemala", los paquetes con destino "Estados Unidos" no encuentran viajes compatibles.
 
-**Archivo**: `src/components/PackageRequestForm.tsx`
-**Líneas**: 1395-1401 (dentro de `renderStep4()`)
-
-## Código Actual
-
-```tsx
-{/* Ruta */}
-<div className="space-y-2">
-  <p className="text-sm font-medium text-muted-foreground">Ruta</p>
-  <div className="flex items-center gap-2 text-sm">
-    <Globe className="h-4 w-4 text-primary" />
-    <span>{finalOrigin || 'No seleccionado'}</span>
-    <span className="text-muted-foreground">→</span>
-    <MapPin className="h-4 w-4 text-primary" />
-    <span>{finalDestination || 'No seleccionado'}</span>
-  </div>
-</div>
-```
+---
 
 ## Solución
 
-Actualizar la línea del destino para incluir `selectedCountry`:
+### Archivo: `src/hooks/useDashboardActions.tsx`
 
-```tsx
-{/* Ruta */}
-<div className="space-y-2">
-  <p className="text-sm font-medium text-muted-foreground">Ruta</p>
-  <div className="flex items-center gap-2 text-sm">
-    <Globe className="h-4 w-4 text-primary" />
-    <span>{finalOrigin || 'No seleccionado'}</span>
-    <span className="text-muted-foreground">→</span>
-    <MapPin className="h-4 w-4 text-primary" />
-    <span>
-      {selectedCountry 
-        ? `${selectedCountry}${finalDestination ? `, ${finalDestination}` : ''}`
-        : (finalDestination || 'No seleccionado')
-      }
-    </span>
-  </div>
-</div>
+**Cambio en línea 171** - Agregar el mapeo faltante:
+
+```javascript
+const dbTripData = {
+  from_city: tripData.fromCity,
+  from_country: tripData.fromCountry,
+  to_city: tripData.toCity,
+  to_country: tripData.toCountry, // ✅ AGREGAR ESTA LÍNEA
+  arrival_date: safeToISOString(tripData.arrivalDate),
+  ...
+};
 ```
 
-## Resultado Visual
+---
 
-| Antes | Después |
-|-------|---------|
-| Estados Unidos → Cualquier ciudad | Estados Unidos → Guatemala, Cualquier ciudad |
-| USA → Miami | USA → Estados Unidos, Miami |
+## Datos Existentes (Migración de Backfill)
 
-## Detalle Técnico
+Los viajes existentes tienen `to_country = 'Guatemala'` incorrecto. Se necesita una migración SQL para corregir los datos basándose en `to_city`:
 
-- `selectedCountry` ya está definido en el scope del componente (línea 154)
-- Solo se modifica la línea 1400 para concatenar país + ciudad
-- Si `selectedCountry` está vacío, se muestra solo `finalDestination` (comportamiento de fallback)
+```sql
+UPDATE trips SET to_country = 'estados-unidos'
+WHERE to_city IN ('Miami', 'New York', 'Los Angeles', 'Houston', 'Chicago', 'Las Vegas', 'Fort Lauderdale')
+AND to_country = 'Guatemala';
+
+UPDATE trips SET to_country = 'espana'
+WHERE to_city IN ('Madrid', 'Barcelona', 'Valencia', 'Sevilla')
+AND to_country = 'Guatemala';
+
+UPDATE trips SET to_country = 'mexico'
+WHERE to_city IN ('Ciudad de México', 'Cancún', 'Guadalajara', 'Monterrey')
+AND to_country = 'Guatemala';
+```
+
+---
+
+## Resultado Esperado
+
+1. **Nuevos viajes**: Se guardarán con el `to_country` correcto desde el formulario
+2. **Viajes existentes**: Se corregirán con la migración SQL
+3. **AdminMatchDialog**: Podrá encontrar viajes compatibles para paquetes con destinos internacionales
