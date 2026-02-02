@@ -119,7 +119,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     },
     addressData: (editMode && initialData?.delivery_address) ? initialData.delivery_address : null,
     formRequestType: editMode ? getInitialRequestType() : 'online' as 'online' | 'personal',
-    selectedCountry: '' as string,
+    selectedCountry: (editMode && initialData?.package_destination_country) 
+      ? initialData.package_destination_country 
+      : '' as string,
     showAddressForm: false,
     isReturn: false
   });
