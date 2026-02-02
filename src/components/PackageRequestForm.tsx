@@ -1397,7 +1397,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               <span>{finalOrigin || 'No seleccionado'}</span>
               <span className="text-muted-foreground">→</span>
               <MapPin className="h-4 w-4 text-primary" />
-              <span>{finalDestination || 'No seleccionado'}</span>
+              <span>
+                {selectedCountry 
+                  ? `${selectedCountry}${finalDestination ? `, ${finalDestination}` : ''}`
+                  : (finalDestination || 'No seleccionado')
+                }
+              </span>
             </div>
           </div>
           
