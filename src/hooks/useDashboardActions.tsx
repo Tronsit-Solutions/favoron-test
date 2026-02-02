@@ -167,8 +167,9 @@ export const useDashboardActions = (
 
       const dbTripData = {
         from_city: tripData.fromCity,
-        from_country: tripData.fromCountry, // Add missing fromCountry mapping
+        from_country: tripData.fromCountry,
         to_city: tripData.toCity,
+        to_country: tripData.toCountry, // Fix: Map destination country to database
         arrival_date: safeToISOString(tripData.arrivalDate),
         first_day_packages: safeToISOString(tripData.firstDayPackages),
         last_day_packages: safeToISOString(tripData.lastDayPackages),
