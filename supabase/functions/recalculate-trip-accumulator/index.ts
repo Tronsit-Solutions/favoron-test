@@ -40,12 +40,14 @@ Deno.serve(async (req) => {
     console.log('👤 Traveler ID:', travelerId);
 
     // Get all packages for this trip with quotes
+    // Excluir paquetes con incidencia del cálculo
     const { data: completedPackages, error: packagesError } = await supabase
       .from('packages')
-      .select('id, quote, status, office_delivery')
+      .select('id, quote, status, office_delivery, incident_flag')
       .eq('matched_trip_id', tripId)
       .in('status', ['completed', 'delivered_to_office'])
-      .not('quote', 'is', null);
+      .not('quote', 'is', null)
+      .or('incident_flag.is.null,incident_flag.eq.false');
 
     if (packagesError) {
       throw packagesError;
@@ -82,11 +84,13 @@ Deno.serve(async (req) => {
 
     // Get total packages count (in_transit or later)
     const eligibleStatuses = ['in_transit', 'received_by_traveler', 'delivered_to_office', 'completed', 'delivered'];
+    // Excluir paquetes con incidencia del total para no bloquear pagos
     const { data: inTransitOrLaterPackages, error: eligiblePkgsError } = await supabase
       .from('packages')
-      .select('id, status')
+      .select('id, status, incident_flag')
       .eq('matched_trip_id', tripId)
-      .in('status', eligibleStatuses);
+      .in('status', eligibleStatuses)
+      .or('incident_flag.is.null,incident_flag.eq.false');
 
     if (eligiblePkgsError) {
       throw eligiblePkgsError;
