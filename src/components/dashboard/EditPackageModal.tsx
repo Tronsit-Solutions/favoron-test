@@ -87,7 +87,25 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
   const [additionalNotes, setAdditionalNotes] = useState(pkg.additional_notes || "");
   const [deliveryMethod, setDeliveryMethod] = useState(pkg.delivery_method || "pickup");
   const [packageDestination, setPackageDestination] = useState(pkg.package_destination || "");
+  const [packageDestinationCountry, setPackageDestinationCountry] = useState(pkg.package_destination_country || "");
   const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>(existingAddress || {});
+
+  // Destination options
+  const destinationCountries = [
+    { value: 'Guatemala', label: 'Guatemala' },
+    { value: 'Estados Unidos', label: 'Estados Unidos' },
+    { value: 'España', label: 'España' },
+    { value: 'México', label: 'México' },
+    { value: 'Otro', label: 'Otro país' }
+  ];
+
+  const citiesByCountry: Record<string, string[]> = {
+    'Guatemala': ['Cualquier ciudad', 'Ciudad de Guatemala', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'],
+    'Estados Unidos': ['Cualquier ciudad', 'Miami', 'New York', 'Los Angeles', 'Houston', 'Chicago', 'Otra ciudad'],
+    'España': ['Cualquier ciudad', 'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Otra ciudad'],
+    'México': ['Cualquier ciudad', 'Ciudad de México', 'Guadalajara', 'Monterrey', 'Cancún', 'Otra ciudad'],
+    'Otro': ['Cualquier ciudad', 'Otra ciudad']
+  };
   const [deliveryDeadline, setDeliveryDeadline] = useState<Date | undefined>(
     pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined
   );
@@ -108,6 +126,7 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
     setAdditionalNotes(pkg.additional_notes || "");
     setDeliveryMethod(pkg.delivery_method || "pickup");
     setPackageDestination(pkg.package_destination || "");
+    setPackageDestinationCountry(pkg.package_destination_country || "");
     setDeliveryAddress(addr || {});
     setDeliveryDeadline(pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined);
   }, [pkg]);
@@ -140,6 +159,7 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
       // Only update destination if allowed
       if (canEditDestination) {
         updatedData.package_destination = packageDestination;
+        updatedData.package_destination_country = packageDestinationCountry;
       }
 
       // Include delivery address if method is delivery
@@ -293,23 +313,47 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                 Información de entrega
               </Label>
 
-              {/* Destination */}
-              <div className="space-y-3 mb-4">
-                <Label className="text-xs text-muted-foreground">Destino</Label>
+              {/* País de Destino */}
+              <div className="space-y-2 mb-3">
+                <Label className="text-xs text-muted-foreground">País de destino</Label>
                 <Select 
-                  value={packageDestination} 
-                  onValueChange={setPackageDestination}
+                  value={packageDestinationCountry} 
+                  onValueChange={(value) => {
+                    setPackageDestinationCountry(value);
+                    setPackageDestination(""); // Reset ciudad al cambiar país
+                  }}
                   disabled={!canEditDestination}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona el destino" />
+                    <SelectValue placeholder="Selecciona el país" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Ciudad de Guatemala">Ciudad de Guatemala</SelectItem>
-                    <SelectItem value="Quetzaltenango">Quetzaltenango</SelectItem>
-                    <SelectItem value="Antigua Guatemala">Antigua Guatemala</SelectItem>
-                    <SelectItem value="Escuintla">Escuintla</SelectItem>
-                    <SelectItem value="Otro departamento">Otro departamento</SelectItem>
+                    {destinationCountries.map(country => (
+                      <SelectItem key={country.value} value={country.value}>
+                        {country.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Ciudad de Destino */}
+              <div className="space-y-2 mb-4">
+                <Label className="text-xs text-muted-foreground">Ciudad de destino</Label>
+                <Select 
+                  value={packageDestination} 
+                  onValueChange={setPackageDestination}
+                  disabled={!canEditDestination || !packageDestinationCountry}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona la ciudad" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(citiesByCountry[packageDestinationCountry] || []).map(city => (
+                      <SelectItem key={city} value={city}>
+                        {city}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 {!canEditDestination && (
