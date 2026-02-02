@@ -1,118 +1,248 @@
 
-# Plan: Agregar soporte para mostrar viajes a otras ciudades de España
+# Plan: Integrar "Devolución" como opción dentro de Pedido Personal
 
-## Problema Actual
-Cuando un paquete tiene destino "Barcelona" (España):
-- Solo se muestran viajes que van exactamente a Barcelona
-- No se ofrece opción de ver viajes a Madrid, Valencia, Sevilla u otras ciudades españolas
-- La lógica de "otras ciudades" solo existe para Guatemala y USA
+## Resumen de Cambios
 
-## Solución
-Agregar `otherSpainCityTrips` con la misma estructura que `otherUSCityTrips`.
+Según tus sugerencias, implementaremos:
+1. Pregunta "¿Tu pedido es una devolución?" (Sí/No) después de seleccionar Pedido Personal
+2. Opciones de entrega adaptadas para devoluciones en el paso de Ruta
+3. Eliminar la nota de costos de envío para devoluciones
 
-## Cambios Técnicos
+## Cambios en la UI
 
-### Archivo: `src/components/admin/AdminMatchDialog.tsx`
+### Step 1: Tipo de Solicitud
 
-**1. Agregar lista de ciudades españolas (después de línea 314)**
+Después de seleccionar "Pedido Personal", mostrar:
 
-```typescript
-// Count trips to OTHER cities in Spain
-const otherSpainCityTrips = useMemo(() => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const packageOriginNormalized = normalizeCountry(selectedPackage?.purchase_origin || '');
-  const packageDestinationCity = selectedPackage?.package_destination?.toLowerCase().trim() || '';
-  
-  // Spanish cities
-  const spainCities = ['madrid', 'barcelona', 'valencia', 'sevilla', 'zaragoza', 
-                       'málaga', 'malaga', 'murcia', 'palma', 'bilbao', 
-                       'alicante', 'córdoba', 'cordoba', 'valladolid'];
-  
-  // Check if package destination is in Spain
-  const packageDestNormalized = normalizeCountry(selectedPackage?.package_destination || '');
-  const isPackageToSpain = packageDestNormalized === 'espana' || 
-                           spainCities.some(city => packageDestinationCity.includes(city));
-  
-  if (!isPackageToSpain) return [];
-  
-  return availableTrips.filter(trip => {
-    const isNotExpired = new Date(trip.arrival_date) >= today;
-    const tripOriginNormalized = normalizeCountry(trip.from_country || '');
-    const tripDestinationCity = trip.to_city?.toLowerCase().trim() || '';
-    const tripDestNormalized = normalizeCountry(trip.to_city || '');
-    
-    // Same origin country
-    const matchesOrigin = tripOriginNormalized === packageOriginNormalized;
-    
-    // Trip goes to Spain
-    const tripToSpain = tripDestNormalized === 'espana' ||
-                        trip.to_country?.toLowerCase().includes('españa') ||
-                        trip.to_country?.toLowerCase().includes('espana') ||
-                        spainCities.some(city => tripDestinationCity.includes(city));
-    
-    // Different city
-    const differentCity = tripDestinationCity !== packageDestinationCity;
-    
-    return isNotExpired && matchesOrigin && tripToSpain && differentCity;
-  }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
-}, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
+```
+┌─────────────────────────────────────────────────────┐
+│  ¿Tu pedido es una devolución?                      │
+│                                                     │
+│  ○ No - Es un pedido normal                        │
+│  ○ Sí - Necesito devolver un producto              │
+│                                                     │
+│  (Descripción breve cuando selecciona Sí)          │
+│  "El viajero entregará tu paquete en un punto      │
+│   de devolución en el país de destino"             │
+└─────────────────────────────────────────────────────┘
 ```
 
-**2. Actualizar la UI para mostrar el toggle de España**
+### Step 3: Ruta - Opciones de Entrega para Devoluciones
 
-Agregar después del bloque de `otherUSCityTrips.length > 0`:
+Cuando `isReturn === true`, cambiar las opciones de entrega:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  ¿Cómo debe entregar el viajero tu paquete         │
+│  en Estados Unidos? *                               │
+│                                                     │
+│  ┌─────────────────────────────────────────────┐   │
+│  │ 📍 Entregarlo en un punto de devolución     │   │
+│  │    El viajero lo dejará en UPS/FedEx/etc.   │   │
+│  └─────────────────────────────────────────────┘   │
+│                                                     │
+│  ┌─────────────────────────────────────────────┐   │
+│  │ 🚚 Una empresa recogerá el paquete en tu    │   │
+│  │    domicilio en Estados Unidos              │   │
+│  │    Ya tienes programado un pickup           │   │
+│  └─────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────┘
+```
+
+### Eliminación de Nota de Costos
+
+La nota actual:
+> "El costo de envío a domicilio fuera de Ciudad de Guatemala es de Q60 (Q35 para usuarios Prime)"
+
+**Se oculta** cuando `isReturn === true` porque no aplica para devoluciones.
+
+---
+
+## Detalles Técnicos
+
+### Archivo: `src/components/PackageRequestForm.tsx`
+
+**1. Agregar estado `isReturn` al formulario**
+
+En `getInitialFormState()` (línea ~101):
+```typescript
+isReturn: false
+```
+
+**2. Crear helper para acceder al estado**
 
 ```typescript
-{otherSpainCityTrips.length > 0 && (
-  <Button
-    variant="ghost"
-    size="sm"
-    onClick={() => setShowOtherCities(!showOtherCities)}
-    className="text-xs text-muted-foreground hover:text-primary"
-  >
-    {showOtherCities ? 'Ocultar' : `Ver ${otherSpainCityTrips.length} viajes a otras ciudades de España`}
-    <ChevronDown className={`h-3 w-3 ml-1 transition-transform ${showOtherCities ? 'rotate-180' : ''}`} />
-  </Button>
+const isReturn = formState.isReturn || false;
+const setIsReturn = (value: boolean) => updateField('isReturn', value);
+```
+
+**3. Agregar pregunta de devolución en Step 1** (después de línea 770)
+
+```typescript
+{formRequestType === 'personal' && (
+  <div className="mt-4 p-4 border rounded-lg bg-muted/50">
+    <Label className="text-base font-medium">¿Tu pedido es una devolución?</Label>
+    <RadioGroup
+      value={isReturn ? 'yes' : 'no'}
+      onValueChange={(value) => setIsReturn(value === 'yes')}
+      className="mt-3 space-y-2"
+    >
+      <div className="flex items-center space-x-3">
+        <RadioGroupItem value="no" id="return-no" />
+        <Label htmlFor="return-no" className="cursor-pointer">
+          No - Es un pedido normal
+        </Label>
+      </div>
+      <div className="flex items-center space-x-3">
+        <RadioGroupItem value="yes" id="return-yes" />
+        <Label htmlFor="return-yes" className="cursor-pointer">
+          Sí - Necesito devolver un producto
+        </Label>
+      </div>
+    </RadioGroup>
+    {isReturn && (
+      <p className="text-xs text-muted-foreground mt-2 pl-6">
+        El viajero entregará tu paquete en un punto de devolución en el país de destino
+      </p>
+    )}
+  </div>
 )}
 ```
 
-**3. Incluir viajes de España en la lista expandida**
+**4. Adaptar opciones de entrega en Step 3** (líneas 1132-1229)
 
-Actualizar la condición de viajes a mostrar:
+Agregar condicional para devoluciones:
+
 ```typescript
-// Cuando showOtherCities está activo, incluir también viajes de España
-const tripsToShow = showOtherCities 
-  ? [...validTrips, ...otherCityTrips, ...otherUSCityTrips, ...otherSpainCityTrips]
-  : validTrips;
+{isReturn ? (
+  // Opciones de entrega para DEVOLUCIONES
+  <div className="space-y-4 pt-2 border-t border-border">
+    <Label className="text-base font-medium">
+      ¿Cómo debe entregar el viajero tu paquete en {selectedCountry}? *
+    </Label>
+    <div className="space-y-3">
+      {/* Opción 1: Punto de devolución */}
+      <div 
+        onClick={() => handleInputChange('deliveryMethod', 'return_dropoff')}
+        className={cn(
+          "border-2 rounded-lg p-4 cursor-pointer transition-all",
+          formData.deliveryMethod === 'return_dropoff' 
+            ? 'border-primary bg-primary/5' 
+            : 'border-border hover:border-muted-foreground'
+        )}
+      >
+        <div className="flex items-start gap-3">
+          <MapPin className="h-5 w-5 text-primary mt-0.5" />
+          <div>
+            <p className="font-medium">Entregarlo en un punto de devolución</p>
+            <p className="text-sm text-muted-foreground">
+              El viajero lo dejará en UPS Store, FedEx Office, etc.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Opción 2: Pickup programado */}
+      <div 
+        onClick={() => handleInputChange('deliveryMethod', 'return_pickup')}
+        className={cn(
+          "border-2 rounded-lg p-4 cursor-pointer transition-all",
+          formData.deliveryMethod === 'return_pickup' 
+            ? 'border-primary bg-primary/5' 
+            : 'border-border hover:border-muted-foreground'
+        )}
+      >
+        <div className="flex items-start gap-3">
+          <Truck className="h-5 w-5 text-primary mt-0.5" />
+          <div>
+            <p className="font-medium">Una empresa recogerá el paquete en tu domicilio en {selectedCountry}</p>
+            <p className="text-sm text-muted-foreground">
+              Ya tienes programado un pickup en la dirección del viajero
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+) : isGuatemalaDestination ? (
+  // Opciones normales existentes para Guatemala...
+)}
 ```
 
-## Resultado Esperado
+**5. Ocultar nota de costos para devoluciones** (líneas 1216-1228)
 
-| Destino del paquete | Viajes mostrados |
-|---------------------|------------------|
-| Barcelona | Viajes a Barcelona + opción "Ver X viajes a otras ciudades de España" |
-| Madrid | Viajes a Madrid + opción expandible |
+Envolver las notas existentes en:
+
+```typescript
+{!isReturn && (
+  isGuatemalaCityDestination ? (
+    <div className="bg-primary/10 border border-primary/20 rounded p-3">
+      <p className="text-sm text-primary">
+        📌 <strong>Nota:</strong> El envío a domicilio dentro de Ciudad de Guatemala...
+      </p>
+    </div>
+  ) : (
+    <div className="bg-primary/10 border border-primary/20 rounded p-3">
+      <p className="text-sm text-primary">
+        📌 <strong>Nota:</strong> El costo de envío a domicilio fuera de Ciudad de Guatemala...
+      </p>
+    </div>
+  )
+)}
+```
+
+**6. Resetear `isReturn` cuando cambia el tipo de solicitud**
+
+En `handleTypeSelect` (línea ~687):
+```typescript
+const handleTypeSelect = (type: 'online' | 'personal') => {
+  updateField('formRequestType', type);
+  // Reset isReturn when switching away from personal
+  if (type === 'online') {
+    updateField('isReturn', false);
+  }
+  // ... resto del código existente
+};
+```
+
+---
+
+## Flujo Completo del Usuario
 
 ```
-Antes:
-┌─────────────────────────────────────┐
-│ Viajes Disponibles (1)              │
-│ Frances Díaz → Barcelona            │
-│ (Sin opción de ver Madrid)          │
-└─────────────────────────────────────┘
-
-Después:
-┌─────────────────────────────────────┐
-│ Viajes Disponibles (1)              │
-│ Frances Díaz → Barcelona            │
-│                                     │
-│ [Ver 2 viajes a otras ciudades      │
-│  de España ▼]                       │
-│                                     │
-│ (Expandido:)                        │
-│ Juan → Madrid                       │
-│ Ana → Valencia                      │
-└─────────────────────────────────────┘
+Paso 1: Selecciona "Pedido Personal"
+         ↓
+      "¿Tu pedido es una devolución?"
+         ↓
+      [Sí] / [No]
+         ↓
+Paso 2: Detalles del producto (igual que ahora)
+         ↓
+Paso 3: Ruta
+      - Destino: [Estados Unidos ▼] [Miami ▼]
+      - Forma de entrega:
+        [Sí es devolución]:
+          ○ Entregarlo en un punto de devolución
+          ○ Una empresa recogerá el paquete...
+        [No es devolución]:
+          ○ Pickup en Oficina
+          ○ Enviarlo a mi domicilio
+          + Nota de costos (solo si NO es devolución)
+         ↓
+Paso 4: Confirmar
 ```
+
+---
+
+## Archivos a Modificar
+
+| Archivo | Cambios |
+|---------|---------|
+| `src/components/PackageRequestForm.tsx` | Agregar `isReturn` al estado, pregunta Sí/No, opciones de entrega adaptadas, ocultar nota de costos |
+
+## Beneficios
+
+- Integración simple dentro del flujo existente
+- UX clara con pregunta explícita Sí/No
+- Opciones de entrega específicas para devoluciones
+- Sin cambios en el modelo de datos (solo usa campos existentes)
