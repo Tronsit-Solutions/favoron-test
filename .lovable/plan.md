@@ -1,18 +1,41 @@
-# ✅ COMPLETADO: Integrar "Devolución" como opción dentro de Pedido Personal
 
-## Cambios Implementados
+# Plan: Delivery Fee Q0 para Devoluciones
 
-1. ✅ Pregunta "¿Tu pedido es una devolución?" (Sí/No) después de seleccionar Pedido Personal
-2. ✅ Opciones de entrega adaptadas para devoluciones en el paso de Ruta:
-   - "Entregarlo en un punto de devolución" (UPS Store, FedEx Office, etc.)
-   - "Una empresa recogerá el paquete en tu domicilio en [país destino]"
-3. ✅ Nota de costos de envío se oculta para devoluciones
+## Cambio Requerido
 
-## Archivo Modificado
+Actualizar la función `getDeliveryFee()` en `src/lib/pricing.ts` para que retorne **Q0** cuando el método de entrega sea `return_dropoff` o `return_pickup`.
 
-- `src/components/PackageRequestForm.tsx`
+## Archivo: `src/lib/pricing.ts`
 
-## Nuevos delivery methods para devoluciones
+### Cambio en `getDeliveryFee()` (línea ~57)
 
-- `return_dropoff` - El viajero entrega en punto de devolución
-- `return_pickup` - Una empresa recoge el paquete en dirección del viajero
+Agregar condición al inicio de la función:
+
+```typescript
+export const getDeliveryFee = (
+  deliveryMethod: string = 'pickup', 
+  trustLevel?: TrustLevel | string,
+  cityArea?: string
+): number => {
+  // No delivery fee for pickup or returns
+  if (deliveryMethod === 'pickup' || 
+      deliveryMethod === 'return_dropoff' || 
+      deliveryMethod === 'return_pickup') {
+    return 0;
+  }
+  
+  // ... resto de la lógica existente
+};
+```
+
+## Resultado
+
+| Método de entrega | Delivery Fee |
+|-------------------|--------------|
+| `pickup` | Q0 |
+| `return_dropoff` | Q0 |
+| `return_pickup` | Q0 |
+| `delivery` (Guatemala City) | Q25 (Q0 Prime) |
+| `delivery` (fuera de Guatemala City) | Q60 (Q35 Prime) |
+
+La compensación al viajero por devoluciones se maneja a través del tip asignado por admin.
