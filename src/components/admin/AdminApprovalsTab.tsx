@@ -262,7 +262,11 @@ const AdminApprovalsTab = ({
                             </p>
                           )}
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                             Origen: {pkg.purchase_origin} → Destino: {pkg.package_destination_country ? `${getCountryLabel(pkg.package_destination_country) || pkg.package_destination_country} - ` : ''}{pkg.package_destination}
+                             Origen: {pkg.purchase_origin} → Destino: {
+                               pkg.package_destination_country 
+                                 ? `${getCountryLabel(pkg.package_destination_country) || pkg.package_destination_country}${pkg.package_destination ? `, ${pkg.package_destination}` : ''}`
+                                 : (pkg.package_destination || 'No especificado')
+                             }
                            </p>
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                              Fecha límite: {(() => {
