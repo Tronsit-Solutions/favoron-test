@@ -866,10 +866,13 @@ const Dashboard = ({ user }: DashboardProps) => {
                               return false;
                             }
                             
-                            // Exclude packages from completed and paid trips
+                            // Exclude packages from completed and paid trips, EXCEPT those with incidents
                            const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
                            if (matchedTrip && matchedTrip.status === 'completed_paid') {
-                             return false;
+                             // Keep incident packages visible for tracking/resolution
+                             if (!pkg.incident_flag) {
+                               return false;
+                             }
                            }
                            
                            const now = Date.now();
