@@ -209,14 +209,14 @@ export const COUNTRIES = [
   { value: "otro", label: "Otro país", isoCode: undefined },
 ];
 
-// Helper para obtener código ISO por value
+// Helper para obtener código ISO por value (case-insensitive)
 export const getCountryIsoCode = (countryValue: string): string | undefined => {
   const allCountries = [...MAIN_COUNTRIES, ...COUNTRIES];
-  return allCountries.find(c => c.value === countryValue)?.isoCode;
+  return allCountries.find(c => c.value.toLowerCase() === countryValue?.toLowerCase())?.isoCode;
 };
 
-// Helper para obtener label por value
+// Helper para obtener label por value (case-insensitive)
 export const getCountryLabel = (countryValue: string): string | undefined => {
   const allCountries = [...MAIN_COUNTRIES, ...COUNTRIES];
-  return allCountries.find(c => c.value === countryValue)?.label;
+  return allCountries.find(c => c.value.toLowerCase() === countryValue?.toLowerCase())?.label;
 };
