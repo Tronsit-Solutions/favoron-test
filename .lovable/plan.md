@@ -1,43 +1,42 @@
 
-# Plan: Agregar `package_destination_country` a fetchPendingApprovalPackages
+# Plan: Agregar `package_destination_country` a PendingRequestsTab
 
 ## Problema
 
-La query en `fetchPendingApprovalPackages` (línea 320) **NO incluye** el campo `package_destination_country`:
+En `src/components/admin/matching/PendingRequestsTab.tsx`, línea 302, solo se muestra la ciudad de destino:
 
 ```tsx
-// Línea 318-320 actual:
-.select(`
-  id, user_id, status, item_description, estimated_price,
-  purchase_origin, package_destination, matched_trip_id,  // ❌ Falta package_destination_country
-  ...
-`)
+<p className="text-xs text-blue-600 mt-1">
+  📦 Origen: {pkg.purchase_origin || 'No especificado'} → 🎯 Destino: {pkg.package_destination || 'Guatemala'}
+</p>
 ```
-
-Esta es la función específica que carga los paquetes para la pestaña de aprobaciones pendientes, por eso no se ve el país aunque lo agregamos a la otra query general.
 
 ## Solución
 
-### Archivo: `src/hooks/useAdminData.tsx`
+### Archivo: `src/components/admin/matching/PendingRequestsTab.tsx`
 
-**Línea 320**: Agregar `package_destination_country` después de `package_destination`:
-
+1. **Agregar import** (línea ~15):
 ```tsx
-// Antes
-purchase_origin, package_destination, matched_trip_id,
+import { getCountryLabel } from "@/lib/countries";
+```
 
-// Después
-purchase_origin, package_destination, package_destination_country, matched_trip_id,
+2. **Modificar línea 302** para mostrar país + ciudad:
+```tsx
+<p className="text-xs text-blue-600 mt-1">
+  📦 Origen: {pkg.purchase_origin || 'No especificado'} → 🎯 Destino: {pkg.package_destination_country 
+    ? `${getCountryLabel(pkg.package_destination_country) || pkg.package_destination_country}, ${pkg.package_destination}`
+    : pkg.package_destination || 'Guatemala'}
+</p>
 ```
 
 ## Resultado Esperado
 
 | Antes | Después |
 |-------|---------|
-| Destino: Guatemala City | Destino: Guatemala, Guatemala City |
 | Destino: Cualquier ciudad | Destino: Guatemala, Cualquier ciudad |
+| Destino: Guatemala City | Destino: Guatemala, Guatemala City |
+| Destino: Miami | Destino: Estados Unidos, Miami |
 
-## Alcance
+## Nota
 
-- 1 línea en 1 archivo
-- No afecta otras funcionalidades
+El campo `package_destination_country` ya está disponible porque lo agregamos a la query `fetchPendingApprovalPackages` en el paso anterior.
