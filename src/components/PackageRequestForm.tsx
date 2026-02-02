@@ -213,6 +213,15 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     });
   }, [formRequestType]);
 
+  // Resetear país de destino si es devolución y tenía Guatemala seleccionado
+  useEffect(() => {
+    if (isReturn && selectedCountry === 'Guatemala') {
+      setSelectedCountry('');
+      handleInputChange('packageDestination', '');
+      handleInputChange('packageDestinationOther', '');
+    }
+  }, [isReturn, selectedCountry]);
+
   const destinationCountries = [
     { value: 'Guatemala', label: 'Guatemala' },
   { value: 'Estados Unidos', label: 'Estados Unidos' },
@@ -1130,7 +1139,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             <SelectValue placeholder="Selecciona el país de destino" />
           </SelectTrigger>
           <SelectContent>
-            {destinationCountries.map((country) => (
+            {destinationCountries
+              .filter(country => !isReturn || country.value !== 'Guatemala')
+              .map((country) => (
               <SelectItem key={country.value} value={country.value}>
                 <div className="flex items-center space-x-2">
                   <Globe className="h-4 w-4" />
