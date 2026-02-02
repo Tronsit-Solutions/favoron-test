@@ -171,6 +171,17 @@ const AdminApprovalsTab = ({
     setRejectionTarget(null);
   };
 
+  // Helper function to check if package is a return
+  const isReturnPackage = (pkg: any): boolean => {
+    if (pkg.delivery_method === 'return_dropoff' || pkg.delivery_method === 'return_pickup') {
+      return true;
+    }
+    if (pkg.purchase_origin === 'Guatemala') {
+      return true;
+    }
+    return false;
+  };
+
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
@@ -236,6 +247,11 @@ const AdminApprovalsTab = ({
                             pkg.products_data?.[0]?.requestType === 'personal' ? 'text-blue-600 dark:text-blue-400' : ''
                           }`}>
                             {pkg.item_description}
+                            {isReturnPackage(pkg) && (
+                              <Badge className="ml-2 bg-purple-100 text-purple-700 border-purple-200 text-xs">
+                                🔄 Devolución
+                              </Badge>
+                            )}
                           </h4>
                           <p className="text-xs sm:text-sm text-muted-foreground break-words">
                             Precio estimado: ${pkg.estimated_price || 0} • Usuario: {getShopperDisplayName(pkg)}
@@ -257,7 +273,11 @@ const AdminApprovalsTab = ({
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                              Método de entrega: {pkg.delivery_method === 'delivery' 
                                ? `🚚 Envío a domicilio (+Q${getDeliveryFee(pkg.delivery_method, pkg.profiles?.trust_level, (pkg.confirmed_delivery_address as any)?.cityArea)})` 
-                               : '🏢 Recojo en zona 14'}
+                               : pkg.delivery_method === 'return_dropoff'
+                                 ? '📦 Punto de devolución (UPS/FedEx)'
+                                 : pkg.delivery_method === 'return_pickup'
+                                   ? '🚛 Pickup por carrier'
+                                   : '🏢 Recojo en zona 14'}
                            </p>
                           {pkg.item_link && (
                             <p className="text-xs sm:text-sm break-words">
