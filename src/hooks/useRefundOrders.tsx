@@ -71,27 +71,57 @@ export const useRefundOrders = (shopperId?: string) => {
     try {
       setCreating(true);
       
-      const { data, error } = await supabase
+      // VALIDACIÓN: Verificar si ya existe una orden pendiente o aprobada para este paquete
+      const { data: existingOrder, error: checkError } = await supabase
         .from('refund_orders')
-        .insert({
-          package_id: params.packageId,
-          shopper_id: params.shopperId,
-          bank_name: params.bankName,
-          bank_account_holder: params.bankAccountHolder,
-          bank_account_number: params.bankAccountNumber,
-          bank_account_type: params.bankAccountType,
-          amount: params.amount,
-          reason: params.reason,
-          cancelled_products: params.cancelledProducts
-        })
-        .select()
+        .select('id, status')
+        .eq('package_id', params.packageId)
+        .in('status', ['pending', 'approved'])
+        .maybeSingle();
+      
+      if (checkError) {
+        console.error('Error checking existing refund orders:', checkError);
+      }
+      
+      if (existingOrder) {
+        toast.error('Ya existe una solicitud de reembolso pendiente para este paquete');
+        return null;
+      }
+      
+      // Usar RPC seguro para crear la orden (previene race conditions)
+      const { data, error } = await supabase.rpc('create_refund_order_safe', {
+        p_package_id: params.packageId,
+        p_shopper_id: params.shopperId,
+        p_bank_name: params.bankName,
+        p_bank_account_holder: params.bankAccountHolder,
+        p_bank_account_number: params.bankAccountNumber,
+        p_bank_account_type: params.bankAccountType,
+        p_amount: params.amount,
+        p_reason: params.reason,
+        p_cancelled_products: params.cancelledProducts
+      });
+      
+      if (error) {
+        // Handle specific error for duplicate
+        if (error.message?.includes('Ya existe una orden de reembolso')) {
+          toast.error('Ya existe una solicitud de reembolso pendiente para este paquete');
+          return null;
+        }
+        throw error;
+      }
+      
+      // Fetch the created order
+      const { data: newOrder, error: fetchError } = await supabase
+        .from('refund_orders')
+        .select('*')
+        .eq('id', data)
         .single();
       
-      if (error) throw error;
+      if (fetchError) throw fetchError;
       
       toast.success('Solicitud de reembolso creada exitosamente');
       await fetchRefundOrders();
-      return data as RefundOrder;
+      return newOrder as RefundOrder;
     } catch (error) {
       console.error('Error creating refund order:', error);
       toast.error('Error al crear solicitud de reembolso');

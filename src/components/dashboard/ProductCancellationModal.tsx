@@ -61,12 +61,11 @@ const ProductCancellationModal = ({
   const [bankAccountHolder, setBankAccountHolder] = useState('');
   const [bankAccountNumber, setBankAccountNumber] = useState('');
   const [bankAccountType, setBankAccountType] = useState('monetary');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [isPrimeUser, setIsPrimeUser] = useState(false);
   const [penaltyAmount, setPenaltyAmount] = useState(DEFAULT_CANCELLATION_PENALTY);
 
-  const { createRefundOrder } = useRefundOrders();
+  const { createRefundOrder, creating: isSubmitting } = useRefundOrders();
 
   // Calculate refund breakdown with penalty info
   const refundBreakdown = getRefundBreakdown(product, quote, allProducts, {
@@ -133,13 +132,14 @@ const ProductCancellationModal = ({
   }, [isOpen]);
 
   const handleSubmit = async () => {
+    // Prevent double submission
+    if (isSubmitting) return;
+    
     // Validate bank info
     if (!bankName.trim() || !bankAccountHolder.trim() || !bankAccountNumber.trim()) {
       toast.error('Por favor completa todos los datos bancarios');
       return;
     }
-
-    setIsSubmitting(true);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -269,8 +269,6 @@ const ProductCancellationModal = ({
     } catch (error) {
       console.error('Error cancelling product:', error);
       toast.error('Error al cancelar el producto. Intenta de nuevo.');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
