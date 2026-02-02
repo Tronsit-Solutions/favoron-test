@@ -257,7 +257,7 @@ export const useAdminData = (): AdminData => {
         .from('packages')
         .select(`
           id, user_id, status, item_description, estimated_price,
-          purchase_origin, package_destination, matched_trip_id,
+          purchase_origin, package_destination, package_destination_country, matched_trip_id,
           created_at, updated_at, delivery_deadline, quote_expires_at,
           matched_assignment_expires_at, label_number, incident_flag,
           delivery_method, quote, rejection_reason, wants_requote,
