@@ -633,6 +633,7 @@ const [editForm, setEditForm] = useState({
         estimated_price: totalPrice,
         purchase_origin: editForm.purchase_origin,
         package_destination: editForm.package_destination,
+        package_destination_country: selectedDestinationCountry || 'guatemala',
         additional_notes: editForm.additional_notes?.trim() || null
       };
       
