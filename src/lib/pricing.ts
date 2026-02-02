@@ -83,8 +83,10 @@ export const getDeliveryFee = (
   trustLevel?: TrustLevel | string,
   cityArea?: string
 ): number => {
-  // No delivery fee for pickup regardless of trust level or cityArea
-  if (deliveryMethod === 'pickup') {
+  // No delivery fee for pickup or returns (traveler compensation handled via tip)
+  if (deliveryMethod === 'pickup' || 
+      deliveryMethod === 'return_dropoff' || 
+      deliveryMethod === 'return_pickup') {
     return 0;
   }
   
