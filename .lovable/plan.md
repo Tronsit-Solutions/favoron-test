@@ -1,55 +1,64 @@
 
-# Plan: Mantener Paquetes con Incidencia Visibles en Dashboard del Viajero
+# Plan: Actualizar Edge Function con Filtro de Incidencias
 
-## Problema
+## Objetivo
+Actualizar la edge function `recalculate-trip-accumulator` para excluir paquetes con `incident_flag: true` del cálculo del acumulador de pagos, permitiendo que Jorge (y otros viajeros) puedan cobrar sin que los paquetes con incidencias bloqueen el proceso.
 
-Actualmente, cuando un viaje pasa a estado `completed_paid`, **todos** los paquetes de ese viaje se ocultan del dashboard del viajero (líneas 869-873 de `Dashboard.tsx`). Esto significa que si un paquete tiene `incident_flag: true`, desaparecerá de la vista del viajero una vez que cobre por los otros paquetes.
+## Cambios Técnicos
 
-## Solución
+### Archivo: `supabase/functions/recalculate-trip-accumulator/index.ts`
 
-Modificar el filtro para que los paquetes con `incident_flag: true` permanezcan visibles aunque su viaje esté `completed_paid`.
+#### Cambio 1: Query de paquetes completados (líneas 43-48)
+Agregar `incident_flag` al select y filtrar paquetes sin incidencia:
 
-## Cambio Técnico
-
-### Archivo: `src/components/Dashboard.tsx`
-
-**Antes (líneas 869-873):**
 ```typescript
-// Exclude packages from completed and paid trips
-const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
-if (matchedTrip && matchedTrip.status === 'completed_paid') {
-  return false;
-}
+// ANTES
+.select('id, quote, status, office_delivery')
+.eq('matched_trip_id', tripId)
+.in('status', ['completed', 'delivered_to_office'])
+.not('quote', 'is', null);
+
+// DESPUÉS
+.select('id, quote, status, office_delivery, incident_flag')
+.eq('matched_trip_id', tripId)
+.in('status', ['completed', 'delivered_to_office'])
+.not('quote', 'is', null)
+.or('incident_flag.is.null,incident_flag.eq.false');
 ```
 
-**Después:**
+#### Cambio 2: Query de total de paquetes (líneas 85-89)
+Agregar `incident_flag` al select y filtrar:
+
 ```typescript
-// Exclude packages from completed and paid trips, EXCEPT those with incidents
-const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
-if (matchedTrip && matchedTrip.status === 'completed_paid') {
-  // Keep incident packages visible for tracking/resolution
-  if (!pkg.incident_flag) {
-    return false;
-  }
-}
+// ANTES
+.select('id, status')
+.eq('matched_trip_id', tripId)
+.in('status', eligibleStatuses);
+
+// DESPUÉS
+.select('id, status, incident_flag')
+.eq('matched_trip_id', tripId)
+.in('status', eligibleStatuses)
+.or('incident_flag.is.null,incident_flag.eq.false');
 ```
 
-## Resultado Esperado
+## Resultado Esperado para Jorge
 
-| Situación | Visible en Dashboard? |
-|-----------|----------------------|
-| Paquete normal, viaje activo | ✅ Sí |
-| Paquete normal, viaje `completed_paid` | ❌ No |
-| Paquete con incidencia, viaje activo | ✅ Sí |
-| Paquete con incidencia, viaje `completed_paid` | ✅ **Sí** (nuevo) |
+| Métrica | Antes | Después |
+|---------|-------|---------|
+| `accumulated_amount` | Q450 | Q450 |
+| `delivered_packages_count` | 6 | 6 |
+| `total_packages_count` | 7 | **6** |
+| `all_packages_delivered` | false | **true** |
 
-## Flujo del Viajero
+## Pasos de Implementación
 
-```text
-1. Viajero tiene 7 paquetes, 1 con incidencia
-2. Cobra por los 6 paquetes sin incidencia
-3. Viaje pasa a completed_paid
-4. Los 6 paquetes normales desaparecen del dashboard
-5. El paquete con incidencia PERMANECE visible
-6. Admin resuelve incidencia → quita flag → paquete desaparece
-```
+1. Modificar la edge function con los filtros de `incident_flag`
+2. Desplegar la edge function actualizada
+3. Llamar a la función con el trip ID de Jorge (`d10528c5-ab5b-4eed-8baf-6d189106e39b`)
+4. Verificar que el acumulador se actualizó correctamente
+
+## Consistencia con Frontend
+Este cambio alinea la lógica del backend con:
+- `useCreateTripPaymentAccumulator.tsx` (ya tiene el filtro)
+- `Dashboard.tsx` (actualizado en el último cambio)
