@@ -1,43 +1,90 @@
 
-# Plan: Agregar `package_destination_country` a fetchPendingMatchPackages
+# Plan: Agregar `to_country` al RPC `get_admin_trips_with_user`
 
 ## Problema Identificado
 
-La función `fetchPendingMatchPackages` en `src/hooks/useAdminData.tsx` (líneas 252-309) es la query específica que alimenta la pestaña "Solicitudes Pendientes de Match".
+El RPC `get_admin_trips_with_user` que carga los viajes para el admin **no incluye** el campo `to_country`. Esto causa que la lógica de matching en `AdminMatchDialog.tsx` falle porque:
 
-En la línea 260, el SELECT **no incluye** `package_destination_country`:
-
-```typescript
-.select(`
-  id, user_id, status, item_description, estimated_price,
-  purchase_origin, package_destination, matched_trip_id,  // ❌ Falta package_destination_country
-  created_at, updated_at, delivery_deadline, ...
-`)
-```
+1. El código usa: `normalizeCountry(trip.to_country || trip.to_city)`
+2. Como `to_country` es `undefined`, usa `to_city` (ej: "Miami")  
+3. `normalizeCountry("Miami")` no normaliza a "usa" porque "Miami" no está en la lista de variantes de países
+4. Por lo tanto, el filtro de destino falla y no muestra viajes
 
 ## Solución
 
-### Archivo: `src/hooks/useAdminData.tsx`
+### Modificar el RPC `get_admin_trips_with_user`
 
-**Línea 260**: Agregar `package_destination_country` después de `package_destination`:
+Agregar `t.to_country` al SELECT del RPC:
 
-```typescript
-// Antes (línea 260)
-purchase_origin, package_destination, matched_trip_id,
-
-// Después
-purchase_origin, package_destination, package_destination_country, matched_trip_id,
+```sql
+CREATE OR REPLACE FUNCTION public.get_admin_trips_with_user()
+RETURNS TABLE (
+  id uuid,
+  from_city text,
+  to_city text,
+  from_country text,
+  to_country text,          -- NUEVO
+  arrival_date text,
+  delivery_date text,
+  first_day_packages text,
+  last_day_packages text,
+  delivery_method text,
+  messenger_pickup_info jsonb,
+  package_receiving_address jsonb,
+  status text,
+  created_at text,
+  updated_at text,
+  user_id uuid,
+  first_name text,
+  last_name text,
+  email text,
+  phone_number text,
+  username text,
+  user_display_name text,
+  available_space integer
+)
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  SELECT
+    t.id,
+    t.from_city,
+    t.to_city,
+    t.from_country,
+    t.to_country,            -- NUEVO
+    t.arrival_date::text,
+    t.delivery_date::text,
+    t.first_day_packages::text,
+    t.last_day_packages::text,
+    t.delivery_method,
+    t.messenger_pickup_info,
+    t.package_receiving_address,
+    t.status,
+    t.created_at::text,
+    t.updated_at::text,
+    t.user_id,
+    p.first_name,
+    p.last_name,
+    p.email,
+    p.phone_number,
+    p.username,
+    CONCAT(p.first_name, ' ', p.last_name) as user_display_name,
+    t.available_space
+  FROM public.trips t
+  LEFT JOIN public.profiles p ON p.id = t.user_id
+  ORDER BY t.created_at DESC;
+$$;
 ```
 
 ## Resultado Esperado
 
 | Antes | Después |
 |-------|---------|
-| Destino: Cualquier ciudad | Destino: Guatemala, Cualquier ciudad |
-| Destino: Guatemala City | Destino: Guatemala, Guatemala City |
+| Viajes Disponibles (0) | Viajes con destino USA correctamente filtrados |
+| `trip.to_country = undefined` | `trip.to_country = "estados-unidos"` |
+| Filtro compara "miami" ≠ "usa" | Filtro compara "usa" = "usa" ✅ |
 
-## Resumen
+## Alcance
 
-- 1 línea modificada
-- La visualización ya está correcta en `PendingRequestsTab.tsx`
-- Solo falta traer el dato desde Supabase
+- 1 migración SQL para actualizar el RPC
+- No requiere cambios en el código frontend (ya usa `trip.to_country` con fallback)
