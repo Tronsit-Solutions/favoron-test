@@ -1408,7 +1408,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                   ? 'Recoger en oficina (zona 14)' 
                   : formData.deliveryMethod === 'delivery'
                     ? `Domicilio: ${addressData?.streetAddress || 'Sin dirección'}`
-                    : 'No seleccionado'
+                    : formData.deliveryMethod === 'return_dropoff'
+                      ? 'Punto de devolución (UPS/FedEx/etc.)'
+                      : formData.deliveryMethod === 'return_pickup'
+                        ? 'Pickup programado en domicilio del viajero'
+                        : 'No seleccionado'
                 }
               </span>
             </div>
