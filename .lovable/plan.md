@@ -1,33 +1,34 @@
 
-# Plan: Actualizar package_destination_country al Editar Paquete
+# Plan: Corregir Carga de País en PackageRequestForm (Edit Mode)
 
 ## Problema Identificado
-En el archivo `src/components/admin/PackageDetailModal.tsx`, cuando el admin edita el destino de un paquete:
-- Se guarda `package_destination` (la ciudad)
-- **NO** se guarda `package_destination_country` (el país)
 
-El estado `selectedDestinationCountry` ya existe (línea 176) pero no se incluye en el objeto `updates` de `handleSaveChanges`.
+En `src/components/PackageRequestForm.tsx`, línea 122:
+
+```typescript
+selectedCountry: '' as string,  // ❌ Siempre vacío, incluso en edit mode
+```
+
+Cuando se edita un paquete, el país de destino no se carga desde la base de datos, por lo que al guardar se pierde esta información.
 
 ## Solución
 
-### Archivo: `src/components/admin/PackageDetailModal.tsx`
+### Archivo: `src/components/PackageRequestForm.tsx`
 
-**Cambio en `handleSaveChanges` (líneas 629-637)**:
-
-Agregar `package_destination_country` al objeto de actualizaciones:
+**Cambio en `getInitialFormState()` (línea 122)**:
 
 ```typescript
-const updates = {
-  products_data: normalizedProducts,
-  item_description: autoDescription,
-  item_link: normalizedProducts[0]?.itemLink || null,
-  estimated_price: totalPrice,
-  purchase_origin: editForm.purchase_origin,
-  package_destination: editForm.package_destination,
-  package_destination_country: selectedDestinationCountry || 'guatemala', // AGREGAR
-  additional_notes: editForm.additional_notes?.trim() || null
-};
+// Antes
+selectedCountry: '' as string,
+
+// Después
+selectedCountry: (editMode && initialData?.package_destination_country) 
+  ? initialData.package_destination_country 
+  : '' as string,
 ```
 
 ## Resultado
-Cuando el admin cambie el destino del paquete, tanto el país como la ciudad se actualizarán en la base de datos, manteniendo la consistencia de datos.
+
+- **Modo crear**: `selectedCountry` inicia vacío (comportamiento actual)
+- **Modo editar**: `selectedCountry` se carga desde `initialData.package_destination_country`
+- Al guardar, ambos campos (`package_destination` y `package_destination_country`) se persistirán correctamente
