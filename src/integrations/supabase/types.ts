@@ -593,6 +593,7 @@ export type Database = {
           matched_trip_id: string | null
           office_delivery: Json | null
           package_destination: string
+          package_destination_country: string | null
           payment_method: string | null
           payment_receipt: Json | null
           products_data: Json | null
@@ -636,6 +637,7 @@ export type Database = {
           matched_trip_id?: string | null
           office_delivery?: Json | null
           package_destination: string
+          package_destination_country?: string | null
           payment_method?: string | null
           payment_receipt?: Json | null
           products_data?: Json | null
@@ -679,6 +681,7 @@ export type Database = {
           matched_trip_id?: string | null
           office_delivery?: Json | null
           package_destination?: string
+          package_destination_country?: string | null
           payment_method?: string | null
           payment_receipt?: Json | null
           products_data?: Json | null

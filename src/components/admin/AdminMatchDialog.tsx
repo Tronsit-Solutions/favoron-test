@@ -190,7 +190,10 @@ const AdminMatchDialog = ({
     today.setHours(0, 0, 0, 0);
     
     const packageOriginNormalized = normalizeCountry(selectedPackage?.purchase_origin || '');
-    const packageDestinationNormalized = normalizeCountry(selectedPackage?.package_destination || '');
+    // Use the new country field if available, fallback to inferring from city
+    const packageDestinationCountry = selectedPackage?.package_destination_country 
+      ? normalizeCountry(selectedPackage.package_destination_country)
+      : normalizeCountry(selectedPackage?.package_destination || '');
     const packageDestinationCity = selectedPackage?.package_destination?.toLowerCase().trim() || '';
     
     // Si no hay paquete seleccionado, no mostrar ningún viaje
@@ -207,26 +210,25 @@ const AdminMatchDialog = ({
         const tripOriginNormalized = normalizeCountry(trip.from_country || '');
         const matchesOrigin = showAllTrips || tripOriginNormalized === packageOriginNormalized;
         
-        // Filter by destination
+        // Filter by destination using country field
         const tripDestinationNormalized = normalizeCountry(trip.to_country || trip.to_city || '');
         const tripDestinationCity = trip.to_city?.toLowerCase().trim() || '';
         
         let matchesDestination = false;
         if (showOtherCities) {
-          // Show trips to any city in Guatemala (using to_country field OR normalized city)
-          matchesDestination = trip.to_country?.toLowerCase().includes('guatemala') ||
-                               tripDestinationNormalized === 'guatemala';
+          // Show trips to any city in the same country
+          matchesDestination = tripDestinationNormalized === packageDestinationCountry;
         } else {
-          // Exact destination match (by country or city name)
-          matchesDestination = !packageDestinationNormalized || 
-                               tripDestinationNormalized === packageDestinationNormalized;
+          // Exact destination match by country
+          matchesDestination = !packageDestinationCountry || 
+                               tripDestinationNormalized === packageDestinationCountry;
         }
         
         return isNotExpired && matchesOrigin && matchesDestination;
       })
       // Sort by arrival date (soonest first)
       .sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
-  }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination, showAllTrips, showOtherCities]);
+  }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination, selectedPackage?.package_destination_country, showAllTrips, showOtherCities]);
 
   // Count trips that match destination only (for showing "other countries" option)
   const allDestinationTrips = useMemo(() => {
