@@ -89,7 +89,8 @@ export const useRefundOrders = (shopperId?: string) => {
       }
       
       // Usar RPC seguro para crear la orden (previene race conditions)
-      const { data, error } = await supabase.rpc('create_refund_order_safe', {
+      // Cast to any because the RPC types are auto-generated and may not include this function yet
+      const { data, error } = await (supabase.rpc as any)('create_refund_order_safe', {
         p_package_id: params.packageId,
         p_shopper_id: params.shopperId,
         p_bank_name: params.bankName,
@@ -111,10 +112,11 @@ export const useRefundOrders = (shopperId?: string) => {
       }
       
       // Fetch the created order
+      const newRefundId = data as string;
       const { data: newOrder, error: fetchError } = await supabase
         .from('refund_orders')
         .select('*')
-        .eq('id', data)
+        .eq('id', newRefundId)
         .single();
       
       if (fetchError) throw fetchError;
