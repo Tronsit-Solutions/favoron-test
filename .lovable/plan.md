@@ -1,46 +1,38 @@
 
-# Plan: Corregir "Entrega: No seleccionado" para Devoluciones
+# Plan: Actualizar Check Constraint para Métodos de Entrega
 
 ## Problema
 
-El resumen de la solicitud (Step 4) no reconoce los nuevos métodos de entrega para devoluciones (`return_dropoff` y `return_pickup`), por lo que muestra "No seleccionado".
+La base de datos tiene un constraint que solo permite `pickup` y `delivery` como valores válidos para `delivery_method`. Los nuevos valores para devoluciones (`return_dropoff` y `return_pickup`) están bloqueados.
 
-## Archivo: `src/components/PackageRequestForm.tsx`
+## Solución
 
-### Cambio en líneas 1407-1412
+Crear una migración SQL para actualizar el constraint.
 
-Actualizar la lógica de renderizado para incluir los nuevos métodos:
+## Archivo: Nueva migración SQL
 
-**Antes:**
-```typescript
-{formData.deliveryMethod === 'pickup' 
-  ? 'Recoger en oficina (zona 14)' 
-  : formData.deliveryMethod === 'delivery'
-    ? `Domicilio: ${addressData?.streetAddress || 'Sin dirección'}`
-    : 'No seleccionado'
-}
-```
+Crear archivo en `supabase/migrations/` con nombre como `20260202_add_return_delivery_methods.sql`:
 
-**Después:**
-```typescript
-{formData.deliveryMethod === 'pickup' 
-  ? 'Recoger en oficina (zona 14)' 
-  : formData.deliveryMethod === 'delivery'
-    ? `Domicilio: ${addressData?.streetAddress || 'Sin dirección'}`
-    : formData.deliveryMethod === 'return_dropoff'
-      ? 'Punto de devolución (UPS/FedEx/etc.)'
-      : formData.deliveryMethod === 'return_pickup'
-        ? 'Pickup programado en domicilio del viajero'
-        : 'No seleccionado'
-}
+```sql
+-- Drop the existing constraint
+ALTER TABLE packages DROP CONSTRAINT IF EXISTS packages_delivery_method_check;
+
+-- Add updated constraint with new return methods
+ALTER TABLE packages ADD CONSTRAINT packages_delivery_method_check 
+CHECK (delivery_method = ANY (ARRAY['pickup', 'delivery', 'return_dropoff', 'return_pickup']));
 ```
 
 ## Resultado
 
-| Método | Texto en resumen |
-|--------|------------------|
-| `pickup` | Recoger en oficina (zona 14) |
-| `delivery` | Domicilio: [dirección] |
-| `return_dropoff` | Punto de devolución (UPS/FedEx/etc.) |
-| `return_pickup` | Pickup programado en domicilio del viajero |
-| otro/vacío | No seleccionado |
+| Valor permitido | Descripción |
+|-----------------|-------------|
+| `pickup` | Recoger en oficina |
+| `delivery` | Envío a domicilio |
+| `return_dropoff` | Dejar en punto de devolución (UPS/FedEx) |
+| `return_pickup` | Pickup programado por carrier |
+
+## Impacto
+
+- **Sin pérdida de datos**: Solo modifica el constraint, no los datos existentes
+- **Retrocompatible**: Los valores existentes siguen siendo válidos
+- **Inmediato**: Una vez aplicado, las nuevas solicitudes de devolución funcionarán
