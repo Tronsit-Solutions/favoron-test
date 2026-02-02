@@ -1,75 +1,98 @@
 
-# Plan: Corregir tipo de dato en RPC `get_admin_trips_with_user`
+# Plan: Prevenir Duplicación de Órdenes de Reembolso
 
-## Problema Identificado
+## Problema
 
-El RPC `get_admin_trips_with_user` está fallando con error **"integer out of range"** porque:
-
-1. La columna `available_space` en la tabla `trips` es de tipo `numeric`
-2. En el RPC, se declaró como `integer`
-3. Hay un valor en la base de datos (`12312323123123132000000`) que excede el máximo de un integer
+Las órdenes de reembolso se están duplicando porque:
+1. No hay validación antes de crear una nueva orden
+2. No hay constraint a nivel de base de datos para prevenir duplicados
+3. El usuario puede hacer doble clic antes de que se active el estado `isSubmitting`
 
 ## Solución
 
-### Migración SQL
+### 1. Validación en el Hook (Primera Línea de Defensa)
 
-Actualizar el RPC cambiando `available_space integer` → `available_space numeric`:
+Modificar `useRefundOrders.tsx` para verificar si ya existe una orden pendiente antes de crear:
 
-```sql
-DROP FUNCTION IF EXISTS public.get_admin_trips_with_user();
-
-CREATE FUNCTION public.get_admin_trips_with_user()
-RETURNS TABLE (
-  id uuid,
-  from_city text,
-  to_city text,
-  from_country text,
-  to_country text,
-  arrival_date text,
-  delivery_date text,
-  first_day_packages text,
-  last_day_packages text,
-  delivery_method text,
-  messenger_pickup_info jsonb,
-  package_receiving_address jsonb,
-  status text,
-  created_at text,
-  updated_at text,
-  user_id uuid,
-  first_name text,
-  last_name text,
-  email text,
-  phone_number text,
-  username text,
-  user_display_name text,
-  available_space numeric  -- CAMBIADO de integer a numeric
-)
-LANGUAGE sql
-SECURITY DEFINER
-AS $$
-  SELECT
-    t.id, t.from_city, t.to_city, t.from_country, t.to_country,
-    t.arrival_date::text, t.delivery_date::text,
-    t.first_day_packages::text, t.last_day_packages::text,
-    t.delivery_method, t.messenger_pickup_info,
-    t.package_receiving_address, t.status,
-    t.created_at::text, t.updated_at::text, t.user_id,
-    p.first_name, p.last_name, p.email, p.phone_number, p.username,
-    CONCAT(p.first_name, ' ', p.last_name) as user_display_name,
-    t.available_space
-  FROM public.trips t
-  LEFT JOIN public.profiles p ON p.id = t.user_id
-  ORDER BY t.created_at DESC;
-$$;
+```typescript
+const createRefundOrder = async (params: CreateRefundOrderParams): Promise<RefundOrder | null> => {
+  try {
+    setCreating(true);
+    
+    // NUEVO: Verificar si ya existe una orden pendiente para este paquete
+    const { data: existingOrder } = await supabase
+      .from('refund_orders')
+      .select('id')
+      .eq('package_id', params.packageId)
+      .in('status', ['pending', 'approved'])
+      .maybeSingle();
+    
+    if (existingOrder) {
+      toast.error('Ya existe una solicitud de reembolso pendiente para este paquete');
+      return null;
+    }
+    
+    // Continuar con la creación...
+  }
+}
 ```
 
-## Resultado Esperado
+### 2. Constraint en Base de Datos (Segunda Línea de Defensa)
 
-| Antes | Después |
-|-------|---------|
-| Error: integer out of range | Viajes cargados correctamente |
-| 0 viajes disponibles | Todos los viajes del sistema |
+Crear una función RPC con advisory lock para serializar las operaciones:
 
-## Cambios Adicionales
+```sql
+CREATE OR REPLACE FUNCTION create_refund_order_safe(
+  p_package_id uuid,
+  p_shopper_id uuid,
+  p_bank_name text,
+  p_bank_account_holder text,
+  p_bank_account_number text,
+  p_bank_account_type text,
+  p_amount numeric,
+  p_reason text,
+  p_cancelled_products jsonb
+) RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  new_refund_id uuid;
+BEGIN
+  -- Serializar acceso para este paquete
+  PERFORM pg_advisory_xact_lock(hashtext('refund_' || p_package_id::text));
+  
+  -- Verificar si ya existe una orden pendiente
+  IF EXISTS (
+    SELECT 1 FROM refund_orders
+    WHERE package_id = p_package_id
+      AND status IN ('pending', 'approved')
+  ) THEN
+    RAISE EXCEPTION 'Ya existe una orden de reembolso pendiente';
+  END IF;
+  
+  -- Crear la orden
+  INSERT INTO refund_orders (...)
+  VALUES (...)
+  RETURNING id INTO new_refund_id;
+  
+  RETURN new_refund_id;
+END; $$;
+```
 
-- Actualizar `src/integrations/supabase/types.ts` para reflejar el cambio de tipo (`available_space: number` permanece igual en TypeScript)
+### 3. Mejora en UI (Tercera Línea de Defensa)
+
+- Usar el estado `creating` del hook para deshabilitar el botón inmediatamente
+- Verificar si el producto ya tiene `cancelled: true` antes de mostrar la opción
+
+## Archivos a Modificar
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/hooks/useRefundOrders.tsx` | Agregar validación de duplicados antes de insert |
+| Nueva migración SQL | Crear función RPC `create_refund_order_safe` |
+| `src/components/dashboard/ProductCancellationModal.tsx` | Usar estado `creating` del hook |
+
+## Limpieza de Datos Existentes
+
+Después de implementar, se deben eliminar los duplicados existentes manualmente desde el admin (rechazando los duplicados).
