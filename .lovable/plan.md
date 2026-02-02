@@ -1,98 +1,105 @@
 
-# Plan: Prevenir Duplicación de Órdenes de Reembolso
+# Plan: Excluir Paquetes con Incidencia del Bloqueo de Pagos
 
-## Problema
+## Problema Actual
 
-Las órdenes de reembolso se están duplicando porque:
-1. No hay validación antes de crear una nueva orden
-2. No hay constraint a nivel de base de datos para prevenir duplicados
-3. El usuario puede hacer doble clic antes de que se active el estado `isSubmitting`
+El sistema de payment accumulator cuenta TODOS los paquetes en tránsito como "pendientes de entrega". El paquete de María Martínez tiene una incidencia (producto cancelado, otro pendiente de confirmar) y está bloqueando los Q450 que Jorge ya tiene listos para cobrar por los 6 paquetes entregados correctamente.
 
-## Solución
+## Solución Propuesta
 
-### 1. Validación en el Hook (Primera Línea de Defensa)
+Modificar la lógica para que los paquetes con `incident_flag: true` sean **excluidos del conteo de paquetes pendientes**, permitiendo al viajero cobrar por los paquetes sin incidencia.
 
-Modificar `useRefundOrders.tsx` para verificar si ya existe una orden pendiente antes de crear:
+### Comportamiento Nuevo
+
+| Situación | Cuenta en Total? | Cuenta como Entregado? | Suma al Tip? |
+|-----------|------------------|------------------------|--------------|
+| Paquete normal entregado | Sí | Sí | Sí |
+| Paquete normal pendiente | Sí | No | No |
+| Paquete con incidencia (cualquier estado) | **No** | **No** | **No** |
+
+Esto significa:
+- Los paquetes con incidencia no bloquean el pago
+- El tip del paquete con incidencia NO se incluye (se tratará por separado)
+- Admin puede resolver la incidencia manualmente después
+
+## Cambios Técnicos
+
+### 1. Hook `useCreateTripPaymentAccumulator.tsx`
+
+Agregar filtro para excluir paquetes con `incident_flag: true` de ambas consultas:
 
 ```typescript
-const createRefundOrder = async (params: CreateRefundOrderParams): Promise<RefundOrder | null> => {
-  try {
-    setCreating(true);
-    
-    // NUEVO: Verificar si ya existe una orden pendiente para este paquete
-    const { data: existingOrder } = await supabase
-      .from('refund_orders')
-      .select('id')
-      .eq('package_id', params.packageId)
-      .in('status', ['pending', 'approved'])
-      .maybeSingle();
-    
-    if (existingOrder) {
-      toast.error('Ya existe una solicitud de reembolso pendiente para este paquete');
-      return null;
-    }
-    
-    // Continuar con la creación...
-  }
-}
+// Consulta de paquetes entregados - excluir con incidencia
+const { data: completedPackages } = await supabase
+  .from('packages')
+  .select('id, quote, status, office_delivery, admin_assigned_tip, incident_flag')
+  .eq('matched_trip_id', tripId)
+  .in('status', ['completed', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'])
+  .or('incident_flag.is.null,incident_flag.eq.false');  // NUEVO: excluir incidencias
+
+// Consulta de paquetes totales - excluir con incidencia
+const { data: inTransitOrLaterPackages } = await supabase
+  .from('packages')
+  .select('id, status, incident_flag')
+  .eq('matched_trip_id', tripId)
+  .in('status', eligibleStatuses)
+  .or('incident_flag.is.null,incident_flag.eq.false');  // NUEVO: excluir incidencias
 ```
 
-### 2. Constraint en Base de Datos (Segunda Línea de Defensa)
+### 2. Componente `TripPaymentSummary.tsx`
 
-Crear una función RPC con advisory lock para serializar las operaciones:
+Actualizar la consulta de conteo para excluir paquetes con incidencia:
 
-```sql
-CREATE OR REPLACE FUNCTION create_refund_order_safe(
-  p_package_id uuid,
-  p_shopper_id uuid,
-  p_bank_name text,
-  p_bank_account_holder text,
-  p_bank_account_number text,
-  p_bank_account_type text,
-  p_amount numeric,
-  p_reason text,
-  p_cancelled_products jsonb
-) RETURNS uuid
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-DECLARE
-  new_refund_id uuid;
-BEGIN
-  -- Serializar acceso para este paquete
-  PERFORM pg_advisory_xact_lock(hashtext('refund_' || p_package_id::text));
-  
-  -- Verificar si ya existe una orden pendiente
-  IF EXISTS (
-    SELECT 1 FROM refund_orders
-    WHERE package_id = p_package_id
-      AND status IN ('pending', 'approved')
-  ) THEN
-    RAISE EXCEPTION 'Ya existe una orden de reembolso pendiente';
-  END IF;
-  
-  -- Crear la orden
-  INSERT INTO refund_orders (...)
-  VALUES (...)
-  RETURNING id INTO new_refund_id;
-  
-  RETURN new_refund_id;
-END; $$;
+```typescript
+const { data, error } = await supabase
+  .from('packages')
+  .select('status, incident_flag')
+  .eq('matched_trip_id', trip.id)
+  .not('status', 'in', '(rejected,cancelled)')
+  .or('incident_flag.is.null,incident_flag.eq.false');  // NUEVO
 ```
 
-### 3. Mejora en UI (Tercera Línea de Defensa)
+### 3. Mostrar indicador de paquetes con incidencia (opcional)
 
-- Usar el estado `creating` del hook para deshabilitar el botón inmediatamente
-- Verificar si el producto ya tiene `cancelled: true` antes de mostrar la opción
+Agregar un mensaje informativo cuando hay paquetes excluidos por incidencia:
+
+```typescript
+// Si hay paquetes con incidencia, mostrar nota
+{packagesWithIncident > 0 && (
+  <p className="text-xs text-amber-600">
+    ⚠️ {packagesWithIncident} paquete(s) con incidencia excluido(s)
+  </p>
+)}
+```
 
 ## Archivos a Modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/hooks/useRefundOrders.tsx` | Agregar validación de duplicados antes de insert |
-| Nueva migración SQL | Crear función RPC `create_refund_order_safe` |
-| `src/components/dashboard/ProductCancellationModal.tsx` | Usar estado `creating` del hook |
+| `src/hooks/useCreateTripPaymentAccumulator.tsx` | Agregar filtro `incident_flag` en ambas consultas |
+| `src/components/dashboard/TripPaymentSummary.tsx` | Agregar filtro y mensaje informativo |
 
-## Limpieza de Datos Existentes
+## Resultado Esperado
 
-Después de implementar, se deben eliminar los duplicados existentes manualmente desde el admin (rechazando los duplicados).
+Después de implementar:
+1. Jorge podrá crear su orden de cobro por Q450 (6 paquetes entregados)
+2. El paquete de María Martínez quedará excluido del conteo
+3. Admin podrá resolver la incidencia por separado (confirmar entrega, crear reembolso, etc.)
+4. Cuando se quite el `incident_flag`, el paquete volverá a contar normalmente
+
+## Workflow de Incidencias
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ 1. Admin marca paquete con incidencia                       │
+│    → incident_flag = true                                   │
+├─────────────────────────────────────────────────────────────┤
+│ 2. Viajero puede cobrar paquetes sin incidencia             │
+│    → Paquete excluido del conteo                            │
+├─────────────────────────────────────────────────────────────┤
+│ 3. Admin resuelve incidencia:                               │
+│    a) Confirma entrega manual → quita flag → suma al tip    │
+│    b) Cancela paquete → no suma nada                        │
+│    c) Crea reembolso → shopper recibe dinero                │
+└─────────────────────────────────────────────────────────────┘
+```
