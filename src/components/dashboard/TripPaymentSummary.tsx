@@ -26,7 +26,7 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
   
   const { tripPayment, loading, isCreating, createPaymentOrder } = useTripPayments(trip.id);
   const [showBankingModal, setShowBankingModal] = useState(false);
-  const [packageCounts, setPackageCounts] = useState<{total: number, completed: number} | null>(null);
+  const [packageCounts, setPackageCounts] = useState<{total: number, completed: number, withIncident: number} | null>(null);
 
   const handlePaymentRequest = async (bankingInfo: any) => {
     try {
@@ -43,30 +43,37 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
       try {
         console.log('🔍 TripPaymentSummary - Fetching package counts for trip:', trip.id);
         
+        // Consulta todos los paquetes (sin incidencia) para conteo normal
         const { data, error } = await supabase
           .from('packages')
-          .select('status')
+          .select('status, incident_flag')
           .eq('matched_trip_id', trip.id)
           .not('status', 'in', '(rejected,cancelled)');
 
         if (error) throw error;
 
+        // Filtrar paquetes sin incidencia para conteo de progreso
+        const packagesWithoutIncident = data?.filter(pkg => !pkg.incident_flag) || [];
+        const packagesWithIncident = data?.filter(pkg => pkg.incident_flag) || [];
+        
         const deliveredStatuses = ['completed', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'];
-        const total = data?.length || 0;
-        const delivered = data?.filter(pkg => deliveredStatuses.includes(pkg.status)).length || 0;
+        const total = packagesWithoutIncident.length;
+        const delivered = packagesWithoutIncident.filter(pkg => deliveredStatuses.includes(pkg.status)).length;
+        const withIncident = packagesWithIncident.length;
         
         console.log('📦 TripPaymentSummary - Package counts:', {
           tripId: trip.id,
           total,
           delivered,
-          allStatuses: data?.map(p => p.status),
+          withIncident,
+          allStatuses: packagesWithoutIncident.map(p => p.status),
           hasDeliveredPackages: delivered > 0
         });
         
-        setPackageCounts({ total, completed: delivered });
+        setPackageCounts({ total, completed: delivered, withIncident });
       } catch (error) {
         console.error('Error fetching package counts:', error);
-        setPackageCounts({ total: 0, completed: 0 });
+        setPackageCounts({ total: 0, completed: 0, withIncident: 0 });
       }
     }, [trip.id]);
 
@@ -120,6 +127,11 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
           <p className="text-xs text-muted-foreground mb-2">
             {packageCounts.completed} de {packageCounts.total} paquetes entregados en oficina.
           </p>
+          {packageCounts.withIncident > 0 && (
+            <p className="text-xs text-amber-600 mb-2">
+              ⚠️ {packageCounts.withIncident} paquete(s) con incidencia excluido(s)
+            </p>
+          )}
           {hasDeliveredPackages && (
             <Button 
               onClick={handleCreateAccumulator}
@@ -240,11 +252,18 @@ export const TripPaymentSummary: React.FC<TripPaymentSummaryProps> = ({
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1 text-amber-600">
-                      <Clock className="h-3 w-3" />
-                      <span className="text-xs">
-                        Pendiente entrega
-                      </span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1 text-amber-600">
+                        <Clock className="h-3 w-3" />
+                        <span className="text-xs">
+                          Pendiente entrega
+                        </span>
+                      </div>
+                      {packageCounts?.withIncident && packageCounts.withIncident > 0 && (
+                        <p className="text-xs text-amber-600">
+                          ⚠️ {packageCounts.withIncident} con incidencia
+                        </p>
+                      )}
                     </div>
                   )}
                 </>
