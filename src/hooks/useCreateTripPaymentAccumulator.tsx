@@ -4,11 +4,13 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
   try {
     // Obtener todos los paquetes completados del viaje con quotes
     // Incluir todos los estados de entrega: delivered_to_office, ready_for_pickup, ready_for_delivery, completed
+    // Excluir paquetes con incidencia del conteo de entregados
     const { data: completedPackages, error: packagesError } = await supabase
       .from('packages')
-      .select('id, quote, status, office_delivery, admin_assigned_tip')
+      .select('id, quote, status, office_delivery, admin_assigned_tip, incident_flag')
       .eq('matched_trip_id', tripId)
-      .in('status', ['completed', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery']);
+      .in('status', ['completed', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'])
+      .or('incident_flag.is.null,incident_flag.eq.false');
 
     if (packagesError) throw packagesError;
 
@@ -45,12 +47,14 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
     console.log('📊 Summary: delivered_count =', deliveredEligibleCount, 'accumulated =', accumulatedAmount);
 
     // Obtener total de paquetes del viaje con estado igual o posterior a 'in_transit'
+    // Excluir paquetes con incidencia del conteo total para no bloquear pagos
     const eligibleStatuses = ['in_transit','received_by_traveler','delivered_to_office','completed','delivered','ready_for_pickup','ready_for_delivery'];
     const { data: inTransitOrLaterPackages, error: eligiblePkgsError } = await supabase
       .from('packages')
-      .select('id, status')
+      .select('id, status, incident_flag')
       .eq('matched_trip_id', tripId)
-      .in('status', eligibleStatuses);
+      .in('status', eligibleStatuses)
+      .or('incident_flag.is.null,incident_flag.eq.false');
 
     if (eligiblePkgsError) throw eligiblePkgsError;
 
