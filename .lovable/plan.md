@@ -1,43 +1,54 @@
 
 
-# Plan: Mostrar País y Ciudad en Destino (AdminApprovalsTab)
+# Plan: Corregir Selector de Destino para Devoluciones
 
 ## Problema Identificado
 
-En `AdminApprovalsTab.tsx`, línea 264-266, el destino muestra solo "Cualquier ciudad" pero debería mostrar "Guatemala, Cualquier ciudad".
+Cuando el usuario crea una **devolución** (return), el selector de país de destino incluye "Guatemala" como opción, lo cual es incorrecto. Las devoluciones son envíos de Guatemala → Internacional, por lo que el destino NUNCA puede ser Guatemala.
 
-El código actual (línea 265):
-```tsx
-Destino: {pkg.package_destination_country ? `${getCountryLabel(pkg.package_destination_country) || pkg.package_destination_country} - ` : ''}{pkg.package_destination}
-```
-
-## Problema con el Código Actual
-
-1. La lógica condicional usa `" - "` como separador, pero debería usar `", "`
-2. Si `getCountryLabel` devuelve `undefined`, solo se muestra el valor raw sin formateo consistente
+El usuario seleccionó:
+- Origen: Guatemala (correcto)
+- Destino País: Guatemala (INCORRECTO - debería ser Estados Unidos u otro país)
+- Destino Ciudad: Cualquier ciudad
 
 ## Solución
 
-Simplificar y mejorar la lógica de display en línea 265:
+### Archivo: `src/components/PackageRequestForm.tsx`
+
+**Cambio 1 - Línea 1133**: Filtrar "Guatemala" del selector de países cuando es una devolución:
 
 ```tsx
-<p className="text-xs sm:text-sm text-muted-foreground break-words">
-  Origen: {pkg.purchase_origin} → Destino: {
-    pkg.package_destination_country 
-      ? `${getCountryLabel(pkg.package_destination_country) || pkg.package_destination_country}${pkg.package_destination ? `, ${pkg.package_destination}` : ''}`
-      : (pkg.package_destination || 'No especificado')
+{/* Antes */}
+{destinationCountries.map((country) => (
+
+{/* Después */}
+{destinationCountries
+  .filter(country => !isReturn || country.value !== 'Guatemala')
+  .map((country) => (
+```
+
+**Cambio 2 - Efecto colateral**: Resetear `selectedCountry` si el usuario tenía Guatemala seleccionado y luego marca "es devolución":
+
+Agregar efecto después de línea ~214:
+```tsx
+// Resetear país de destino si es devolución y tenía Guatemala seleccionado
+useEffect(() => {
+  if (isReturn && selectedCountry === 'Guatemala') {
+    setSelectedCountry('');
+    handleInputChange('packageDestination', '');
+    handleInputChange('packageDestinationOther', '');
   }
-</p>
+}, [isReturn, selectedCountry]);
 ```
 
 ## Resultado Visual
 
-| Antes | Después |
-|-------|---------|
-| Origen: Guatemala → Destino: Cualquier ciudad | Origen: Guatemala → Destino: Guatemala, Cualquier ciudad |
-| Origen: USA → Destino: Miami | Origen: USA → Destino: Guatemala, Miami |
+| Tipo | Destinos disponibles |
+|------|---------------------|
+| Pedido Normal | Guatemala, Estados Unidos, España, México, Otro |
+| Devolución | Estados Unidos, España, México, Otro (SIN Guatemala) |
 
-## Archivo a Modificar
+## Datos Existentes
 
-- `src/components/admin/AdminApprovalsTab.tsx` - Línea 265
+El paquete "PEluche" en la base de datos tiene `package_destination_country = 'guatemala'` incorrecto. Esto deberá corregirse manualmente o el usuario deberá rechazar y recrear la solicitud con el destino correcto.
 
