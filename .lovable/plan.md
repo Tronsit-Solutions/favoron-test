@@ -1,69 +1,112 @@
 
-# Plan: Etiquetar Pedidos de Devolución en Admin
+# Plan: Agregar País a Destino de Paquetes
 
-## Objetivo
-Agregar un badge visual "🔄 Devolución" para identificar fácilmente los pedidos que son devoluciones en la vista de aprobaciones del admin.
+## Análisis
 
-## Archivo: `src/components/admin/AdminApprovalsTab.tsx`
+Actualmente `package_destination` almacena solo la ciudad. La tabla `trips` usa columnas separadas (`to_country`, `to_city`), por lo que la solución más simple y consistente es seguir ese mismo patrón.
 
-### Cambio 1: Helper function para detectar devoluciones (después de línea 154)
+## Solución Recomendada: Nueva columna `package_destination_country`
 
-Agregar una función helper para detectar si un paquete es una devolución:
+Esta aproximación es preferible a JSONB porque:
+- Consistente con el patrón existente en `trips`
+- No requiere parseo de JSON en las consultas
+- Queries más eficientes con índices simples
+- Retrocompatible (registros existentes quedan con country = NULL)
+- Más fácil de migrar datos existentes
+
+## Cambios Necesarios
+
+### 1. Migración de Base de Datos
+
+```sql
+-- Agregar nueva columna para país de destino
+ALTER TABLE packages 
+ADD COLUMN package_destination_country TEXT DEFAULT 'guatemala';
+
+-- Comentario para documentación
+COMMENT ON COLUMN packages.package_destination_country IS 'Country key matching src/lib/countries.ts values (e.g., guatemala, estados-unidos, espana)';
+```
+
+### 2. Actualizar Tipos TypeScript
+
+**Archivo**: `src/integrations/supabase/types.ts`
+
+La columna se agregará automáticamente al regenerar tipos, pero el campo `package_destination_country` aparecerá en el tipo `packages`.
+
+### 3. Actualizar Formulario de Solicitud
+
+**Archivo**: `src/components/PackageRequestForm.tsx`
+
+Modificar `handleManualSubmit` para incluir el país seleccionado:
 
 ```typescript
-// Helper function to check if package is a return
-const isReturnPackage = (pkg: any): boolean => {
-  // Check by delivery method
-  if (pkg.delivery_method === 'return_dropoff' || pkg.delivery_method === 'return_pickup') {
-    return true;
-  }
-  // Check by origin (Guatemala origin = reverse logistics)
-  if (pkg.purchase_origin === 'Guatemala') {
-    return true;
-  }
-  return false;
+const submitData: any = {
+  ...formData,
+  // ... campos existentes ...
+  packageDestination: finalDestination,
+  packageDestinationCountry: selectedCountry, // NUEVO: agregar país
+  purchaseOrigin: finalOrigin,
+  // ...
 };
 ```
 
-### Cambio 2: Agregar badge de devolución (líneas 235-239)
+### 4. Actualizar Dashboard Actions
 
-Modificar el header del paquete para mostrar un badge si es devolución:
+**Archivo**: `src/hooks/useDashboardActions.tsx` (líneas 61-79)
 
-```tsx
-<h4 className={`font-medium text-sm sm:text-base break-words ${
-  pkg.products_data?.[0]?.requestType === 'personal' ? 'text-blue-600 dark:text-blue-400' : ''
-}`}>
-  {pkg.item_description}
-  {isReturnPackage(pkg) && (
-    <Badge className="ml-2 bg-purple-100 text-purple-700 border-purple-200 text-xs">
-      🔄 Devolución
-    </Badge>
-  )}
-</h4>
+Agregar el campo del país al crear el paquete:
+
+```typescript
+const dbPackageData = {
+  // ... campos existentes ...
+  package_destination: packageData.packageDestination,
+  package_destination_country: packageData.packageDestinationCountry || 'guatemala', // NUEVO
+  purchase_origin: packageData.purchaseOrigin,
+  // ...
+};
 ```
 
-### Cambio 3: Actualizar método de entrega para devoluciones (líneas 257-261)
+### 5. Actualizar Lógica de Matching
 
-Modificar la lógica de renderizado del método de entrega:
+**Archivo**: `src/components/admin/AdminMatchDialog.tsx`
 
-```tsx
-<p className="text-xs sm:text-sm text-muted-foreground break-words">
-  Método de entrega: {pkg.delivery_method === 'delivery' 
-    ? `🚚 Envío a domicilio (+Q${getDeliveryFee(pkg.delivery_method, pkg.profiles?.trust_level, (pkg.confirmed_delivery_address as any)?.cityArea)})` 
-    : pkg.delivery_method === 'return_dropoff'
-      ? '📦 Punto de devolución (UPS/FedEx)'
-      : pkg.delivery_method === 'return_pickup'
-        ? '🚛 Pickup por carrier'
-        : '🏢 Recojo en zona 14'}
-</p>
+Actualizar la lógica de filtrado de viajes para usar el nuevo campo de país:
+
+```typescript
+// Antes: inferir país de la ciudad
+const packageDestinationNormalized = normalizeCountry(selectedPackage?.package_destination || '');
+
+// Después: usar el campo de país directamente
+const packageDestinationCountry = selectedPackage?.package_destination_country || 
+  normalizeCountry(selectedPackage?.package_destination || ''); // fallback para registros viejos
 ```
 
-## Resultado Visual
+### 6. Actualizar Displays en Admin
 
-| Tipo de Pedido | Apariencia |
-|----------------|------------|
-| Compra normal | Texto normal |
-| Pedido personal | Texto azul |
-| Devolución | Texto azul + Badge púrpura "🔄 Devolución" |
+**Archivos afectados**:
+- `src/components/admin/AdminApprovalsTab.tsx` - Mostrar país + ciudad
+- `src/components/admin/AdminPackagesTab.tsx` - Mostrar país + ciudad  
+- `src/components/admin/ProductDetailModal.tsx` - Mostrar país + ciudad
 
-El badge púrpura permite identificar rápidamente las devoluciones en la lista de aprobaciones, mientras que el texto de método de entrega ahora muestra correctamente "Punto de devolución" o "Pickup por carrier" según corresponda.
+Ejemplo de display:
+```tsx
+<span>
+  Destino: {getCountryLabel(pkg.package_destination_country) || pkg.package_destination_country} - {pkg.package_destination}
+</span>
+```
+
+## Resumen de Archivos a Modificar
+
+| Archivo | Cambio |
+|---------|--------|
+| Nueva migración SQL | Agregar columna `package_destination_country` |
+| `types.ts` | Auto-generado con nueva columna |
+| `PackageRequestForm.tsx` | Pasar país en submit data |
+| `useDashboardActions.tsx` | Guardar país en DB |
+| `AdminMatchDialog.tsx` | Usar país para matching |
+| `AdminApprovalsTab.tsx` | Mostrar país + ciudad |
+| `AdminPackagesTab.tsx` | Mostrar país + ciudad |
+
+## Compatibilidad Hacia Atrás
+
+Los paquetes existentes tendrán `package_destination_country = 'guatemala'` por defecto, lo cual es correcto para la mayoría de casos históricos. La lógica de matching incluirá fallback para inferir el país de la ciudad si el campo está vacío.
