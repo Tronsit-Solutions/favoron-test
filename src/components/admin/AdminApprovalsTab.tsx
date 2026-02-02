@@ -8,7 +8,7 @@ import { CheckCircle, XCircle, Eye } from "lucide-react";
 import { formatFullName } from "@/lib/formatters";
 import RejectionReasonModal from "./RejectionReasonModal";
 import { getDeliveryFee } from "@/lib/pricing";
-
+import { getCountryLabel } from "@/lib/countries";
 interface AdminApprovalsTabProps {
   packages: any[];
   trips: any[];
@@ -262,7 +262,7 @@ const AdminApprovalsTab = ({
                             </p>
                           )}
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                             Origen: {pkg.purchase_origin} → Destino: {pkg.package_destination}
+                             Origen: {pkg.purchase_origin} → Destino: {pkg.package_destination_country ? `${getCountryLabel(pkg.package_destination_country) || pkg.package_destination_country} - ` : ''}{pkg.package_destination}
                            </p>
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                              Fecha límite: {(() => {

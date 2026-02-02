@@ -386,6 +386,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         : null,
       products: products,
       packageDestination: finalDestination,
+      packageDestinationCountry: selectedCountry || 'guatemala', // NEW: pass country
       purchaseOrigin: finalOrigin,
       deliveryAddress: formData.deliveryMethod === 'delivery' ? addressData : null,
       deliveryMethod: formData.deliveryMethod,

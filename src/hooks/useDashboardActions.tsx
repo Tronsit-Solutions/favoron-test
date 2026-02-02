@@ -71,6 +71,7 @@ export const useDashboardActions = (
               : packageData.deliveryDeadline.toISOString())
           : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default 30 days
         package_destination: packageData.packageDestination,
+        package_destination_country: packageData.packageDestinationCountry || 'guatemala', // NEW: save country
         purchase_origin: packageData.purchaseOrigin,
         additional_notes: packageData.additionalNotes || null,
         internal_notes: (packageData.internal_notes ?? packageData.internalNotes)?.trim() || null,
