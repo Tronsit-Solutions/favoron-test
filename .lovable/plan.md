@@ -1,37 +1,33 @@
 
-# Plan: Corregir Comparación Case-Insensitive en getCountryLabel
+# Plan: Agregar `package_destination_country` a fetchPendingApprovalPackages
 
-## Problema Identificado
+## Problema
 
-En `src/lib/countries.ts`, la función `getCountryLabel()` (línea 219-222) hace comparación case-sensitive:
+La query en `fetchPendingApprovalPackages` (línea 320) **NO incluye** el campo `package_destination_country`:
 
 ```tsx
-export const getCountryLabel = (countryValue: string): string | undefined => {
-  const allCountries = [...MAIN_COUNTRIES, ...COUNTRIES];
-  return allCountries.find(c => c.value === countryValue)?.label;
-};
+// Línea 318-320 actual:
+.select(`
+  id, user_id, status, item_description, estimated_price,
+  purchase_origin, package_destination, matched_trip_id,  // ❌ Falta package_destination_country
+  ...
+`)
 ```
 
-**Datos en BD:**
-| Paquete | package_destination_country | Resultado getCountryLabel |
-|---------|---------------------------|--------------------------|
-| croxitos | "Guatemala" | undefined ❌ |
-| PEluche | "guatemala" | "Guatemala" ✅ |
-
-El value del país es `"guatemala"` (minúscula), pero algunos registros tienen `"Guatemala"` (mayúscula).
+Esta es la función específica que carga los paquetes para la pestaña de aprobaciones pendientes, por eso no se ve el país aunque lo agregamos a la otra query general.
 
 ## Solución
 
-### Archivo: `src/lib/countries.ts`
+### Archivo: `src/hooks/useAdminData.tsx`
 
-**Línea 221**: Hacer comparación case-insensitive usando `.toLowerCase()`:
+**Línea 320**: Agregar `package_destination_country` después de `package_destination`:
 
 ```tsx
 // Antes
-return allCountries.find(c => c.value === countryValue)?.label;
+purchase_origin, package_destination, matched_trip_id,
 
 // Después
-return allCountries.find(c => c.value.toLowerCase() === countryValue?.toLowerCase())?.label;
+purchase_origin, package_destination, package_destination_country, matched_trip_id,
 ```
 
 ## Resultado Esperado
@@ -41,6 +37,7 @@ return allCountries.find(c => c.value.toLowerCase() === countryValue?.toLowerCas
 | Destino: Guatemala City | Destino: Guatemala, Guatemala City |
 | Destino: Cualquier ciudad | Destino: Guatemala, Cualquier ciudad |
 
-## Consideración Adicional
+## Alcance
 
-También conviene hacer lo mismo con `getCountryIsoCode()` para consistencia futura.
+- 1 línea en 1 archivo
+- No afecta otras funcionalidades
