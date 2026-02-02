@@ -1,41 +1,46 @@
 
-# Plan: Delivery Fee Q0 para Devoluciones
+# Plan: Corregir "Entrega: No seleccionado" para Devoluciones
 
-## Cambio Requerido
+## Problema
 
-Actualizar la función `getDeliveryFee()` en `src/lib/pricing.ts` para que retorne **Q0** cuando el método de entrega sea `return_dropoff` o `return_pickup`.
+El resumen de la solicitud (Step 4) no reconoce los nuevos métodos de entrega para devoluciones (`return_dropoff` y `return_pickup`), por lo que muestra "No seleccionado".
 
-## Archivo: `src/lib/pricing.ts`
+## Archivo: `src/components/PackageRequestForm.tsx`
 
-### Cambio en `getDeliveryFee()` (línea ~57)
+### Cambio en líneas 1407-1412
 
-Agregar condición al inicio de la función:
+Actualizar la lógica de renderizado para incluir los nuevos métodos:
 
+**Antes:**
 ```typescript
-export const getDeliveryFee = (
-  deliveryMethod: string = 'pickup', 
-  trustLevel?: TrustLevel | string,
-  cityArea?: string
-): number => {
-  // No delivery fee for pickup or returns
-  if (deliveryMethod === 'pickup' || 
-      deliveryMethod === 'return_dropoff' || 
-      deliveryMethod === 'return_pickup') {
-    return 0;
-  }
-  
-  // ... resto de la lógica existente
-};
+{formData.deliveryMethod === 'pickup' 
+  ? 'Recoger en oficina (zona 14)' 
+  : formData.deliveryMethod === 'delivery'
+    ? `Domicilio: ${addressData?.streetAddress || 'Sin dirección'}`
+    : 'No seleccionado'
+}
+```
+
+**Después:**
+```typescript
+{formData.deliveryMethod === 'pickup' 
+  ? 'Recoger en oficina (zona 14)' 
+  : formData.deliveryMethod === 'delivery'
+    ? `Domicilio: ${addressData?.streetAddress || 'Sin dirección'}`
+    : formData.deliveryMethod === 'return_dropoff'
+      ? 'Punto de devolución (UPS/FedEx/etc.)'
+      : formData.deliveryMethod === 'return_pickup'
+        ? 'Pickup programado en domicilio del viajero'
+        : 'No seleccionado'
+}
 ```
 
 ## Resultado
 
-| Método de entrega | Delivery Fee |
-|-------------------|--------------|
-| `pickup` | Q0 |
-| `return_dropoff` | Q0 |
-| `return_pickup` | Q0 |
-| `delivery` (Guatemala City) | Q25 (Q0 Prime) |
-| `delivery` (fuera de Guatemala City) | Q60 (Q35 Prime) |
-
-La compensación al viajero por devoluciones se maneja a través del tip asignado por admin.
+| Método | Texto en resumen |
+|--------|------------------|
+| `pickup` | Recoger en oficina (zona 14) |
+| `delivery` | Domicilio: [dirección] |
+| `return_dropoff` | Punto de devolución (UPS/FedEx/etc.) |
+| `return_pickup` | Pickup programado en domicilio del viajero |
+| otro/vacío | No seleccionado |
