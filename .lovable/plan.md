@@ -1,62 +1,107 @@
 
-# Fix: Aumentar límite de registros en Activity Timeline
+# Plan: Dropdown de Municipios para Entrega a Domicilio
 
-## Problema
-Supabase tiene un límite por defecto de 1000 registros por query. El Timeline muestra 1000 solicitudes cuando en realidad hay 1245.
+## Objetivo
+Reemplazar el campo de texto "Ciudad/Municipio" por un dropdown con los municipios del área metropolitana de Guatemala. Esto resolverá el bug de delivery fee (Nicole Berger) al estandarizar los valores.
 
-## Solución
-Modificar el hook `useActivityTimeline.tsx` para implementar paginación o aumentar el límite explícitamente.
+## Municipios a incluir
 
-## Opciones de implementación
+### Guatemala Ciudad (Q25 delivery)
+- Ciudad de Guatemala
 
-### Opción A: Aumentar el límite (Simple)
-Agregar `.limit(10000)` a las queries para traer todos los registros de una vez.
+### Municipios periféricos (Q60 delivery)
+- Mixco
+- Villa Nueva
+- San Miguel Petapa
+- Villa Canales
+- Amatitlán
+- Santa Catarina Pinula
+- San José Pinula
+- Fraijanes
+- Chinautla
+- Palencia
+- San Pedro Ayampuc
+- San Juan Sacatepéquez
+
+## Archivos a modificar
+
+### 1. `src/lib/cities.ts`
+Agregar nueva constante con municipios de Guatemala:
 
 ```typescript
-// Línea 110-117
-const { data: packagesData, error: packagesError } = await supabase
-  .from('packages')
-  .select(`...`)
-  .not('status', 'eq', 'pending_approval')
-  .order('created_at', { ascending: false })
-  .limit(10000);  // Aumentar límite
+export const GUATEMALA_MUNICIPALITIES = [
+  { value: 'Ciudad de Guatemala', label: 'Ciudad de Guatemala', isCapital: true },
+  { value: 'Mixco', label: 'Mixco', isCapital: false },
+  { value: 'Villa Nueva', label: 'Villa Nueva', isCapital: false },
+  { value: 'San Miguel Petapa', label: 'San Miguel Petapa', isCapital: false },
+  { value: 'Villa Canales', label: 'Villa Canales', isCapital: false },
+  { value: 'Amatitlán', label: 'Amatitlán', isCapital: false },
+  { value: 'Santa Catarina Pinula', label: 'Santa Catarina Pinula', isCapital: false },
+  { value: 'San José Pinula', label: 'San José Pinula', isCapital: false },
+  { value: 'Fraijanes', label: 'Fraijanes', isCapital: false },
+  { value: 'Chinautla', label: 'Chinautla', isCapital: false },
+  { value: 'Palencia', label: 'Palencia', isCapital: false },
+  { value: 'San Pedro Ayampuc', label: 'San Pedro Ayampuc', isCapital: false },
+  { value: 'San Juan Sacatepéquez', label: 'San Juan Sacatepéquez', isCapital: false },
+];
 ```
 
-### Opción B: Paginación (Más robusto)
-Implementar fetching recursivo que traiga todos los registros en bloques de 1000.
+### 2. `src/components/AddressForm.tsx`
+Cambiar el Input por un Select:
 
 ```typescript
-async function fetchAllPackages() {
-  let allPackages: PackageData[] = [];
-  let offset = 0;
-  const pageSize = 1000;
-  
-  while (true) {
-    const { data, error } = await supabase
-      .from('packages')
-      .select(`...`)
-      .range(offset, offset + pageSize - 1);
-    
-    if (error) throw error;
-    if (!data || data.length === 0) break;
-    
-    allPackages = [...allPackages, ...data];
-    if (data.length < pageSize) break;
-    offset += pageSize;
-  }
-  
-  return allPackages;
-}
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { GUATEMALA_MUNICIPALITIES } from "@/lib/cities";
+
+// Reemplazar líneas 64-78 con:
+<div className="space-y-2">
+  <Label htmlFor="cityArea" className="text-sm font-medium">
+    Ciudad/Municipio *
+  </Label>
+  <Select
+    value={formData.cityArea}
+    onValueChange={(value) => handleInputChange('cityArea', value)}
+  >
+    <SelectTrigger className="pl-10">
+      <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+      <SelectValue placeholder="Selecciona tu municipio" />
+    </SelectTrigger>
+    <SelectContent className="bg-white z-50">
+      {GUATEMALA_MUNICIPALITIES.map((muni) => (
+        <SelectItem key={muni.value} value={muni.value}>
+          {muni.label}
+          {muni.isCapital && <span className="text-xs text-green-600 ml-2">(Q25)</span>}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+  <p className="text-xs text-muted-foreground">
+    Ciudad de Guatemala: Q25 | Otros municipios: Q60
+  </p>
+</div>
 ```
 
-## Recomendación
-**Opción A** es suficiente para el volumen actual (1245 packages). Si el sistema crece mucho (>10,000), se debería implementar la Opción B con paginación.
+### 3. `src/lib/pricing.ts`
+Actualizar `isGuatemalaCityArea` para manejar el valor exacto del dropdown:
 
-## Cambios en archivo
+```typescript
+// Agregar coincidencia exacta para "Ciudad de Guatemala"
+const guatemalaCityPatterns = [
+  /^guatemala$/,
+  /^guatemala\s*city$/i,
+  /^ciudad\s*de\s*guatemala$/i,  // Coincidencia exacta del dropdown
+  /^ciudad\s+de\s+guatemala/i,   // Con espacios
+  // ... resto de patrones
+];
+```
 
-**`src/hooks/useActivityTimeline.tsx`**
-- Línea 99-105: Agregar `.limit(10000)` a query de trips
-- Línea 110-117: Agregar `.limit(10000)` a query de packages
+## Beneficios
 
-## Resultado esperado
-- Stats mostrará: **239 Viajes** | **1245 Solicitudes** | **1484 Resultados filtrados**
+1. **UX mejorada**: Los usuarios seleccionan de una lista clara
+2. **Datos consistentes**: Evita variaciones como "Ciudad guatemala", "Guate", etc.
+3. **Transparencia de precios**: Muestra indicador de Q25/Q60 en cada opción
+4. **Corrección del bug**: El valor guardado será exactamente "Ciudad de Guatemala"
+
+## Compatibilidad hacia atrás
+
+Los datos existentes seguirán funcionando porque `isGuatemalaCityArea` ya maneja múltiples variaciones. Los nuevos registros usarán valores estandarizados.
