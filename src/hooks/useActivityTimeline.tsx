@@ -19,6 +19,7 @@ export interface ActivityItem {
   confirmedPackages?: number;
   completedPackages?: number;
   hasPendingPayment?: boolean;
+  arrivalDate?: string;
   
   // Package-specific
   amount?: number;
@@ -32,6 +33,7 @@ interface TripData {
   status: string;
   created_at: string;
   user_id: string;
+  arrival_date: string;
   profiles: {
     first_name: string | null;
     last_name: string | null;
@@ -101,7 +103,7 @@ export function useActivityTimeline(
         const { data: tripsData, error: tripsError } = await supabase
           .from('trips')
           .select(`
-            id, from_city, to_city, status, created_at, user_id,
+            id, from_city, to_city, status, created_at, user_id, arrival_date,
             profiles!trips_user_id_fkey (first_name, last_name, phone_number, email, acquisition_source)
           `)
           .not('status', 'in', '("pending_approval","rejected")')
@@ -206,7 +208,8 @@ export function useActivityTimeline(
           statusColor,
           confirmedPackages: counts.confirmed,
           completedPackages: counts.completed,
-          hasPendingPayment
+          hasPendingPayment,
+          arrivalDate: trip.arrival_date
         });
       });
     }
