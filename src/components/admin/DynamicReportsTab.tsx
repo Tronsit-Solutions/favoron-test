@@ -11,6 +11,7 @@ import { PackagesChart } from "./charts/PackagesChart";
 import { TripsChart } from "./charts/TripsChart";
 import { AvgPackageValueChart } from "./charts/AvgPackageValueChart";
 import { AcquisitionChart } from "./charts/AcquisitionChart";
+import { AcquisitionSurveyTable } from "./charts/AcquisitionSurveyTable";
 import { KPICards } from "./charts/KPICards";
 import { TravelerTipsCard } from "./charts/TravelerTipsCard";
 import { BarChart3, Download, Calendar } from "lucide-react";
@@ -219,6 +220,9 @@ export const DynamicReportsTab = () => {
 
           {/* Acquisition Analysis */}
           <AcquisitionChart data={acquisitionData} summaryKPIs={summaryKPIs} />
+
+          {/* Acquisition Survey Responses Table */}
+          <AcquisitionSurveyTable />
         </>
       )}
     </div>
