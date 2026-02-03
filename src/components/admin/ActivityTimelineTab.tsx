@@ -388,7 +388,15 @@ function ActivityRow({
         </Badge>
       </TableCell>
       <TableCell>
-        <span className="text-sm">{item.description}</span>
+        <div>
+          <span className="text-sm">{item.description}</span>
+          {item.type === 'trip' && item.arrivalDate && (
+            <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              <Plane className="h-3 w-3" />
+              Llega: {format(new Date(item.arrivalDate), 'dd MMM yy', { locale: es })}
+            </div>
+          )}
+        </div>
       </TableCell>
       <TableCell>
         <span className="text-sm text-muted-foreground">
