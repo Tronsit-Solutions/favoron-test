@@ -25,6 +25,7 @@ export interface ActivityItem {
   // Package-specific
   amount?: number;
   paid?: boolean;
+  fullDescription?: string;
 }
 
 interface TripData {
@@ -285,6 +286,7 @@ export function useActivityTimeline(
           userEmail: pkg.profiles?.email || null,
           acquisitionChannel: pkg.profiles?.acquisition_source || null,
           description: pkg.item_description?.substring(0, 50) + (pkg.item_description?.length > 50 ? '...' : ''),
+          fullDescription: pkg.item_description || '',
           createdAt: pkg.created_at,
           status: pkg.status,
           statusLabel,
