@@ -4,7 +4,6 @@ import { es } from 'date-fns/locale';
 import { 
   Search, 
   Download, 
-  Phone, 
   Plane, 
   Package, 
   Calendar,
@@ -13,19 +12,11 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
-import { useActivityTimeline, ActivityFilter, StatusFilter, ActivityItem } from '@/hooks/useActivityTimeline';
+import { useActivityTimeline, StatusFilter, ActivityItem } from '@/hooks/useActivityTimeline';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
 import {
   Select,
   SelectContent,
@@ -39,29 +30,39 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { TripsTimelineTable } from './timeline/TripsTimelineTable';
+import { PackagesTimelineTable } from './timeline/PackagesTimelineTable';
 
 export function ActivityTimelineTab() {
-  const [typeFilter, setTypeFilter] = useState<ActivityFilter>('all');
+  const [activeSubTab, setActiveSubTab] = useState<'trips' | 'packages'>('trips');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState<{ from: Date | null; to: Date | null }>({
     from: null,
     to: null
   });
-  const [visibleCount, setVisibleCount] = useState(50);
+  const [tripsVisibleCount, setTripsVisibleCount] = useState(50);
+  const [packagesVisibleCount, setPackagesVisibleCount] = useState(50);
 
+  // Fetch all activities (we filter by type client-side now)
   const { activities, isLoading, error, stats } = useActivityTimeline(
-    typeFilter, 
+    'all', 
     statusFilter, 
     searchQuery, 
     dateRange
   );
 
-  const visibleActivities = useMemo(() => 
-    activities.slice(0, visibleCount), 
-    [activities, visibleCount]
+  // Separate activities by type
+  const tripActivities = useMemo(() => 
+    activities.filter(a => a.type === 'trip'), 
+    [activities]
+  );
+  
+  const packageActivities = useMemo(() => 
+    activities.filter(a => a.type === 'package'), 
+    [activities]
   );
 
   const getChannelLabel = (channel: string | null): string => {
@@ -76,41 +77,74 @@ export function ActivityTimelineTab() {
   };
 
   const handleExportExcel = () => {
-    const exportData = activities.map(item => ({
-      'Tipo': item.type === 'trip' ? 'Viaje' : 'Solicitud',
-      'Usuario': item.userName,
-      'WhatsApp': item.userPhone || 'N/A',
-      'Canal': getChannelLabel(item.acquisitionChannel),
-      'Email': item.userEmail || 'N/A',
-      'Detalle': item.description,
-      'Fecha': format(new Date(item.createdAt), 'dd/MM/yyyy HH:mm'),
-      'Estado': item.statusLabel,
-      'Paquetes Confirmados': item.confirmedPackages ?? '',
-      'Paquetes Completados': item.completedPackages ?? '',
-      'Monto (Q)': item.amount ?? '',
-      'Pagó': item.type === 'package' ? (item.paid ? 'Sí' : 'No') : ''
-    }));
+    const dataToExport = activeSubTab === 'trips' ? tripActivities : packageActivities;
+    
+    const exportData = dataToExport.map(item => {
+      if (item.type === 'trip') {
+        return {
+          'Tipo': 'Viaje',
+          'Usuario': item.userName,
+          'WhatsApp': item.userPhone || 'N/A',
+          'Canal': getChannelLabel(item.acquisitionChannel),
+          'Email': item.userEmail || 'N/A',
+          'Ruta': item.description,
+          'Fecha Llegada': item.arrivalDate ? format(new Date(item.arrivalDate), 'dd/MM/yyyy') : 'N/A',
+          'Fecha Creación': format(new Date(item.createdAt), 'dd/MM/yyyy HH:mm'),
+          'Estado': item.statusLabel,
+          'Paquetes Confirmados': item.confirmedPackages ?? '',
+          'Paquetes Completados': item.completedPackages ?? '',
+        };
+      } else {
+        return {
+          'Tipo': 'Pedido',
+          'Usuario': item.userName,
+          'WhatsApp': item.userPhone || 'N/A',
+          'Canal': getChannelLabel(item.acquisitionChannel),
+          'Email': item.userEmail || 'N/A',
+          'Descripción': item.description,
+          'Fecha': format(new Date(item.createdAt), 'dd/MM/yyyy HH:mm'),
+          'Estado': item.statusLabel,
+          'Monto (Q)': item.amount ?? '',
+          'Pagó': item.paid ? 'Sí' : 'No'
+        };
+      }
+    });
 
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Timeline');
-    XLSX.writeFile(wb, `timeline_actividad_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
-  };
-
-  const formatWhatsAppLink = (phone: string | null) => {
-    if (!phone) return null;
-    const cleaned = phone.replace(/\D/g, '');
-    return `https://wa.me/${cleaned}`;
+    const sheetName = activeSubTab === 'trips' ? 'Viajes' : 'Pedidos';
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    XLSX.writeFile(wb, `timeline_${sheetName.toLowerCase()}_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
   };
 
   const clearFilters = () => {
-    setTypeFilter('all');
     setStatusFilter('all');
     setSearchQuery('');
     setDateRange({ from: null, to: null });
   };
 
-  const hasActiveFilters = typeFilter !== 'all' || statusFilter !== 'all' || searchQuery || dateRange.from || dateRange.to;
+  const hasActiveFilters = statusFilter !== 'all' || searchQuery || dateRange.from || dateRange.to;
+
+  // Status filter options based on active tab
+  const getStatusOptions = () => {
+    if (activeSubTab === 'trips') {
+      return [
+        { value: 'all', label: 'Todos' },
+        { value: 'completed', label: 'Completados' },
+        { value: 'in_progress', label: 'En Proceso' },
+        { value: 'cancelled', label: 'Cancelados' },
+      ];
+    } else {
+      return [
+        { value: 'all', label: 'Todos' },
+        { value: 'completed', label: 'Completados' },
+        { value: 'in_progress', label: 'En Proceso' },
+        { value: 'cancelled', label: 'Cancelados' },
+        { value: 'paid', label: 'Pagados' },
+        { value: 'unpaid', label: 'Sin Pagar' },
+      ];
+    }
+  };
 
   if (error) {
     return (
@@ -140,7 +174,9 @@ export function ActivityTimelineTab() {
         </Card>
         <Card>
           <CardContent className="pt-4 pb-4">
-            <div className="text-2xl font-bold">{activities.length}</div>
+            <div className="text-2xl font-bold">
+              {activeSubTab === 'trips' ? tripActivities.length : packageActivities.length}
+            </div>
             <p className="text-xs text-muted-foreground">Resultados filtrados</p>
           </CardContent>
         </Card>
@@ -169,7 +205,7 @@ export function ActivityTimelineTab() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Search */}
             <div className="relative lg:col-span-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -181,30 +217,17 @@ export function ActivityTimelineTab() {
               />
             </div>
 
-            {/* Type Filter */}
-            <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as ActivityFilter)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="trips">Solo Viajes</SelectItem>
-                <SelectItem value="packages">Solo Solicitudes</SelectItem>
-              </SelectContent>
-            </Select>
-
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
               <SelectTrigger>
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="completed">Completados</SelectItem>
-                <SelectItem value="in_progress">En Proceso</SelectItem>
-                <SelectItem value="cancelled">Cancelados</SelectItem>
-                <SelectItem value="paid">Pagados</SelectItem>
-                <SelectItem value="unpaid">Sin Pagar</SelectItem>
+                {getStatusOptions().map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -238,6 +261,7 @@ export function ActivityTimelineTab() {
                     to: range?.to || null 
                   })}
                   numberOfMonths={2}
+                  className="pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
@@ -245,182 +269,50 @@ export function ActivityTimelineTab() {
         </CardContent>
       </Card>
 
-      {/* Activity Table */}
+      {/* Sub-tabs and Tables */}
       <Card>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[180px]">Usuario</TableHead>
-                  <TableHead className="w-[120px]">WhatsApp</TableHead>
-                  <TableHead className="w-[100px]">Canal</TableHead>
-                  <TableHead className="w-[80px]">Tipo</TableHead>
-                  <TableHead>Detalle</TableHead>
-                  <TableHead className="w-[100px]">Fecha</TableHead>
-                  <TableHead className="w-[180px]">Estado</TableHead>
-                  <TableHead className="w-[140px]">Info</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  Array.from({ length: 10 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                    </TableRow>
-                  ))
-                ) : visibleActivities.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                      No se encontraron actividades con los filtros seleccionados
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  visibleActivities.map((item) => (
-                    <ActivityRow key={`${item.type}-${item.id}`} item={item} formatWhatsAppLink={formatWhatsAppLink} />
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          
-          {/* Load More */}
-          {visibleActivities.length < activities.length && (
-            <div className="p-4 text-center border-t">
-              <Button 
-                variant="outline" 
-                onClick={() => setVisibleCount(prev => prev + 50)}
-              >
-                Cargar más ({activities.length - visibleActivities.length} restantes)
-              </Button>
+          <Tabs value={activeSubTab} onValueChange={(v) => setActiveSubTab(v as 'trips' | 'packages')}>
+            <div className="border-b px-4 pt-4">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="trips" className="flex items-center gap-2">
+                  <Plane className="h-4 w-4" />
+                  Viajes
+                  <Badge variant="secondary" className="ml-1">
+                    {tripActivities.length}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger value="packages" className="flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Pedidos
+                  <Badge variant="secondary" className="ml-1">
+                    {packageActivities.length}
+                  </Badge>
+                </TabsTrigger>
+              </TabsList>
             </div>
-          )}
+            
+            <TabsContent value="trips" className="mt-0">
+              <TripsTimelineTable 
+                activities={tripActivities}
+                isLoading={isLoading}
+                visibleCount={tripsVisibleCount}
+                onLoadMore={() => setTripsVisibleCount(prev => prev + 50)}
+              />
+            </TabsContent>
+            
+            <TabsContent value="packages" className="mt-0">
+              <PackagesTimelineTable 
+                activities={packageActivities}
+                isLoading={isLoading}
+                visibleCount={packagesVisibleCount}
+                onLoadMore={() => setPackagesVisibleCount(prev => prev + 50)}
+              />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function ActivityRow({ 
-  item, 
-  formatWhatsAppLink 
-}: { 
-  item: ActivityItem; 
-  formatWhatsAppLink: (phone: string | null) => string | null;
-}) {
-  const whatsappLink = formatWhatsAppLink(item.userPhone);
-  
-  const getBadgeVariant = (color: ActivityItem['statusColor']): "default" | "secondary" | "destructive" | "outline" | "success" | "warning" => {
-    switch (color) {
-      case 'success': return 'success';
-      case 'warning': return 'warning';
-      case 'destructive': return 'destructive';
-      case 'default': return 'default';
-      default: return 'secondary';
-    }
-  };
-
-  const getChannelBadge = (channel: string | null) => {
-    switch (channel) {
-      case 'tiktok':
-        return <Badge className="bg-pink-500/10 text-pink-600 border-pink-200 hover:bg-pink-500/20">TikTok</Badge>;
-      case 'instagram_facebook_ads':
-        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-200 hover:bg-blue-500/20">Meta</Badge>;
-      case 'reels':
-        return <Badge className="bg-purple-500/10 text-purple-600 border-purple-200 hover:bg-purple-500/20">Reels</Badge>;
-      case 'friend_referral':
-        return <Badge className="bg-green-500/10 text-green-600 border-green-200 hover:bg-green-500/20">Referidos</Badge>;
-      case 'other':
-        return <Badge variant="secondary">Otro</Badge>;
-      default:
-        return <Badge variant="outline" className="text-muted-foreground">Sin respuesta</Badge>;
-    }
-  };
-  
-  return (
-    <TableRow>
-      <TableCell>
-        <div className="font-medium text-sm">{item.userName}</div>
-        {item.userEmail && (
-          <div className="text-xs text-muted-foreground truncate max-w-[160px]">
-            {item.userEmail}
-          </div>
-        )}
-      </TableCell>
-      <TableCell>
-        {whatsappLink ? (
-          <a 
-            href={whatsappLink} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-          >
-            <Phone className="h-3 w-3" />
-            {item.userPhone}
-          </a>
-        ) : (
-          <span className="text-muted-foreground text-sm">N/A</span>
-        )}
-      </TableCell>
-      <TableCell>
-        {getChannelBadge(item.acquisitionChannel)}
-      </TableCell>
-      <TableCell>
-        <Badge variant="outline" className="gap-1">
-          {item.type === 'trip' ? (
-            <>
-              <Plane className="h-3 w-3" />
-              Viaje
-            </>
-          ) : (
-            <>
-              <Package className="h-3 w-3" />
-              Pedido
-            </>
-          )}
-        </Badge>
-      </TableCell>
-      <TableCell>
-        <div>
-          <span className="text-sm">{item.description}</span>
-          {item.type === 'trip' && item.arrivalDate && (
-            <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <Plane className="h-3 w-3" />
-              Llega: {format(new Date(item.arrivalDate), 'dd MMM yy', { locale: es })}
-            </div>
-          )}
-        </div>
-      </TableCell>
-      <TableCell>
-        <span className="text-sm text-muted-foreground">
-          {format(new Date(item.createdAt), 'dd MMM yy', { locale: es })}
-        </span>
-      </TableCell>
-      <TableCell>
-        <Badge variant={getBadgeVariant(item.statusColor)}>
-          {item.statusLabel}
-        </Badge>
-      </TableCell>
-      <TableCell>
-        {item.type === 'trip' ? (
-          <div className="text-xs space-y-1">
-            <div>{item.confirmedPackages || 0} confirmados</div>
-            <div>{item.completedPackages || 0} completados</div>
-          </div>
-        ) : (
-          <div className="text-sm">
-            {item.amount ? `Q${item.amount.toLocaleString()}` : '-'}
-          </div>
-        )}
-      </TableCell>
-    </TableRow>
   );
 }
 
