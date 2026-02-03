@@ -8,6 +8,7 @@ export interface ActivityItem {
   userName: string;
   userPhone: string | null;
   userEmail: string | null;
+  acquisitionChannel: string | null;
   description: string;
   createdAt: string;
   status: string;
@@ -36,6 +37,7 @@ interface TripData {
     last_name: string | null;
     phone_number: string | null;
     email: string | null;
+    acquisition_source: string | null;
   };
 }
 
@@ -52,6 +54,7 @@ interface PackageData {
     last_name: string | null;
     phone_number: string | null;
     email: string | null;
+    acquisition_source: string | null;
   };
 }
 
@@ -99,7 +102,7 @@ export function useActivityTimeline(
           .from('trips')
           .select(`
             id, from_city, to_city, status, created_at, user_id,
-            profiles!trips_user_id_fkey (first_name, last_name, phone_number, email)
+            profiles!trips_user_id_fkey (first_name, last_name, phone_number, email, acquisition_source)
           `)
           .not('status', 'in', '("pending_approval","rejected")')
           .order('created_at', { ascending: false })
@@ -112,7 +115,7 @@ export function useActivityTimeline(
           .from('packages')
           .select(`
             id, item_description, status, created_at, user_id, quote, matched_trip_id,
-            profiles!packages_user_id_fkey (first_name, last_name, phone_number, email)
+            profiles!packages_user_id_fkey (first_name, last_name, phone_number, email, acquisition_source)
           `)
           .not('status', 'eq', 'pending_approval')
           .order('created_at', { ascending: false })
@@ -195,6 +198,7 @@ export function useActivityTimeline(
           userName: `${trip.profiles?.first_name || ''} ${trip.profiles?.last_name || ''}`.trim() || 'Sin nombre',
           userPhone: trip.profiles?.phone_number || null,
           userEmail: trip.profiles?.email || null,
+          acquisitionChannel: trip.profiles?.acquisition_source || null,
           description: `${trip.from_city} → ${trip.to_city}`,
           createdAt: trip.created_at,
           status: trip.status,
@@ -248,6 +252,7 @@ export function useActivityTimeline(
           userName: `${pkg.profiles?.first_name || ''} ${pkg.profiles?.last_name || ''}`.trim() || 'Sin nombre',
           userPhone: pkg.profiles?.phone_number || null,
           userEmail: pkg.profiles?.email || null,
+          acquisitionChannel: pkg.profiles?.acquisition_source || null,
           description: pkg.item_description?.substring(0, 50) + (pkg.item_description?.length > 50 ? '...' : ''),
           createdAt: pkg.created_at,
           status: pkg.status,
