@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Phone, Plane } from 'lucide-react';
+import { Package, Phone, Plane } from 'lucide-react';
 import { ActivityItem } from '@/hooks/useActivityTimeline';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -70,6 +70,7 @@ export function TripsTimelineTable({ activities, isLoading, visibleCount, onLoad
             <TableHead className="w-[100px]">Creado</TableHead>
             <TableHead className="w-[140px]">Estado</TableHead>
             <TableHead className="w-[120px]">Paquetes</TableHead>
+            <TableHead className="w-[200px]">Detalle Paquetes</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -84,11 +85,12 @@ export function TripsTimelineTable({ activities, isLoading, visibleCount, onLoad
                 <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-32" /></TableCell>
               </TableRow>
             ))
           ) : visibleActivities.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                 No se encontraron viajes con los filtros seleccionados
               </TableCell>
             </TableRow>
@@ -153,6 +155,20 @@ export function TripsTimelineTable({ activities, isLoading, visibleCount, onLoad
                       <div>{item.confirmedPackages || 0} confirmados</div>
                       <div>{item.completedPackages || 0} completados</div>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {item.confirmedPackageDescriptions && item.confirmedPackageDescriptions.length > 0 ? (
+                      <div className="text-xs space-y-1 max-h-20 overflow-y-auto">
+                        {item.confirmedPackageDescriptions.map((desc, idx) => (
+                          <div key={idx} className="flex items-center gap-1">
+                            <Package className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                            <span className="truncate max-w-[160px]">{desc}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">Sin paquetes</span>
+                    )}
                   </TableCell>
                 </TableRow>
               );
