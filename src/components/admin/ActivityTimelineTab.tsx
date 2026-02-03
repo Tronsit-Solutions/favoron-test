@@ -101,7 +101,7 @@ export function ActivityTimelineTab() {
           'WhatsApp': item.userPhone || 'N/A',
           'Canal': getChannelLabel(item.acquisitionChannel),
           'Email': item.userEmail || 'N/A',
-          'Descripción': item.description,
+          'Descripción': item.fullDescription || item.description,
           'Fecha': format(new Date(item.createdAt), 'dd/MM/yyyy HH:mm'),
           'Estado': item.statusLabel,
           'Monto (Q)': item.amount ?? '',
