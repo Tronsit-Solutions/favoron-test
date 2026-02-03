@@ -1,59 +1,85 @@
 
 
-## Corregir Límite de 1000 Filas en Timeline de Actividad
+## Agregar Columna de Paquetes Confirmados en Viajes
 
-### Problema
-Supabase/PostgREST tiene un límite por defecto de **1000 filas** por consulta. Aunque el código usa `.limit(10000)`, esto es ignorado y solo retorna 1000 registros.
+### Objetivo
+Mostrar las descripciones de los paquetes que el viajero llevó (paquetes confirmados/pagados) en una nueva columna en la tabla de viajes.
 
-### Solución
-Implementar **paginación con `.range()`** para traer todos los pedidos en lotes de 1000.
+### Datos disponibles
+El hook `useActivityTimeline` ya tiene acceso a todos los paquetes con su `matched_trip_id` y `item_description`. Solo necesitamos agrupar esta información por viaje.
 
 ### Cambios técnicos
 
-**Archivo:** `src/hooks/useActivityTimeline.tsx`
+#### 1. Modificar el hook `useActivityTimeline.tsx`
 
-1. **Crear función helper de paginación**
+**Agregar campo al interface `ActivityItem`:**
 ```typescript
-async function fetchAllRows<T>(
-  query: any,
-  batchSize: number = 1000
-): Promise<T[]> {
-  const allData: T[] = [];
-  let offset = 0;
-  let hasMore = true;
+// Trip-specific - agregar:
+confirmedPackageDescriptions?: string[];
+```
 
-  while (hasMore) {
-    const { data, error } = await query.range(offset, offset + batchSize - 1);
-    if (error) throw error;
-    
-    if (data && data.length > 0) {
-      allData.push(...data);
-      offset += batchSize;
-      hasMore = data.length === batchSize;
-    } else {
-      hasMore = false;
+**Agrupar descripciones de paquetes por viaje:**
+```typescript
+// En el cálculo de packageCounts, también guardar descripciones
+const packageDetails: Record<string, { 
+  confirmed: number; 
+  completed: number;
+  descriptions: string[];
+}> = {};
+
+(packagesData || []).forEach((pkg: PackageData) => {
+  if (pkg.matched_trip_id && PAID_STATUSES.includes(pkg.status)) {
+    if (!packageDetails[pkg.matched_trip_id]) {
+      packageDetails[pkg.matched_trip_id] = { confirmed: 0, completed: 0, descriptions: [] };
+    }
+    packageDetails[pkg.matched_trip_id].confirmed++;
+    packageDetails[pkg.matched_trip_id].descriptions.push(
+      pkg.item_description?.substring(0, 30) + (pkg.item_description?.length > 30 ? '...' : '')
+    );
+    if (pkg.status === 'completed') {
+      packageDetails[pkg.matched_trip_id].completed++;
     }
   }
-  return allData;
-}
+});
 ```
 
-2. **Aplicar paginación a la consulta de packages**
+**Incluir descripciones en el ActivityItem:**
 ```typescript
-// Antes (solo 1000 filas)
-const { data: packagesData } = await supabase
-  .from('packages')
-  .select(...)
-  .limit(10000);
-
-// Después (todos los registros)
-const packagesData = await fetchAllPackages();
+items.push({
+  // ... campos existentes
+  confirmedPackageDescriptions: counts.descriptions || []
+});
 ```
 
-3. **Optimización: también aplicar a trips y accumulators** por si crecen
+#### 2. Modificar `TripsTimelineTable.tsx`
 
-### Resultado esperado
-- "Pedidos" mostrará el número real (no limitado a 1000)
-- Stats cards mostrarán totales correctos
-- Export Excel incluirá todos los registros
+**Agregar nueva columna "Detalle Paquetes":**
+```typescript
+<TableHead className="w-[200px]">Detalle Paquetes</TableHead>
+```
+
+**Renderizar las descripciones:**
+```typescript
+<TableCell>
+  {item.confirmedPackageDescriptions && item.confirmedPackageDescriptions.length > 0 ? (
+    <div className="text-xs space-y-1 max-h-20 overflow-y-auto">
+      {item.confirmedPackageDescriptions.map((desc, idx) => (
+        <div key={idx} className="flex items-center gap-1">
+          <Package className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+          <span className="truncate">{desc}</span>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <span className="text-muted-foreground text-xs">Sin paquetes</span>
+  )}
+</TableCell>
+```
+
+### Resultado visual esperado
+
+| Usuario | Ruta | ... | Paquetes | Detalle Paquetes |
+|---------|------|-----|----------|------------------|
+| Juan P. | LA → GT | ... | 2 confirmados | 📦 iPhone 15 Pro Max... |
+|         |      |     |           | 📦 AirPods Pro 2... |
 
