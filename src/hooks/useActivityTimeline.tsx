@@ -102,7 +102,8 @@ export function useActivityTimeline(
             profiles!trips_user_id_fkey (first_name, last_name, phone_number, email)
           `)
           .not('status', 'in', '("pending_approval","rejected")')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(10000);
         
         if (tripsError) throw tripsError;
         
@@ -114,7 +115,8 @@ export function useActivityTimeline(
             profiles!packages_user_id_fkey (first_name, last_name, phone_number, email)
           `)
           .not('status', 'eq', 'pending_approval')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(10000);
         
         if (packagesError) throw packagesError;
         
