@@ -20,6 +20,7 @@ export const useAcquisitionSurveyResponses = (limit: number = 50) => {
         .from('profiles')
         .select('id, first_name, last_name, email, acquisition_source, referrer_name, acquisition_source_answered_at, created_at')
         .not('acquisition_source', 'is', null)
+        .not('acquisition_source_answered_at', 'is', null)
         .order('acquisition_source_answered_at', { ascending: false, nullsFirst: false })
         .limit(limit);
 
