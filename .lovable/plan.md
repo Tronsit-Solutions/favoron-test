@@ -1,85 +1,54 @@
 
 
-## Agregar Columna de Paquetes Confirmados en Viajes
+## Corregir Texto Truncado en Export de Excel
 
-### Objetivo
-Mostrar las descripciones de los paquetes que el viajero llevó (paquetes confirmados/pagados) en una nueva columna en la tabla de viajes.
+### Problema
+La descripción de pedidos se trunca a 50 caracteres en el hook `useActivityTimeline.tsx` antes de almacenarse en el `ActivityItem`. Cuando se exporta a Excel, se usa esta versión truncada en lugar del texto completo.
 
-### Datos disponibles
-El hook `useActivityTimeline` ya tiene acceso a todos los paquetes con su `matched_trip_id` y `item_description`. Solo necesitamos agrupar esta información por viaje.
+### Solución
+Agregar un campo `fullDescription` al `ActivityItem` que conserve el texto original completo para usarlo en el export.
 
 ### Cambios técnicos
 
-#### 1. Modificar el hook `useActivityTimeline.tsx`
+#### 1. Modificar `src/hooks/useActivityTimeline.tsx`
 
-**Agregar campo al interface `ActivityItem`:**
+**Agregar campo al interface:**
 ```typescript
-// Trip-specific - agregar:
-confirmedPackageDescriptions?: string[];
+export interface ActivityItem {
+  // ... campos existentes
+  description: string;          // Para mostrar en tabla (truncado)
+  fullDescription?: string;     // Para export (completo)
+  // ...
+}
 ```
 
-**Agrupar descripciones de paquetes por viaje:**
-```typescript
-// En el cálculo de packageCounts, también guardar descripciones
-const packageDetails: Record<string, { 
-  confirmed: number; 
-  completed: number;
-  descriptions: string[];
-}> = {};
-
-(packagesData || []).forEach((pkg: PackageData) => {
-  if (pkg.matched_trip_id && PAID_STATUSES.includes(pkg.status)) {
-    if (!packageDetails[pkg.matched_trip_id]) {
-      packageDetails[pkg.matched_trip_id] = { confirmed: 0, completed: 0, descriptions: [] };
-    }
-    packageDetails[pkg.matched_trip_id].confirmed++;
-    packageDetails[pkg.matched_trip_id].descriptions.push(
-      pkg.item_description?.substring(0, 30) + (pkg.item_description?.length > 30 ? '...' : '')
-    );
-    if (pkg.status === 'completed') {
-      packageDetails[pkg.matched_trip_id].completed++;
-    }
-  }
-});
-```
-
-**Incluir descripciones en el ActivityItem:**
+**Guardar descripción completa en packages:**
 ```typescript
 items.push({
-  // ... campos existentes
-  confirmedPackageDescriptions: counts.descriptions || []
+  // ... otros campos
+  description: pkg.item_description?.substring(0, 50) + (pkg.item_description?.length > 50 ? '...' : ''),
+  fullDescription: pkg.item_description || '',  // ← Nuevo: texto completo
+  // ...
 });
 ```
 
-#### 2. Modificar `TripsTimelineTable.tsx`
+#### 2. Modificar `src/components/admin/ActivityTimelineTab.tsx`
 
-**Agregar nueva columna "Detalle Paquetes":**
+**Usar `fullDescription` en export Excel:**
 ```typescript
-<TableHead className="w-[200px]">Detalle Paquetes</TableHead>
+// En handleExportExcel, para pedidos:
+return {
+  'Tipo': 'Pedido',
+  'Usuario': item.userName,
+  'WhatsApp': item.userPhone || 'N/A',
+  'Canal': getChannelLabel(item.acquisitionChannel),
+  'Email': item.userEmail || 'N/A',
+  'Descripción': item.fullDescription || item.description,  // ← Usar texto completo
+  // ...
+};
 ```
 
-**Renderizar las descripciones:**
-```typescript
-<TableCell>
-  {item.confirmedPackageDescriptions && item.confirmedPackageDescriptions.length > 0 ? (
-    <div className="text-xs space-y-1 max-h-20 overflow-y-auto">
-      {item.confirmedPackageDescriptions.map((desc, idx) => (
-        <div key={idx} className="flex items-center gap-1">
-          <Package className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-          <span className="truncate">{desc}</span>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <span className="text-muted-foreground text-xs">Sin paquetes</span>
-  )}
-</TableCell>
-```
-
-### Resultado visual esperado
-
-| Usuario | Ruta | ... | Paquetes | Detalle Paquetes |
-|---------|------|-----|----------|------------------|
-| Juan P. | LA → GT | ... | 2 confirmados | 📦 iPhone 15 Pro Max... |
-|         |      |     |           | 📦 AirPods Pro 2... |
+### Resultado esperado
+- **En la tabla UI**: Descripciones truncadas a 50 caracteres (para evitar filas muy anchas)
+- **En el Excel**: Descripciones completas sin truncar
 
