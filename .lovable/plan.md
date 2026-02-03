@@ -1,49 +1,50 @@
 
 
-## Agregar Columna "Canal" al Timeline de Actividad
+## Agregar Fecha de Llegada en Columna de Viajes
 
 ### Objetivo
-Mostrar el canal de adquisición de cada usuario en la tabla del Timeline de Actividad para poder correlacionar la fuente de marketing con los viajes y solicitudes que hacen.
+Mostrar la fecha de llegada (`arrival_date`) junto con el origen y destino en la columna "Detalle" para los viajes en el Timeline de Actividad.
 
 ### Cambios a realizar
 
 #### 1. Modificar el hook `useActivityTimeline`
 **Archivo:** `src/hooks/useActivityTimeline.tsx`
 
-- Agregar `acquisition_source` al SELECT de profiles en las queries de trips y packages
-- Agregar campo `acquisitionChannel` a la interface `ActivityItem`
-- Incluir el canal en los objetos de actividad
+- Agregar `arrival_date` al SELECT de trips
+- Agregar campo al interface `TripData`
+- Agregar campo `arrivalDate` al interface `ActivityItem` (solo para viajes)
+- Incluir la fecha de llegada en la descripción del viaje
 
 ```typescript
-// En la interface ActivityItem agregar:
-acquisitionChannel: string | null;
+// Interface TripData - agregar:
+arrival_date: string | null;
 
-// En las queries, modificar el select de profiles:
-profiles!trips_user_id_fkey (first_name, last_name, phone_number, email, acquisition_source)
+// Interface ActivityItem - agregar campo trip-specific:
+arrivalDate?: string | null;
+
+// Query - agregar arrival_date:
+.select(`
+  id, from_city, to_city, status, created_at, user_id, arrival_date,
+  profiles!trips_user_id_fkey (...)
+`)
 ```
 
 #### 2. Modificar el componente `ActivityTimelineTab`
 **Archivo:** `src/components/admin/ActivityTimelineTab.tsx`
 
-- Agregar columna "Canal" en el TableHeader (después de WhatsApp)
-- Agregar Badge con color según el canal en ActivityRow
-- Actualizar el export a Excel para incluir el canal
-- Agregar Skeleton adicional para la nueva columna
-
-#### 3. Mapeo de canales (reutilizar estilo existente)
-| Valor | Label | Color |
-|-------|-------|-------|
-| `tiktok` | TikTok | Rosa |
-| `instagram_facebook_ads` | Meta | Azul |
-| `reels` | Reels | Morado |
-| `friend_referral` | Referidos | Verde |
-| `other` | Otro | Gris |
-| `null` | Sin respuesta | Gris claro |
+- Mostrar la fecha de llegada debajo de la ruta para viajes
+- Formato: "Los Angeles → Guatemala City" + línea adicional "✈️ Llega: 15 feb 26"
 
 ### Resultado visual esperado
 
-| Usuario | WhatsApp | Canal | Tipo | Detalle | Fecha | Estado | Info |
-|---------|----------|-------|------|---------|-------|--------|------|
-| Sabina Sigüenza | 56279846 | TikTok | Pedido | Vitaminas... | 03 feb 26 | matched | - |
-| Diego Cabrera | 49494919 | Referidos | Pedido | Whoop peak | 03 feb 26 | Cotización enviada | Q210 |
+**Antes:**
+| Tipo | Detalle |
+|------|---------|
+| Viaje | Los Angeles → Guatemala City |
+
+**Después:**
+| Tipo | Detalle |
+|------|---------|
+| Viaje | Los Angeles → Guatemala City |
+|       | ✈️ Llega: 15 feb 26 |
 
