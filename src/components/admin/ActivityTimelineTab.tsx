@@ -64,11 +64,23 @@ export function ActivityTimelineTab() {
     [activities, visibleCount]
   );
 
+  const getChannelLabel = (channel: string | null): string => {
+    switch (channel) {
+      case 'tiktok': return 'TikTok';
+      case 'instagram_facebook_ads': return 'Meta';
+      case 'reels': return 'Reels';
+      case 'friend_referral': return 'Referidos';
+      case 'other': return 'Otro';
+      default: return 'Sin respuesta';
+    }
+  };
+
   const handleExportExcel = () => {
     const exportData = activities.map(item => ({
       'Tipo': item.type === 'trip' ? 'Viaje' : 'Solicitud',
       'Usuario': item.userName,
       'WhatsApp': item.userPhone || 'N/A',
+      'Canal': getChannelLabel(item.acquisitionChannel),
       'Email': item.userEmail || 'N/A',
       'Detalle': item.description,
       'Fecha': format(new Date(item.createdAt), 'dd/MM/yyyy HH:mm'),
@@ -242,6 +254,7 @@ export function ActivityTimelineTab() {
                 <TableRow>
                   <TableHead className="w-[180px]">Usuario</TableHead>
                   <TableHead className="w-[120px]">WhatsApp</TableHead>
+                  <TableHead className="w-[100px]">Canal</TableHead>
                   <TableHead className="w-[80px]">Tipo</TableHead>
                   <TableHead>Detalle</TableHead>
                   <TableHead className="w-[100px]">Fecha</TableHead>
@@ -256,6 +269,7 @@ export function ActivityTimelineTab() {
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-40" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-28" /></TableCell>
@@ -264,7 +278,7 @@ export function ActivityTimelineTab() {
                   ))
                 ) : visibleActivities.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       No se encontraron actividades con los filtros seleccionados
                     </TableCell>
                   </TableRow>
@@ -312,6 +326,23 @@ function ActivityRow({
       default: return 'secondary';
     }
   };
+
+  const getChannelBadge = (channel: string | null) => {
+    switch (channel) {
+      case 'tiktok':
+        return <Badge className="bg-pink-500/10 text-pink-600 border-pink-200 hover:bg-pink-500/20">TikTok</Badge>;
+      case 'instagram_facebook_ads':
+        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-200 hover:bg-blue-500/20">Meta</Badge>;
+      case 'reels':
+        return <Badge className="bg-purple-500/10 text-purple-600 border-purple-200 hover:bg-purple-500/20">Reels</Badge>;
+      case 'friend_referral':
+        return <Badge className="bg-green-500/10 text-green-600 border-green-200 hover:bg-green-500/20">Referidos</Badge>;
+      case 'other':
+        return <Badge variant="secondary">Otro</Badge>;
+      default:
+        return <Badge variant="outline" className="text-muted-foreground">Sin respuesta</Badge>;
+    }
+  };
   
   return (
     <TableRow>
@@ -337,6 +368,9 @@ function ActivityRow({
         ) : (
           <span className="text-muted-foreground text-sm">N/A</span>
         )}
+      </TableCell>
+      <TableCell>
+        {getChannelBadge(item.acquisitionChannel)}
       </TableCell>
       <TableCell>
         <Badge variant="outline" className="gap-1">
