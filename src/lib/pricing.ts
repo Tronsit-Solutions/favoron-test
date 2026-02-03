@@ -57,7 +57,9 @@ export const isGuatemalaCityArea = (cityArea?: string): boolean => {
   const guatemalaCityPatterns = [
     /^guatemala$/,                           // "guatemala" exacto
     /^guatemala\s*city$/i,                   // "guatemala city"
-    /^ciudad\s*de\s*guatemala/i,             // "ciudad de guatemala..."
+    /^ciudad\s*de\s*guatemala$/i,            // "Ciudad de Guatemala" - coincidencia exacta del dropdown
+    /^ciudad\s+de\s+guatemala/i,             // "ciudad de guatemala..." con espacios
+    /^ciudad\s*guatemala$/i,                 // "Ciudad guatemala" - sin "de"
     /^guatemala\s*,?\s*guatemala$/i,         // "guatemala, guatemala"
     /^guatemala\s+zona\s*\d+/i,              // "guatemala zona 10"
     /zona\s*\d+.*ciudad\s*de\s*guatemala/i,  // "zona 2 de la Ciudad de Guatemala"
