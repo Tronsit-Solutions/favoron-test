@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin, Phone, Home, Building2 } from "lucide-react";
+import { GUATEMALA_MUNICIPALITIES } from "@/lib/cities";
 
 interface AddressFormProps {
   onSubmit: (addressData: any) => void;
@@ -66,16 +67,27 @@ const AddressForm = ({ onSubmit, onCancel, initialData }: AddressFormProps) => {
             Ciudad/Municipio *
           </Label>
           <div className="relative">
-            <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="cityArea"
-              placeholder="Ej: Guatemala, Mixco, Villa Nueva"
+            <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
+            <Select
               value={formData.cityArea}
-              onChange={(e) => handleInputChange('cityArea', e.target.value)}
-              className="pl-10"
-              required
-            />
+              onValueChange={(value) => handleInputChange('cityArea', value)}
+            >
+              <SelectTrigger className="pl-10">
+                <SelectValue placeholder="Selecciona tu municipio" />
+              </SelectTrigger>
+              <SelectContent className="bg-white z-50">
+                {GUATEMALA_MUNICIPALITIES.map((muni) => (
+                  <SelectItem key={muni.value} value={muni.value}>
+                    {muni.label}
+                    {muni.isCapital && <span className="text-xs text-green-600 ml-2">(Q25)</span>}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Ciudad de Guatemala: Q25 | Otros municipios: Q60
+          </p>
         </div>
 
         <div className="space-y-2">

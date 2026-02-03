@@ -1,5 +1,23 @@
 // Cities organized by country for the trip form
 
+// Municipalities for delivery address form (Guatemala metropolitan area)
+export const GUATEMALA_MUNICIPALITIES = [
+  { value: 'Ciudad de Guatemala', label: 'Ciudad de Guatemala', isCapital: true },
+  { value: 'Mixco', label: 'Mixco', isCapital: false },
+  { value: 'Villa Nueva', label: 'Villa Nueva', isCapital: false },
+  { value: 'San Miguel Petapa', label: 'San Miguel Petapa', isCapital: false },
+  { value: 'Villa Canales', label: 'Villa Canales', isCapital: false },
+  { value: 'Amatitlán', label: 'Amatitlán', isCapital: false },
+  { value: 'Santa Catarina Pinula', label: 'Santa Catarina Pinula', isCapital: false },
+  { value: 'San José Pinula', label: 'San José Pinula', isCapital: false },
+  { value: 'Fraijanes', label: 'Fraijanes', isCapital: false },
+  { value: 'Chinautla', label: 'Chinautla', isCapital: false },
+  { value: 'Palencia', label: 'Palencia', isCapital: false },
+  { value: 'San Pedro Ayampuc', label: 'San Pedro Ayampuc', isCapital: false },
+  { value: 'San Juan Sacatepéquez', label: 'San Juan Sacatepéquez', isCapital: false },
+];
+
+// Cities for trip form
 export const GUATEMALAN_CITIES = [
   { value: 'Guatemala City', label: 'Ciudad de Guatemala' },
   { value: 'Antigua Guatemala', label: 'Antigua Guatemala' },
