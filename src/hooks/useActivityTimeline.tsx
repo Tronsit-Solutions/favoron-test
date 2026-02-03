@@ -80,6 +80,30 @@ const PAID_STATUSES = [
 
 const CANCELLED_STATUSES = ['cancelled', 'quote_rejected', 'admin_rejected'];
 
+// Helper function to fetch all rows bypassing the 1000 row limit
+async function fetchAllPaginated<T>(
+  buildQuery: () => ReturnType<typeof supabase.from>,
+  batchSize: number = 1000
+): Promise<T[]> {
+  const allData: T[] = [];
+  let offset = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data, error } = await buildQuery().range(offset, offset + batchSize - 1);
+    if (error) throw error;
+    
+    if (data && data.length > 0) {
+      allData.push(...(data as T[]));
+      offset += batchSize;
+      hasMore = data.length === batchSize;
+    } else {
+      hasMore = false;
+    }
+  }
+  return allData;
+}
+
 export function useActivityTimeline(
   typeFilter: ActivityFilter = 'all',
   statusFilter: StatusFilter = 'all',
@@ -99,38 +123,36 @@ export function useActivityTimeline(
       setError(null);
       
       try {
-        // Fetch trips with profiles
-        const { data: tripsData, error: tripsError } = await supabase
-          .from('trips')
-          .select(`
-            id, from_city, to_city, status, created_at, user_id, arrival_date,
-            profiles!trips_user_id_fkey (first_name, last_name, phone_number, email, acquisition_source)
-          `)
-          .not('status', 'in', '("pending_approval","rejected")')
-          .order('created_at', { ascending: false })
-          .limit(10000);
+        // Fetch trips with profiles (paginated)
+        const tripsData = await fetchAllPaginated<TripData>(
+          () => supabase
+            .from('trips')
+            .select(`
+              id, from_city, to_city, status, created_at, user_id, arrival_date,
+              profiles!trips_user_id_fkey (first_name, last_name, phone_number, email, acquisition_source)
+            `)
+            .not('status', 'in', '("pending_approval","rejected")')
+            .order('created_at', { ascending: false })
+        );
         
-        if (tripsError) throw tripsError;
+        // Fetch packages with profiles (paginated)
+        const packagesData = await fetchAllPaginated<PackageData>(
+          () => supabase
+            .from('packages')
+            .select(`
+              id, item_description, status, created_at, user_id, quote, matched_trip_id,
+              profiles!packages_user_id_fkey (first_name, last_name, phone_number, email, acquisition_source)
+            `)
+            .not('status', 'eq', 'pending_approval')
+            .order('created_at', { ascending: false })
+        );
         
-        // Fetch packages with profiles
-        const { data: packagesData, error: packagesError } = await supabase
-          .from('packages')
-          .select(`
-            id, item_description, status, created_at, user_id, quote, matched_trip_id,
-            profiles!packages_user_id_fkey (first_name, last_name, phone_number, email, acquisition_source)
-          `)
-          .not('status', 'eq', 'pending_approval')
-          .order('created_at', { ascending: false })
-          .limit(10000);
-        
-        if (packagesError) throw packagesError;
-        
-        // Fetch trip payment accumulators
-        const { data: accumulatorsData, error: accError } = await supabase
-          .from('trip_payment_accumulator')
-          .select('trip_id, payment_order_created');
-        
-        if (accError) throw accError;
+        // Fetch trip payment accumulators (paginated)
+        const accumulatorsData = await fetchAllPaginated<AccumulatorData>(
+          () => supabase
+            .from('trip_payment_accumulator')
+            .select('trip_id, payment_order_created')
+        );
         
         // Calculate package counts per trip
         const counts: Record<string, { confirmed: number; completed: number }> = {};
