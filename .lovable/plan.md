@@ -1,68 +1,59 @@
 
 
-## Separar Viajes y Pedidos en Tablas Independientes
+## Corregir Límite de 1000 Filas en Timeline de Actividad
 
-### Objetivo
-Crear dos tablas separadas dentro del tab Timeline para mostrar viajes y pedidos de forma independiente, mejorando la claridad y usabilidad.
+### Problema
+Supabase/PostgREST tiene un límite por defecto de **1000 filas** por consulta. Aunque el código usa `.limit(10000)`, esto es ignorado y solo retorna 1000 registros.
 
-### Diseño propuesto
-Usar **sub-tabs** dentro del Timeline para alternar entre:
-- **Viajes** (239 registros)
-- **Pedidos** (1000 registros)
-
-Cada tabla tendrá columnas optimizadas para su tipo de datos específico.
-
-### Estructura visual
-
-```text
-┌─────────────────────────────────────────────────────────┐
-│  📊 Stats Cards (igual que ahora)                       │
-├─────────────────────────────────────────────────────────┤
-│  🔍 Filtros (búsqueda, estado, fecha)                   │
-├─────────────────────────────────────────────────────────┤
-│  [✈️ Viajes (239)]  [📦 Pedidos (1000)]  <- Sub-tabs    │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  Tabla específica según tab seleccionado                │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
+### Solución
+Implementar **paginación con `.range()`** para traer todos los pedidos en lotes de 1000.
 
 ### Cambios técnicos
 
-**Archivo:** `src/components/admin/ActivityTimelineTab.tsx`
+**Archivo:** `src/hooks/useActivityTimeline.tsx`
 
-1. **Agregar estado para sub-tab activo**
-   ```typescript
-   const [activeSubTab, setActiveSubTab] = useState<'trips' | 'packages'>('trips');
-   ```
+1. **Crear función helper de paginación**
+```typescript
+async function fetchAllRows<T>(
+  query: any,
+  batchSize: number = 1000
+): Promise<T[]> {
+  const allData: T[] = [];
+  let offset = 0;
+  let hasMore = true;
 
-2. **Separar actividades por tipo**
-   ```typescript
-   const tripActivities = activities.filter(a => a.type === 'trip');
-   const packageActivities = activities.filter(a => a.type === 'package');
-   ```
+  while (hasMore) {
+    const { data, error } = await query.range(offset, offset + batchSize - 1);
+    if (error) throw error;
+    
+    if (data && data.length > 0) {
+      allData.push(...data);
+      offset += batchSize;
+      hasMore = data.length === batchSize;
+    } else {
+      hasMore = false;
+    }
+  }
+  return allData;
+}
+```
 
-3. **Crear sub-tabs UI**
-   - Usar componente `Tabs` de Radix existente
-   - Badge con contador en cada tab
+2. **Aplicar paginación a la consulta de packages**
+```typescript
+// Antes (solo 1000 filas)
+const { data: packagesData } = await supabase
+  .from('packages')
+  .select(...)
+  .limit(10000);
 
-4. **Tabla de Viajes** (columnas optimizadas):
-   | Usuario | WhatsApp | Canal | Ruta | Llegada | Estado | Paquetes |
-   
-5. **Tabla de Pedidos** (columnas optimizadas):
-   | Usuario | WhatsApp | Canal | Descripción | Fecha | Estado | Monto |
+// Después (todos los registros)
+const packagesData = await fetchAllPackages();
+```
 
-6. **Actualizar filtros**
-   - Remover filtro de "Tipo" (ya no necesario con tabs)
-   - Ajustar filtros de estado según tab activo
+3. **Optimización: también aplicar a trips y accumulators** por si crecen
 
-7. **Actualizar export Excel**
-   - Exportar datos del tab activo o ambos
-
-### Beneficios
-- Columnas específicas para cada tipo de dato
-- Vista más limpia y enfocada
-- Navegación clara entre viajes y pedidos
-- Filtros más relevantes por contexto
+### Resultado esperado
+- "Pedidos" mostrará el número real (no limitado a 1000)
+- Stats cards mostrarán totales correctos
+- Export Excel incluirá todos los registros
 
