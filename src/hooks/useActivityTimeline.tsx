@@ -21,6 +21,7 @@ export interface ActivityItem {
   hasPendingPayment?: boolean;
   arrivalDate?: string;
   confirmedPackageDescriptions?: string[];
+  fullPackageDescriptions?: string[];
   
   // Package-specific
   amount?: number;
@@ -115,7 +116,7 @@ export function useActivityTimeline(
   const [trips, setTrips] = useState<TripData[]>([]);
   const [packages, setPackages] = useState<PackageData[]>([]);
   const [accumulators, setAccumulators] = useState<AccumulatorData[]>([]);
-  const [packageCounts, setPackageCounts] = useState<Record<string, { confirmed: number; completed: number; descriptions: string[] }>>({});
+  const [packageCounts, setPackageCounts] = useState<Record<string, { confirmed: number; completed: number; descriptions: string[]; fullDescriptions: string[] }>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -157,11 +158,11 @@ export function useActivityTimeline(
         );
         
         // Calculate package counts and descriptions per trip
-        const counts: Record<string, { confirmed: number; completed: number; descriptions: string[] }> = {};
+        const counts: Record<string, { confirmed: number; completed: number; descriptions: string[]; fullDescriptions: string[] }> = {};
         (packagesData || []).forEach((pkg: PackageData) => {
           if (pkg.matched_trip_id) {
             if (!counts[pkg.matched_trip_id]) {
-              counts[pkg.matched_trip_id] = { confirmed: 0, completed: 0, descriptions: [] };
+              counts[pkg.matched_trip_id] = { confirmed: 0, completed: 0, descriptions: [], fullDescriptions: [] };
             }
             if (PAID_STATUSES.includes(pkg.status)) {
               counts[pkg.matched_trip_id].confirmed++;
@@ -169,6 +170,7 @@ export function useActivityTimeline(
               counts[pkg.matched_trip_id].descriptions.push(
                 desc.substring(0, 30) + (desc.length > 30 ? '...' : '')
               );
+              counts[pkg.matched_trip_id].fullDescriptions.push(desc);
             }
             if (pkg.status === 'completed') {
               counts[pkg.matched_trip_id].completed++;
@@ -198,7 +200,7 @@ export function useActivityTimeline(
     if (typeFilter === 'all' || typeFilter === 'trips') {
       trips.forEach(trip => {
         const accumulator = accumulators.find(a => a.trip_id === trip.id);
-        const counts = packageCounts[trip.id] || { confirmed: 0, completed: 0, descriptions: [] };
+        const counts = packageCounts[trip.id] || { confirmed: 0, completed: 0, descriptions: [], fullDescriptions: [] };
         const hasPendingPayment = counts.confirmed > 0 && !accumulator?.payment_order_created;
         
         let statusLabel: string;
@@ -238,7 +240,8 @@ export function useActivityTimeline(
           completedPackages: counts.completed,
           hasPendingPayment,
           arrivalDate: trip.arrival_date,
-          confirmedPackageDescriptions: counts.descriptions || []
+          confirmedPackageDescriptions: counts.descriptions || [],
+          fullPackageDescriptions: counts.fullDescriptions || []
         });
       });
     }
