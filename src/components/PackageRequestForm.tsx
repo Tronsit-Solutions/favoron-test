@@ -1001,7 +1001,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                             ¿Necesitas la etiqueta/empaque original?
                           </Label>
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            Indica si es importante conservar el empaque de fábrica
+                            Empaque del producto (ej: caja del iPhone), no la caja de envío
                           </p>
                         </div>
                         <RadioGroup
@@ -1119,7 +1119,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                             ¿Necesitas la etiqueta/empaque original?
                           </Label>
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            Indica si es importante conservar el empaque de fábrica
+                            Empaque del producto (ej: caja del iPhone), no la caja de envío
                           </p>
                         </div>
                         <RadioGroup
