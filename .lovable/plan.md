@@ -1,54 +1,102 @@
 
 
-## Corregir Texto Truncado en Export de Excel
+## Agregar Campo "Necesita Etiqueta/Envoltorio Original"
 
-### Problema
-La descripción de pedidos se trunca a 50 caracteres en el hook `useActivityTimeline.tsx` antes de almacenarse en el `ActivityItem`. Cuando se exporta a Excel, se usa esta versión truncada en lugar del texto completo.
+### Objetivo
+Agregar un campo Sí/No en el formulario de productos para indicar si el shopper necesita que el producto llegue con su empaque/etiqueta original.
 
-### Solución
-Agregar un campo `fullDescription` al `ActivityItem` que conserve el texto original completo para usarlo en el export.
+### Ubicacion en el formulario
+**Step 2 (Productos)** - Dentro de cada tarjeta de producto, despues del campo de Cantidad para compras online, o despues de las fotos para pedidos personales.
 
-### Cambios técnicos
+### Cambios tecnicos
 
-#### 1. Modificar `src/hooks/useActivityTimeline.tsx`
+#### 1. Modificar interface `Product` en `src/types/index.ts`
 
-**Agregar campo al interface:**
 ```typescript
-export interface ActivityItem {
-  // ... campos existentes
-  description: string;          // Para mostrar en tabla (truncado)
-  fullDescription?: string;     // Para export (completo)
-  // ...
+export interface Product {
+  itemDescription: string;
+  estimatedPrice: string;
+  itemLink?: string;
+  requestType?: 'online' | 'personal';
+  instructions?: string;
+  weight?: number;
+  declaredValue?: number;
+  productPhotos?: Array<...>;
+  quantity?: string;
+  needsOriginalPackaging?: boolean;  // NUEVO campo
 }
 ```
 
-**Guardar descripción completa en packages:**
+#### 2. Modificar `ProductData` en `src/types/index.ts`
+
 ```typescript
-items.push({
-  // ... otros campos
-  description: pkg.item_description?.substring(0, 50) + (pkg.item_description?.length > 50 ? '...' : ''),
-  fullDescription: pkg.item_description || '',  // ← Nuevo: texto completo
-  // ...
-});
+export interface ProductData {
+  // ... campos existentes
+  needsOriginalPackaging?: boolean;  // NUEVO campo
+}
 ```
 
-#### 2. Modificar `src/components/admin/ActivityTimelineTab.tsx`
+#### 3. Modificar `PackageRequestForm.tsx`
 
-**Usar `fullDescription` en export Excel:**
-```typescript
-// En handleExportExcel, para pedidos:
-return {
-  'Tipo': 'Pedido',
-  'Usuario': item.userName,
-  'WhatsApp': item.userPhone || 'N/A',
-  'Canal': getChannelLabel(item.acquisitionChannel),
-  'Email': item.userEmail || 'N/A',
-  'Descripción': item.fullDescription || item.description,  // ← Usar texto completo
-  // ...
-};
+**Agregar campo en cada producto (ambos tipos: online y personal):**
+
+Despues del campo de Cantidad (para online, linea ~994) y despues de las fotos (para personal, linea ~1084):
+
+```tsx
+{/* Necesita empaque original */}
+<div className="pt-2 border-t border-border/50 mt-3">
+  <div className="flex items-center justify-between">
+    <div>
+      <Label className="text-xs text-muted-foreground">
+        ¿Necesitas la etiqueta/empaque original?
+      </Label>
+      <p className="text-[10px] text-muted-foreground mt-0.5">
+        Indica si es importante conservar el empaque de fabrica
+      </p>
+    </div>
+    <RadioGroup
+      value={product.needsOriginalPackaging === true ? 'yes' : 'no'}
+      onValueChange={(value) => updateProduct(index, 'needsOriginalPackaging', value === 'yes')}
+      className="flex space-x-4"
+    >
+      <div className="flex items-center space-x-1">
+        <RadioGroupItem value="yes" id={`packaging-yes-${index}`} />
+        <Label htmlFor={`packaging-yes-${index}`} className="text-xs cursor-pointer">Si</Label>
+      </div>
+      <div className="flex items-center space-x-1">
+        <RadioGroupItem value="no" id={`packaging-no-${index}`} />
+        <Label htmlFor={`packaging-no-${index}`} className="text-xs cursor-pointer">No</Label>
+      </div>
+    </RadioGroup>
+  </div>
+</div>
 ```
 
-### Resultado esperado
-- **En la tabla UI**: Descripciones truncadas a 50 caracteres (para evitar filas muy anchas)
-- **En el Excel**: Descripciones completas sin truncar
+### Valor por defecto
+- `needsOriginalPackaging: false` (No) - El valor predeterminado sera "No" para no obligar al usuario a seleccionar
+
+### Resultado visual esperado
+
+```text
++------------------------------------------+
+| Producto #1                              |
+| Link del producto *                      |
+| [https://amazon.com/producto...]         |
+|                                          |
+| Descripcion del producto *               |
+| [iPhone 15 Pro Max 256GB Color Azul...]  |
+|                                          |
+| Precio (USD) *     | Cantidad *          |
+| [$ 299.99]         | [1]                 |
+|                                          |
+| ---------------------------------------- |
+| ¿Necesitas la etiqueta/empaque original? |
+| Indica si es importante conservar...     |
+|                           (o) Si  (o) No |
++------------------------------------------+
+```
+
+### Archivos a modificar
+1. `src/types/index.ts` - Agregar campo `needsOriginalPackaging`
+2. `src/components/PackageRequestForm.tsx` - Agregar UI del campo
 
