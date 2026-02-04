@@ -1,120 +1,144 @@
 
 
-## Agregar Checkbox de Empaque Original al Modal de Admin
+## Restaurar Notificaciones de Email para ready_for_pickup y ready_for_delivery
 
-### Problema
-El checkbox de "empaque original" se agregó al modal de edición del shopper, pero falta en el modal de administración (`PackageDetailModal.tsx`) que se usa en el panel de matching/aprobaciones.
+### Contexto
+La funcion `notify_shopper_package_status` fue simplificada en una migracion anterior y ahora solo maneja 4 estados: `approved`, `pending_purchase`, `payment_pending`, y `rejected`. Faltan los estados `ready_for_pickup` y `ready_for_delivery` que son criticos para informar al shopper que su pedido esta listo.
 
 ---
 
-### Cambios Propuestos
+### Solucion Propuesta
 
-#### 1. Agregar Import de Checkbox
-**Archivo:** `src/components/admin/PackageDetailModal.tsx` (inicio del archivo)
+Crear una nueva migracion SQL que actualice la funcion `notify_shopper_package_status` para:
 
-```tsx
-import { Checkbox } from "@/components/ui/checkbox";
+1. Agregar manejo de `ready_for_pickup`
+2. Agregar manejo de `ready_for_delivery`
+3. Usar `create_notification_with_direct_email` (en lugar de `create_notification`) para enviar tanto la notificacion in-app como el email
+
+---
+
+### SQL de la Migracion
+
+```sql
+-- Actualizar notify_shopper_package_status para incluir ready_for_pickup y ready_for_delivery
+CREATE OR REPLACE FUNCTION public.notify_shopper_package_status()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  shopper_name TEXT;
+  notification_title TEXT;
+  notification_message TEXT;
+  notification_type TEXT := 'delivery';
+  notification_priority TEXT := 'normal';
+BEGIN
+  -- Obtener nombre del shopper
+  SELECT CONCAT(first_name, ' ', last_name) INTO shopper_name
+  FROM public.profiles 
+  WHERE id = NEW.user_id;
+  
+  -- 1. Cuando admin aprueba el paquete
+  IF OLD.status = 'pending_approval' AND NEW.status = 'approved' THEN
+    notification_title := '✅ Tu pedido ha sido aprobado';
+    notification_message := CONCAT('¡Excelente! Tu pedido "', NEW.item_description, '" ha sido aprobado por nuestro equipo. Pronto será asignado a un viajero.');
+    notification_priority := 'high';
+    notification_type := 'approval';
+    
+  -- 2. Cuando el paquete pasa a pending_purchase (pago aprobado)
+  ELSIF OLD.status != 'pending_purchase' AND NEW.status = 'pending_purchase' THEN
+    notification_title := '💳 Tu pago ha sido aprobado exitosamente';
+    notification_message := CONCAT('¡Perfecto! Tu pago para el pedido "', NEW.item_description, '" ha sido aprobado. Ahora puedes proceder a realizar la compra del paquete según las instrucciones recibidas.');
+    notification_priority := 'high';
+    notification_type := 'payment';
+
+  -- 2.b Cuando el shopper acepta la cotización (payment_pending)
+  ELSIF OLD.status != 'payment_pending' AND NEW.status = 'payment_pending' THEN
+    notification_title := '💳 Aceptaste la cotización';
+    notification_message := CONCAT('Has aceptado la cotización para "', NEW.item_description, '". Ahora sube tu comprobante de pago para continuar.');
+    notification_priority := 'high';
+    notification_type := 'payment';
+    
+  -- 3. Cuando admin rechaza el paquete CON RAZÓN
+  ELSIF OLD.status = 'pending_approval' AND NEW.status = 'rejected' THEN
+    notification_title := '❌ Tu pedido ha sido rechazado';
+    notification_message := CONCAT('Lo sentimos, tu pedido "', NEW.item_description, '" ha sido rechazado.');
+    
+    -- Add rejection reason if available
+    IF NEW.rejection_reason IS NOT NULL AND LENGTH(TRIM(NEW.rejection_reason)) > 0 THEN
+      notification_message := notification_message || CONCAT(' Razón: ', NEW.rejection_reason);
+    END IF;
+    
+    notification_message := notification_message || ' Puedes crear una nueva solicitud mejorando los detalles según los comentarios.';
+    notification_priority := 'high';
+    notification_type := 'package';
+
+  -- 4. NUEVO: Cuando está listo para recoger (pickup)
+  ELSIF NEW.status = 'ready_for_pickup' AND OLD.status != 'ready_for_pickup' THEN
+    notification_title := '✨ ¡Tu pedido está listo para recoger!';
+    notification_message := CONCAT('¡Excelente noticia! Tu pedido "', NEW.item_description, '" ya está en nuestras oficinas listo para que lo recojas. Te esperamos en horario de atención.');
+    notification_priority := 'high';
+    notification_type := 'delivery';
+
+  -- 5. NUEVO: Cuando está listo para entrega a domicilio
+  ELSIF NEW.status = 'ready_for_delivery' AND OLD.status != 'ready_for_delivery' THEN
+    notification_title := '🚚 ¡Tu pedido está próximo a llegar!';
+    notification_message := CONCAT('¡Buenas noticias! Tu pedido "', NEW.item_description, '" está listo para entrega. Nos pondremos en contacto contigo pronto para coordinar la entrega a tu domicilio.');
+    notification_priority := 'high';
+    notification_type := 'delivery';
+    
+  END IF;
+  
+  -- Crear la notificación con email directo si hay título y mensaje
+  IF notification_title IS NOT NULL AND notification_message IS NOT NULL THEN
+    PERFORM public.create_notification_with_direct_email(
+      NEW.user_id,
+      notification_title,
+      notification_message,
+      notification_type,
+      notification_priority,
+      'https://favoron.app/dashboard',
+      jsonb_build_object(
+        'package_id', NEW.id,
+        'package_status', NEW.status,
+        'change_type', 'package_status_update',
+        'rejection_reason', NEW.rejection_reason
+      )
+    );
+  END IF;
+  
+  RETURN NEW;
+END;
+$function$;
 ```
 
 ---
 
-#### 2. Actualizar Interface de editProducts
-**Lineas 177-188** - Agregar `needsOriginalPackaging`:
+### Cambios Clave
 
-```tsx
-const [editProducts, setEditProducts] = useState<Array<{
-  itemDescription: string;
-  estimatedPrice: string;
-  quantity: string;
-  itemLink: string;
-  additionalNotes?: string;
-  adminAssignedTip?: number;
-  requestType?: string;
-  weight?: string;
-  instructions?: string;
-  needsOriginalPackaging?: boolean;  // <-- Agregar
-  [key: string]: any;
-}>>([]);
-```
+| Estado | Titulo | Prioridad | Tipo |
+|--------|--------|-----------|------|
+| `ready_for_pickup` | ✨ ¡Tu pedido está listo para recoger! | high | delivery |
+| `ready_for_delivery` | 🚚 ¡Tu pedido está próximo a llegar! | high | delivery |
 
 ---
 
-#### 3. Actualizar handleProductChange para aceptar boolean
-**Lineas 594-603**:
+### Funcion Utilizada
 
-```tsx
-const handleProductChange = (index: number, field: string, value: string | boolean) => {
-  setEditProducts(prev => {
-    const updated = [...prev];
-    updated[index] = {
-      ...updated[index],
-      [field]: value
-    };
-    return updated;
-  });
-};
-```
-
----
-
-#### 4. Agregar Checkbox en el Formulario de Productos
-**Despues de linea 1373** (despues del campo de Peso), agregar:
-
-```tsx
-{/* Empaque Original */}
-<div className="md:col-span-2">
-  <div className="flex items-center space-x-2 pt-2 border-t border-muted/40 mt-2">
-    <Checkbox
-      id={`packaging-${idx}`}
-      checked={product.needsOriginalPackaging || false}
-      onCheckedChange={(checked) => 
-        handleProductChange(idx, 'needsOriginalPackaging', checked === true)
-      }
-    />
-    <label 
-      htmlFor={`packaging-${idx}`} 
-      className="text-xs text-muted-foreground cursor-pointer flex items-center gap-1"
-    >
-      📦 Conservar empaque/caja original
-    </label>
-  </div>
-</div>
-```
-
----
-
-### Ubicacion del Control
-
-Dentro del formulario de cada producto en el admin:
-
-```
-┌─────────────────────────────────────┐
-│ Producto #1                Tip: Q__ │
-│ ─────────────────────────────────── │
-│ Descripcion: [________________]     │
-│ Precio: [___]    Cantidad: [___]    │
-│ Link: [________________________]    │
-│ Notas adicionales: [___________]    │
-│ Peso (lbs): [___]                   │
-│ ─────────────────────────────────── │
-│ ☑ 📦 Conservar empaque/caja original│  <-- Nuevo
-│ ─────────────────────────────────── │
-│            Subtotal: $808.99        │
-└─────────────────────────────────────┘
-```
-
----
-
-### Archivos a Modificar
-
-1. `src/components/admin/PackageDetailModal.tsx`
-   - Agregar import de Checkbox
-   - Extender tipado de editProducts
-   - Actualizar handleProductChange
-   - Agregar checkbox en cada producto
+Se cambia de `create_notification` a `create_notification_with_direct_email` para que:
+- Se cree la notificacion in-app
+- Se envie email automaticamente (si el usuario tiene habilitadas las notificaciones por email)
+- Se envie WhatsApp automaticamente (si el usuario tiene habilitadas las notificaciones por WhatsApp)
 
 ---
 
 ### Resultado Esperado
-Los administradores podran ver y modificar la preferencia de empaque original para cada producto directamente desde el modal de detalle/edicion en el panel de matching.
+
+Cuando un paquete cambie a `ready_for_pickup` o `ready_for_delivery`:
+
+1. Se creara una notificacion in-app visible en el dropdown de notificaciones
+2. Se enviara un email al shopper con el mensaje apropiado
+3. Se enviara WhatsApp si el usuario lo tiene habilitado
+4. La notificacion tendra prioridad alta para que aparezca destacada
 
