@@ -296,6 +296,14 @@ const AdminApprovalsTab = ({
                               <strong>Notas:</strong> {pkg.additional_notes}
                             </p>
                           )}
+                          {/* Indicador de empaque original */}
+                          {pkg.products_data && pkg.products_data.length > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              📦 {pkg.products_data.some((p: any) => p.needsOriginalPackaging) 
+                                ? 'Conservar empaque original' 
+                                : 'No requiere empaque original'}
+                            </p>
+                          )}
                         </div>
                         <div className="flex-shrink-0 self-start">
                           {getStatusBadge(pkg.status)}

@@ -1557,10 +1557,10 @@ const [editForm, setEditForm] = useState({
                         </div>
                         
                         {/* Indicador de empaque original */}
-                        <div className={`mt-2 px-2 py-1 rounded text-xs flex items-center gap-1 ${
+                        <div className={`mt-2 text-xs flex items-center gap-1 ${
                           product.rawProduct?.needsOriginalPackaging 
-                            ? 'text-amber-600 bg-amber-50' 
-                            : 'text-muted-foreground bg-muted/30'
+                            ? 'text-amber-600' 
+                            : 'text-muted-foreground'
                         }`}>
                           📦 {product.rawProduct?.needsOriginalPackaging ? 'Conservar empaque original' : 'No requiere empaque original'}
                         </div>
