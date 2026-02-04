@@ -928,7 +928,7 @@ const CollapsiblePackageCard = ({
                   <div className="p-3 max-h-64 overflow-y-auto max-w-full min-w-0 overflow-x-hidden">
                     <TabsContent value="producto" className="mt-0">
                       <ShopperPackageDetails pkg={pkg} />
-                      {pkg.rejection_reason && <div className="mt-3">
+                      {pkg.status === 'rejected' && pkg.rejection_reason && <div className="mt-3">
                           <RejectionReasonDisplay rejectionReason={pkg.rejection_reason as any} />
                         </div>}
                     </TabsContent>
