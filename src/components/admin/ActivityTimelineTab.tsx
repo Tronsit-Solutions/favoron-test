@@ -93,6 +93,7 @@ export function ActivityTimelineTab() {
           'Estado': item.statusLabel,
           'Paquetes Confirmados': item.confirmedPackages ?? '',
           'Paquetes Completados': item.completedPackages ?? '',
+          'Detalle Paquetes': item.confirmedPackageDescriptions?.join(' | ') || 'Sin paquetes',
         };
       } else {
         return {
