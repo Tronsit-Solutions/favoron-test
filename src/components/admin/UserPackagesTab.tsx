@@ -7,13 +7,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Package as PackageIcon, Edit, Eye, ExternalLink, MapPin, Calendar } from "lucide-react";
+import { Package as PackageIcon, Edit, Eye, ExternalLink, MapPin, Calendar, Loader2 } from "lucide-react";
 
 interface UserPackagesTabProps {
   packages: Package[];
+  loadingPackages?: boolean;
 }
 
-const UserPackagesTab = ({ packages }: UserPackagesTabProps) => {
+const UserPackagesTab = ({ packages, loadingPackages = false }: UserPackagesTabProps) => {
   const { getStatusBadge } = useStatusHelpers();
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
 
@@ -28,6 +29,21 @@ const UserPackagesTab = ({ packages }: UserPackagesTabProps) => {
   const handleViewDocument = (type: string, pkg: Package) => {
     // Document viewer would be implemented here
   };
+
+  // Estados que se muestran con estilo especial (cancelados/rechazados)
+  const cancelledStatuses = ['cancelled', 'rejected', 'quote_rejected', 'quote_expired'];
+  const isCancelledStatus = (status: string) => cancelledStatuses.includes(status);
+
+  if (loadingPackages) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center text-muted-foreground">
+          <Loader2 className="h-8 w-8 mx-auto mb-4 animate-spin" />
+          <p>Cargando historial de pedidos...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (packages.length === 0) {
     return (
@@ -63,7 +79,10 @@ const UserPackagesTab = ({ packages }: UserPackagesTabProps) => {
             </TableHeader>
             <TableBody>
               {packages.map((pkg) => (
-                <TableRow key={pkg.id}>
+                <TableRow 
+                  key={pkg.id} 
+                  className={isCancelledStatus(pkg.status) ? 'opacity-60 bg-destructive/5' : ''}
+                >
                   <TableCell>
                     <div className="space-y-1">
                       <p className="font-medium">
