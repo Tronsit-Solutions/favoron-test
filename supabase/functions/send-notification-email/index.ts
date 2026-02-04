@@ -101,6 +101,7 @@ const getEmailTemplate = (title: string, message: string, type: string, actionUr
       case 'approval': return 'background-color: #fff3e0; color: #f57c00;';
       case 'quote': return 'background-color: #fce4ec; color: #c2185b;';
       case 'delivery': return 'background-color: #e0f2f1; color: #00695c;';
+      case 'chat': return 'background-color: #e8eaf6; color: #3f51b5;';
       default: return 'background-color: #f5f5f5; color: #757575;';
     }
   };

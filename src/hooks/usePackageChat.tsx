@@ -100,7 +100,10 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
         return false;
       }
 
-      // WhatsApp chat notifications removed - only welcome template available
+      // Send email notification to the other party (only for text messages)
+      if (type === 'text') {
+        sendChatEmailNotification(content.trim(), 'text', user.id);
+      }
 
       await fetchMessages(); // Refresh messages
       return true;
@@ -110,8 +113,115 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
     }
   };
 
-  // WhatsApp chat notifications removed - only welcome template available
-  // Chat messages are visible in the dashboard, no push notification needed
+  const sendChatEmailNotification = async (
+    messageContent: string, 
+    messageType: 'text' | 'file_upload',
+    senderUserId: string
+  ) => {
+    try {
+      // Get package details to determine shopper and traveler
+      const { data: packageData, error: pkgError } = await supabase
+        .from('packages')
+        .select(`
+          id,
+          user_id,
+          item_description,
+          matched_trip_id,
+          trips!fk_packages_matched_trip (
+            id,
+            user_id
+          )
+        `)
+        .eq('id', packageId)
+        .single();
+
+      if (pkgError || !packageData) {
+        console.log('Could not fetch package data for chat notification');
+        return;
+      }
+
+      const shopperId = packageData.user_id;
+      const travelerId = (packageData.trips as any)?.user_id;
+
+      // If no traveler assigned, skip notification
+      if (!travelerId) {
+        console.log('No traveler assigned, skipping chat notification');
+        return;
+      }
+
+      // Determine recipient (the other party)
+      let recipientId: string;
+      let senderRole: string;
+
+      if (senderUserId === shopperId) {
+        recipientId = travelerId;
+        senderRole = 'shopper';
+      } else if (senderUserId === travelerId) {
+        recipientId = shopperId;
+        senderRole = 'viajero';
+      } else {
+        // Sender is admin or other - skip notification to avoid noise
+        console.log('Sender is not shopper or traveler, skipping notification');
+        return;
+      }
+
+      // Get sender name
+      const { data: senderProfile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', senderUserId)
+        .single();
+
+      const senderName = senderProfile 
+        ? `${senderProfile.first_name || ''} ${senderProfile.last_name || ''}`.trim() || 'Usuario'
+        : 'Usuario';
+
+      // Truncate message for preview
+      const messagePreview = messageContent.length > 100 
+        ? messageContent.substring(0, 100) + '...' 
+        : messageContent;
+
+      const itemDescription = packageData.item_description || 'tu paquete';
+      const truncatedItem = itemDescription.length > 50 
+        ? itemDescription.substring(0, 50) + '...' 
+        : itemDescription;
+
+      // Build email content
+      const title = messageType === 'file_upload' 
+        ? `Nuevo archivo de ${senderName}`
+        : `Nuevo mensaje de ${senderName}`;
+
+      const message = messageType === 'file_upload'
+        ? `<p><strong>${senderName}</strong> (${senderRole}) ha enviado un archivo en el chat de tu paquete:</p>
+           <p style="background: #f5f5f5; padding: 12px; border-radius: 8px; margin: 16px 0;">"${messagePreview}"</p>
+           <p><strong>Paquete:</strong> ${truncatedItem}</p>`
+        : `<p><strong>${senderName}</strong> (${senderRole}) te ha enviado un mensaje:</p>
+           <p style="background: #f5f5f5; padding: 12px; border-radius: 8px; margin: 16px 0; font-style: italic;">"${messagePreview}"</p>
+           <p><strong>Paquete:</strong> ${truncatedItem}</p>`;
+
+      // Send email notification
+      await supabase.functions.invoke('send-notification-email', {
+        body: {
+          user_id: recipientId,
+          title,
+          message,
+          type: 'chat',
+          priority: 'normal',
+          action_url: 'https://favoron.app/dashboard',
+          metadata: {
+            package_id: packageId,
+            sender_id: senderUserId,
+            message_type: messageType
+          }
+        }
+      });
+
+      console.log('Chat email notification sent to:', recipientId);
+    } catch (error) {
+      console.error('Error sending chat email notification:', error);
+      // Don't throw - email notification failure shouldn't block chat
+    }
+  };
 
   const uploadFile = async (file: File, description?: string) => {
     try {
@@ -182,7 +292,12 @@ export const usePackageChat = ({ packageId }: UsePackageChatProps) => {
         return false;
       }
 
-      // WhatsApp notifications removed - only welcome template available
+      // Send email notification to the other party
+      sendChatEmailNotification(
+        description || `Archivo subido: ${file.name}`, 
+        'file_upload', 
+        user.id
+      );
 
       await fetchMessages(); // Refresh messages
       toast({
