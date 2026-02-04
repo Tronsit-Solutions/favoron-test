@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban, Clock, Globe } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Country/city options (same as PackageRequestForm)
 // Online purchases: foreign stores only (no Guatemala)
@@ -184,6 +185,7 @@ const [editForm, setEditForm] = useState({
     requestType?: string;
     weight?: string;
     instructions?: string;
+    needsOriginalPackaging?: boolean;
     [key: string]: any;
   }>>([]);
   const [paymentOrder, setPaymentOrder] = useState<any>(null);
@@ -591,7 +593,7 @@ const [editForm, setEditForm] = useState({
   };
   
   // Handle individual product field changes
-  const handleProductChange = (index: number, field: string, value: string) => {
+  const handleProductChange = (index: number, field: string, value: string | boolean) => {
     setEditProducts(prev => {
       const updated = [...prev];
       updated[index] = {
@@ -1371,6 +1373,25 @@ const [editForm, setEditForm] = useState({
                                 />
                               </div>
                             )}
+                          </div>
+                          
+                          {/* Empaque Original */}
+                          <div className="md:col-span-2">
+                            <div className="flex items-center space-x-2 pt-2 border-t border-muted/40 mt-2">
+                              <Checkbox
+                                id={`packaging-${idx}`}
+                                checked={product.needsOriginalPackaging || false}
+                                onCheckedChange={(checked) => 
+                                  handleProductChange(idx, 'needsOriginalPackaging', checked === true)
+                                }
+                              />
+                              <label 
+                                htmlFor={`packaging-${idx}`} 
+                                className="text-xs text-muted-foreground cursor-pointer flex items-center gap-1"
+                              >
+                                📦 Conservar empaque/caja original
+                              </label>
+                            </div>
                           </div>
                           
                           {/* Subtotal */}
