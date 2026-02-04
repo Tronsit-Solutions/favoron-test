@@ -992,6 +992,34 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                         />
                       </div>
                     </div>
+
+                    {/* Necesita empaque original */}
+                    <div className="pt-2 border-t border-border/50 mt-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-xs text-muted-foreground">
+                            ¿Necesitas la etiqueta/empaque original?
+                          </Label>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            Indica si es importante conservar el empaque de fábrica
+                          </p>
+                        </div>
+                        <RadioGroup
+                          value={product.needsOriginalPackaging === true ? 'yes' : 'no'}
+                          onValueChange={(value) => updateProduct(index, 'needsOriginalPackaging', value === 'yes')}
+                          className="flex space-x-4"
+                        >
+                          <div className="flex items-center space-x-1">
+                            <RadioGroupItem value="yes" id={`packaging-yes-${index}`} />
+                            <Label htmlFor={`packaging-yes-${index}`} className="text-xs cursor-pointer">Sí</Label>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <RadioGroupItem value="no" id={`packaging-no-${index}`} />
+                            <Label htmlFor={`packaging-no-${index}`} className="text-xs cursor-pointer">No</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                    </div>
                   </>
                 ) : (
                   <>
@@ -1081,6 +1109,34 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                         maxPhotos={5}
                         required={true}
                       />
+                    </div>
+
+                    {/* Necesita empaque original */}
+                    <div className="pt-2 border-t border-border/50 mt-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-xs text-muted-foreground">
+                            ¿Necesitas la etiqueta/empaque original?
+                          </Label>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            Indica si es importante conservar el empaque de fábrica
+                          </p>
+                        </div>
+                        <RadioGroup
+                          value={product.needsOriginalPackaging === true ? 'yes' : 'no'}
+                          onValueChange={(value) => updateProduct(index, 'needsOriginalPackaging', value === 'yes')}
+                          className="flex space-x-4"
+                        >
+                          <div className="flex items-center space-x-1">
+                            <RadioGroupItem value="yes" id={`packaging-personal-yes-${index}`} />
+                            <Label htmlFor={`packaging-personal-yes-${index}`} className="text-xs cursor-pointer">Sí</Label>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <RadioGroupItem value="no" id={`packaging-personal-no-${index}`} />
+                            <Label htmlFor={`packaging-personal-no-${index}`} className="text-xs cursor-pointer">No</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
                     </div>
                   </>
                 )}
