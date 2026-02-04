@@ -1,37 +1,16 @@
 
 
-## Agregar Opción de Empaque Original al Modal de Edición
+## Agregar Checkbox de Empaque Original al Modal de Admin
 
-### Objetivo
-Permitir que los shoppers y admins puedan modificar la preferencia de empaque original para cada producto al editar un paquete existente.
+### Problema
+El checkbox de "empaque original" se agregó al modal de edición del shopper, pero falta en el modal de administración (`PackageDetailModal.tsx`) que se usa en el panel de matching/aprobaciones.
 
 ---
 
 ### Cambios Propuestos
 
-#### 1. Actualizar Interface Product
-**Archivo:** `src/components/dashboard/EditPackageModal.tsx` (lineas 28-35)
-
-Agregar el campo `needsOriginalPackaging` a la interfaz:
-
-```tsx
-interface Product {
-  itemLink?: string;
-  itemDescription?: string;
-  estimatedPrice?: string | number;
-  quantity?: string | number;
-  requestType?: string;
-  additionalNotes?: string;
-  needsOriginalPackaging?: boolean;  // <-- Agregar
-}
-```
-
----
-
-#### 2. Agregar Import de Checkbox
-**Archivo:** `src/components/dashboard/EditPackageModal.tsx` (linea 1-24)
-
-Agregar import del componente Checkbox:
+#### 1. Agregar Import de Checkbox
+**Archivo:** `src/components/admin/PackageDetailModal.tsx` (inicio del archivo)
 
 ```tsx
 import { Checkbox } from "@/components/ui/checkbox";
@@ -39,42 +18,38 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 ---
 
-#### 3. Agregar Control de Empaque en cada Producto
-**Archivo:** `src/components/dashboard/EditPackageModal.tsx` (despues de la linea 277, dentro del map de productos)
-
-Agregar un checkbox despues del row de precio/cantidad:
+#### 2. Actualizar Interface de editProducts
+**Lineas 177-188** - Agregar `needsOriginalPackaging`:
 
 ```tsx
-{/* Empaque Original */}
-<div className="flex items-center space-x-2 pt-2 border-t border-muted/40 mt-3">
-  <Checkbox
-    id={`packaging-${index}`}
-    checked={product.needsOriginalPackaging || false}
-    onCheckedChange={(checked) => 
-      updateProduct(index, "needsOriginalPackaging", checked === true)
-    }
-  />
-  <Label 
-    htmlFor={`packaging-${index}`} 
-    className="text-xs text-muted-foreground cursor-pointer flex items-center gap-1"
-  >
-    📦 Conservar empaque/caja original
-  </Label>
-</div>
+const [editProducts, setEditProducts] = useState<Array<{
+  itemDescription: string;
+  estimatedPrice: string;
+  quantity: string;
+  itemLink: string;
+  additionalNotes?: string;
+  adminAssignedTip?: number;
+  requestType?: string;
+  weight?: string;
+  instructions?: string;
+  needsOriginalPackaging?: boolean;  // <-- Agregar
+  [key: string]: any;
+}>>([]);
 ```
 
 ---
 
-#### 4. Actualizar Funcion updateProduct
-**Archivo:** `src/components/dashboard/EditPackageModal.tsx` (lineas 134-140)
-
-Modificar el tipo del parametro `value` para aceptar boolean:
+#### 3. Actualizar handleProductChange para aceptar boolean
+**Lineas 594-603**:
 
 ```tsx
-const updateProduct = (index: number, field: keyof Product, value: string | number | boolean) => {
-  setProducts(prev => {
+const handleProductChange = (index: number, field: string, value: string | boolean) => {
+  setEditProducts(prev => {
     const updated = [...prev];
-    updated[index] = { ...updated[index], [field]: value };
+    updated[index] = {
+      ...updated[index],
+      [field]: value
+    };
     return updated;
   });
 };
@@ -82,39 +57,64 @@ const updateProduct = (index: number, field: keyof Product, value: string | numb
 
 ---
 
-### Resumen Visual
+#### 4. Agregar Checkbox en el Formulario de Productos
+**Despues de linea 1373** (despues del campo de Peso), agregar:
 
-| Seccion | Antes | Despues |
-|---------|-------|---------|
-| Interfaz Product | Sin needsOriginalPackaging | Con needsOriginalPackaging |
-| Cada tarjeta de producto | Solo link, descripcion, precio, cantidad | + Checkbox de empaque original |
-| Funcion updateProduct | Solo string/number | + boolean |
+```tsx
+{/* Empaque Original */}
+<div className="md:col-span-2">
+  <div className="flex items-center space-x-2 pt-2 border-t border-muted/40 mt-2">
+    <Checkbox
+      id={`packaging-${idx}`}
+      checked={product.needsOriginalPackaging || false}
+      onCheckedChange={(checked) => 
+        handleProductChange(idx, 'needsOriginalPackaging', checked === true)
+      }
+    />
+    <label 
+      htmlFor={`packaging-${idx}`} 
+      className="text-xs text-muted-foreground cursor-pointer flex items-center gap-1"
+    >
+      📦 Conservar empaque/caja original
+    </label>
+  </div>
+</div>
+```
 
 ---
 
-### Ubicacion del Control en UI
+### Ubicacion del Control
 
-Dentro de cada tarjeta de producto, despues de precio/cantidad:
+Dentro del formulario de cada producto en el admin:
 
 ```
 ┌─────────────────────────────────────┐
-│ Producto 1                          │
+│ Producto #1                Tip: Q__ │
 │ ─────────────────────────────────── │
-│ Link: [________________]            │
 │ Descripcion: [________________]     │
-│ Precio: [___] Cantidad: [___]       │
+│ Precio: [___]    Cantidad: [___]    │
+│ Link: [________________________]    │
+│ Notas adicionales: [___________]    │
+│ Peso (lbs): [___]                   │
 │ ─────────────────────────────────── │
 │ ☑ 📦 Conservar empaque/caja original│  <-- Nuevo
+│ ─────────────────────────────────── │
+│            Subtotal: $808.99        │
 └─────────────────────────────────────┘
 ```
 
 ---
 
-### Archivo a Modificar
+### Archivos a Modificar
 
-1. `src/components/dashboard/EditPackageModal.tsx`
+1. `src/components/admin/PackageDetailModal.tsx`
    - Agregar import de Checkbox
-   - Extender interface Product
-   - Actualizar funcion updateProduct para aceptar boolean
-   - Agregar control de empaque por cada producto
+   - Extender tipado de editProducts
+   - Actualizar handleProductChange
+   - Agregar checkbox en cada producto
+
+---
+
+### Resultado Esperado
+Los administradores podran ver y modificar la preferencia de empaque original para cada producto directamente desde el modal de detalle/edicion en el panel de matching.
 
