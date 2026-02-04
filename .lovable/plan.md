@@ -1,35 +1,63 @@
 
 
-## ✅ COMPLETADO: Mostrar Estado de "Empaque Original" en Todas las Vistas Relevantes
+## Ajustes al Indicador de "Empaque Original"
 
-### Objetivo
-Agregar un indicador visual del campo `needsOriginalPackaging` que muestre claramente el estado (Si/No) en todas las vistas donde se muestran productos.
+### Cambios solicitados
 
-### Indicadores visuales implementados
+1. **Agregar indicador en la tarjeta preview de aprobación** (`AdminApprovalsTab.tsx`)
+2. **Quitar el resaltado amarillo en la vista de detalles** (`PackageDetailModal.tsx`)
 
-| Valor | Indicador |
-|-------|-----------|
-| `true` | 📦 Conservar empaque original (amber/amarillo) |
-| `false` o no definido | 📦 No requiere empaque original (gris/muted) |
+---
 
-### Archivos modificados ✅
+### 1. AdminApprovalsTab.tsx - Agregar indicador en preview card
 
-1. ✅ `src/components/dashboard/traveler/TravelerPackageDetails.tsx` - Vista del viajero en dashboard
-2. ✅ `src/components/QuoteDialog.tsx` - Vista del viajero al aceptar asignación
-3. ✅ `src/components/admin/PackageDetailModal.tsx` - Vista del admin en detalle de paquete
-4. ✅ `src/components/admin/AdminMatchDialog.tsx` - Vista del admin al hacer matching
-5. ✅ `src/components/admin/ProductQuickViewModal.tsx` - Vista rápida de productos
-6. ✅ `src/components/admin/ProductDetailModal.tsx` - Modal de detalle de productos
-7. ✅ `src/components/dashboard/PackageProductDisplay.tsx` - Display de productos en dashboard del shopper
+**Ubicación**: Después de las notas adicionales (línea ~298), antes de los botones de acción
 
-### Resultado
+**Lógica**: Revisar `products_data` del paquete para determinar si algún producto requiere empaque original
 
-| Vista | Ubicación del indicador |
-|-------|------------------------|
-| Viajero - Dashboard | ✅ Dentro de cada producto en "Ver detalles" |
-| Viajero - Aceptar asignación | ✅ Debajo del tip de cada producto |
-| Shopper - Ver cotización | ✅ En cada producto de la cotización |
-| Admin - Detalle de paquete | ✅ En la sección de productos |
-| Admin - Matching | ✅ Junto al nombre de cada producto |
-| Admin - Vista rápida | ✅ En los detalles del producto |
-| Shopper - Dashboard | ✅ En cada tarjeta de producto |
+```tsx
+{/* Indicador de empaque original */}
+{pkg.products_data && pkg.products_data.length > 0 && (
+  <p className="text-xs text-muted-foreground">
+    📦 {pkg.products_data.some((p: any) => p.needsOriginalPackaging) 
+      ? 'Conservar empaque original' 
+      : 'No requiere empaque original'}
+  </p>
+)}
+```
+
+---
+
+### 2. PackageDetailModal.tsx - Quitar resaltado amarillo
+
+**Ubicación**: Líneas 1560-1566
+
+**Cambio**: Eliminar las clases de fondo (`bg-amber-50` y `bg-muted/30`) para mantener solo el texto coloreado
+
+**Antes**:
+```tsx
+<div className={`mt-2 px-2 py-1 rounded text-xs flex items-center gap-1 ${
+  product.rawProduct?.needsOriginalPackaging 
+    ? 'text-amber-600 bg-amber-50' 
+    : 'text-muted-foreground bg-muted/30'
+}`}>
+```
+
+**Después**:
+```tsx
+<div className={`mt-2 text-xs flex items-center gap-1 ${
+  product.rawProduct?.needsOriginalPackaging 
+    ? 'text-amber-600' 
+    : 'text-muted-foreground'
+}`}>
+```
+
+---
+
+### Resumen de archivos a modificar
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/components/admin/AdminApprovalsTab.tsx` | Agregar indicador de empaque en preview card |
+| `src/components/admin/PackageDetailModal.tsx` | Quitar fondo amarillo/gris del indicador |
+
