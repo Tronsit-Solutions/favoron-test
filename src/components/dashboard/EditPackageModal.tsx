@@ -21,6 +21,7 @@ import { Tables } from "@/integrations/supabase/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 type PackageType = Tables<"packages">;
@@ -32,6 +33,7 @@ interface Product {
   quantity?: string | number;
   requestType?: string;
   additionalNotes?: string;
+  needsOriginalPackaging?: boolean;
 }
 
 interface DeliveryAddress {
@@ -131,7 +133,7 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
     setDeliveryDeadline(pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined);
   }, [pkg]);
 
-  const updateProduct = (index: number, field: keyof Product, value: string | number) => {
+  const updateProduct = (index: number, field: keyof Product, value: string | number | boolean) => {
     setProducts(prev => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
@@ -275,6 +277,23 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                           El precio y cantidad no se pueden modificar después de aceptar la cotización.
                         </p>
                       )}
+
+                      {/* Empaque Original */}
+                      <div className="flex items-center space-x-2 pt-2 border-t border-muted/40 mt-3">
+                        <Checkbox
+                          id={`packaging-${index}`}
+                          checked={product.needsOriginalPackaging || false}
+                          onCheckedChange={(checked) => 
+                            updateProduct(index, "needsOriginalPackaging", checked === true)
+                          }
+                        />
+                        <Label 
+                          htmlFor={`packaging-${index}`} 
+                          className="text-xs text-muted-foreground cursor-pointer flex items-center gap-1"
+                        >
+                          📦 Conservar empaque/caja original
+                        </Label>
+                      </div>
                     </div>
                   ))}
                 </div>
