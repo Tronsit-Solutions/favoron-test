@@ -1556,6 +1556,15 @@ const [editForm, setEditForm] = useState({
                           )}
                         </div>
                         
+                        {/* Indicador de empaque original */}
+                        <div className={`mt-2 px-2 py-1 rounded text-xs flex items-center gap-1 ${
+                          product.rawProduct?.needsOriginalPackaging 
+                            ? 'text-amber-600 bg-amber-50' 
+                            : 'text-muted-foreground bg-muted/30'
+                        }`}>
+                          📦 {product.rawProduct?.needsOriginalPackaging ? 'Conservar empaque original' : 'No requiere empaque original'}
+                        </div>
+                        
                         {/* Show instructions for personal orders */}
                         {product.requestType === 'personal' && product.instructions && (
                           <div className="mt-2 pt-2 border-t">

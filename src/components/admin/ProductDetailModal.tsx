@@ -12,6 +12,7 @@ interface Product {
   itemLink?: string;
   adminAssignedTip?: number;
   favoronFee?: number;
+  needsOriginalPackaging?: boolean;
 }
 
 interface ProductDetailModalProps {
@@ -103,6 +104,15 @@ const ProductDetailModal = ({ isOpen, onClose, products, packageDescription }: P
                     Ver producto en línea
                   </Button>
                 )}
+                
+                {/* Indicador de empaque original */}
+                <div className={`mt-2 px-2 py-1 rounded text-xs flex items-center gap-1 ${
+                  product.needsOriginalPackaging 
+                    ? 'text-amber-600 bg-amber-50' 
+                    : 'text-muted-foreground bg-muted/30'
+                }`}>
+                  📦 {product.needsOriginalPackaging ? 'Conservar empaque original' : 'No requiere empaque original'}
+                </div>
               </div>
             ))}
           </div>
