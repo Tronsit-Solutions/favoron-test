@@ -1,35 +1,53 @@
 
-## Ocultar Rechazos de Viajero a Shoppers
+## Agregar Detalle de Paquetes al Excel de Viajes
 
-### Problema
-El componente `CollapsiblePackageCard.tsx` muestra el `RejectionReasonDisplay` a los shoppers siempre que existe `rejection_reason`, sin distinguir entre:
-- **Rechazos de admin**: Cuando un pedido no cumple reglas y el status es `rejected` - esto SI debe mostrarse
-- **Rechazos de viajero**: Cuando un viajero rechaza la asignacion - esto NO debe mostrarse porque confunde al shopper
+### Problema Identificado
+La funcion `handleExportExcel` en `ActivityTimelineTab.tsx` exporta solo los conteos de paquetes:
+- `Paquetes Confirmados`: numero
+- `Paquetes Completados`: numero
+
+Pero no incluye el campo `confirmedPackageDescriptions` que contiene la lista de descripciones de los paquetes asignados a cada viaje.
+
+---
 
 ### Solucion
 
-Modificar la condicion en la linea 931-933 de `CollapsiblePackageCard.tsx` para que solo muestre el motivo de rechazo cuando el status del paquete es `rejected` (rechazo administrativo).
+Agregar una nueva columna "Detalle Paquetes" al export de Excel que concatene las descripciones de los paquetes confirmados.
+
+---
 
 ### Cambio Tecnico
 
-**Archivo: src/components/dashboard/CollapsiblePackageCard.tsx**
+**Archivo: src/components/admin/ActivityTimelineTab.tsx**
 
-Cambiar de:
+En la funcion `handleExportExcel`, modificar el objeto de exportacion para viajes (lineas 84-96):
+
 ```tsx
-{pkg.rejection_reason && <div className="mt-3">
-    <RejectionReasonDisplay rejectionReason={pkg.rejection_reason as any} />
-</div>}
+if (item.type === 'trip') {
+  return {
+    'Tipo': 'Viaje',
+    'Usuario': item.userName,
+    'WhatsApp': item.userPhone || 'N/A',
+    'Canal': getChannelLabel(item.acquisitionChannel),
+    'Email': item.userEmail || 'N/A',
+    'Ruta': item.description,
+    'Fecha Llegada': item.arrivalDate ? format(new Date(item.arrivalDate), 'dd/MM/yyyy') : 'N/A',
+    'Fecha Creación': format(new Date(item.createdAt), 'dd/MM/yyyy HH:mm'),
+    'Estado': item.statusLabel,
+    'Paquetes Confirmados': item.confirmedPackages ?? '',
+    'Paquetes Completados': item.completedPackages ?? '',
+    'Detalle Paquetes': item.confirmedPackageDescriptions?.join(' | ') || 'Sin paquetes',
+  };
+}
 ```
 
-A:
-```tsx
-{pkg.status === 'rejected' && pkg.rejection_reason && <div className="mt-3">
-    <RejectionReasonDisplay rejectionReason={pkg.rejection_reason as any} />
-</div>}
-```
+---
 
 ### Resultado
 
-- Shoppers solo veran el motivo de rechazo cuando su pedido fue rechazado por admin (status `rejected`)
-- Los rechazos de viajeros (que quedan en status `approved` o similar para reasignacion) no se mostraran
-- La informacion de rechazos de viajero sigue disponible para admins en el panel de administracion
+El Excel de viajes incluira una columna adicional "Detalle Paquetes" con las descripciones de todos los paquetes asignados, separados por ` | ` para facilitar lectura.
+
+Ejemplo de valor en la celda:
+```
+iPhone 15 Pro Max | MacBook Air M2 | AirPods Pro
+```
