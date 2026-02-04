@@ -205,6 +205,10 @@ const [editForm, setEditForm] = useState({
   
   // State for quote edit modal
   const [quoteEditModalOpen, setQuoteEditModalOpen] = useState(false);
+  
+  // State for rejection history profiles
+  const [rejectionProfiles, setRejectionProfiles] = useState<Record<string, any>>({});
+  const [loadingRejectionProfiles, setLoadingRejectionProfiles] = useState(false);
 
   // Resolve traveler confirmation photo (handles storage paths and signed URLs)
   // Must call this hook before any early returns to follow Rules of Hooks
@@ -288,6 +292,57 @@ const [editForm, setEditForm] = useState({
 
     loadPaymentOrder();
   }, [pkg?.matched_trip_id, isOpen]);
+
+  // Load profiles for rejection history
+  useEffect(() => {
+    const loadRejectionProfiles = async () => {
+      if (!isOpen || !pkg) return;
+      
+      // Collect all traveler IDs from rejection history
+      const travelerIds = new Set<string>();
+      
+      // From admin_actions_log
+      if (pkg.admin_actions_log && Array.isArray(pkg.admin_actions_log)) {
+        pkg.admin_actions_log.forEach((log: any) => {
+          if (log.action_type === 'traveler_rejection') {
+            const travelerId = log.additional_data?.previous_traveler_id || log.admin_id;
+            if (travelerId) travelerIds.add(travelerId);
+          }
+        });
+      }
+      
+      // From current traveler_rejection
+      const currentRejectorId = (pkg.traveler_rejection as any)?.previous_traveler_id || 
+                                (pkg.traveler_rejection as any)?.rejected_by;
+      if (currentRejectorId) travelerIds.add(currentRejectorId);
+      
+      if (travelerIds.size === 0) return;
+      
+      setLoadingRejectionProfiles(true);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, username, email')
+          .in('id', Array.from(travelerIds));
+        
+        if (error) {
+          console.error('Error loading rejection profiles:', error);
+        } else if (data) {
+          const profileMap: Record<string, any> = {};
+          data.forEach(profile => {
+            profileMap[profile.id] = profile;
+          });
+          setRejectionProfiles(profileMap);
+        }
+      } catch (error) {
+        console.error('Exception loading rejection profiles:', error);
+      } finally {
+        setLoadingRejectionProfiles(false);
+      }
+    };
+    
+    loadRejectionProfiles();
+  }, [pkg?.id, pkg?.admin_actions_log, pkg?.traveler_rejection, isOpen]);
 
   // Security: Only allow admin access
   if (!user || userRole?.role !== 'admin') {
@@ -1060,19 +1115,28 @@ const [editForm, setEditForm] = useState({
                       <div>
                         <h4 className="font-semibold text-orange-900 mb-1">Viajero Rechazó la Asignación</h4>
                         
-                        {/* Traveler Name */}
+                        {/* Traveler Name - usando perfil cargado directamente */}
                         {(() => {
-                          const rejectedById = (pkg.traveler_rejection as any)?.rejected_by;
-                          const rejectorTrip = trips?.find(trip => trip.user_id === rejectedById);
-                          const rejectorProfile = rejectorTrip?.profiles;
+                          const rejectorId = (pkg.traveler_rejection as any)?.previous_traveler_id || 
+                                            (pkg.traveler_rejection as any)?.rejected_by;
+                          const profile = rejectionProfiles[rejectorId];
                           
-                          if (rejectorProfile) {
+                          if (profile) {
                             return (
                               <div className="mb-2 flex items-center space-x-2">
                                 <User className="h-4 w-4 text-orange-700" />
                                 <p className="text-sm font-medium text-orange-900">
-                                  Viajero: {rejectorProfile.first_name} {rejectorProfile.last_name} 
-                                  <span className="text-orange-600 ml-1">(@{rejectorProfile.username})</span>
+                                  Viajero: {profile.first_name} {profile.last_name}
+                                  <span className="text-orange-600 ml-1">(@{profile.username})</span>
+                                </p>
+                              </div>
+                            );
+                          } else if (rejectorId) {
+                            return (
+                              <div className="mb-2 flex items-center space-x-2">
+                                <User className="h-4 w-4 text-orange-700" />
+                                <p className="text-sm text-orange-700">
+                                  ID del viajero: {rejectorId.substring(0, 8)}...
                                 </p>
                               </div>
                             );
@@ -1082,7 +1146,7 @@ const [editForm, setEditForm] = useState({
                         
                         <p className="text-sm text-orange-800">
                           <span className="font-medium">Motivo: </span>
-                          {translateRejectionReason((pkg.traveler_rejection as any)?.reason)}
+                          {translateRejectionReason((pkg.traveler_rejection as any)?.reason || (pkg.traveler_rejection as any)?.rejection_reason)}
                         </p>
                       </div>
                       
@@ -1104,6 +1168,51 @@ const [editForm, setEditForm] = useState({
                   </div>
                 </div>
               )}
+
+              {/* Historial completo de rechazos */}
+              {pkg.admin_actions_log && Array.isArray(pkg.admin_actions_log) && (() => {
+                const rejections = pkg.admin_actions_log.filter(
+                  (log: any) => log.action_type === 'traveler_rejection'
+                );
+                
+                if (rejections.length <= 1) return null; // Solo mostrar si hay mas de 1 rechazo
+                
+                return (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-3">
+                    <h4 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Historial de Rechazos ({rejections.length} viajeros)
+                    </h4>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {rejections.map((log: any, idx: number) => {
+                        const travelerId = log.additional_data?.previous_traveler_id || log.admin_id;
+                        const profile = rejectionProfiles[travelerId];
+                        
+                        return (
+                          <div key={idx} className="bg-white/70 rounded p-2 text-sm border border-amber-100">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-amber-900">
+                                {profile 
+                                  ? `${profile.first_name} ${profile.last_name} (@${profile.username})`
+                                  : `Viajero ${travelerId?.substring(0, 8)}...`
+                                }
+                              </span>
+                              <span className="text-xs text-amber-600">
+                                {formatSafeDateTime(log.timestamp)}
+                              </span>
+                            </div>
+                            {log.additional_data?.rejection_reason && (
+                              <p className="text-xs text-amber-700 mt-1">
+                                Motivo: {translateRejectionReason(log.additional_data.rejection_reason)}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
               
               {/* Quote Rejection Info - Show when quote was rejected */}
               {pkg.quote_rejection && (
