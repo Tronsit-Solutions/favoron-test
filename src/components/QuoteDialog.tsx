@@ -719,15 +719,15 @@ const QuoteDialog = ({
         {/* QUOTE STEP - Wizard step 1 (original content) */}
         <DialogHeader className="pr-12 shrink-0">
           {isTravelerContext ? (
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
-                <Gift className="h-5 w-5 text-success" />
+            <div className={`flex items-start ${isMobile ? 'gap-2' : 'gap-3'}`}>
+              <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} rounded-xl bg-success/10 flex items-center justify-center shrink-0`}>
+                <Gift className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-success`} />
               </div>
               <div>
-                <DialogTitle className="text-lg font-bold text-foreground text-left">
+                <DialogTitle className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-foreground text-left`}>
                   Tip Asignado
                 </DialogTitle>
-                <DialogDescription className="text-sm text-muted-foreground text-left">
+                <DialogDescription className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground text-left`}>
                   Revisa los detalles y decide si aceptas este encargo
                 </DialogDescription>
               </div>
@@ -744,7 +744,7 @@ const QuoteDialog = ({
           )}
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-6 pr-1">{/* Single scroll container */}
+        <div className={`flex-1 overflow-y-auto ${isMobile ? 'space-y-3' : 'space-y-4 sm:space-y-6'} pr-1`}>{/* Single scroll container */}
           
           {/* TRIP CONFIRMATION STEP - For travelers confirming their trip info */}
           {isTravelerContext && showTripConfirmation && localTripInfo ? (
@@ -869,14 +869,14 @@ const QuoteDialog = ({
           <>
           {/* COMPACT HERO TIP CARD - Only for travelers */}
           {isTravelerContext && displayAmount && (
-            <div className="rounded-xl bg-gradient-to-r from-success/10 via-emerald-50 to-green-50 dark:from-success/20 dark:via-emerald-900/20 dark:to-green-900/10 border border-success/20 p-4 shadow-soft">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-success flex items-center justify-center shadow-sm">
-                  <Banknote className="w-6 h-6 text-white" />
+            <div className={`rounded-xl bg-gradient-to-r from-success/10 via-emerald-50 to-green-50 dark:from-success/20 dark:via-emerald-900/20 dark:to-green-900/10 border border-success/20 ${isMobile ? 'p-3' : 'p-4'} shadow-soft`}>
+              <div className={`flex items-center ${isMobile ? 'gap-3' : 'gap-4'}`}>
+                <div className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} rounded-xl bg-success flex items-center justify-center shadow-sm`}>
+                  <Banknote className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} text-white`} />
                 </div>
                 <div>
-                  <span className="text-sm text-muted-foreground font-medium">Tu tip por llevarte este paquete</span>
-                  <p className="text-3xl font-bold text-success">
+                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground font-medium`}>Tu tip por llevarte este paquete</span>
+                  <p className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-success`}>
                     Q{displayAmount.toFixed(2)}
                   </p>
                 </div>
@@ -885,16 +885,16 @@ const QuoteDialog = ({
           )}
 
           {/* Package Details - Clear product view for travelers, detailed for shoppers */}
-          <div className={`${isTravelerContext ? 'bg-muted/30 border border-muted/40' : 'bg-muted/50 border'} rounded-lg p-4 max-w-full`}>
+          <div className={`${isTravelerContext ? 'bg-muted/30 border border-muted/40' : 'bg-muted/50 border'} rounded-lg ${isMobile ? 'p-3' : 'p-4'} max-w-full`}>
             {isTravelerContext ? (
               /* Clear structured view for travelers */
-              <div className="space-y-3">
+              <div className={isMobile ? 'space-y-2' : 'space-y-3'}>
                 {/* Section Header */}
-                <div className="flex items-center gap-2 pb-3 border-b border-muted/40">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Package className="h-4 w-4 text-primary" />
+                <div className={`flex items-center ${isMobile ? 'gap-1.5 pb-2' : 'gap-2 pb-3'} border-b border-muted/40`}>
+                  <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-lg bg-primary/10 flex items-center justify-center`}>
+                    <Package className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-primary`} />
                   </div>
-                  <span className="text-sm font-semibold text-foreground">Producto solicitado</span>
+                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-foreground`}>Producto solicitado</span>
                 </div>
 
                 {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
@@ -906,7 +906,7 @@ const QuoteDialog = ({
                       const productLink = product.itemLink || packageDetails.item_link;
                       
                       return (
-                        <div key={index} className="bg-background/60 rounded-lg p-3 border border-muted/30">
+                        <div key={index} className={`bg-background/60 rounded-lg ${isMobile ? 'p-2.5' : 'p-3'} border border-muted/30`}>
                           {/* Product Name */}
                           <div className="flex items-start gap-2 mb-2">
                             <h4 className="text-base font-semibold text-foreground leading-snug flex-1">
@@ -959,7 +959,7 @@ const QuoteDialog = ({
                     })}
                   </div>
                 ) : (
-                  <div className="bg-background/60 rounded-lg p-3 border border-muted/30">
+                  <div className={`bg-background/60 rounded-lg ${isMobile ? 'p-2.5' : 'p-3'} border border-muted/30`}>
                     {/* Product Name */}
                     <h4 className="text-base font-semibold text-foreground leading-snug mb-2">
                       {packageDetails.item_description}
@@ -1699,13 +1699,13 @@ const QuoteDialog = ({
 
           {/* Message for admin assigned tip acceptance - Modern design for travelers */}
           {displayAmount && (
-            <div className={`${isTravelerContext ? 'bg-card border-2 border-muted/60 rounded-xl' : ''} p-4`}>
-              <div className="max-w-full overflow-hidden space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className={`w-6 h-6 rounded-lg ${isTravelerContext ? 'bg-primary/10' : 'bg-muted'} flex items-center justify-center`}>
-                    <FileText className={`w-3.5 h-3.5 ${isTravelerContext ? 'text-primary' : 'text-muted-foreground'}`} />
+            <div className={`${isTravelerContext ? 'bg-card border-2 border-muted/60 rounded-xl' : ''} ${isMobile ? 'p-3' : 'p-4'}`}>
+              <div className="max-w-full overflow-hidden space-y-1.5">
+                <div className="flex items-center gap-1.5">
+                  <div className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} rounded-lg ${isTravelerContext ? 'bg-primary/10' : 'bg-muted'} flex items-center justify-center`}>
+                    <FileText className={`${isMobile ? 'w-3 h-3' : 'w-3.5 h-3.5'} ${isTravelerContext ? 'text-primary' : 'text-muted-foreground'}`} />
                   </div>
-                  <Label htmlFor="message" className="text-sm font-medium">
+                  <Label htmlFor="message" className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>
                     {isTravelerContext ? "Mensaje para el shopper" : "Mensaje para el viajero"}
                   </Label>
                   <span className="text-xs text-muted-foreground">(opcional)</span>
@@ -1771,19 +1771,19 @@ const QuoteDialog = ({
 
           {/* Traveler confirmation checkbox */}
           {isTravelerContext && !existingQuote && (
-            <div className="bg-muted/30 rounded-lg p-3 border border-muted/40">
-              <div className="flex items-start gap-3">
+            <div className={`bg-muted/30 rounded-lg ${isMobile ? 'p-2.5' : 'p-3'} border border-muted/40`}>
+              <div className={`flex items-start ${isMobile ? 'gap-2' : 'gap-3'}`}>
                 <Checkbox
                   id="confirmedProductReview"
                   checked={confirmedProductReview}
                   onCheckedChange={(checked) => updateFormField('confirmedProductReview', checked === true)}
                   className="mt-0.5"
                 />
-                <label htmlFor="confirmedProductReview" className="text-sm cursor-pointer leading-relaxed">
+                <label htmlFor="confirmedProductReview" className={`${isMobile ? 'text-xs' : 'text-sm'} cursor-pointer leading-relaxed`}>
                   <span className="font-medium text-foreground">
                     Confirmo que he revisado el producto y que puedo llevarlo en mi maleta
                   </span>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-muted-foreground mt-0.5`}>
                     Al marcar esta casilla, confirmas que el producto cumple con las restricciones de equipaje y aduanas
                   </p>
                 </label>
@@ -1792,7 +1792,7 @@ const QuoteDialog = ({
           )}
 
           {/* Action Buttons - Modern design for travelers */}
-          <div className={`flex justify-end gap-3 pt-4 ${isTravelerContext ? 'border-t-2 border-muted/40' : 'border-t'}`}>            
+          <div className={`flex justify-end gap-2 ${isMobile ? 'pt-3' : 'pt-4'} ${isTravelerContext ? 'border-t-2 border-muted/40' : 'border-t'}`}>            
             {!existingQuote ? <>
                 <Button 
                   variant="outline" 
