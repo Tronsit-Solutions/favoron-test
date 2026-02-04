@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Mail, Package, Plane, CreditCard, CheckCircle, MessageSquare, Truck, Bell } from 'lucide-react';
+import { Mail, Package, Plane, CreditCard, CheckCircle, MessageSquare, Truck, Bell, MessageCircle } from 'lucide-react';
 
 interface EmailNotificationSettingsProps {
   userId: string;
@@ -21,6 +21,7 @@ const notificationTypes = [
   { key: 'approval', label: 'Aprobaciones', description: 'Solicitudes que requieren aprobación', icon: CheckCircle },
   { key: 'quote', label: 'Cotizaciones', description: 'Nuevas cotizaciones recibidas', icon: MessageSquare },
   { key: 'delivery', label: 'Entregas', description: 'Confirmaciones de entrega y recogida', icon: Truck },
+  { key: 'chat', label: 'Chat', description: 'Mensajes nuevos en el chat con shoppers o viajeros', icon: MessageCircle },
   { key: 'general', label: 'Generales', description: 'Notificaciones generales del sistema', icon: Bell }
 ];
 
