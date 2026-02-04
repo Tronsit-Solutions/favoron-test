@@ -62,6 +62,7 @@ export interface Product {
     previewUrl?: string;
   }>;
   quantity?: string;
+  needsOriginalPackaging?: boolean;
 }
 
 // Product data for multi-product packages with receipt confirmation
@@ -73,6 +74,7 @@ export interface ProductData {
   estimatedPrice: string;
   additionalNotes?: string;
   adminAssignedTip?: number;
+  needsOriginalPackaging?: boolean;
   
   // Receipt confirmation fields
   receivedByTraveler?: boolean;
