@@ -928,6 +928,17 @@ const QuoteDialog = ({
                             </div>
                           )}
                           
+                          {/* Indicador de empaque original */}
+                          <div className={`flex items-center gap-1.5 mb-3 text-sm`}>
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              product.needsOriginalPackaging 
+                                ? 'text-amber-600 bg-amber-50' 
+                                : 'text-muted-foreground bg-muted/30'
+                            }`}>
+                              📦 {product.needsOriginalPackaging ? 'Conservar empaque original' : 'No requiere empaque original'}
+                            </span>
+                          </div>
+                          
                           {/* Product Link Button */}
                           {productLink && (
                             <a 

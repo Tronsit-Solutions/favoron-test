@@ -28,7 +28,8 @@ const ProductQuickViewModal = ({ isOpen, onClose, package: pkg }: ProductQuickVi
         price: product.estimatedPrice || '0',
         link: product.itemLink || null,
         quantity: product.quantity || 1,
-        image: product.itemImage || null
+        image: product.itemImage || null,
+        needsOriginalPackaging: product.needsOriginalPackaging || false
       }));
     }
 
@@ -39,7 +40,8 @@ const ProductQuickViewModal = ({ isOpen, onClose, package: pkg }: ProductQuickVi
       price: pkg.estimated_price || '0',
       link: pkg.item_link || null,
       quantity: 1,
-      image: null
+      image: null,
+      needsOriginalPackaging: false
     }];
   };
 
@@ -149,6 +151,15 @@ const ProductQuickViewModal = ({ isOpen, onClose, package: pkg }: ProductQuickVi
                         </div>
                       </div>
                     )}
+
+                    {/* Indicador de empaque original */}
+                    <div className={`flex items-center gap-2 px-2 py-1 rounded text-sm ${
+                      product.needsOriginalPackaging 
+                        ? 'text-amber-600 bg-amber-50' 
+                        : 'text-muted-foreground bg-muted/30'
+                    }`}>
+                      📦 <span>{product.needsOriginalPackaging ? 'Requiere empaque original' : 'No requiere empaque original'}</span>
+                    </div>
 
                     {/* Package Status */}
                     <div className="space-y-2">

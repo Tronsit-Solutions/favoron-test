@@ -181,6 +181,14 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
                       Ver producto
                     </a>
                   )}
+                  {/* Indicador de empaque original */}
+                  <p className={`text-xs px-2 py-1 rounded mt-1 flex items-center gap-1 ${
+                    product.needsOriginalPackaging 
+                      ? 'text-amber-600 bg-amber-50' 
+                      : 'text-muted-foreground bg-muted/30'
+                  }`}>
+                    📦 {product.needsOriginalPackaging ? 'Conservar empaque original' : 'No requiere empaque original'}
+                  </p>
                 </div>
               );
             }) : pkg.products ? pkg.products.map((product: any, index: number) => {
@@ -242,6 +250,14 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
                       Ver producto
                     </a>
                   )}
+                  {/* Indicador de empaque original */}
+                  <p className={`text-xs px-2 py-1 rounded mt-1 flex items-center gap-1 ${
+                    product.needsOriginalPackaging 
+                      ? 'text-amber-600 bg-amber-50' 
+                      : 'text-muted-foreground bg-muted/30'
+                  }`}>
+                    📦 {product.needsOriginalPackaging ? 'Conservar empaque original' : 'No requiere empaque original'}
+                  </p>
                 </div>
               );
             }) : (
