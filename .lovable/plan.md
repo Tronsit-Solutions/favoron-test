@@ -1,112 +1,35 @@
 
-## Mostrar Paquetes Cancelados en Perfil de Usuario Admin
+## Ocultar Rechazos de Viajero a Shoppers
 
-### Problema Identificado
-El hook `useAdminData.tsx` excluye paquetes con status `cancelled`, `rejected`, `quote_rejected`, y `quote_expired` para optimizar rendimiento del dashboard admin (linea 167). Sin embargo, esto causa que al ver el perfil de un usuario, su historial de pedidos este incompleto.
+### Problema
+El componente `CollapsiblePackageCard.tsx` muestra el `RejectionReasonDisplay` a los shoppers siempre que existe `rejection_reason`, sin distinguir entre:
+- **Rechazos de admin**: Cuando un pedido no cumple reglas y el status es `rejected` - esto SI debe mostrarse
+- **Rechazos de viajero**: Cuando un viajero rechaza la asignacion - esto NO debe mostrarse porque confunde al shopper
 
----
+### Solucion
 
-### Solucion Propuesta
+Modificar la condicion en la linea 931-933 de `CollapsiblePackageCard.tsx` para que solo muestre el motivo de rechazo cuando el status del paquete es `rejected` (rechazo administrativo).
 
-Modificar el componente `UserDetailModal.tsx` para que cargue los paquetes del usuario directamente desde la base de datos cuando se abre, en lugar de depender de la data pre-filtrada del admin dashboard.
+### Cambio Tecnico
 
----
+**Archivo: src/components/dashboard/CollapsiblePackageCard.tsx**
 
-### Cambios Tecnicos
-
-#### 1. UserDetailModal.tsx - Agregar carga directa de paquetes
-
-Agregar estado y efecto para cargar paquetes del usuario directamente:
-
+Cambiar de:
 ```tsx
-// Nuevo estado para paquetes cargados directamente
-const [loadedUserPackages, setLoadedUserPackages] = useState<Package[]>([]);
-const [loadingPackages, setLoadingPackages] = useState(false);
-
-// Efecto para cargar TODOS los paquetes del usuario (incluyendo cancelados)
-useEffect(() => {
-  const loadUserPackages = async () => {
-    if (!profileId || !isOpen) return;
-    
-    setLoadingPackages(true);
-    try {
-      const { data, error } = await supabase
-        .from('packages')
-        .select('*')
-        .eq('user_id', profileId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setLoadedUserPackages(data || []);
-    } catch (error) {
-      console.error('Error loading user packages:', error);
-    } finally {
-      setLoadingPackages(false);
-    }
-  };
-
-  loadUserPackages();
-}, [profileId, isOpen]);
-
-// Usar paquetes cargados directamente en lugar de los filtrados
-const userPackages = loadedUserPackages.length > 0 
-  ? loadedUserPackages 
-  : packages.filter(pkg => pkg.user_id === (profileId || ''));
+{pkg.rejection_reason && <div className="mt-3">
+    <RejectionReasonDisplay rejectionReason={pkg.rejection_reason as any} />
+</div>}
 ```
 
-#### 2. UserPackagesTab.tsx - Agregar indicador de paquetes cancelados
-
-Actualizar el componente para mostrar visualmente los paquetes cancelados:
-
+A:
 ```tsx
-// En la fila de cada paquete, agregar indicador visual para cancelados
-<TableRow key={pkg.id} className={pkg.status === 'cancelled' ? 'opacity-60 bg-red-50/30' : ''}>
+{pkg.status === 'rejected' && pkg.rejection_reason && <div className="mt-3">
+    <RejectionReasonDisplay rejectionReason={pkg.rejection_reason as any} />
+</div>}
 ```
 
----
+### Resultado
 
-### Flujo Resultante
-
-```text
-┌──────────────────────────────────────────────────────┐
-│  Admin abre perfil de usuario                        │
-└──────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌──────────────────────────────────────────────────────┐
-│  useEffect detecta profileId + isOpen                │
-│  → Ejecuta query directo a packages                  │
-│  → SIN filtro de status (incluye cancelled)          │
-└──────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌──────────────────────────────────────────────────────┐
-│  Tab "Pedidos" muestra TODOS los paquetes            │
-│  → Activos con estilo normal                         │
-│  → Cancelados con fondo rojo suave + opacity         │
-└──────────────────────────────────────────────────────┘
-```
-
----
-
-### Archivos a Modificar
-
-1. **src/components/admin/UserDetailModal.tsx**
-   - Agregar import de supabase
-   - Agregar useState para loadedUserPackages y loadingPackages
-   - Agregar useEffect para cargar paquetes directamente
-   - Modificar userPackages para usar datos cargados
-
-2. **src/components/admin/UserPackagesTab.tsx**
-   - Agregar prop loadingPackages opcional
-   - Agregar estilo visual para paquetes cancelados
-   - Mostrar spinner mientras carga
-
----
-
-### Ventajas de Esta Solucion
-
-- No afecta rendimiento del dashboard admin general
-- Solo carga datos adicionales cuando se necesitan (al abrir perfil)
-- Muestra historial completo incluyendo cancelados
-- Distincion visual clara entre activos y cancelados
+- Shoppers solo veran el motivo de rechazo cuando su pedido fue rechazado por admin (status `rejected`)
+- Los rechazos de viajeros (que quedan en status `approved` o similar para reasignacion) no se mostraran
+- La informacion de rechazos de viajero sigue disponible para admins en el panel de administracion
