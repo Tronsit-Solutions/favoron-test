@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { User, Package, Trip } from "@/types";
 import {
   Dialog,
@@ -83,6 +84,10 @@ const UserDetailModal = ({
   const [showRoleDialog, setShowRoleDialog] = useState(false);
   const [pendingRole, setPendingRole] = useState<'admin' | 'user' | 'operations'>(user.role);
   const [isUpdatingRole, setIsUpdatingRole] = useState(false);
+  
+  // Estado para cargar TODOS los paquetes del usuario (incluyendo cancelados)
+  const [loadedUserPackages, setLoadedUserPackages] = useState<Package[]>([]);
+  const [loadingPackages, setLoadingPackages] = useState(false);
 
   const profileId = (user as any).profileId as string | undefined;
   const userBanInfo = (user as any);
@@ -98,11 +103,41 @@ const UserDetailModal = ({
     totalPackagesAvailable: packages.length
   });
 
-  const userPackages = packages.filter(pkg => pkg.user_id === (profileId || ''));
   const userTrips = trips.filter(trip => trip.user_id === (profileId || ''));
+  
+  // Cargar TODOS los paquetes del usuario directamente (incluyendo cancelados)
+  useEffect(() => {
+    const loadUserPackages = async () => {
+      if (!profileId || !isOpen) return;
+      
+      setLoadingPackages(true);
+      try {
+        const { data, error } = await supabase
+          .from('packages')
+          .select('*')
+          .eq('user_id', profileId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setLoadedUserPackages((data || []) as Package[]);
+      } catch (error) {
+        console.error('Error loading user packages:', error);
+      } finally {
+        setLoadingPackages(false);
+      }
+    };
+
+    loadUserPackages();
+  }, [profileId, isOpen]);
+
+  // Usar paquetes cargados directamente si están disponibles
+  const userPackages = loadedUserPackages.length > 0 
+    ? loadedUserPackages 
+    : packages.filter(pkg => pkg.user_id === (profileId || ''));
   
   console.log('🔍 UserDetailModal - Filtered Results:', {
     userPackagesCount: userPackages.length,
+    loadedDirectly: loadedUserPackages.length > 0,
     userTripsCount: userTrips.length,
     userTripStatuses: userTrips.map(t => ({ id: t.id.slice(0, 8), status: t.status }))
   });
@@ -377,7 +412,7 @@ const UserDetailModal = ({
           </TabsContent>
 
           <TabsContent value="packages">
-            <UserPackagesTab packages={userPackages} />
+            <UserPackagesTab packages={userPackages} loadingPackages={loadingPackages} />
           </TabsContent>
 
           <TabsContent value="trips">
