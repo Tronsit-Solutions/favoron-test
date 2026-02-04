@@ -719,13 +719,18 @@ const QuoteDialog = ({
         {/* QUOTE STEP - Wizard step 1 (original content) */}
         <DialogHeader className="pr-12 shrink-0">
           {isTravelerContext ? (
-            <div>
-              <DialogTitle className="text-lg font-bold text-left bg-gradient-to-r from-success to-emerald-600 bg-clip-text text-transparent">
-                Tip Asignado
-              </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground text-left">
-                Revisa y decide si aceptas
-              </DialogDescription>
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+                <Gift className="h-5 w-5 text-success" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-bold text-foreground text-left">
+                  Tip Asignado
+                </DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground text-left">
+                  Revisa los detalles y decide si aceptas este encargo
+                </DialogDescription>
+              </div>
             </div>
           ) : (
             <>
@@ -864,18 +869,16 @@ const QuoteDialog = ({
           <>
           {/* COMPACT HERO TIP CARD - Only for travelers */}
           {isTravelerContext && displayAmount && (
-            <div className="rounded-xl bg-gradient-to-r from-success/10 via-emerald-50/80 to-green-50/60 dark:from-success/20 dark:via-emerald-900/20 dark:to-green-900/10 border border-success/30 px-4 py-3 shadow-sm">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
-                    <Banknote className="w-5 h-5 text-success" />
-                  </div>
-                  <div>
-                    <span className="text-xs text-muted-foreground">Tu tip por llevarte este paquete</span>
-                    <p className="text-2xl font-bold bg-gradient-to-r from-success to-emerald-600 bg-clip-text text-transparent">
-                      Q{displayAmount.toFixed(2)}
-                    </p>
-                  </div>
+            <div className="rounded-xl bg-gradient-to-r from-success/10 via-emerald-50 to-green-50 dark:from-success/20 dark:via-emerald-900/20 dark:to-green-900/10 border border-success/20 p-4 shadow-soft">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-success flex items-center justify-center shadow-sm">
+                  <Banknote className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground font-medium">Tu tip por llevarte este paquete</span>
+                  <p className="text-3xl font-bold text-success">
+                    Q{displayAmount.toFixed(2)}
+                  </p>
                 </div>
               </div>
             </div>
@@ -887,8 +890,10 @@ const QuoteDialog = ({
               /* Clear structured view for travelers */
               <div className="space-y-3">
                 {/* Section Header */}
-                <div className="flex items-center gap-2 pb-2 border-b border-muted/40">
-                  <Package className="h-5 w-5 text-primary" />
+                <div className="flex items-center gap-2 pb-3 border-b border-muted/40">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Package className="h-4 w-4 text-primary" />
+                  </div>
                   <span className="text-sm font-semibold text-foreground">Producto solicitado</span>
                 </div>
 
@@ -929,28 +934,25 @@ const QuoteDialog = ({
                           )}
                           
                           {/* Indicador de empaque original */}
-                          <div className={`flex items-center gap-1.5 mb-3 text-sm`}>
-                            <span className={`px-2 py-1 rounded text-xs ${
-                              product.needsOriginalPackaging 
-                                ? 'text-amber-600 bg-amber-50' 
-                                : 'text-muted-foreground bg-muted/30'
-                            }`}>
-                              📦 {product.needsOriginalPackaging ? 'Conservar empaque original' : 'No requiere empaque original'}
-                            </span>
-                          </div>
+                          <p className={`text-xs flex items-center gap-1.5 mb-3 ${
+                            product.needsOriginalPackaging 
+                              ? 'text-amber-600' 
+                              : 'text-muted-foreground'
+                          }`}>
+                            📦 {product.needsOriginalPackaging ? 'Conservar empaque original' : 'No requiere empaque original'}
+                          </p>
                           
                           {/* Product Link Button */}
                           {productLink && (
-                            <a 
-                              href={productLink} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-lg transition-colors"
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="w-full"
+                              onClick={() => window.open(productLink, '_blank')}
                             >
-                              <ExternalLink className="h-4 w-4" />
+                              <ExternalLink className="h-4 w-4 mr-2" />
                               Ver producto en tienda
-                              <span className="text-primary/70">→</span>
-                            </a>
+                            </Button>
                           )}
                         </div>
                       );
@@ -970,16 +972,15 @@ const QuoteDialog = ({
                     
                     {/* Product Link Button */}
                     {packageDetails.item_link && (
-                      <a 
-                        href={packageDetails.item_link} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-lg transition-colors"
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="w-full"
+                        onClick={() => window.open(packageDetails.item_link, '_blank')}
                       >
-                        <ExternalLink className="h-4 w-4" />
+                        <ExternalLink className="h-4 w-4 mr-2" />
                         Ver producto en tienda
-                        <span className="text-primary/70">→</span>
-                      </a>
+                      </Button>
                     )}
                   </div>
                 )}
@@ -1770,19 +1771,19 @@ const QuoteDialog = ({
 
           {/* Traveler confirmation checkbox */}
           {isTravelerContext && !existingQuote && (
-            <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
+            <div className="bg-muted/30 rounded-lg p-3 border border-muted/40">
               <div className="flex items-start gap-3">
                 <Checkbox
                   id="confirmedProductReview"
                   checked={confirmedProductReview}
                   onCheckedChange={(checked) => updateFormField('confirmedProductReview', checked === true)}
-                  className="mt-0.5 border-emerald-400 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+                  className="mt-0.5"
                 />
-                <label htmlFor="confirmedProductReview" className="text-sm cursor-pointer">
-                  <span className="font-medium text-emerald-800 dark:text-emerald-200">
+                <label htmlFor="confirmedProductReview" className="text-sm cursor-pointer leading-relaxed">
+                  <span className="font-medium text-foreground">
                     Confirmo que he revisado el producto y que puedo llevarlo en mi maleta
                   </span>
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Al marcar esta casilla, confirmas que el producto cumple con las restricciones de equipaje y aduanas
                   </p>
                 </label>
