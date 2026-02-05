@@ -142,7 +142,9 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
 
       toast({
         title: 'Error',
-        description: error.message || 'Error en la autenticación',
+        description: error.message?.toLowerCase().includes('password should be at least')
+          ? "La contraseña debe tener al menos 8 caracteres e incluir: una letra minúscula, una letra mayúscula, un número y un carácter especial (!@#$%^&*)"
+          : error.message || 'Error en la autenticación',
         variant: 'destructive'
       });
     }
