@@ -1172,28 +1172,57 @@ const TripForm = ({
                     </div>
                   </div>
                   
-                  <div 
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                      formData.deliveryMethod === 'mensajero' 
-                        ? 'border-primary bg-primary/5 shadow-md' 
-                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
-                    }`}
-                    onClick={() => handleInputChange('deliveryMethod', 'mensajero')}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        formData.deliveryMethod === 'mensajero' ? 'border-primary bg-primary' : 'border-border'
-                      }`}>
-                        {formData.deliveryMethod === 'mensajero' && (
-                          <div className="w-2 h-2 rounded-full bg-primary-foreground" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">Entrega a mensajero Favorón</p>
-                        <p className="text-sm text-muted-foreground">Q25–Q40 según dirección</p>
+                  {/* Opción 2: Mensajero - SOLO para Guatemala */}
+                  {isDestinationGuatemala && (
+                    <div 
+                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                        formData.deliveryMethod === 'mensajero' 
+                          ? 'border-primary bg-primary/5 shadow-md' 
+                          : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                      }`}
+                      onClick={() => handleInputChange('deliveryMethod', 'mensajero')}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          formData.deliveryMethod === 'mensajero' ? 'border-primary bg-primary' : 'border-border'
+                        }`}>
+                          {formData.deliveryMethod === 'mensajero' && (
+                            <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">Entrega a mensajero Favorón</p>
+                          <p className="text-sm text-muted-foreground">Q25–Q40 según dirección</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
+                  
+                  {/* Opción 2 alternativa: Coordinación - para destinos internacionales con delivery point */}
+                  {!isDestinationGuatemala && (
+                    <div 
+                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                        formData.deliveryMethod === 'coordinacion' 
+                          ? 'border-primary bg-primary/5 shadow-md' 
+                          : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                      }`}
+                      onClick={() => handleInputChange('deliveryMethod', 'coordinacion')}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          formData.deliveryMethod === 'coordinacion' ? 'border-primary bg-primary' : 'border-border'
+                        }`}>
+                          {formData.deliveryMethod === 'coordinacion' && (
+                            <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">🤝 Me coordino con el shopper</p>
+                          <p className="text-sm text-muted-foreground">Acordaré la entrega directamente con el comprador</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
               
