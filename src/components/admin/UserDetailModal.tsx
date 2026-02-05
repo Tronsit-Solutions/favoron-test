@@ -88,6 +88,10 @@ const UserDetailModal = ({
   // Estado para cargar TODOS los paquetes del usuario (incluyendo cancelados)
   const [loadedUserPackages, setLoadedUserPackages] = useState<Package[]>([]);
   const [loadingPackages, setLoadingPackages] = useState(false);
+  
+  // Estado para cargar viajes del usuario directamente
+  const [loadedUserTrips, setLoadedUserTrips] = useState<Trip[]>([]);
+  const [loadingTrips, setLoadingTrips] = useState(false);
 
   const profileId = (user as any).profileId as string | undefined;
   const userBanInfo = (user as any);
@@ -103,7 +107,10 @@ const UserDetailModal = ({
     totalPackagesAvailable: packages.length
   });
 
-  const userTrips = trips.filter(trip => trip.user_id === (profileId || ''));
+  // Usar viajes cargados directamente si están disponibles
+  const userTrips = loadedUserTrips.length > 0 
+    ? loadedUserTrips 
+    : trips.filter(trip => trip.user_id === (profileId || ''));
   
   // Cargar TODOS los paquetes del usuario directamente (incluyendo cancelados)
   useEffect(() => {
@@ -128,6 +135,31 @@ const UserDetailModal = ({
     };
 
     loadUserPackages();
+  }, [profileId, isOpen]);
+
+  // Cargar viajes del usuario directamente desde la base de datos
+  useEffect(() => {
+    const loadUserTrips = async () => {
+      if (!profileId || !isOpen) return;
+      
+      setLoadingTrips(true);
+      try {
+        const { data, error } = await supabase
+          .from('trips')
+          .select('*')
+          .eq('user_id', profileId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setLoadedUserTrips((data || []) as Trip[]);
+      } catch (error) {
+        console.error('Error loading user trips:', error);
+      } finally {
+        setLoadingTrips(false);
+      }
+    };
+
+    loadUserTrips();
   }, [profileId, isOpen]);
 
   // Usar paquetes cargados directamente si están disponibles
@@ -416,7 +448,7 @@ const UserDetailModal = ({
           </TabsContent>
 
           <TabsContent value="trips">
-            <UserTripsTab trips={userTrips} allPackages={allPackages} />
+            <UserTripsTab trips={userTrips} allPackages={allPackages} loadingTrips={loadingTrips} />
           </TabsContent>
 
           <TabsContent value="financial">
