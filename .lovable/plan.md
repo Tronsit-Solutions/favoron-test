@@ -1,39 +1,57 @@
 
-## Mostrar "Zona Bernabéu" para Madrid
+## Corregir opciones de entrega para Madrid
 
-### Cambios necesarios
+### Problema
+Cuando el destino es Madrid (punto de entrega internacional), se muestra la opción "Entrega a mensajero Favorón" que solo aplica para Guatemala. La segunda opción debería ser "Me coordino con el shopper".
 
-#### 1. Actualizar base de datos
-Agregar "Zona Bernabéu" al campo `instructions` del delivery point de Madrid:
+### Lógica actual vs deseada
 
-```sql
-UPDATE delivery_points 
-SET instructions = 'Zona Bernabéu'
-WHERE id = 'aeb8aa05-3674-4ce8-9574-e4e2f975539c';
-```
+| Destino | Opción 1 | Opción 2 (actual) | Opción 2 (deseada) |
+|---------|----------|-------------------|-------------------|
+| Guatemala | Oficina | Mensajero | Mensajero |
+| Madrid (int'l con delivery point) | Oficina | Mensajero | Coordinación shopper |
+| Otro internacional | Correo | Coord. shopper | Coord. shopper |
 
-#### 2. Modificar TripForm.tsx (línea 1166)
+### Cambio en TripForm.tsx
 
-Cambiar el texto hardcodeado por lógica dinámica:
+**Archivo:** `src/components/TripForm.tsx` (líneas 1145-1197)
 
-**Antes:**
+Modificar la sección que muestra las opciones cuando `hasOfficialDeliveryOptions` es true:
+
 ```tsx
-<p className="text-sm text-muted-foreground">Zona 14, Ciudad de Guatemala</p>
+{hasOfficialDeliveryOptions && (
+  <>
+    {/* Opción 1: Oficina - siempre se muestra */}
+    <div ...>
+      <p>Entrego en oficina de Favorón</p>
+      <p>{isDestinationGuatemala ? 'Zona 14...' : destinationDeliveryPoint?.instructions...}</p>
+    </div>
+    
+    {/* Opción 2: Mensajero SOLO para Guatemala */}
+    {isDestinationGuatemala && (
+      <div ...>
+        <p>Entrega a mensajero Favorón</p>
+        <p>Q25–Q40 según dirección</p>
+      </div>
+    )}
+    
+    {/* Opción 2 alternativa: Coordinación SOLO para internacionales */}
+    {!isDestinationGuatemala && (
+      <div ...>
+        <p>🤝 Me coordino con el shopper</p>
+        <p>Acordaré la entrega directamente con el comprador</p>
+      </div>
+    )}
+  </>
+)}
 ```
 
-**Después:**
-```tsx
-<p className="text-sm text-muted-foreground">
-  {isDestinationGuatemala 
-    ? 'Zona 14, Ciudad de Guatemala'
-    : destinationDeliveryPoint?.instructions || destinationDeliveryPoint?.city || 'Punto de entrega'}
-</p>
-```
+### Resultado esperado
 
-### Resultado
+**Guatemala:**
+- Entrego en oficina de Favorón (Zona 14)
+- Entrega a mensajero Favorón (Q25-Q40)
 
-| Destino | Texto mostrado |
-|---------|---------------|
-| Guatemala | Zona 14, Ciudad de Guatemala |
-| Madrid | Zona Bernabéu |
-| Otro con delivery point | Usa `instructions` o nombre de ciudad |
+**Madrid:**
+- Entrego en oficina de Favorón (Zona Bernabéu)
+- Me coordino con el shopper
