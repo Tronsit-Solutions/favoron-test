@@ -14,9 +14,10 @@ import TripPackagesModal from "./TripPackagesModal";
 interface UserTripsTabProps {
   trips: Trip[];
   allPackages: Package[];
+  loadingTrips?: boolean;
 }
 
-const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
+const UserTripsTab = ({ trips, allPackages, loadingTrips }: UserTripsTabProps) => {
   const { getStatusBadge } = useStatusHelpers();
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [showPackagesModal, setShowPackagesModal] = useState(false);
@@ -74,6 +75,17 @@ const UserTripsTab = ({ trips, allPackages }: UserTripsTabProps) => {
     setSelectedTrip(trip);
     setShowPackagesModal(true);
   };
+
+  if (loadingTrips) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center text-muted-foreground">
+          <Plane className="h-12 w-12 mx-auto mb-4 opacity-50 animate-pulse" />
+          <p>Cargando viajes...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (trips.length === 0) {
     return (
