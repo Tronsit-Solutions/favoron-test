@@ -337,6 +337,8 @@ const Auth = () => {
           title: "Error al crear cuenta",
           description: error.message === "over_email_send_rate_limit" 
             ? "Has enviado demasiados emails. Espera un momento antes de intentar de nuevo."
+            : error.message?.toLowerCase().includes('password should be at least')
+            ? "La contraseña debe tener al menos 8 caracteres e incluir: una letra minúscula, una letra mayúscula, un número y un carácter especial (!@#$%^&*)"
             : error.message,
           variant: "destructive",
         });
