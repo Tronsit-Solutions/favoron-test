@@ -1,63 +1,74 @@
 
-## Mejorar Consistencia Visual del Modal "Información de Envío"
 
-### Problemas Identificados
+## Rediseño del Modal "Información de Envío"
 
-1. **Aviso "Importante:"** - Usa texto destructivo con borde inferior raw, debería usar el componente Alert
-2. **Dirección de Entrega** - Usa `bg-info-muted` (azul claro) inconsistente con el resto del sitio que usa `bg-muted/30` (gris sutil)
-3. **Fechas Importantes** - Misma inconsistencia con `bg-info-muted`
-4. **Colores de fechas** - Usa `text-primary` (rojo) para fechas, debería usar colores más neutrales
+### Problema
+El modal actual mezcla diferentes estilos visuales:
+- Alert amarillo (warning)
+- Tarjeta verde (AddressDisplay variant="success")
+- Secciones grises (bg-muted/30)
 
-### Cambios Propuestos
+Esto crea un aspecto fragmentado e inconsistente con otros modales como `TripDetailModal`.
 
-#### 1. Aviso Importante (líneas 43-45)
-**Antes:** Texto raw con borde
+### Solución
+Rediseñar completamente siguiendo el patrón exacto de `TripDetailModal` que usa:
+- Headers simples con iconos grises (`text-muted-foreground`)
+- Todas las secciones con `bg-muted/30 rounded-lg p-3 sm:p-4`
+- Grids para organizar datos con etiquetas/valores
+
+### Cambios en ShippingInfoModal.tsx
+
+#### 1. Eliminar AddressDisplay
+Reemplazar el componente `AddressDisplay` por un layout inline siguiendo el patrón de TripDetailModal:
+
 ```tsx
-<div className="text-left text-destructive font-medium text-sm border-b border-destructive/20 pb-4">
-  <strong>Importante:</strong> Después de completar...
+{/* Dirección de Entrega */}
+{travelerAddress && (
+  <div className="space-y-2">
+    <div className="flex items-center gap-2">
+      <MapPin className="h-4 w-4 text-muted-foreground" />
+      <h3 className="font-semibold text-sm sm:text-base">Dirección de Entrega</h3>
+    </div>
+    <div className="bg-muted/30 rounded-lg p-3 sm:p-4 space-y-2">
+      {/* Grid rows for each field */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4">
+        <div className="text-xs sm:text-sm font-medium text-muted-foreground">Destinatario:</div>
+        <div className="sm:col-span-2 text-xs sm:text-sm">{travelerAddress.recipientName}</div>
+      </div>
+      {/* ... más campos */}
+    </div>
+  </div>
+)}
+```
+
+#### 2. Simplificar Alert
+Convertir a un texto informativo más sutil:
+
+```tsx
+<div className="bg-muted/30 rounded-lg p-3 text-sm text-muted-foreground">
+  <strong className="text-foreground">Importante:</strong> Después de completar tu compra...
 </div>
 ```
 
-**Después:** Usar componente Alert con icono
-```tsx
-<Alert className="border-amber-200 bg-amber-50">
-  <Info className="h-4 w-4 text-amber-600" />
-  <AlertDescription className="text-amber-800">
-    <strong>Importante:</strong> Después de completar...
-  </AlertDescription>
-</Alert>
-```
+#### 3. Unificar Fechas
+Ya usa `bg-muted/30`, solo ajustar el header:
 
-#### 2. AddressDisplay (líneas 53-68)
-Cambiar de `variant="info"` a `variant="success"` o crear nuevo estilo que use `bg-muted/30`
-
-#### 3. Sección Fechas Importantes (líneas 78-130)
-**Antes:**
 ```tsx
-<div className="bg-info-muted border-info-border border rounded-lg p-4">
-```
-
-**Después:**
-```tsx
-<div className="bg-muted/30 rounded-lg p-4">
-```
-
-#### 4. Colores de Fechas
-**Antes:**
-```tsx
-<p className="text-sm font-semibold text-primary">fecha...</p>
-```
-
-**Después:**
-```tsx
-<p className="text-sm font-semibold text-foreground">fecha...</p>
+<div className="flex items-center gap-2">
+  <Calendar className="h-4 w-4 text-muted-foreground" />
+  <h3 className="font-semibold text-sm sm:text-base">Fechas Importantes</h3>
+</div>
 ```
 
 ### Resultado Visual Esperado
 
-| Elemento | Antes | Después |
-|----------|-------|---------|
-| Aviso | Texto rojo con línea | Card amarillo con icono |
-| Dirección | Fondo azul claro | Fondo gris sutil |
-| Fechas | Fondo azul, texto rojo | Fondo gris, texto neutral |
-| Consistencia | Diferente a otros modales | Igual a TripDetailModal |
+| Antes | Después |
+|-------|---------|
+| Alert amarillo destacado | Nota sutil gris |
+| Tarjeta verde con bordes | Sección gris uniforme |
+| Headers con iconos negros | Headers con iconos grises |
+| Mezcla de colores | Todo `bg-muted/30` |
+
+### Archivos a Modificar
+- `src/components/dashboard/ShippingInfoModal.tsx` - Rediseño completo del contenido
+
