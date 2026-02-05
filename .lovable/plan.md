@@ -1,45 +1,87 @@
 
-## Traducir Mensaje de Error de Contraseña a Español
 
-### Problema
-El mensaje de error de Supabase para requisitos de contraseña se muestra en inglés:
-> "Password should be at least 8 characters. Password should contain at least one character of each: abcdefghijklmnopqrstuvwxyz, ABCDEFGHIJKLMNOPQRSTUVWXYZ, 0123456789, !@#$%^&*()_+-=[]{};"'|<>?,./`~."
+## Corregir Iframe de Pago Recurrente
 
-### Solución
-Agregar una condición para detectar este error y mostrar la versión en español.
+### Problema Identificado
+El iframe en línea 199-206 tiene permisos insuficientes:
+```tsx
+<iframe
+  src={checkoutUrl}
+  allow="payment"  // Solo esto - insuficiente
+/>
+```
+
+Los formularios de pago de terceros necesitan:
+- Ejecutar JavaScript
+- Enviar formularios
+- Acceder a cookies/storage
+- Abrir popups para 3DS (autenticación de tarjeta)
+
+### Solución Propuesta
+
+Dado que los iframes para pagos son problemáticos por diseño (restricciones de seguridad del navegador), propongo **dos cambios**:
 
 ---
 
-### Cambio Técnico
+### Cambio 1: Agregar permisos completos al iframe
 
-**Archivo: src/pages/Auth.tsx (líneas 336-342)**
+**Archivo: src/components/payment/RecurrenteCheckout.tsx (líneas 199-206)**
 
-Cambiar de:
 ```tsx
-toast({
-  title: "Error al crear cuenta",
-  description: error.message === "over_email_send_rate_limit" 
-    ? "Has enviado demasiados emails. Espera un momento antes de intentar de nuevo."
-    : error.message,
-  variant: "destructive",
-});
-```
-
-A:
-```tsx
-toast({
-  title: "Error al crear cuenta",
-  description: error.message === "over_email_send_rate_limit" 
-    ? "Has enviado demasiados emails. Espera un momento antes de intentar de nuevo."
-    : error.message?.toLowerCase().includes('password should be at least')
-    ? "La contraseña debe tener al menos 8 caracteres e incluir: una letra minúscula, una letra mayúscula, un número y un carácter especial (!@#$%^&*)"
-    : error.message,
-  variant: "destructive",
-});
+<iframe
+  ref={iframeRef}
+  src={checkoutUrl}
+  className="w-full h-full border-0"
+  style={{ minHeight: '450px' }}
+  allow="payment; camera; microphone"
+  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+  referrerPolicy="no-referrer-when-downgrade"
+  title="Recurrente Checkout"
+/>
 ```
 
 ---
 
-### Resultado
-- **Antes**: "Password should be at least 8 characters..."
-- **Después**: "La contraseña debe tener al menos 8 caracteres e incluir: una letra minúscula, una letra mayúscula, un número y un carácter especial (!@#$%^&*)"
+### Cambio 2: Priorizar "Abrir en nueva pestaña" como opción principal
+
+Mover el botón de "Abrir en nueva pestaña" ANTES del iframe y hacerlo más prominente, ya que es la opción más confiable:
+
+```tsx
+{/* PRIMERO: Opción recomendada */}
+<div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+  <p className="text-sm text-blue-800 mb-2">
+    <strong>Recomendado:</strong> Abre el formulario en una nueva pestaña para mejor compatibilidad
+  </p>
+  <Button variant="default" size="sm" onClick={handleOpenInNewTab} className="gap-2">
+    <ExternalLink className="h-4 w-4" />
+    Abrir formulario de pago
+  </Button>
+</div>
+
+{/* SEGUNDO: Iframe como alternativa */}
+<details className="border rounded-lg">
+  <summary className="p-3 cursor-pointer text-sm text-muted-foreground">
+    O completa el pago aquí (puede no funcionar en todos los navegadores)
+  </summary>
+  <div className="p-2">
+    <iframe ... />
+  </div>
+</details>
+```
+
+---
+
+### Por qué esta solución
+
+1. **Iframe con permisos**: El `sandbox` con los permisos correctos permite que Recurrente funcione en navegadores compatibles
+2. **Nueva pestaña como principal**: Es la opción más confiable para pagos de terceros
+3. **Sin pérdida de funcionalidad**: El webhook sigue funcionando igual - cuando el usuario paga en nueva pestaña, el paquete se actualiza automáticamente
+
+---
+
+### Resultado esperado
+
+- **Usuarios que abren nueva pestaña**: Pago funciona siempre (como confirmaste)
+- **Usuarios que usan iframe**: Mayor probabilidad de éxito con los permisos correctos
+- **Fallback claro**: Si el iframe falla, la opción de nueva pestaña está visible y prominente
+
