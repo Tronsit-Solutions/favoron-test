@@ -100,9 +100,9 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
                   <div className="sm:col-span-2 text-xs sm:text-sm">{travelerAddress.contactNumber}</div>
                 </div>
                 {travelerAddress.additionalInstructions && (
-                  <div className="mt-2 pt-2 border-t border-border">
-                    <div className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">Instrucciones adicionales:</div>
-                    <div className="text-xs sm:text-sm">{travelerAddress.additionalInstructions}</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4">
+                    <div className="text-xs sm:text-sm font-medium text-muted-foreground">Instrucciones adicionales:</div>
+                    <div className="sm:col-span-2 text-xs sm:text-sm">{travelerAddress.additionalInstructions}</div>
                   </div>
                 )}
               </div>
