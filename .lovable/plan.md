@@ -1,57 +1,63 @@
 
-## Corregir opciones de entrega para Madrid
+## Mejorar Consistencia Visual del Modal "Información de Envío"
 
-### Problema
-Cuando el destino es Madrid (punto de entrega internacional), se muestra la opción "Entrega a mensajero Favorón" que solo aplica para Guatemala. La segunda opción debería ser "Me coordino con el shopper".
+### Problemas Identificados
 
-### Lógica actual vs deseada
+1. **Aviso "Importante:"** - Usa texto destructivo con borde inferior raw, debería usar el componente Alert
+2. **Dirección de Entrega** - Usa `bg-info-muted` (azul claro) inconsistente con el resto del sitio que usa `bg-muted/30` (gris sutil)
+3. **Fechas Importantes** - Misma inconsistencia con `bg-info-muted`
+4. **Colores de fechas** - Usa `text-primary` (rojo) para fechas, debería usar colores más neutrales
 
-| Destino | Opción 1 | Opción 2 (actual) | Opción 2 (deseada) |
-|---------|----------|-------------------|-------------------|
-| Guatemala | Oficina | Mensajero | Mensajero |
-| Madrid (int'l con delivery point) | Oficina | Mensajero | Coordinación shopper |
-| Otro internacional | Correo | Coord. shopper | Coord. shopper |
+### Cambios Propuestos
 
-### Cambio en TripForm.tsx
-
-**Archivo:** `src/components/TripForm.tsx` (líneas 1145-1197)
-
-Modificar la sección que muestra las opciones cuando `hasOfficialDeliveryOptions` es true:
-
+#### 1. Aviso Importante (líneas 43-45)
+**Antes:** Texto raw con borde
 ```tsx
-{hasOfficialDeliveryOptions && (
-  <>
-    {/* Opción 1: Oficina - siempre se muestra */}
-    <div ...>
-      <p>Entrego en oficina de Favorón</p>
-      <p>{isDestinationGuatemala ? 'Zona 14...' : destinationDeliveryPoint?.instructions...}</p>
-    </div>
-    
-    {/* Opción 2: Mensajero SOLO para Guatemala */}
-    {isDestinationGuatemala && (
-      <div ...>
-        <p>Entrega a mensajero Favorón</p>
-        <p>Q25–Q40 según dirección</p>
-      </div>
-    )}
-    
-    {/* Opción 2 alternativa: Coordinación SOLO para internacionales */}
-    {!isDestinationGuatemala && (
-      <div ...>
-        <p>🤝 Me coordino con el shopper</p>
-        <p>Acordaré la entrega directamente con el comprador</p>
-      </div>
-    )}
-  </>
-)}
+<div className="text-left text-destructive font-medium text-sm border-b border-destructive/20 pb-4">
+  <strong>Importante:</strong> Después de completar...
+</div>
 ```
 
-### Resultado esperado
+**Después:** Usar componente Alert con icono
+```tsx
+<Alert className="border-amber-200 bg-amber-50">
+  <Info className="h-4 w-4 text-amber-600" />
+  <AlertDescription className="text-amber-800">
+    <strong>Importante:</strong> Después de completar...
+  </AlertDescription>
+</Alert>
+```
 
-**Guatemala:**
-- Entrego en oficina de Favorón (Zona 14)
-- Entrega a mensajero Favorón (Q25-Q40)
+#### 2. AddressDisplay (líneas 53-68)
+Cambiar de `variant="info"` a `variant="success"` o crear nuevo estilo que use `bg-muted/30`
 
-**Madrid:**
-- Entrego en oficina de Favorón (Zona Bernabéu)
-- Me coordino con el shopper
+#### 3. Sección Fechas Importantes (líneas 78-130)
+**Antes:**
+```tsx
+<div className="bg-info-muted border-info-border border rounded-lg p-4">
+```
+
+**Después:**
+```tsx
+<div className="bg-muted/30 rounded-lg p-4">
+```
+
+#### 4. Colores de Fechas
+**Antes:**
+```tsx
+<p className="text-sm font-semibold text-primary">fecha...</p>
+```
+
+**Después:**
+```tsx
+<p className="text-sm font-semibold text-foreground">fecha...</p>
+```
+
+### Resultado Visual Esperado
+
+| Elemento | Antes | Después |
+|----------|-------|---------|
+| Aviso | Texto rojo con línea | Card amarillo con icono |
+| Dirección | Fondo azul claro | Fondo gris sutil |
+| Fechas | Fondo azul, texto rojo | Fondo gris, texto neutral |
+| Consistencia | Diferente a otros modales | Igual a TripDetailModal |
