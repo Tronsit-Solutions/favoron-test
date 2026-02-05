@@ -26,34 +26,36 @@ export const logAuthError = async (
     // Get current route
     const route = window.location.pathname;
     
-    // Get user agent
-    const userAgent = navigator.userAgent;
-    
-    // Build context with privacy considerations
-    const safeContext = {
+    // Build context with network and browser info
+    const fullContext = {
       ...context,
-      userAgent,
       timestamp: new Date().toISOString(),
-      url: window.location.href,
-      referrer: document.referrer,
       networkOnline: networkInfo.online,
       networkConnection: networkInfo.connection?.effectiveType || 'unknown',
       isSafari: networkInfo.isSafari,
       isMobile: networkInfo.isMobile,
     };
 
-    // Try to send to edge function with retry
+    // Build browser info
+    const browser = {
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+      platform: navigator.platform,
+    };
+
+    // Send to edge function with correct structure (flat, not nested)
     await withRetry(async () => {
       const { error } = await supabase.functions.invoke('log-client-error', {
         body: {
-          type: 'auth_error',
-          data: {
-            type,
-            message,
-            severity,
-            route,
-            context: safeContext,
-          },
+          type,
+          message,
+          severity,
+          route,
+          url: window.location.href,
+          referrer: document.referrer,
+          name: context?.supabaseErrorCode || 'AuthError',
+          context: fullContext,
+          browser,
         },
       });
 
