@@ -40,9 +40,13 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
         
         <div className="space-y-6 pb-4">
           {/* Important Notice for Document Upload */}
-          <div className="text-left text-destructive font-medium text-sm border-b border-destructive/20 pb-4">
-            <strong>Importante:</strong> Después de completar tu compra, debes subir el comprobante de pago y el número de seguimiento (tracking) para procesar tu pedido.
-          </div>
+          <Alert className="border-warning/30 bg-warning/10">
+            <Info className="h-4 w-4 text-warning" />
+            <AlertDescription className="text-foreground">
+              <strong>Importante:</strong> Después de completar tu compra, debes subir el comprobante de pago y el número de seguimiento (tracking) para procesar tu pedido.
+            </AlertDescription>
+          </Alert>
+          
           {/* Traveler Address */}
           {travelerAddress && (
             <div>
@@ -63,7 +67,7 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
                   postalCode: travelerAddress.postalCode
                 }}
                 title="Información de envío"
-                variant="info"
+                variant="success"
               />
             </div>
           )}
@@ -75,12 +79,12 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
                 <Calendar className="h-4 w-4" />
                 Fechas Importantes
               </h3>
-              <div className="bg-info-muted border-info-border border rounded-lg p-4">
+              <div className="bg-muted/30 rounded-lg p-4">
                 <div className="space-y-3">
                   {tripDates.first_day_packages && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Primer día para recibir paquetes:</p>
-                      <p className="text-sm font-semibold text-primary">{(() => {
+                      <p className="text-sm font-semibold text-foreground">{(() => {
                         const date = new Date(tripDates.first_day_packages);
                         return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).toLocaleDateString('es-GT', { 
                           weekday: 'long', 
@@ -94,7 +98,7 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
                   {tripDates.last_day_packages && (
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Último día para recibir paquetes:</p>
-                      <p className="text-sm font-semibold text-primary">{(() => {
+                      <p className="text-sm font-semibold text-foreground">{(() => {
                         const date = new Date(tripDates.last_day_packages);
                         return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).toLocaleDateString('es-GT', { 
                           weekday: 'long', 
@@ -118,7 +122,7 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
                         });
                       })()}</p>
                       
-                      <Alert className="mt-3">
+                      <Alert className="mt-3 bg-muted/50 border-border">
                         <Info className="h-4 w-4" />
                         <AlertDescription>
                           Podrás recoger tu paquete entre 1 y 2 días después de la entrega del viajero.
