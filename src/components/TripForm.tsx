@@ -1163,7 +1163,11 @@ const TripForm = ({
                       </div>
                       <div>
                         <p className="font-medium text-foreground">Entrego en oficina de Favorón</p>
-                        <p className="text-sm text-muted-foreground">Zona 14, Ciudad de Guatemala</p>
+                        <p className="text-sm text-muted-foreground">
+                          {isDestinationGuatemala 
+                            ? 'Zona 14, Ciudad de Guatemala'
+                            : destinationDeliveryPoint?.instructions || destinationDeliveryPoint?.city || 'Punto de entrega'}
+                        </p>
                       </div>
                     </div>
                   </div>
