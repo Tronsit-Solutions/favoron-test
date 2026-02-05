@@ -194,28 +194,37 @@ export default function RecurrenteCheckout({
           <span className="text-lg font-bold text-primary">Q{amount.toFixed(2)}</span>
         </div>
 
-        {/* Iframe container */}
-        <div className="relative border rounded-lg overflow-hidden bg-background" style={{ minHeight: '450px' }}>
-          <iframe
-            ref={iframeRef}
-            src={checkoutUrl}
-            className="w-full h-full border-0"
-            style={{ minHeight: '450px' }}
-            allow="payment"
-            title="Recurrente Checkout"
-          />
-        </div>
-
-        {/* Open in new tab option */}
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-          <span className="text-sm text-muted-foreground">
-            ¿Problemas con el formulario?
-          </span>
-          <Button variant="outline" size="sm" onClick={handleOpenInNewTab} className="gap-2">
+       {/* Primary option: Open in new tab */}
+       <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950/30 dark:border-blue-800">
+         <p className="text-sm text-blue-800 dark:text-blue-200 mb-2">
+           <strong>Recomendado:</strong> Abre el formulario en una nueva pestaña para mejor compatibilidad
+         </p>
+         <Button variant="default" size="sm" onClick={handleOpenInNewTab} className="gap-2">
             <ExternalLink className="h-4 w-4" />
-            Abrir en nueva pestaña
+           Abrir formulario de pago
           </Button>
         </div>
+
+       {/* Secondary option: Iframe (collapsible) */}
+       <details className="border rounded-lg">
+         <summary className="p-3 cursor-pointer text-sm text-muted-foreground hover:bg-muted/50 rounded-lg">
+           O completa el pago aquí (puede no funcionar en todos los navegadores)
+         </summary>
+         <div className="p-2 pt-0">
+           <div className="relative border rounded-lg overflow-hidden bg-background" style={{ minHeight: '450px' }}>
+             <iframe
+               ref={iframeRef}
+               src={checkoutUrl}
+               className="w-full h-full border-0"
+               style={{ minHeight: '450px' }}
+               allow="payment; camera; microphone"
+               sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+               referrerPolicy="no-referrer-when-downgrade"
+               title="Recurrente Checkout"
+             />
+           </div>
+         </div>
+       </details>
 
         {/* Cancel button */}
         <Button 
