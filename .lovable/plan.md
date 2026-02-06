@@ -1,82 +1,62 @@
 
 
-## Persistir el paso actual del formulario de viaje
+## Agregar mas paises al dropdown de origen de paquetes
 
-### Problema
-Cuando el usuario sale del sitio (para ver información de su viaje) y regresa, el modal se resetea al paso 1 (VIAJE) aunque estaba en el paso 2 (Dirección). Esto ocurre porque:
-1. El `currentStep` no se persiste - solo se guarda en memoria
-2. El `useEffect` siempre resetea al paso inicial cuando `isOpen` cambia
+### Situacion actual
+Los paises de origen estan definidos en dos archivos con listas limitadas:
+- `PackageRequestForm.tsx` (formulario publico)
+- `PackageDetailModal.tsx` (modal de admin)
 
-### Solución
-Incluir el `currentStep` dentro del estado que ya se persiste con `useFormAutosave`.
+Ambos solo incluyen: Estados Unidos, Espana, Mexico, Otro (y Guatemala para pedidos personales).
 
-### Cambios en src/components/TripForm.tsx
+### Solucion
+Agregar Colombia y otros paises frecuentes a ambas listas, manteniendo el formato actual para compatibilidad.
 
-#### 1. Agregar currentStep al estado inicial del formulario (línea 49)
+### Cambios tecnicos
+
+#### 1. src/components/PackageRequestForm.tsx (lineas 257-272)
+
 ```tsx
-const getInitialFormState = () => ({
-  currentStep: 0, // NUEVO: Agregar paso actual
-  formData: {
-    // ... resto igual
-  },
-  messengerData: null as any,
-  acceptedTerms: false,
-  showTermsModal: false,
-  showMessengerForm: false
-});
+// Para compra online - sin Guatemala (tiendas extranjeras)
+const onlinePurchaseOrigins = [
+  { value: 'Estados Unidos', label: 'Estados Unidos' },
+  { value: 'España', label: 'España' },
+  { value: 'México', label: 'México' },
+  { value: 'Colombia', label: 'Colombia' },      // NUEVO
+  { value: 'Panamá', label: 'Panamá' },          // NUEVO
+  { value: 'El Salvador', label: 'El Salvador' }, // NUEVO
+  { value: 'Honduras', label: 'Honduras' },      // NUEVO
+  { value: 'China', label: 'China' },            // NUEVO
+  { value: 'Otro', label: 'Otro' }
+];
+
+// Para pedido personal - con Guatemala (paquete puede estar localmente)
+const personalPackageOrigins = [
+  { value: 'Guatemala', label: 'Guatemala' },
+  { value: 'Estados Unidos', label: 'Estados Unidos' },
+  { value: 'España', label: 'España' },
+  { value: 'México', label: 'México' },
+  { value: 'Colombia', label: 'Colombia' },      // NUEVO
+  { value: 'Panamá', label: 'Panamá' },          // NUEVO
+  { value: 'El Salvador', label: 'El Salvador' }, // NUEVO
+  { value: 'Honduras', label: 'Honduras' },      // NUEVO
+  { value: 'China', label: 'China' },            // NUEVO
+  { value: 'Otro', label: 'Otro' }
+];
 ```
 
-#### 2. Eliminar el estado separado de currentStep (líneas 91-93)
-```tsx
-// ELIMINAR estas líneas:
-// const [currentStep, setCurrentStep] = useState(0);
-const [skipIntroduction, setSkipIntroduction] = useState(false);
-// totalSteps se mantiene
-const totalSteps = 4;
-```
+#### 2. src/components/admin/PackageDetailModal.tsx (lineas 15-29)
 
-#### 3. Crear helper para currentStep
-```tsx
-// Acceder al paso desde el estado persistido
-const currentStep = formState.currentStep ?? 0;
-const setCurrentStep = (step: number | ((prev: number) => number)) => {
-  if (typeof step === 'function') {
-    setFormState(prev => ({ ...prev, currentStep: step(prev.currentStep ?? 0) }));
-  } else {
-    updateField('currentStep', step);
-  }
-};
-```
+Mismos cambios que arriba para mantener consistencia entre el formulario publico y el admin.
 
-#### 4. Modificar el useEffect que resetea el paso (líneas 96-102)
-```tsx
-// Solo resetear si NO hay datos guardados del formulario
-useEffect(() => {
-  if (isOpen) {
-    // Si hay un paso guardado, usarlo; si no, verificar preferencia de intro
-    const hasSavedStep = formState.currentStep !== undefined && formState.currentStep > 0;
-    if (!hasSavedStep) {
-      const shouldSkip = profile?.ui_preferences?.skip_trip_intro === true;
-      setCurrentStep(shouldSkip ? 1 : 0);
-    }
-    setSkipIntroduction(false);
-  }
-}, [isOpen]);
-```
+### Paises a agregar
+- **Colombia** - Solicitado por el usuario
+- **Panama** - Frecuente para compras en la region
+- **El Salvador** - Pais vecino con comercio frecuente
+- **Honduras** - Pais vecino
+- **China** - Origen comun de compras online
 
-#### 5. Resetear paso en handleSubmit exitoso (línea 364)
-Este ya está correcto - al hacer submit exitoso se llama `resetFormDraft()` que limpia todo.
-
-### Resultado esperado
-- El usuario en paso 2 sale del sitio para ver información de su viaje
-- Al regresar, el modal mantiene el paso 2 con todos los datos ingresados
-- Solo se resetea al paso inicial cuando:
-  - El usuario completa y envía el formulario
-  - El usuario cierra el modal y el borrador expira
-  - El usuario limpia manualmente el borrador
-
-### Notas técnicas
-- El paso se guarda en `localStorage` junto con los demás datos del formulario
-- El debounce de 400ms aplica igual que para los otros campos
-- El key del storage es `trip-form-create:/dashboard/trip`
-
+### Compatibilidad
+- Se mantiene el formato `{ value: 'Pais', label: 'Pais' }` existente
+- No afecta datos existentes en la base de datos
+- "Otro" permanece al final para casos no cubiertos
