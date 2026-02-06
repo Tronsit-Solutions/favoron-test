@@ -45,8 +45,9 @@ const TripForm = ({
   const { profile, updateProfile } = useAuth();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
 
-  // Estado inicial del formulario completo
+  // Estado inicial del formulario completo (incluye currentStep para persistencia)
   const getInitialFormState = () => ({
+    currentStep: 0, // Persistido para mantener progreso al salir/volver
     formData: {
       fromCity: '',
       fromCountry: '',
@@ -87,19 +88,29 @@ const TripForm = ({
     { debounceMs: 400, storage: 'local' }
   );
 
-  // Wizard step state (not persisted - resets when modal opens)
-  const [currentStep, setCurrentStep] = useState(0);
+  // Wizard step state - ahora persistido en formState
+  const currentStep = formState.currentStep ?? 0;
+  const setCurrentStep = (step: number | ((prev: number) => number)) => {
+    if (typeof step === 'function') {
+      setFormState(prev => ({ ...prev, currentStep: step(prev.currentStep ?? 0) }));
+    } else {
+      updateField('currentStep', step);
+    }
+  };
   const [skipIntroduction, setSkipIntroduction] = useState(false);
   const totalSteps = 4;
 
-  // Reset step when modal opens - check if user wants to skip intro
+  // Solo resetear paso si NO hay progreso guardado
   useEffect(() => {
     if (isOpen) {
-      const shouldSkip = profile?.ui_preferences?.skip_trip_intro === true;
-      setCurrentStep(shouldSkip ? 1 : 0);
+      const hasSavedStep = formState.currentStep !== undefined && formState.currentStep > 0;
+      if (!hasSavedStep) {
+        const shouldSkip = profile?.ui_preferences?.skip_trip_intro === true;
+        setCurrentStep(shouldSkip ? 1 : 0);
+      }
       setSkipIntroduction(false);
     }
-  }, [isOpen, profile]);
+  }, [isOpen]);
 
   // Desestructurar estado para facilitar acceso
   const formData = formState.formData;
