@@ -16,6 +16,11 @@ const onlinePurchaseOrigins = [
   { value: 'Estados Unidos', label: 'Estados Unidos' },
   { value: 'España', label: 'España' },
   { value: 'México', label: 'México' },
+  { value: 'Colombia', label: 'Colombia' },
+  { value: 'Panamá', label: 'Panamá' },
+  { value: 'El Salvador', label: 'El Salvador' },
+  { value: 'Honduras', label: 'Honduras' },
+  { value: 'China', label: 'China' },
   { value: 'Otro', label: 'Otro' }
 ];
 
@@ -25,6 +30,11 @@ const personalPackageOrigins = [
   { value: 'Estados Unidos', label: 'Estados Unidos' },
   { value: 'España', label: 'España' },
   { value: 'México', label: 'México' },
+  { value: 'Colombia', label: 'Colombia' },
+  { value: 'Panamá', label: 'Panamá' },
+  { value: 'El Salvador', label: 'El Salvador' },
+  { value: 'Honduras', label: 'Honduras' },
+  { value: 'China', label: 'China' },
   { value: 'Otro', label: 'Otro' }
 ];
 
