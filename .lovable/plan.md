@@ -1,78 +1,82 @@
 
-## Cargar viajes directamente en UserDetailModal
+
+## Persistir el paso actual del formulario de viaje
 
 ### Problema
-El modal de detalle de usuario filtra los viajes desde un array global `trips` que solo contiene un subconjunto de los viajes del sistema. El viaje de Nathalie (Chicago -> Guatemala City, ID: fc67fcb5-ed97-4236-911a-fc12908e3816) existe en la base de datos pero no está incluido en ese array.
+Cuando el usuario sale del sitio (para ver información de su viaje) y regresa, el modal se resetea al paso 1 (VIAJE) aunque estaba en el paso 2 (Dirección). Esto ocurre porque:
+1. El `currentStep` no se persiste - solo se guarda en memoria
+2. El `useEffect` siempre resetea al paso inicial cuando `isOpen` cambia
 
 ### Solución
-Agregar carga directa de viajes del usuario desde la base de datos, similar a como ya se cargan los paquetes en el mismo modal (líneas 109-131).
+Incluir el `currentStep` dentro del estado que ya se persiste con `useFormAutosave`.
 
-### Cambios en src/components/admin/UserDetailModal.tsx
+### Cambios en src/components/TripForm.tsx
 
-#### 1. Agregar estado para viajes cargados directamente
+#### 1. Agregar currentStep al estado inicial del formulario (línea 49)
 ```tsx
-// Línea 89-91 (junto a los estados de paquetes)
-const [loadedUserPackages, setLoadedUserPackages] = useState<Package[]>([]);
-const [loadingPackages, setLoadingPackages] = useState(false);
-
-// NUEVO: Estado para viajes
-const [loadedUserTrips, setLoadedUserTrips] = useState<Trip[]>([]);
-const [loadingTrips, setLoadingTrips] = useState(false);
+const getInitialFormState = () => ({
+  currentStep: 0, // NUEVO: Agregar paso actual
+  formData: {
+    // ... resto igual
+  },
+  messengerData: null as any,
+  acceptedTerms: false,
+  showTermsModal: false,
+  showMessengerForm: false
+});
 ```
 
-#### 2. Agregar useEffect para cargar viajes del usuario
+#### 2. Eliminar el estado separado de currentStep (líneas 91-93)
 ```tsx
-// Después del useEffect de paquetes (línea 131)
+// ELIMINAR estas líneas:
+// const [currentStep, setCurrentStep] = useState(0);
+const [skipIntroduction, setSkipIntroduction] = useState(false);
+// totalSteps se mantiene
+const totalSteps = 4;
+```
+
+#### 3. Crear helper para currentStep
+```tsx
+// Acceder al paso desde el estado persistido
+const currentStep = formState.currentStep ?? 0;
+const setCurrentStep = (step: number | ((prev: number) => number)) => {
+  if (typeof step === 'function') {
+    setFormState(prev => ({ ...prev, currentStep: step(prev.currentStep ?? 0) }));
+  } else {
+    updateField('currentStep', step);
+  }
+};
+```
+
+#### 4. Modificar el useEffect que resetea el paso (líneas 96-102)
+```tsx
+// Solo resetear si NO hay datos guardados del formulario
 useEffect(() => {
-  const loadUserTrips = async () => {
-    if (!profileId || !isOpen) return;
-    
-    setLoadingTrips(true);
-    try {
-      const { data, error } = await supabase
-        .from('trips')
-        .select('*')
-        .eq('user_id', profileId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setLoadedUserTrips((data || []) as Trip[]);
-    } catch (error) {
-      console.error('Error loading user trips:', error);
-    } finally {
-      setLoadingTrips(false);
+  if (isOpen) {
+    // Si hay un paso guardado, usarlo; si no, verificar preferencia de intro
+    const hasSavedStep = formState.currentStep !== undefined && formState.currentStep > 0;
+    if (!hasSavedStep) {
+      const shouldSkip = profile?.ui_preferences?.skip_trip_intro === true;
+      setCurrentStep(shouldSkip ? 1 : 0);
     }
-  };
-
-  loadUserTrips();
-}, [profileId, isOpen]);
+    setSkipIntroduction(false);
+  }
+}, [isOpen]);
 ```
 
-#### 3. Usar viajes cargados directamente como fuente principal
-```tsx
-// Modificar línea 106
-// ANTES:
-const userTrips = trips.filter(trip => trip.user_id === (profileId || ''));
-
-// DESPUÉS:
-const userTrips = loadedUserTrips.length > 0 
-  ? loadedUserTrips 
-  : trips.filter(trip => trip.user_id === (profileId || ''));
-```
-
-#### 4. Pasar estado de carga a UserTripsTab
-```tsx
-// Modificar línea 419
-<UserTripsTab trips={userTrips} allPackages={allPackages} loadingTrips={loadingTrips} />
-```
-
-#### 5. Actualizar UserTripsTab para mostrar loading
-En src/components/admin/UserTripsTab.tsx:
-- Agregar prop `loadingTrips?: boolean`
-- Mostrar spinner cuando `loadingTrips` es true
+#### 5. Resetear paso en handleSubmit exitoso (línea 364)
+Este ya está correcto - al hacer submit exitoso se llama `resetFormDraft()` que limpia todo.
 
 ### Resultado esperado
-Al abrir el perfil de Nathalie Ramazzini:
-- Se cargarán sus viajes directamente desde la base de datos
-- Se mostrará el viaje Chicago -> Guatemala City (estado: approved)
-- Funcionará independientemente del subconjunto de viajes cargados globalmente
+- El usuario en paso 2 sale del sitio para ver información de su viaje
+- Al regresar, el modal mantiene el paso 2 con todos los datos ingresados
+- Solo se resetea al paso inicial cuando:
+  - El usuario completa y envía el formulario
+  - El usuario cierra el modal y el borrador expira
+  - El usuario limpia manualmente el borrador
+
+### Notas técnicas
+- El paso se guarda en `localStorage` junto con los demás datos del formulario
+- El debounce de 400ms aplica igual que para los otros campos
+- El key del storage es `trip-form-create:/dashboard/trip`
+
