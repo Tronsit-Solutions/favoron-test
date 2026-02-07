@@ -1606,11 +1606,50 @@ const AdminMatchDialog = ({
                         </p>
                       </div>
                       
+                      {selectedTraveler.trip.package_receiving_address.postalCode && (
+                        <div>
+                          <p className="text-sm font-medium">Código Postal</p>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedTraveler.trip.package_receiving_address.postalCode}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {selectedTraveler.trip.package_receiving_address.accommodationType && (
+                        <div>
+                          <p className="text-sm font-medium">Tipo de Hospedaje</p>
+                          <p className="text-sm text-muted-foreground capitalize">
+                            {selectedTraveler.trip.package_receiving_address.accommodationType === 'casa' 
+                              ? 'Casa' 
+                              : selectedTraveler.trip.package_receiving_address.accommodationType === 'hotel'
+                              ? 'Hotel'
+                              : selectedTraveler.trip.package_receiving_address.accommodationType === 'airbnb'
+                              ? 'Airbnb'
+                              : selectedTraveler.trip.package_receiving_address.accommodationType}
+                          </p>
+                        </div>
+                      )}
+                      
                       {selectedTraveler.trip.package_receiving_address.hotelAirbnbName && (
                         <div>
-                          <p className="text-sm font-medium">Nombre del Edificio/Hotel</p>
+                          <p className="text-sm font-medium">
+                            {selectedTraveler.trip.package_receiving_address.accommodationType === 'hotel' 
+                              ? 'Nombre del Hotel'
+                              : selectedTraveler.trip.package_receiving_address.accommodationType === 'airbnb'
+                              ? 'Nombre del Airbnb'
+                              : 'Nombre del Edificio/Residencial'}
+                          </p>
                           <p className="text-sm text-muted-foreground">
                             {selectedTraveler.trip.package_receiving_address.hotelAirbnbName}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {selectedTraveler.trip.package_receiving_address.recipientName && (
+                        <div>
+                          <p className="text-sm font-medium">Destinatario</p>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedTraveler.trip.package_receiving_address.recipientName}
                           </p>
                         </div>
                       )}
