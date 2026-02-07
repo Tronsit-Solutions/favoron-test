@@ -1,62 +1,108 @@
 
 
-## Agregar mas paises al dropdown de origen de paquetes
+## Mostrar informacion de envio completa en el modal del viajero
 
-### Situacion actual
-Los paises de origen estan definidos en dos archivos con listas limitadas:
-- `PackageRequestForm.tsx` (formulario publico)
-- `PackageDetailModal.tsx` (modal de admin)
+### Problema
+El modal de perfil del viajero (que aparece al hacer click en el nombre de un viajero en "Hacer Match") no muestra toda la informacion de envio almacenada en la base de datos:
 
-Ambos solo incluyen: Estados Unidos, Espana, Mexico, Otro (y Guatemala para pedidos personales).
+**Campos que faltan mostrar:**
+- `accommodationType` - Tipo de hospedaje (casa, hotel, airbnb)
+- `postalCode` - Codigo postal
+- `recipientName` - Nombre del destinatario
+
+**Campos existentes pero pueden mejorar:**
+- `hotelAirbnbName` - Ya se muestra pero se podria contextualizar mejor segun el tipo de alojamiento
 
 ### Solucion
-Agregar Colombia y otros paises frecuentes a ambas listas, manteniendo el formato actual para compatibilidad.
+Agregar los campos faltantes a la seccion "Informacion de Envio" del modal en `AdminMatchDialog.tsx`.
 
 ### Cambios tecnicos
 
-#### 1. src/components/PackageRequestForm.tsx (lineas 257-272)
+**Archivo:** `src/components/admin/AdminMatchDialog.tsx`
+
+**Seccion:** Lineas 1584-1637 (Informacion de Envio)
+
+Agregar los siguientes campos despues de la direccion principal:
 
 ```tsx
-// Para compra online - sin Guatemala (tiendas extranjeras)
-const onlinePurchaseOrigins = [
-  { value: 'Estados Unidos', label: 'Estados Unidos' },
-  { value: 'España', label: 'España' },
-  { value: 'México', label: 'México' },
-  { value: 'Colombia', label: 'Colombia' },      // NUEVO
-  { value: 'Panamá', label: 'Panamá' },          // NUEVO
-  { value: 'El Salvador', label: 'El Salvador' }, // NUEVO
-  { value: 'Honduras', label: 'Honduras' },      // NUEVO
-  { value: 'China', label: 'China' },            // NUEVO
-  { value: 'Otro', label: 'Otro' }
-];
+{/* Tipo de Hospedaje - NUEVO */}
+{selectedTraveler.trip.package_receiving_address.accommodationType && (
+  <div>
+    <p className="text-sm font-medium">Tipo de Hospedaje</p>
+    <p className="text-sm text-muted-foreground capitalize">
+      {selectedTraveler.trip.package_receiving_address.accommodationType === 'casa' 
+        ? 'Casa' 
+        : selectedTraveler.trip.package_receiving_address.accommodationType === 'hotel'
+        ? 'Hotel'
+        : selectedTraveler.trip.package_receiving_address.accommodationType === 'airbnb'
+        ? 'Airbnb'
+        : selectedTraveler.trip.package_receiving_address.accommodationType}
+    </p>
+  </div>
+)}
 
-// Para pedido personal - con Guatemala (paquete puede estar localmente)
-const personalPackageOrigins = [
-  { value: 'Guatemala', label: 'Guatemala' },
-  { value: 'Estados Unidos', label: 'Estados Unidos' },
-  { value: 'España', label: 'España' },
-  { value: 'México', label: 'México' },
-  { value: 'Colombia', label: 'Colombia' },      // NUEVO
-  { value: 'Panamá', label: 'Panamá' },          // NUEVO
-  { value: 'El Salvador', label: 'El Salvador' }, // NUEVO
-  { value: 'Honduras', label: 'Honduras' },      // NUEVO
-  { value: 'China', label: 'China' },            // NUEVO
-  { value: 'Otro', label: 'Otro' }
-];
+{/* Nombre del lugar - contextualizado por tipo */}
+{selectedTraveler.trip.package_receiving_address.hotelAirbnbName && (
+  <div>
+    <p className="text-sm font-medium">
+      {selectedTraveler.trip.package_receiving_address.accommodationType === 'hotel' 
+        ? 'Nombre del Hotel'
+        : selectedTraveler.trip.package_receiving_address.accommodationType === 'airbnb'
+        ? 'Nombre del Airbnb'
+        : 'Nombre del Edificio/Residencial'}
+    </p>
+    <p className="text-sm text-muted-foreground">
+      {selectedTraveler.trip.package_receiving_address.hotelAirbnbName}
+    </p>
+  </div>
+)}
+
+{/* Codigo Postal - NUEVO */}
+{selectedTraveler.trip.package_receiving_address.postalCode && (
+  <div>
+    <p className="text-sm font-medium">Codigo Postal</p>
+    <p className="text-sm text-muted-foreground">
+      {selectedTraveler.trip.package_receiving_address.postalCode}
+    </p>
+  </div>
+)}
+
+{/* Nombre del Destinatario - NUEVO */}
+{selectedTraveler.trip.package_receiving_address.recipientName && (
+  <div>
+    <p className="text-sm font-medium">Destinatario</p>
+    <p className="text-sm text-muted-foreground">
+      {selectedTraveler.trip.package_receiving_address.recipientName}
+    </p>
+  </div>
+)}
 ```
 
-#### 2. src/components/admin/PackageDetailModal.tsx (lineas 15-29)
+### Orden final de campos en "Informacion de Envio"
 
-Mismos cambios que arriba para mantener consistencia entre el formulario publico y el admin.
+1. **Direccion de Recepcion** (streetAddress)
+2. **Direccion 2** (streetAddress2) - si existe
+3. **Ciudad/Area** (cityArea)
+4. **Codigo Postal** (postalCode) - NUEVO
+5. **Tipo de Hospedaje** (accommodationType) - NUEVO
+6. **Nombre del Hotel/Airbnb/Edificio** (hotelAirbnbName) - con etiqueta contextual
+7. **Destinatario** (recipientName) - NUEVO
+8. **Telefono de Contacto** (contactNumber)
+9. **Ventana de Recepcion de Paquetes** (first_day_packages - last_day_packages)
 
-### Paises a agregar
-- **Colombia** - Solicitado por el usuario
-- **Panama** - Frecuente para compras en la region
-- **El Salvador** - Pais vecino con comercio frecuente
-- **Honduras** - Pais vecino
-- **China** - Origen comun de compras online
+### Datos disponibles en la base de datos
 
-### Compatibilidad
-- Se mantiene el formato `{ value: 'Pais', label: 'Pais' }` existente
-- No afecta datos existentes en la base de datos
-- "Otro" permanece al final para casos no cubiertos
+Ejemplo de un registro real de `package_receiving_address`:
+```json
+{
+  "accommodationType": "casa",
+  "cityArea": "Miami Florida",
+  "contactNumber": "+50230007161",
+  "hotelAirbnbName": "Key biscayne",
+  "postalCode": "33149",
+  "recipientName": "Nicole Berger",
+  "streetAddress": "155 ocean drive key biscayne",
+  "streetAddress2": "Apt 1210"
+}
+```
+
