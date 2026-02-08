@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { formatCurrency, formatDollarPrice } from "@/lib/formatters";
+import { normalizeProductUrl } from "@/lib/validators";
 
 interface Product {
   itemDescription: string;
@@ -93,17 +94,20 @@ const ProductDetailModal = ({ isOpen, onClose, products, packageDescription }: P
                   )}
                 </div>
 
-                {product.itemLink && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => window.open(product.itemLink, '_blank')}
-                  >
-                    <ExternalLink className="h-3 w-3 mr-1" />
-                    Ver producto en línea
-                  </Button>
-                )}
+                {(() => {
+                  const normalizedLink = normalizeProductUrl(product.itemLink);
+                  return normalizedLink && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => window.open(normalizedLink, '_blank')}
+                    >
+                      <ExternalLink className="h-3 w-3 mr-1" />
+                      Ver producto en línea
+                    </Button>
+                  );
+                })()}
                 
                 {/* Indicador de empaque original */}
                 <div className={`mt-2 px-2 py-1 rounded text-xs flex items-center gap-1 ${

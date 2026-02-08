@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Package, DollarSign, Ruler } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { normalizeProductUrl } from "@/lib/validators";
 
 interface ProductQuickViewModalProps {
   isOpen: boolean;
@@ -105,17 +106,20 @@ const ProductQuickViewModal = ({ isOpen, onClose, package: pkg }: ProductQuickVi
                       </div>
                     )}
                     
-                    {product.link && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full"
-                        onClick={() => window.open(product.link, '_blank')}
-                      >
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Ver producto original
-                      </Button>
-                    )}
+                    {(() => {
+                      const normalizedLink = normalizeProductUrl(product.link);
+                      return normalizedLink && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => window.open(normalizedLink, '_blank')}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Ver producto original
+                        </Button>
+                      );
+                    })()}
                   </div>
 
                   {/* Product Details */}

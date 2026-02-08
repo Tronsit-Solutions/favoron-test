@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import StatusAlert from "@/components/ui/status-alert";
 import { ExternalLink } from "lucide-react";
+import { normalizeProductUrl } from "@/lib/validators";
 
 interface Product {
   itemDescription: string;
@@ -63,19 +64,22 @@ const PackageProductDisplay = ({
                 )}
                 
                 
-                {product.itemLink && (
-                  <div className="pt-2">
-                    <a 
-                      href={product.itemLink} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-medium"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      Ver producto en tienda
-                    </a>
-                  </div>
-                )}
+                {(() => {
+                  const normalizedLink = normalizeProductUrl(product.itemLink);
+                  return normalizedLink && (
+                    <div className="pt-2">
+                      <a 
+                        href={normalizedLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-medium"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Ver producto en tienda
+                      </a>
+                    </div>
+                  );
+                })()}
                 
                 {/* Indicador de empaque original */}
                 <div className={`mt-2 px-2 py-1 rounded text-xs flex items-center gap-1 ${
@@ -105,12 +109,13 @@ const PackageProductDisplay = ({
   }
 
   // Single product display (backward compatibility)
-  if (itemLink) {
+  const normalizedSingleLink = normalizeProductUrl(itemLink);
+  if (normalizedSingleLink) {
     return (
       <div className="text-sm">
         <strong>Link del producto:</strong>{' '}
         <a 
-          href={itemLink} 
+          href={normalizedSingleLink} 
           target="_blank" 
           rel="noopener noreferrer" 
           className="text-primary hover:underline"

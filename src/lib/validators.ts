@@ -255,3 +255,48 @@ export const validateName = (name: string): { isValid: boolean; error?: string }
 
   return { isValid: true };
 };
+
+/**
+ * Normalize product URLs to ensure they have proper protocol
+ * Handles common cases like missing https:// and removes accidental Lovable preview prefixes
+ */
+export const normalizeProductUrl = (url: string | undefined | null): string | null => {
+  if (!url || !url.trim()) return null;
+  
+  let cleanUrl = url.trim();
+  
+  // Remove any accidental Lovable preview domain prefix
+  const lovablePreviewPattern = /^https?:\/\/[^\/]*lovable\.app\//i;
+  if (lovablePreviewPattern.test(cleanUrl)) {
+    // Extract the part after the Lovable domain
+    cleanUrl = cleanUrl.replace(lovablePreviewPattern, '');
+  }
+  
+  // If it looks like a product name/description (contains spaces and no dots), return null
+  if (cleanUrl.includes(' ') && !cleanUrl.includes('.')) {
+    console.warn('Invalid product URL (looks like description):', cleanUrl.substring(0, 50));
+    return null;
+  }
+  
+  // Add https:// if missing
+  if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+    // Check if it looks like a valid domain (has a dot)
+    if (cleanUrl.includes('.')) {
+      cleanUrl = 'https://' + cleanUrl;
+    } else {
+      // Doesn't look like a URL, return null
+      return null;
+    }
+  }
+  
+  // Validate the final URL
+  try {
+    const urlObj = new URL(cleanUrl);
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      return null;
+    }
+    return cleanUrl;
+  } catch {
+    return null;
+  }
+};
