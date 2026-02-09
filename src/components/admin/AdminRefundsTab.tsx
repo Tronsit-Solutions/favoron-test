@@ -376,8 +376,10 @@ const AdminRefundsTab = () => {
                     const productName = p.description || p.itemDescription || 'Producto sin descripción';
                     const quantity = p.quantity || 1;
                     const tip = p.tip || p.adminAssignedTip || 0;
-                    // Calculate serviceFee: use stored value or calculate as 40% of tip
-                    const serviceFee = p.serviceFee ?? Math.round(tip * 0.4 * 100) / 100;
+                    // Use stored serviceFee, fallback to 50% (basic rate) if not stored
+                    const serviceFee = p.serviceFee ?? Math.round(tip * 0.5 * 100) / 100;
+                    // Calculate dynamic percentage for display
+                    const serviceFeePercent = tip > 0 ? Math.round((serviceFee / tip) * 100) : 50;
                     // Calculate penalty: use stored value or default to Q5 (unless Prime exempt)
                     const isPrimeExempt = p.isPrimeExempt || false;
                     const penalty = isPrimeExempt ? 0 : (p.cancellationPenalty ?? p.penaltyApplied ?? 5);
@@ -408,7 +410,7 @@ const AdminRefundsTab = () => {
                             <span className="text-foreground">{formatCurrency(tip)}</span>
                           </div>
                           <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Fee de Favoron (40%):</span>
+                            <span className="text-muted-foreground">Fee de Favoron ({serviceFeePercent}%):</span>
                             <span className="text-foreground">+{formatCurrency(serviceFee)}</span>
                           </div>
                           <div className="flex justify-between text-xs">
