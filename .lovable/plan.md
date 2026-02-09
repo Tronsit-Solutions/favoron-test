@@ -1,73 +1,113 @@
 
-## Corregir visualización del desglose de reembolso para usar el serviceFee guardado
 
-### Problema
-En `AdminRefundsTab.tsx`, el desglose de reembolsos:
-1. **Línea 380**: Usa un fallback de 40% si no hay `serviceFee` guardado, pero debería usar el `serviceFee` real del quote
-2. **Línea 411**: La etiqueta dice fijo "Fee de Favoron (40%)" pero el porcentaje real varía (50% para usuarios básicos, 25% para Prime, etc.)
+## Corrección del cálculo de reembolso para incluir delivery fee cuando corresponde
+
+### Problema identificado
+
+El sistema actualmente **nunca reembolsa el delivery fee**, pero la lógica correcta es:
+
+| Escenario | Delivery Fee |
+|-----------|--------------|
+| Cancelación de **paquete completo** (todos los productos) | **SÍ se reembolsa** |
+| Cancelación **parcial** (queda al menos 1 producto activo) | **NO se reembolsa** |
 
 ### Ejemplo del problema
-Para el producto "Whoop" con tip Q140:
-- **Lo que muestra actualmente**: "Fee de Favoron (40%): Q56.00" y Total: Q191
-- **Lo que debería mostrar**: "Fee de Favoron (50%): Q70.00" y Total: Q205
 
-### Solución
-Modificar `AdminRefundsTab.tsx` para:
-1. Usar el `serviceFee` guardado en el producto cancelado (viene del quote original)
-2. Calcular el porcentaje real dinámicamente para la etiqueta
-3. Mantener fallback solo si el dato no existe (backwards compatibility)
+Pedido de 1 producto con:
+- Tip: Q140
+- Fee Favoron (50%): Q70  
+- Delivery: Q25
+- **Total pagado: Q235**
 
-### Cambios técnicos
-
-**Archivo:** `src/components/admin/AdminRefundsTab.tsx`
-
-**Línea 379-380** - Cambiar el cálculo del fallback:
-```tsx
-// Antes:
-const serviceFee = p.serviceFee ?? Math.round(tip * 0.4 * 100) / 100;
-
-// Después: Usar el serviceFee guardado, el fallback es 50% (tarifa básica) no 40%
-const serviceFee = p.serviceFee ?? Math.round(tip * 0.5 * 100) / 100;
-```
-
-**Línea 410-413** - Cambiar la etiqueta fija por una dinámica:
-```tsx
-// Antes:
-<span className="text-muted-foreground">Fee de Favoron (40%):</span>
-
-// Después: Calcular el porcentaje real
-const serviceFeePercent = tip > 0 ? Math.round((serviceFee / tip) * 100) : 50;
-// Y en el JSX:
-<span className="text-muted-foreground">Fee de Favoron ({serviceFeePercent}%):</span>
-```
-
-### Lógica completa del bloque corregido
-
-```tsx
-{selectedRefund.cancelled_products?.map((p: any, i: number) => {
-  const productName = p.description || p.itemDescription || 'Producto sin descripción';
-  const quantity = p.quantity || 1;
-  const tip = p.tip || p.adminAssignedTip || 0;
-  
-  // Use stored serviceFee, fallback to 50% (basic rate) if not stored
-  const serviceFee = p.serviceFee ?? Math.round(tip * 0.5 * 100) / 100;
-  
-  // Calculate dynamic percentage for display
-  const serviceFeePercent = tip > 0 ? Math.round((serviceFee / tip) * 100) : 50;
-  
-  // ... resto del código ...
-  
-  return (
-    // En la etiqueta:
-    <span className="text-muted-foreground">Fee de Favoron ({serviceFeePercent}%):</span>
-  );
-})}
-```
-
-### Resultado esperado
-Para el producto "Whoop" con tip Q140 y serviceFee guardado de Q70:
-- "Fee de Favoron (50%): Q70.00"
-- Total: Q140 + Q70 - Q5 = **Q205.00**
+**Reembolso actual (incorrecto):** Q140 + Q70 - Q5 = Q205
+**Reembolso correcto:** Q140 + Q70 + Q25 - Q5 = **Q230**
 
 ### Archivos a modificar
-1. `src/components/admin/AdminRefundsTab.tsx` - Líneas 379-413
+
+#### 1. `src/lib/refundCalculations.ts`
+
+**Función `calculatePackageRefund`** (líneas 209-229):
+- Cambiar para incluir el delivery fee en el reembolso
+- El gross refund debe ser: tips + serviceFee + deliveryFee
+
+```typescript
+// ANTES (línea 220-221):
+// Gross refund = all tips + service fee (delivery fee NOT refunded)
+const grossRefund = totalTips + serviceFee;
+
+// DESPUÉS:
+// Gross refund = all tips + service fee + delivery fee (refund everything when cancelling full package)
+const grossRefund = totalTips + serviceFee + deliveryFee;
+```
+
+**Función `getPackageRefundBreakdown`** (líneas 234-266):
+- Incluir delivery fee en el cálculo del grossRefund
+- Modificar línea 253:
+
+```typescript
+// ANTES:
+const grossRefund = Math.round((totalTips + serviceFee) * 100) / 100;
+
+// DESPUÉS:
+const grossRefund = Math.round((totalTips + serviceFee + deliveryFee) * 100) / 100;
+```
+
+#### 2. `src/components/dashboard/PackageCancellationModal.tsx`
+
+**Actualizar UI del desglose** (líneas 294-297):
+- Cambiar "Delivery (no reembolsable)" a "Delivery" y mostrarlo sin tachado
+- Ahora el delivery fee SÍ se suma al total
+
+```tsx
+// ANTES (líneas 294-297):
+<div className="flex justify-between text-muted-foreground">
+  <span>Delivery (no reembolsable)</span>
+  <span className="line-through">Q{refundBreakdown.deliveryFee.toFixed(2)}</span>
+</div>
+
+// DESPUÉS:
+<div className="flex justify-between">
+  <span className="text-muted-foreground">Delivery</span>
+  <span>Q{refundBreakdown.deliveryFee.toFixed(2)}</span>
+</div>
+```
+
+#### 3. `src/components/admin/AdminRefundsTab.tsx`
+
+**Agregar delivery fee al desglose de productos cancelados** (alrededor de línea 385-420):
+- Necesitamos verificar si el refund incluye delivery fee (cuando es cancelación de paquete completo)
+- Agregar campo `deliveryFee` a la visualización cuando aplique
+
+```tsx
+// Después de la línea de serviceFee, agregar:
+{p.deliveryFee && p.deliveryFee > 0 && (
+  <div className="flex justify-between text-xs">
+    <span className="text-muted-foreground">Delivery:</span>
+    <span className="text-foreground">+{formatCurrency(p.deliveryFee)}</span>
+  </div>
+)}
+```
+
+### Nota sobre cancelación parcial (1 producto de varios)
+
+Para la cancelación de **productos individuales** (no paquete completo), el cálculo actual es correcto:
+- El delivery fee NO se reembolsa porque todavía hay productos activos que necesitan entrega
+- Las funciones `calculateProductRefund` y `getRefundBreakdown` no incluyen delivery fee, lo cual es correcto
+
+### Resumen de cambios
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/lib/refundCalculations.ts` | Incluir `deliveryFee` en `calculatePackageRefund` y `getPackageRefundBreakdown` |
+| `src/components/dashboard/PackageCancellationModal.tsx` | Mostrar delivery fee como reembolsable (sin tachado) |
+| `src/components/admin/AdminRefundsTab.tsx` | Agregar línea de delivery fee en el desglose cuando aplique |
+
+### Resultado esperado
+
+Para un pedido de 1 producto cancelado con tip Q140, fee Q70, delivery Q25:
+- Tip del viajero: Q140.00
+- Fee de Favoron (50%): +Q70.00
+- Delivery: +Q25.00
+- Penalización: -Q5.00
+- **Total Reembolso: Q230.00**
+
