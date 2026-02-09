@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { CheckCircle, ChevronDown, ChevronUp, ExternalLink, Loader2, Package, Phone, Plane } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { AlertTriangle, CheckCircle, ChevronDown, ChevronUp, ExternalLink, Loader2, Package, Phone, Plane } from 'lucide-react';
 import { formatDateUTC } from '@/lib/formatters';
 import { differenceInDays, parseISO, startOfDay } from 'date-fns';
 import { TripGroup, TripGroupPackage } from '@/hooks/useOperationsData';
@@ -13,7 +14,9 @@ interface OperationsTripCardProps {
   trip: TripGroup;
   onConfirmPackage: (packageId: string) => Promise<void>;
   onConfirmAll: (packageIds: string[]) => Promise<void>;
+  onMarkIncident: (packageId: string, currentFlag: boolean) => Promise<void>;
   confirmingIds: Set<string>;
+  markingIncidentIds: Set<string>;
 }
 
 // Helper to format currency
@@ -82,17 +85,21 @@ const getPackageStatusBadge = (status: string) => {
 const PackageListItem = ({
   pkg,
   isConfirming,
+  isMarkingIncident,
   isSelected,
   isAnyConfirming,
   onSelect,
   onConfirm,
+  onMarkIncident,
 }: {
   pkg: TripGroupPackage;
   isConfirming: boolean;
+  isMarkingIncident: boolean;
   isSelected: boolean;
   isAnyConfirming: boolean;
   onSelect: (id: string, checked: boolean) => void;
   onConfirm: (id: string) => Promise<void>;
+  onMarkIncident: (id: string, currentFlag: boolean) => Promise<void>;
 }) => {
   const products = pkg.products_data;
   const isMultiProduct = products && Array.isArray(products) && products.length > 1;
@@ -136,22 +143,68 @@ const PackageListItem = ({
             </div>
           </div>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => onConfirm(pkg.id)}
-          disabled={isAnyConfirming}
-          className="shrink-0"
-        >
-          {isConfirming ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <>
-              <CheckCircle className="h-4 w-4 mr-1" />
-              Confirmar
-            </>
-          )}
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Incident badge or button */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                {pkg.incident_flag ? (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => onMarkIncident(pkg.id, pkg.incident_flag)}
+                    disabled={isAnyConfirming || isMarkingIncident}
+                    className="shrink-0"
+                  >
+                    {isMarkingIncident ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <AlertTriangle className="h-4 w-4 mr-1" />
+                        Incidencia
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onMarkIncident(pkg.id, pkg.incident_flag)}
+                    disabled={isAnyConfirming || isMarkingIncident}
+                    className="shrink-0 text-muted-foreground hover:text-amber-600 hover:bg-amber-50"
+                  >
+                    {isMarkingIncident ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+              </TooltipTrigger>
+              <TooltipContent>
+                {pkg.incident_flag 
+                  ? 'Clic para quitar incidencia' 
+                  : 'Marcar como incidencia'}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onConfirm(pkg.id)}
+            disabled={isAnyConfirming}
+            className="shrink-0"
+          >
+            {isConfirming ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <CheckCircle className="h-4 w-4 mr-1" />
+                Confirmar
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Product details section */}
@@ -230,7 +283,7 @@ const PackageListItem = ({
   );
 };
 
-const OperationsTripCard = ({ trip, onConfirmPackage, onConfirmAll, confirmingIds }: OperationsTripCardProps) => {
+const OperationsTripCard = ({ trip, onConfirmPackage, onConfirmAll, onMarkIncident, confirmingIds, markingIncidentIds }: OperationsTripCardProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmingAll, setConfirmingAll] = useState(false);
@@ -414,10 +467,12 @@ const OperationsTripCard = ({ trip, onConfirmPackage, onConfirmAll, confirmingId
                     key={pkg.id}
                     pkg={pkg}
                     isConfirming={confirmingIds.has(pkg.id)}
+                    isMarkingIncident={markingIncidentIds.has(pkg.id)}
                     isSelected={selectedIds.has(pkg.id)}
                     isAnyConfirming={isAnyConfirming}
                     onSelect={handleSelectPackage}
                     onConfirm={onConfirmPackage}
+                    onMarkIncident={onMarkIncident}
                   />
                 ))}
               </div>

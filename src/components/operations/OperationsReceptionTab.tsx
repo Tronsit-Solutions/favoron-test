@@ -14,6 +14,7 @@ interface OperationsReceptionTabProps {
   onRefresh: () => void;
   onRemovePackage: (id: string) => void;
   onRemovePackages: (ids: string[]) => void;
+  onUpdateIncidentFlag: (id: string, flag: boolean) => void;
 }
 
 const OperationsReceptionTab = ({ 
@@ -21,10 +22,12 @@ const OperationsReceptionTab = ({
   loading, 
   onRefresh,
   onRemovePackage,
-  onRemovePackages 
+  onRemovePackages,
+  onUpdateIncidentFlag 
 }: OperationsReceptionTabProps) => {
   const { user } = useAuth();
   const [confirmingIds, setConfirmingIds] = useState<Set<string>>(new Set());
+  const [markingIncidentIds, setMarkingIncidentIds] = useState<Set<string>>(new Set());
 
   const handleConfirmPackage = async (packageId: string) => {
     if (!user) return;
@@ -97,6 +100,34 @@ const OperationsReceptionTab = ({
     });
   };
 
+  const handleMarkIncident = async (packageId: string, currentFlag: boolean) => {
+    if (!user) return;
+
+    const newFlag = !currentFlag;
+
+    setMarkingIncidentIds(prev => new Set(prev).add(packageId));
+    try {
+      const { error } = await supabase
+        .from('packages')
+        .update({ incident_flag: newFlag })
+        .eq('id', packageId);
+
+      if (error) throw error;
+
+      toast.success(newFlag ? 'Paquete marcado como incidencia' : 'Incidencia removida');
+      onUpdateIncidentFlag(packageId, newFlag);
+    } catch (error: any) {
+      console.error('Error updating incident flag:', error);
+      toast.error(error.message || 'Error al actualizar incidencia');
+    } finally {
+      setMarkingIncidentIds(prev => {
+        const next = new Set(prev);
+        next.delete(packageId);
+        return next;
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -140,7 +171,9 @@ const OperationsReceptionTab = ({
             trip={trip}
             onConfirmPackage={handleConfirmPackage}
             onConfirmAll={handleConfirmAll}
+            onMarkIncident={handleMarkIncident}
             confirmingIds={confirmingIds}
+            markingIncidentIds={markingIncidentIds}
           />
         ))}
       </div>

@@ -30,6 +30,7 @@ export interface OperationsPackage {
   package_destination: string;
   products_data: ProductData[] | null;
   confirmed_delivery_address: any;
+  incident_flag: boolean;
   // Joined data
   shopper_name: string;
   traveler_name: string;
@@ -50,6 +51,7 @@ export interface TripGroupPackage {
   label_number: number | null;
   estimated_price: number | null;
   products_data: ProductData[] | null;
+  incident_flag: boolean;
 }
 
 export interface TripGroup {
@@ -158,6 +160,7 @@ export const useOperationsData = () => {
         package_destination: row.package_destination,
         products_data: row.products_summary,
         confirmed_delivery_address: row.confirmed_delivery_address,
+        incident_flag: row.incident_flag || false,
         shopper_name: `${row.shopper_first_name || ''} ${row.shopper_last_name || ''}`.trim() || 'Shopper desconocido',
         traveler_name: `${row.traveler_first_name || ''} ${row.traveler_last_name || ''}`.trim() || 'Viajero desconocido',
         traveler_phone: row.traveler_phone 
@@ -325,6 +328,7 @@ export const useOperationsData = () => {
         label_number: pkg.label_number,
         estimated_price: pkg.estimated_price,
         products_data: pkg.products_data,
+        incident_flag: pkg.incident_flag,
       });
     });
 
@@ -352,6 +356,12 @@ export const useOperationsData = () => {
     ));
   }, []);
 
+  const updatePackageIncidentFlag = useCallback((packageId: string, incidentFlag: boolean) => {
+    setAllPackages(prev => prev.map(p => 
+      p.id === packageId ? { ...p, incident_flag: incidentFlag } : p
+    ));
+  }, []);
+
   // Force refresh wrapper for onClick handlers
   const refresh = useCallback(() => fetchAllData(true), [fetchAllData]);
 
@@ -375,5 +385,6 @@ export const useOperationsData = () => {
     removePackage,
     removePackages,
     updatePackageStatus,
+    updatePackageIncidentFlag,
   };
 };
