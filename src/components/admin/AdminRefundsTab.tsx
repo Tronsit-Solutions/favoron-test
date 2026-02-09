@@ -384,8 +384,10 @@ const AdminRefundsTab = () => {
                     const isPrimeExempt = p.isPrimeExempt || false;
                     const penalty = isPrimeExempt ? 0 : (p.cancellationPenalty ?? p.penaltyApplied ?? 5);
                     const estimatedPrice = p.estimatedPrice;
-                    // Calculate total: tip + serviceFee - penalty
-                    const calculatedTotal = tip + serviceFee - penalty;
+                    // Get delivery fee (only present for full package cancellations)
+                    const deliveryFee = p.deliveryFee || 0;
+                    // Calculate total: tip + serviceFee + deliveryFee - penalty
+                    const calculatedTotal = tip + serviceFee + deliveryFee - penalty;
                     const totalRefund = p.totalRefund || p.grossRefund || calculatedTotal;
                     
                     return (
@@ -413,6 +415,12 @@ const AdminRefundsTab = () => {
                             <span className="text-muted-foreground">Fee de Favoron ({serviceFeePercent}%):</span>
                             <span className="text-foreground">+{formatCurrency(serviceFee)}</span>
                           </div>
+                          {deliveryFee > 0 && (
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Delivery:</span>
+                              <span className="text-foreground">+{formatCurrency(deliveryFee)}</span>
+                            </div>
+                          )}
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">Penalización por cancelación:</span>
                             <span className={penalty > 0 ? "text-destructive" : "text-muted-foreground"}>

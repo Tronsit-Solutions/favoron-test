@@ -291,9 +291,9 @@ export const PackageCancellationModal: React.FC<PackageCancellationModalProps> =
                 <span className="text-muted-foreground">Comisión Favorón</span>
                 <span>Q{refundBreakdown.serviceFee.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-muted-foreground">
-                <span>Delivery (no reembolsable)</span>
-                <span className="line-through">Q{refundBreakdown.deliveryFee.toFixed(2)}</span>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Delivery</span>
+                <span>Q{refundBreakdown.deliveryFee.toFixed(2)}</span>
               </div>
               <div className="border-t border-green-200 dark:border-green-800 my-1 pt-1">
                 <div className="flex justify-between">
