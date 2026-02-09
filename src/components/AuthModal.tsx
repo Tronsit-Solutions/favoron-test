@@ -92,6 +92,28 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
           }
         }
         
+        // Extract country code from phone number
+        const phoneDigits = formData.phone.replace(/[\s\-\(\)]/g, '');
+        let countryCode = '+502'; // Default Guatemala
+        let localPhone = phoneDigits;
+        if (phoneDigits.startsWith('+')) {
+          // Try common country codes
+          if (phoneDigits.startsWith('+502')) {
+            countryCode = '+502';
+            localPhone = phoneDigits.slice(4);
+          } else if (phoneDigits.startsWith('+1')) {
+            countryCode = '+1';
+            localPhone = phoneDigits.slice(2);
+          } else if (phoneDigits.startsWith('+52')) {
+            countryCode = '+52';
+            localPhone = phoneDigits.slice(3);
+          } else {
+            // Generic: take first 2-4 digits as country code
+            countryCode = phoneDigits.slice(0, 4);
+            localPhone = phoneDigits.slice(4);
+          }
+        }
+        
         const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -100,8 +122,10 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
             data: {
               first_name: formData.firstName,
               last_name: formData.lastName,
-              phone_number: formData.phone,
-              document_number: formData.idNumber
+              phone_number: localPhone,
+              country_code: countryCode,
+              document_number: formData.idNumber,
+              username: `${formData.firstName.toLowerCase()}_${formData.lastName.toLowerCase()}`
             }
           }
         });
