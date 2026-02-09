@@ -133,7 +133,6 @@ const Operations = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Use CSS hiding to keep components mounted */}
           <div className={activeTab !== 'reception' ? 'hidden' : ''}>
             <OperationsReceptionTab 
               tripGroups={operationsData.receptionTripGroups}
@@ -141,6 +140,7 @@ const Operations = () => {
               onRefresh={operationsData.refresh}
               onRemovePackage={operationsData.removePackage}
               onRemovePackages={operationsData.removePackages}
+              onUpdateIncidentFlag={operationsData.updatePackageIncidentFlag}
             />
           </div>
 
