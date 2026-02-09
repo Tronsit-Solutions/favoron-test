@@ -1,113 +1,112 @@
 
 
-## Corrección del cálculo de reembolso para incluir delivery fee cuando corresponde
+## Agregar funcionalidad de marcar incidencias desde el Panel de Operaciones
 
-### Problema identificado
+### Resumen
 
-El sistema actualmente **nunca reembolsa el delivery fee**, pero la lógica correcta es:
+Permitir que el personal de operaciones pueda **marcar paquetes como incidencia** directamente desde el panel de recepción, para que el encargado de incidencias (visible en el Admin Dashboard > Soporte) esté al tanto.
 
-| Escenario | Delivery Fee |
-|-----------|--------------|
-| Cancelación de **paquete completo** (todos los productos) | **SÍ se reembolsa** |
-| Cancelación **parcial** (queda al menos 1 producto activo) | **NO se reembolsa** |
+### Arquitectura actual
 
-### Ejemplo del problema
+1. **Base de datos**: El campo `incident_flag` ya existe en la tabla `packages`
+2. **Admin Dashboard**: Ya tiene una pestaña "Soporte" que filtra paquetes por `incident_flag = true`
+3. **Panel Operaciones**: Actualmente NO tiene acceso a este campo ni forma de modificarlo
+4. **RPC `get_all_operations_data`**: NO incluye `incident_flag` en los datos devueltos
 
-Pedido de 1 producto con:
-- Tip: Q140
-- Fee Favoron (50%): Q70  
-- Delivery: Q25
-- **Total pagado: Q235**
+### Flujo propuesto
 
-**Reembolso actual (incorrecto):** Q140 + Q70 - Q5 = Q205
-**Reembolso correcto:** Q140 + Q70 + Q25 - Q5 = **Q230**
+```text
++------------------+     +-------------------+     +--------------------+
+| Panel Operaciones|---->| Marcar Incidencia |---->| Admin Dashboard    |
+| (staff oficina)  |     | (DB: incident_flag|     | Pestaña Soporte    |
+|                  |     |  = true)          |     | (ve incidencias)   |
++------------------+     +-------------------+     +--------------------+
+```
+
+### Cambios necesarios
+
+#### 1. Modificar RPC para incluir `incident_flag`
+
+**Archivo:** `supabase/migrations/[nuevo].sql`
+
+Agregar `incident_flag` a la función `get_all_operations_data`:
+- Agregar en RETURNS TABLE: `incident_flag boolean`
+- Agregar en SELECT: `p.incident_flag`
+
+#### 2. Actualizar tipos en el hook de operaciones
+
+**Archivo:** `src/hooks/useOperationsData.tsx`
+
+Agregar `incident_flag` a las interfaces:
+- `OperationsPackage`
+- `TripGroupPackage`
+
+Actualizar la transformación de datos del RPC para incluir el campo.
+
+#### 3. Agregar botón de incidencia en cada paquete
+
+**Archivo:** `src/components/operations/OperationsTripCard.tsx`
+
+En el componente `PackageListItem`:
+- Agregar botón/icono de "Reportar incidencia" (ícono de alerta ⚠️)
+- Mostrar indicador visual si el paquete ya tiene `incident_flag = true`
+- Al hacer clic, actualizar el paquete en la base de datos
+
+#### 4. Agregar función para marcar incidencia
+
+**Archivo:** `src/components/operations/OperationsReceptionTab.tsx`
+
+Nueva función `handleMarkIncident`:
+- Actualiza `packages.incident_flag = true` vía Supabase
+- Registra la acción con `log_admin_action` RPC (si el usuario tiene permiso)
+- Muestra toast de confirmación
+- Actualiza el estado local para reflejar el cambio
+
+### Detalles de implementación UI
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│ ○ perfume 100ml                                    [⚠️] [Confirmar] │
+│   👤 Edison Castillo  ✅ Recibido                                │
+│   💰 $208.00  🔗 Ver producto                                    │
+└─────────────────────────────────────────────────────────────────┘
+
+Después de marcar incidencia:
+┌─────────────────────────────────────────────────────────────────┐
+│ ○ perfume 100ml                          [⚠️ Incidencia] [Confirmar] │
+│   👤 Edison Castillo  ✅ Recibido                                │
+│   💰 $208.00  🔗 Ver producto                                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+- Botón pequeño con icono `AlertTriangle`
+- Si ya está marcado: Badge rojo "Incidencia" con opción de desmarcar
+- Tooltip explicando la acción
 
 ### Archivos a modificar
 
-#### 1. `src/lib/refundCalculations.ts`
-
-**Función `calculatePackageRefund`** (líneas 209-229):
-- Cambiar para incluir el delivery fee en el reembolso
-- El gross refund debe ser: tips + serviceFee + deliveryFee
-
-```typescript
-// ANTES (línea 220-221):
-// Gross refund = all tips + service fee (delivery fee NOT refunded)
-const grossRefund = totalTips + serviceFee;
-
-// DESPUÉS:
-// Gross refund = all tips + service fee + delivery fee (refund everything when cancelling full package)
-const grossRefund = totalTips + serviceFee + deliveryFee;
-```
-
-**Función `getPackageRefundBreakdown`** (líneas 234-266):
-- Incluir delivery fee en el cálculo del grossRefund
-- Modificar línea 253:
-
-```typescript
-// ANTES:
-const grossRefund = Math.round((totalTips + serviceFee) * 100) / 100;
-
-// DESPUÉS:
-const grossRefund = Math.round((totalTips + serviceFee + deliveryFee) * 100) / 100;
-```
-
-#### 2. `src/components/dashboard/PackageCancellationModal.tsx`
-
-**Actualizar UI del desglose** (líneas 294-297):
-- Cambiar "Delivery (no reembolsable)" a "Delivery" y mostrarlo sin tachado
-- Ahora el delivery fee SÍ se suma al total
-
-```tsx
-// ANTES (líneas 294-297):
-<div className="flex justify-between text-muted-foreground">
-  <span>Delivery (no reembolsable)</span>
-  <span className="line-through">Q{refundBreakdown.deliveryFee.toFixed(2)}</span>
-</div>
-
-// DESPUÉS:
-<div className="flex justify-between">
-  <span className="text-muted-foreground">Delivery</span>
-  <span>Q{refundBreakdown.deliveryFee.toFixed(2)}</span>
-</div>
-```
-
-#### 3. `src/components/admin/AdminRefundsTab.tsx`
-
-**Agregar delivery fee al desglose de productos cancelados** (alrededor de línea 385-420):
-- Necesitamos verificar si el refund incluye delivery fee (cuando es cancelación de paquete completo)
-- Agregar campo `deliveryFee` a la visualización cuando aplique
-
-```tsx
-// Después de la línea de serviceFee, agregar:
-{p.deliveryFee && p.deliveryFee > 0 && (
-  <div className="flex justify-between text-xs">
-    <span className="text-muted-foreground">Delivery:</span>
-    <span className="text-foreground">+{formatCurrency(p.deliveryFee)}</span>
-  </div>
-)}
-```
-
-### Nota sobre cancelación parcial (1 producto de varios)
-
-Para la cancelación de **productos individuales** (no paquete completo), el cálculo actual es correcto:
-- El delivery fee NO se reembolsa porque todavía hay productos activos que necesitan entrega
-- Las funciones `calculateProductRefund` y `getRefundBreakdown` no incluyen delivery fee, lo cual es correcto
-
-### Resumen de cambios
-
 | Archivo | Cambio |
 |---------|--------|
-| `src/lib/refundCalculations.ts` | Incluir `deliveryFee` en `calculatePackageRefund` y `getPackageRefundBreakdown` |
-| `src/components/dashboard/PackageCancellationModal.tsx` | Mostrar delivery fee como reembolsable (sin tachado) |
-| `src/components/admin/AdminRefundsTab.tsx` | Agregar línea de delivery fee en el desglose cuando aplique |
+| Nueva migración SQL | Agregar `incident_flag` al RPC `get_all_operations_data` |
+| `src/hooks/useOperationsData.tsx` | Agregar `incident_flag` a interfaces y transformación |
+| `src/components/operations/OperationsTripCard.tsx` | Agregar botón/badge de incidencia |
+| `src/components/operations/OperationsReceptionTab.tsx` | Agregar handler `handleMarkIncident` |
+
+### Permisos
+
+El usuario de operaciones ya tiene permiso para actualizar paquetes según la política RLS existente:
+```sql
+Policy: "Operations can confirm office delivery"
+Using Expression: has_operations_role(auth.uid()) AND status IN ('in_transit', 'received_by_traveler', 'pending_office_confirmation')
+```
+
+Sin embargo, para cambiar `incident_flag` necesitamos verificar que la política permita esta actualización o crear una nueva específica para este campo.
 
 ### Resultado esperado
 
-Para un pedido de 1 producto cancelado con tip Q140, fee Q70, delivery Q25:
-- Tip del viajero: Q140.00
-- Fee de Favoron (50%): +Q70.00
-- Delivery: +Q25.00
-- Penalización: -Q5.00
-- **Total Reembolso: Q230.00**
+1. Staff de operaciones ve un botón de "⚠️" junto a cada paquete
+2. Al hacer clic, el paquete se marca como incidencia con toast de confirmación
+3. El paquete muestra un badge rojo "Incidencia" visible
+4. En Admin Dashboard > Soporte, el encargado de incidencias ve el paquete listado
+5. El encargado puede ver detalles y tomar acciones desde el modal de administración
 
