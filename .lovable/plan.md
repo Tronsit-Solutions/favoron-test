@@ -1,108 +1,73 @@
 
-
-## Mostrar informacion de envio completa en el modal del viajero
+## Corregir visualización del desglose de reembolso para usar el serviceFee guardado
 
 ### Problema
-El modal de perfil del viajero (que aparece al hacer click en el nombre de un viajero en "Hacer Match") no muestra toda la informacion de envio almacenada en la base de datos:
+En `AdminRefundsTab.tsx`, el desglose de reembolsos:
+1. **Línea 380**: Usa un fallback de 40% si no hay `serviceFee` guardado, pero debería usar el `serviceFee` real del quote
+2. **Línea 411**: La etiqueta dice fijo "Fee de Favoron (40%)" pero el porcentaje real varía (50% para usuarios básicos, 25% para Prime, etc.)
 
-**Campos que faltan mostrar:**
-- `accommodationType` - Tipo de hospedaje (casa, hotel, airbnb)
-- `postalCode` - Codigo postal
-- `recipientName` - Nombre del destinatario
+### Ejemplo del problema
+Para el producto "Whoop" con tip Q140:
+- **Lo que muestra actualmente**: "Fee de Favoron (40%): Q56.00" y Total: Q191
+- **Lo que debería mostrar**: "Fee de Favoron (50%): Q70.00" y Total: Q205
 
-**Campos existentes pero pueden mejorar:**
-- `hotelAirbnbName` - Ya se muestra pero se podria contextualizar mejor segun el tipo de alojamiento
+### Solución
+Modificar `AdminRefundsTab.tsx` para:
+1. Usar el `serviceFee` guardado en el producto cancelado (viene del quote original)
+2. Calcular el porcentaje real dinámicamente para la etiqueta
+3. Mantener fallback solo si el dato no existe (backwards compatibility)
 
-### Solucion
-Agregar los campos faltantes a la seccion "Informacion de Envio" del modal en `AdminMatchDialog.tsx`.
+### Cambios técnicos
 
-### Cambios tecnicos
+**Archivo:** `src/components/admin/AdminRefundsTab.tsx`
 
-**Archivo:** `src/components/admin/AdminMatchDialog.tsx`
+**Línea 379-380** - Cambiar el cálculo del fallback:
+```tsx
+// Antes:
+const serviceFee = p.serviceFee ?? Math.round(tip * 0.4 * 100) / 100;
 
-**Seccion:** Lineas 1584-1637 (Informacion de Envio)
+// Después: Usar el serviceFee guardado, el fallback es 50% (tarifa básica) no 40%
+const serviceFee = p.serviceFee ?? Math.round(tip * 0.5 * 100) / 100;
+```
 
-Agregar los siguientes campos despues de la direccion principal:
+**Línea 410-413** - Cambiar la etiqueta fija por una dinámica:
+```tsx
+// Antes:
+<span className="text-muted-foreground">Fee de Favoron (40%):</span>
+
+// Después: Calcular el porcentaje real
+const serviceFeePercent = tip > 0 ? Math.round((serviceFee / tip) * 100) : 50;
+// Y en el JSX:
+<span className="text-muted-foreground">Fee de Favoron ({serviceFeePercent}%):</span>
+```
+
+### Lógica completa del bloque corregido
 
 ```tsx
-{/* Tipo de Hospedaje - NUEVO */}
-{selectedTraveler.trip.package_receiving_address.accommodationType && (
-  <div>
-    <p className="text-sm font-medium">Tipo de Hospedaje</p>
-    <p className="text-sm text-muted-foreground capitalize">
-      {selectedTraveler.trip.package_receiving_address.accommodationType === 'casa' 
-        ? 'Casa' 
-        : selectedTraveler.trip.package_receiving_address.accommodationType === 'hotel'
-        ? 'Hotel'
-        : selectedTraveler.trip.package_receiving_address.accommodationType === 'airbnb'
-        ? 'Airbnb'
-        : selectedTraveler.trip.package_receiving_address.accommodationType}
-    </p>
-  </div>
-)}
-
-{/* Nombre del lugar - contextualizado por tipo */}
-{selectedTraveler.trip.package_receiving_address.hotelAirbnbName && (
-  <div>
-    <p className="text-sm font-medium">
-      {selectedTraveler.trip.package_receiving_address.accommodationType === 'hotel' 
-        ? 'Nombre del Hotel'
-        : selectedTraveler.trip.package_receiving_address.accommodationType === 'airbnb'
-        ? 'Nombre del Airbnb'
-        : 'Nombre del Edificio/Residencial'}
-    </p>
-    <p className="text-sm text-muted-foreground">
-      {selectedTraveler.trip.package_receiving_address.hotelAirbnbName}
-    </p>
-  </div>
-)}
-
-{/* Codigo Postal - NUEVO */}
-{selectedTraveler.trip.package_receiving_address.postalCode && (
-  <div>
-    <p className="text-sm font-medium">Codigo Postal</p>
-    <p className="text-sm text-muted-foreground">
-      {selectedTraveler.trip.package_receiving_address.postalCode}
-    </p>
-  </div>
-)}
-
-{/* Nombre del Destinatario - NUEVO */}
-{selectedTraveler.trip.package_receiving_address.recipientName && (
-  <div>
-    <p className="text-sm font-medium">Destinatario</p>
-    <p className="text-sm text-muted-foreground">
-      {selectedTraveler.trip.package_receiving_address.recipientName}
-    </p>
-  </div>
-)}
+{selectedRefund.cancelled_products?.map((p: any, i: number) => {
+  const productName = p.description || p.itemDescription || 'Producto sin descripción';
+  const quantity = p.quantity || 1;
+  const tip = p.tip || p.adminAssignedTip || 0;
+  
+  // Use stored serviceFee, fallback to 50% (basic rate) if not stored
+  const serviceFee = p.serviceFee ?? Math.round(tip * 0.5 * 100) / 100;
+  
+  // Calculate dynamic percentage for display
+  const serviceFeePercent = tip > 0 ? Math.round((serviceFee / tip) * 100) : 50;
+  
+  // ... resto del código ...
+  
+  return (
+    // En la etiqueta:
+    <span className="text-muted-foreground">Fee de Favoron ({serviceFeePercent}%):</span>
+  );
+})}
 ```
 
-### Orden final de campos en "Informacion de Envio"
+### Resultado esperado
+Para el producto "Whoop" con tip Q140 y serviceFee guardado de Q70:
+- "Fee de Favoron (50%): Q70.00"
+- Total: Q140 + Q70 - Q5 = **Q205.00**
 
-1. **Direccion de Recepcion** (streetAddress)
-2. **Direccion 2** (streetAddress2) - si existe
-3. **Ciudad/Area** (cityArea)
-4. **Codigo Postal** (postalCode) - NUEVO
-5. **Tipo de Hospedaje** (accommodationType) - NUEVO
-6. **Nombre del Hotel/Airbnb/Edificio** (hotelAirbnbName) - con etiqueta contextual
-7. **Destinatario** (recipientName) - NUEVO
-8. **Telefono de Contacto** (contactNumber)
-9. **Ventana de Recepcion de Paquetes** (first_day_packages - last_day_packages)
-
-### Datos disponibles en la base de datos
-
-Ejemplo de un registro real de `package_receiving_address`:
-```json
-{
-  "accommodationType": "casa",
-  "cityArea": "Miami Florida",
-  "contactNumber": "+50230007161",
-  "hotelAirbnbName": "Key biscayne",
-  "postalCode": "33149",
-  "recipientName": "Nicole Berger",
-  "streetAddress": "155 ocean drive key biscayne",
-  "streetAddress2": "Apt 1210"
-}
-```
-
+### Archivos a modificar
+1. `src/components/admin/AdminRefundsTab.tsx` - Líneas 379-413
