@@ -213,12 +213,13 @@ export const calculatePackageRefund = (
   const penaltyAmount = options?.penaltyAmount ?? DEFAULT_CANCELLATION_PENALTY;
   const isPrimeUser = options?.isPrimeUser ?? false;
 
-  // Get total tips and service fee
+  // Get total tips, service fee, and delivery fee
   const totalTips = quote.price || 0;
   const serviceFee = quote.serviceFee || 0;
+  const deliveryFee = quote.deliveryFee || 0;
   
-  // Gross refund = all tips + service fee (delivery fee NOT refunded as it's for the service)
-  const grossRefund = totalTips + serviceFee;
+  // Gross refund = all tips + service fee + delivery fee (refund everything when cancelling full package)
+  const grossRefund = totalTips + serviceFee + deliveryFee;
   
   // Apply single penalty (only if NOT Prime user)
   const penalty = isPrimeUser ? 0 : penaltyAmount;
@@ -250,7 +251,8 @@ export const getPackageRefundBreakdown = (
   const serviceFee = quote.serviceFee || 0;
   const deliveryFee = quote.deliveryFee || 0;
   
-  const grossRefund = Math.round((totalTips + serviceFee) * 100) / 100;
+  // Include delivery fee in gross refund for full package cancellation
+  const grossRefund = Math.round((totalTips + serviceFee + deliveryFee) * 100) / 100;
   const cancellationPenalty = isPrimeUser ? 0 : penaltyAmount;
   const totalRefund = Math.max(0, Math.round((grossRefund - cancellationPenalty) * 100) / 100);
   
