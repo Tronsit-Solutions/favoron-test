@@ -1,112 +1,116 @@
 
 
-## Agregar funcionalidad de marcar incidencias desde el Panel de Operaciones
+## Fix: Guardar datos del registro en la base de datos desde el inicio
 
-### Resumen
+### Problema identificado
 
-Permitir que el personal de operaciones pueda **marcar paquetes como incidencia** directamente desde el panel de recepción, para que el encargado de incidencias (visible en el Admin Dashboard > Soporte) esté al tanto.
+La funcion `handle_new_user()` (trigger que crea el perfil cuando un usuario se registra) fue **sobreescrita** por una migracion reciente (A/B test del 30 de enero 2026). La version actual solo guarda `id, email, first_name, last_name, avatar_url, ab_test_group`, **perdiendo** los campos:
 
-### Arquitectura actual
+- `phone_number` (WhatsApp)
+- `country_code` (codigo de pais)
+- `username` (nombre de usuario)
+- `document_type` (tipo de documento)
+- `document_number` (DPI/Pasaporte)
 
-1. **Base de datos**: El campo `incident_flag` ya existe en la tabla `packages`
-2. **Admin Dashboard**: Ya tiene una pestaña "Soporte" que filtra paquetes por `incident_flag = true`
-3. **Panel Operaciones**: Actualmente NO tiene acceso a este campo ni forma de modificarlo
-4. **RPC `get_all_operations_data`**: NO incluye `incident_flag` en los datos devueltos
+Esto causa que al registrarse, el perfil quede incompleto y el modal de "Completa tu perfil" aparezca inmediatamente.
 
-### Flujo propuesto
+### Solucion
 
-```text
-+------------------+     +-------------------+     +--------------------+
-| Panel Operaciones|---->| Marcar Incidencia |---->| Admin Dashboard    |
-| (staff oficina)  |     | (DB: incident_flag|     | Pestaña Soporte    |
-|                  |     |  = true)          |     | (ve incidencias)   |
-+------------------+     +-------------------+     +--------------------+
+#### 1. Migracion SQL: Restaurar el trigger completo
+
+Crear una nueva migracion que reescriba `handle_new_user()` incluyendo todos los campos del registro:
+
+```sql
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_first_name text;
+  v_last_name text;
+  v_avatar_url text;
+  v_phone_number text;
+  v_country_code text;
+  v_username text;
+  v_document_type text;
+  v_document_number text;
+  v_identity_data jsonb;
+BEGIN
+  -- Check Google OAuth
+  SELECT identity_data INTO v_identity_data
+  FROM auth.identities
+  WHERE user_id = NEW.id AND provider = 'google'
+  LIMIT 1;
+
+  IF v_identity_data IS NOT NULL THEN
+    -- Google OAuth: extract from identity_data
+    v_first_name := COALESCE(v_identity_data->>'given_name', ...);
+    v_last_name := COALESCE(v_identity_data->>'family_name', ...);
+    v_avatar_url := COALESCE(v_identity_data->>'picture', ...);
+    -- Google no provee phone/document
+    v_phone_number := NULL;
+    v_country_code := NULL;
+    v_username := NULL;
+    v_document_type := NULL;
+    v_document_number := NULL;
+  ELSE
+    -- Email signup: extract from raw_user_meta_data
+    v_first_name := COALESCE(NEW.raw_user_meta_data->>'first_name', ...);
+    v_last_name := COALESCE(NEW.raw_user_meta_data->>'last_name', ...);
+    v_avatar_url := NEW.raw_user_meta_data->>'avatar_url';
+    v_phone_number := NEW.raw_user_meta_data->>'phone_number';
+    v_country_code := NEW.raw_user_meta_data->>'country_code';
+    v_username := NEW.raw_user_meta_data->>'username';
+    v_document_type := NEW.raw_user_meta_data->>'document_type';
+    v_document_number := NEW.raw_user_meta_data->>'document_number';
+  END IF;
+
+  INSERT INTO public.profiles (
+    id, email, first_name, last_name, avatar_url,
+    phone_number, country_code, username,
+    document_type, document_number, ab_test_group
+  ) VALUES (
+    NEW.id, NEW.email, v_first_name, v_last_name, v_avatar_url,
+    v_phone_number, v_country_code, v_username,
+    v_document_type, v_document_number, 'A'
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    email = COALESCE(EXCLUDED.email, profiles.email),
+    first_name = COALESCE(EXCLUDED.first_name, profiles.first_name),
+    last_name = COALESCE(EXCLUDED.last_name, profiles.last_name),
+    avatar_url = COALESCE(EXCLUDED.avatar_url, profiles.avatar_url),
+    phone_number = COALESCE(EXCLUDED.phone_number, profiles.phone_number),
+    country_code = COALESCE(EXCLUDED.country_code, profiles.country_code),
+    username = COALESCE(EXCLUDED.username, profiles.username),
+    document_type = COALESCE(EXCLUDED.document_type, profiles.document_type),
+    document_number = COALESCE(EXCLUDED.document_number, profiles.document_number),
+    updated_at = now();
+
+  RETURN NEW;
+END;
+$$;
 ```
 
-### Cambios necesarios
+Esto mantiene la logica de Google OAuth de la version actual pero agrega los campos faltantes del registro manual.
 
-#### 1. Modificar RPC para incluir `incident_flag`
+#### 2. Fix en AuthModal.tsx (registro desde modal)
 
-**Archivo:** `supabase/migrations/[nuevo].sql`
+El `AuthModal.tsx` pasa `phone_number` y `document_number` en el metadata, pero **no** pasa `country_code` ni `username`. Agregar `country_code` parseado del numero de telefono ingresado.
 
-Agregar `incident_flag` a la función `get_all_operations_data`:
-- Agregar en RETURNS TABLE: `incident_flag boolean`
-- Agregar en SELECT: `p.incident_flag`
+#### 3. Sin cambios en Auth.tsx
 
-#### 2. Actualizar tipos en el hook de operaciones
-
-**Archivo:** `src/hooks/useOperationsData.tsx`
-
-Agregar `incident_flag` a las interfaces:
-- `OperationsPackage`
-- `TripGroupPackage`
-
-Actualizar la transformación de datos del RPC para incluir el campo.
-
-#### 3. Agregar botón de incidencia en cada paquete
-
-**Archivo:** `src/components/operations/OperationsTripCard.tsx`
-
-En el componente `PackageListItem`:
-- Agregar botón/icono de "Reportar incidencia" (ícono de alerta ⚠️)
-- Mostrar indicador visual si el paquete ya tiene `incident_flag = true`
-- Al hacer clic, actualizar el paquete en la base de datos
-
-#### 4. Agregar función para marcar incidencia
-
-**Archivo:** `src/components/operations/OperationsReceptionTab.tsx`
-
-Nueva función `handleMarkIncident`:
-- Actualiza `packages.incident_flag = true` vía Supabase
-- Registra la acción con `log_admin_action` RPC (si el usuario tiene permiso)
-- Muestra toast de confirmación
-- Actualiza el estado local para reflejar el cambio
-
-### Detalles de implementación UI
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│ ○ perfume 100ml                                    [⚠️] [Confirmar] │
-│   👤 Edison Castillo  ✅ Recibido                                │
-│   💰 $208.00  🔗 Ver producto                                    │
-└─────────────────────────────────────────────────────────────────┘
-
-Después de marcar incidencia:
-┌─────────────────────────────────────────────────────────────────┐
-│ ○ perfume 100ml                          [⚠️ Incidencia] [Confirmar] │
-│   👤 Edison Castillo  ✅ Recibido                                │
-│   💰 $208.00  🔗 Ver producto                                    │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-- Botón pequeño con icono `AlertTriangle`
-- Si ya está marcado: Badge rojo "Incidencia" con opción de desmarcar
-- Tooltip explicando la acción
+La pagina `Auth.tsx` ya pasa correctamente todos los campos (`first_name`, `last_name`, `country_code`, `phone_number`, `username`, `document_type`, `document_number`) en el `raw_user_meta_data`.
 
 ### Archivos a modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| Nueva migración SQL | Agregar `incident_flag` al RPC `get_all_operations_data` |
-| `src/hooks/useOperationsData.tsx` | Agregar `incident_flag` a interfaces y transformación |
-| `src/components/operations/OperationsTripCard.tsx` | Agregar botón/badge de incidencia |
-| `src/components/operations/OperationsReceptionTab.tsx` | Agregar handler `handleMarkIncident` |
-
-### Permisos
-
-El usuario de operaciones ya tiene permiso para actualizar paquetes según la política RLS existente:
-```sql
-Policy: "Operations can confirm office delivery"
-Using Expression: has_operations_role(auth.uid()) AND status IN ('in_transit', 'received_by_traveler', 'pending_office_confirmation')
-```
-
-Sin embargo, para cambiar `incident_flag` necesitamos verificar que la política permita esta actualización o crear una nueva específica para este campo.
+| Nueva migracion SQL | Restaurar `handle_new_user()` con todos los campos |
+| `src/components/AuthModal.tsx` | Agregar `country_code` y `username` al metadata de signup |
 
 ### Resultado esperado
 
-1. Staff de operaciones ve un botón de "⚠️" junto a cada paquete
-2. Al hacer clic, el paquete se marca como incidencia con toast de confirmación
-3. El paquete muestra un badge rojo "Incidencia" visible
-4. En Admin Dashboard > Soporte, el encargado de incidencias ve el paquete listado
-5. El encargado puede ver detalles y tomar acciones desde el modal de administración
+Cuando un usuario se registra (por email o desde el modal), sus datos de nombre, telefono, DPI y username se guardan directamente en la tabla `profiles`. El modal de "Completa tu perfil" ya no aparecera para usuarios que completaron el formulario de registro.
 
