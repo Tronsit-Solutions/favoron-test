@@ -1,68 +1,48 @@
 
 
-## Carrito de Etiquetas en el Panel de Operaciones
+## Preview de etiquetas y 4 etiquetas por hoja
 
-### Concepto
+### Cambios
 
-Crear un "carrito" persistente de etiquetas que se llena automaticamente cada vez que el operario confirma la recepcion de un paquete. El carrito se muestra como una barra flotante en la parte inferior de la pantalla con un contador. Cuando el operario decide imprimir, se genera un PDF con todas las etiquetas acumuladas y el carrito se vacia.
+#### 1. Modal de preview antes de imprimir (`LabelCartBar.tsx`)
 
-### Flujo del operario
+Al hacer clic en "Imprimir", en lugar de generar el PDF directamente, se abre un Dialog/modal con:
 
-```text
-1. Operario confirma paquete A --> etiqueta A se agrega al carrito (badge: 1)
-2. Operario confirma paquete B --> etiqueta B se agrega al carrito (badge: 2)
-3. Operario confirma paquetes C, D, E (todos) --> se agregan al carrito (badge: 5)
-4. Operario hace clic en "Imprimir 5 etiquetas" --> PDF se descarga, carrito se vacia
-```
+- Un grid de 2x2 mostrando previews de las etiquetas usando el componente `PackageLabel` (a escala reducida con `transform: scale()`)
+- Paginacion visual: si hay mas de 4 etiquetas, mostrar indicador de paginas (ej. "Hoja 1 de 2")
+- Boton "Descargar PDF" para confirmar la impresion
+- Boton "Cancelar" para cerrar sin imprimir
+- Posibilidad de remover etiquetas individuales del carrito con un boton X en cada preview
 
-### Cambios tecnicos
+#### 2. Layout de 4 etiquetas por hoja en el PDF
+
+Actualmente cada etiqueta ocupa una hoja completa (carta 612x792pt). Se cambiara a un layout de 2 columnas x 2 filas por hoja:
+
+- Tamano de etiqueta en PDF: ~270x396pt (ligeramente reducida para caber con margenes)
+- Posiciones en la hoja carta (612x792pt):
+  - Superior izquierda: (18, 0)
+  - Superior derecha: (324, 0)  
+  - Inferior izquierda: (18, 396)
+  - Inferior derecha: (324, 396)
+- Nueva pagina cada 4 etiquetas
+
+#### 3. Reducir tamano del componente `PackageLabel`
+
+El componente `PackageLabel` actualmente es de 288x432px (4x6 pulgadas). Para que 4 quepan en una hoja carta, se reducira a aproximadamente **252x360px** (3.5x5 pulgadas), ajustando el padding y font-size proporcionalmente. Se agregara una prop `compact` para poder usar ambos tamanos.
+
+### Archivos a modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/hooks/useOperationsData.tsx` | Agregar estado `labelCart` (array de paquetes con su `label_number`), funciones `addToLabelCart`, `addManyToLabelCart`, `clearLabelCart`, `removeFromLabelCart`. Los datos del paquete confirmado se re-obtienen de la DB (con el `label_number` asignado por el RPC) antes de agregarse al carrito. |
-| `src/components/operations/OperationsReceptionTab.tsx` | Despues de cada confirmacion exitosa, llamar `addToLabelCart` o `addManyToLabelCart` con los datos del paquete confirmado. Renderizar la barra flotante del carrito en la parte inferior. |
-| `src/components/operations/LabelCartBar.tsx` | **Nuevo componente.** Barra flotante `fixed bottom-0` que muestra: icono de etiqueta, contador de etiquetas, boton "Imprimir X etiquetas", boton "Vaciar". Al imprimir, reutiliza la logica de `generateTripLabels` de `OperationsLabelsTab` (html2canvas + jsPDF + PackageLabel). |
-| `src/pages/Operations.tsx` | Pasar las funciones del carrito desde `useOperationsData` al tab de Recepcion y renderizar `LabelCartBar` de forma global (visible en cualquier tab). |
+| `src/components/operations/LabelCartBar.tsx` | Separar el boton "Imprimir" para abrir un modal de preview. Crear el modal con grid 2x2 de etiquetas. Modificar la generacion de PDF para colocar 4 etiquetas por hoja. |
+| `src/components/admin/PackageLabel.tsx` | Agregar prop `compact?: boolean` que reduce dimensiones para el layout de 4-por-hoja y para el preview en el modal. |
 
-### Detalle de implementacion
+### Preview modal (detalle visual)
 
-**1. Estado del carrito en `useOperationsData`**
+El modal mostrara las etiquetas agrupadas de 4 en 4, simulando como se veran en la hoja impresa:
 
-Se agrega un array `labelCart` con la informacion minima necesaria para renderizar `PackageLabel`:
-
-- `id`, `item_description`, `products_data`, `confirmed_delivery_address`, `delivery_method`, `label_number`, `shopper_name`, `estimated_price`, `created_at`
-- Datos del viaje asociado: `trip_from_city`, `trip_to_city`, `traveler_name`
-
-Tras una confirmacion exitosa, se hace una query rapida para obtener el `label_number` recien asignado:
-
-```typescript
-const { data } = await supabase
-  .from('packages')
-  .select('label_number')
-  .eq('id', packageId)
-  .single();
-```
-
-**2. Barra flotante (LabelCartBar)**
-
-Componente fijo en la parte inferior de la pantalla:
-
-- Cuando el carrito esta vacio: no se muestra
-- Cuando tiene etiquetas: muestra barra con fondo primario, icono Tag, texto "X etiqueta(s) listas", boton "Imprimir" y boton "Vaciar"
-- El boton "Imprimir" genera el PDF reutilizando la misma logica de `OperationsLabelsTab.generateTripLabels` (html2canvas + jsPDF + PackageLabel)
-- Animacion de entrada suave cuando aparece la primera etiqueta
-
-**3. Flujo de confirmacion modificado en ReceptionTab**
-
-En `handleConfirmPackage`: tras el exito del RPC, obtener el `label_number` del paquete y llamar `addToLabelCart(packageData)`.
-
-En `handleConfirmAll`: tras confirmar multiples paquetes, obtener los `label_number` de todos y llamar `addManyToLabelCart(packagesData)`.
-
-**4. Persistencia**
-
-El carrito vive solo en memoria (useState). Si el operario recarga la pagina, el carrito se pierde. Esto es intencional: evita imprimir etiquetas duplicadas accidentalmente. Si se desea persistencia entre recargas, se puede usar `localStorage` en una iteracion futura.
-
-### Resultado esperado
-
-El operario confirma paquetes y ve un contador creciendo en la barra inferior. Cuando termina de confirmar un lote, presiona "Imprimir" y obtiene un PDF con todas las etiquetas. El flujo pasa de 3 pasos (Recepcion, Preparacion, Etiquetas) a un flujo continuo dentro de Recepcion.
+- Fondo gris claro representando la hoja
+- 4 etiquetas en grid 2x2 dentro de cada "hoja"
+- Cada etiqueta con un boton X para removerla del carrito
+- Footer del modal con: "X etiquetas en Y hojas" y boton "Descargar PDF"
 
