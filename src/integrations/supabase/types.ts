@@ -1790,6 +1790,26 @@ export type Database = {
         Returns: string
       }
       refresh_platform_stats: { Args: never; Returns: undefined }
+      search_operations_packages: {
+        Args: { search_term: string }
+        Returns: {
+          created_at: string
+          delivery_deadline: string
+          estimated_price: number
+          from_city: string
+          item_description: string
+          label_number: number
+          matched_trip_id: string
+          package_id: string
+          package_status: string
+          products_data: Json
+          shopper_first_name: string
+          shopper_last_name: string
+          to_city: string
+          traveler_first_name: string
+          traveler_last_name: string
+        }[]
+      }
       send_assignment_warnings: { Args: never; Returns: undefined }
       send_quote_reminders: { Args: never; Returns: undefined }
       traveler_dismiss_package: {

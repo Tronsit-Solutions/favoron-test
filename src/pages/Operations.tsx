@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useOperationsData } from '@/hooks/useOperationsData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, Tag, ArrowLeft, PackageCheck, LogOut, CheckCircle2, RefreshCw, Loader2 } from 'lucide-react';
+import { Package, Tag, ArrowLeft, PackageCheck, LogOut, CheckCircle2, RefreshCw, Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import {
@@ -17,6 +17,7 @@ import OperationsReceptionTab from '@/components/operations/OperationsReceptionT
 import OperationsLabelsTab from '@/components/operations/OperationsLabelsTab';
 import OperationsReadyTab from '@/components/operations/OperationsReadyTab';
 import OperationsCompletedTab from '@/components/operations/OperationsCompletedTab';
+import OperationsSearchTab from '@/components/operations/OperationsSearchTab';
 import LabelCartBar from '@/components/operations/LabelCartBar';
 
 const Operations = () => {
@@ -100,7 +101,7 @@ const Operations = () => {
       {/* Content */}
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+          <TabsList className="grid w-full grid-cols-5 max-w-3xl">
             <TabsTrigger value="reception" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               <span className="hidden sm:inline">Recepción</span>
@@ -131,6 +132,10 @@ const Operations = () => {
                   {operationsData.completedPackages.length}
                 </span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="search" className="flex items-center gap-2">
+              <Search className="h-4 w-4" />
+              <span className="hidden sm:inline">Buscar</span>
             </TabsTrigger>
           </TabsList>
 
@@ -171,6 +176,10 @@ const Operations = () => {
               onRefresh={operationsData.refresh}
               onRemovePackage={operationsData.removePackage}
             />
+          </div>
+
+          <div className={activeTab !== 'search' ? 'hidden' : ''}>
+            <OperationsSearchTab />
           </div>
         </Tabs>
       </main>
