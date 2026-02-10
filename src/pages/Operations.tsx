@@ -17,6 +17,7 @@ import OperationsReceptionTab from '@/components/operations/OperationsReceptionT
 import OperationsLabelsTab from '@/components/operations/OperationsLabelsTab';
 import OperationsReadyTab from '@/components/operations/OperationsReadyTab';
 import OperationsCompletedTab from '@/components/operations/OperationsCompletedTab';
+import LabelCartBar from '@/components/operations/LabelCartBar';
 
 const Operations = () => {
   const { profile, userRole } = useAuth();
@@ -141,6 +142,8 @@ const Operations = () => {
               onRemovePackage={operationsData.removePackage}
               onRemovePackages={operationsData.removePackages}
               onUpdateIncidentFlag={operationsData.updatePackageIncidentFlag}
+              onAddToLabelCart={operationsData.addToLabelCart}
+              onAddManyToLabelCart={operationsData.addManyToLabelCart}
             />
           </div>
 
@@ -171,6 +174,12 @@ const Operations = () => {
           </div>
         </Tabs>
       </main>
+
+      <LabelCartBar
+        items={operationsData.labelCart}
+        onClear={operationsData.clearLabelCart}
+        onRemoveItem={operationsData.removeFromLabelCart}
+      />
     </div>
   );
 };

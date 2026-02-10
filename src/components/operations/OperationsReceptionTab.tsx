@@ -15,6 +15,8 @@ interface OperationsReceptionTabProps {
   onRemovePackage: (id: string) => void;
   onRemovePackages: (ids: string[]) => void;
   onUpdateIncidentFlag: (id: string, flag: boolean) => void;
+  onAddToLabelCart: (packageId: string) => Promise<void>;
+  onAddManyToLabelCart: (packageIds: string[]) => Promise<void>;
 }
 
 const OperationsReceptionTab = ({ 
@@ -23,7 +25,9 @@ const OperationsReceptionTab = ({
   onRefresh,
   onRemovePackage,
   onRemovePackages,
-  onUpdateIncidentFlag 
+  onUpdateIncidentFlag,
+  onAddToLabelCart,
+  onAddManyToLabelCart,
 }: OperationsReceptionTabProps) => {
   const { user } = useAuth();
   const [confirmingIds, setConfirmingIds] = useState<Set<string>>(new Set());
@@ -42,6 +46,8 @@ const OperationsReceptionTab = ({
       if (error) throw error;
 
       toast.success('Paquete confirmado');
+      // Add to label cart before removing from view
+      await onAddToLabelCart(packageId);
       onRemovePackage(packageId);
     } catch (error: any) {
       console.error('Error confirming package:', error);
@@ -85,6 +91,8 @@ const OperationsReceptionTab = ({
     }
 
     if (confirmed.length > 0) {
+      // Add to label cart before removing from view
+      await onAddManyToLabelCart(confirmed);
       onRemovePackages(confirmed);
       toast.success(`${confirmed.length} paquete${confirmed.length !== 1 ? 's' : ''} confirmado${confirmed.length !== 1 ? 's' : ''}`);
     }
