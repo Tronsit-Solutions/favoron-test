@@ -103,28 +103,30 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, la
     return customDescriptions?.[0] || pkg.item_description;
   };
 
+  const isCompact = pkg.__compact === true;
+
   return (
     <div className={`bg-white border-2 border-black ${className}`} 
          style={{ 
-           width: '288px', 
-           height: '432px', 
+           width: isCompact ? '252px' : '288px', 
+           height: isCompact ? '360px' : '432px', 
            fontFamily: 'monospace',
-           fontSize: '12px',
+           fontSize: isCompact ? '10px' : '12px',
            lineHeight: '1.2',
            position: 'relative'
          }}>
       {/* Header with Logo */}
-      <div className="text-center py-2 border-b border-black">
+      <div className={`text-center ${isCompact ? 'py-1' : 'py-2'} border-b border-black`}>
         <img 
           src="/favoron-logo.jpg" 
           alt="Favorón"
-          className="h-8 mx-auto"
+          className={`${isCompact ? 'h-6' : 'h-8'} mx-auto`}
           style={{ filter: 'grayscale(100%)' }}
         />
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-3 text-xs">
+      <div className={`${isCompact ? 'p-2 space-y-2' : 'p-4 space-y-3'} text-xs`}>
         {/* Package Info - Unified Section */}
         <div>
           <div className="font-bold mb-1">INFORMACIÓN DEL PEDIDO:</div>
