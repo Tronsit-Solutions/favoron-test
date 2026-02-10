@@ -1808,6 +1808,9 @@ export type Database = {
           to_city: string
           traveler_first_name: string
           traveler_last_name: string
+          trip_arrival_date: string
+          trip_delivery_date: string
+          trip_status: string
         }[]
       }
       send_assignment_warnings: { Args: never; Returns: undefined }
