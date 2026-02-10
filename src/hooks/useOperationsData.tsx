@@ -92,6 +92,23 @@ export interface TripWithPackages {
   }[];
 }
 
+// ============= Label Cart Types =============
+
+export interface LabelCartItem {
+  id: string;
+  item_description: string;
+  products_data: ProductData[] | null;
+  confirmed_delivery_address: any;
+  delivery_method: string | null;
+  label_number: number | null;
+  shopper_name: string;
+  estimated_price: number | null;
+  created_at: string;
+  trip_from_city: string | null;
+  trip_to_city: string | null;
+  traveler_name: string;
+}
+
 // ============= Hook =============
 
 const CACHE_TTL_MS = 30000; // 30 seconds cache
@@ -100,6 +117,7 @@ export const useOperationsData = () => {
   const [allPackages, setAllPackages] = useState<OperationsPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
+  const [labelCart, setLabelCart] = useState<LabelCartItem[]>([]);
 
   // Fetch with retry logic for handling timeouts
   const fetchWithRetry = async (retries = 2): Promise<any[]> => {
@@ -362,6 +380,82 @@ export const useOperationsData = () => {
     ));
   }, []);
 
+  // ============= Label Cart Actions =============
+
+  const addToLabelCart = useCallback(async (packageId: string) => {
+    // Find package data from local state
+    const pkg = allPackages.find(p => p.id === packageId);
+    if (!pkg) return;
+
+    // Fetch fresh label_number from DB (assigned by the RPC)
+    const { data } = await supabase
+      .from('packages')
+      .select('label_number')
+      .eq('id', packageId)
+      .maybeSingle();
+
+    const item: LabelCartItem = {
+      id: pkg.id,
+      item_description: pkg.item_description,
+      products_data: pkg.products_data,
+      confirmed_delivery_address: pkg.confirmed_delivery_address,
+      delivery_method: pkg.delivery_method,
+      label_number: data?.label_number ?? pkg.label_number ?? null,
+      shopper_name: pkg.shopper_name,
+      estimated_price: pkg.estimated_price,
+      created_at: pkg.created_at,
+      trip_from_city: pkg.trip_from_city,
+      trip_to_city: pkg.trip_to_city,
+      traveler_name: pkg.traveler_name,
+    };
+
+    setLabelCart(prev => [...prev, item]);
+  }, [allPackages]);
+
+  const addManyToLabelCart = useCallback(async (packageIds: string[]) => {
+    if (packageIds.length === 0) return;
+
+    // Fetch fresh label_numbers from DB
+    const { data: labelData } = await supabase
+      .from('packages')
+      .select('id, label_number')
+      .in('id', packageIds);
+
+    const labelMap = new Map<string, number | null>();
+    labelData?.forEach(row => labelMap.set(row.id, row.label_number));
+
+    const items: LabelCartItem[] = packageIds
+      .map(id => {
+        const pkg = allPackages.find(p => p.id === id);
+        if (!pkg) return null;
+        return {
+          id: pkg.id,
+          item_description: pkg.item_description,
+          products_data: pkg.products_data,
+          confirmed_delivery_address: pkg.confirmed_delivery_address,
+          delivery_method: pkg.delivery_method,
+          label_number: labelMap.get(id) ?? pkg.label_number ?? null,
+          shopper_name: pkg.shopper_name,
+          estimated_price: pkg.estimated_price,
+          created_at: pkg.created_at,
+          trip_from_city: pkg.trip_from_city,
+          trip_to_city: pkg.trip_to_city,
+          traveler_name: pkg.traveler_name,
+        } as LabelCartItem;
+      })
+      .filter(Boolean) as LabelCartItem[];
+
+    setLabelCart(prev => [...prev, ...items]);
+  }, [allPackages]);
+
+  const clearLabelCart = useCallback(() => {
+    setLabelCart([]);
+  }, []);
+
+  const removeFromLabelCart = useCallback((packageId: string) => {
+    setLabelCart(prev => prev.filter(item => item.id !== packageId));
+  }, []);
+
   // Force refresh wrapper for onClick handlers
   const refresh = useCallback(() => fetchAllData(true), [fetchAllData]);
 
@@ -386,5 +480,12 @@ export const useOperationsData = () => {
     removePackages,
     updatePackageStatus,
     updatePackageIncidentFlag,
+    
+    // Label cart
+    labelCart,
+    addToLabelCart,
+    addManyToLabelCart,
+    clearLabelCart,
+    removeFromLabelCart,
   };
 };
