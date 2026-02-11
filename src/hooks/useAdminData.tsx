@@ -103,7 +103,7 @@ export const useAdminData = (): AdminData => {
           admin_actions_log, internal_notes, admin_assigned_tip,
           confirmed_delivery_address, traveler_address, matched_trip_dates,
           payment_receipt, products_data,
-          payment_method, recurrente_checkout_id
+          payment_method, recurrente_checkout_id, recurrente_payment_id
         `, { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(offset, offset + PACKAGES_PER_PAGE - 1);
