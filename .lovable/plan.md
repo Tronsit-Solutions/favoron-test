@@ -1,61 +1,68 @@
 
 
-## Migrar paquetes "archived_by_shopper" pagados
+## Corregir metodo de pago en paquetes con checkout fallido de Recurrente
 
-### Que se hara
+### Problema
+Hay 18 paquetes marcados con `payment_method = 'card'` que tienen un `recurrente_checkout_id` (el formulario de pago se genero) pero **no tienen `recurrente_payment_id`** (el pago nunca fue confirmado por el webhook de Recurrente). Algunos de estos usuarios terminaron pagando por transferencia bancaria.
 
-Se ejecutara una migracion SQL en 3 pasos:
+### Paquetes afectados (18 total)
 
-1. **Desactivar triggers de notificacion** para que no se envien emails ni WhatsApp
-2. **Mover 53 paquetes pagados sin reembolso** a status `completed`
-3. **Mover 2 paquetes pagados con reembolso** a status `cancelled`
-4. **Reactivar triggers**
+| Usuario | Monto | Status | Tiene comprobante transferencia? |
+|---------|-------|--------|----------------------------------|
+| Maria Cordero | Q72 | ready_for_pickup | Si (IMG_8380.png) |
+| Gabriel Gonzalez | Q285 | in_transit | Verificar |
+| Virginia Morales | Q111 | quote_expired | Verificar |
+| Maria Jose Juarez | Q90 | received_by_traveler | Verificar |
+| Gener Dardon | Q120 | received_by_traveler | Verificar |
+| Nicole Berger | Q174 | ready_for_delivery | Verificar |
+| Jose Garcia | Q180 | cancelled | Verificar |
+| Eduardo Giron | Q222 | in_transit | Verificar |
+| Emilie Salkeld | Q300 | pending_purchase | Verificar |
+| Sofia Lorenzana | Q90 | quote_expired | Verificar |
+| Luze Lopez | Q112.50 | quote_expired | Verificar |
+| Raul Garcia | Q90 | quote_expired | Verificar |
+| Beatriz Bautista | Q105 | pending_purchase | Verificar |
+| Rodrigo Orantes | Q72 | cancelled | Verificar |
+| Katia Leal | Q15 | quote_expired | Verificar |
+| Carmen Castillo | Q144 | ready_for_pickup | Verificar |
+| Fernando Casco | Q105 | ready_for_pickup | Verificar |
+| Admin Favoron | Q74 | quote_expired | Verificar |
 
-### Paquetes afectados
+### Plan de accion
 
-- **53 paquetes** pagados sin reembolso -> `completed`
-- **2 paquetes** con reembolso -> `cancelled`:
-  - Rodrigo Orantes (Q72.00)
-  - Iker Ibanez (Q238.00)
-- **~100 paquetes** sin cotizacion pagada se quedan como estan
+**Paso 1: Identificar cuales pagaron por transferencia**
+Consultar cuales de los 18 tienen `payment_receipt` con datos de comprobante (archivo subido). Estos deben corregirse a `bank_transfer`.
 
-### Detalle tecnico
-
-**SQL de la migracion:**
+**Paso 2: Migracion SQL (sin notificaciones)**
 
 ```text
--- 1) Desactivar triggers de notificacion
-ALTER TABLE public.packages DISABLE TRIGGER trigger_notify_shopper_package_status;
-ALTER TABLE public.packages DISABLE TRIGGER trigger_notify_traveler_package_status;
-ALTER TABLE public.packages DISABLE TRIGGER tr_notify_shopper_quote_sent;
-
--- 2) Migrar los 53 sin reembolso a completed
+-- Corregir paquetes que pagaron por transferencia pero estan marcados como card
 UPDATE public.packages
-SET status = 'completed', updated_at = NOW()
-WHERE status = 'archived_by_shopper'
-  AND quote IS NOT NULL
-  AND (quote->>'totalPrice')::numeric > 0
-  AND id NOT IN (SELECT package_id FROM refund_orders);
+SET 
+  payment_method = 'bank_transfer',
+  recurrente_checkout_id = NULL,
+  updated_at = NOW()
+WHERE payment_method = 'card'
+  AND recurrente_payment_id IS NULL
+  AND payment_receipt IS NOT NULL
+  AND (payment_receipt->>'filePath') IS NOT NULL;
 
--- 3) Migrar los 2 con reembolso a cancelled
+-- Limpiar checkout ID de paquetes que nunca completaron pago con tarjeta
+-- (dejar payment_method como card para los que aun podrian intentar)
 UPDATE public.packages
-SET status = 'cancelled', updated_at = NOW()
-WHERE status = 'archived_by_shopper'
-  AND quote IS NOT NULL
-  AND (quote->>'totalPrice')::numeric > 0
-  AND id IN (SELECT package_id FROM refund_orders);
-
--- 4) Reactivar triggers
-ALTER TABLE public.packages ENABLE TRIGGER trigger_notify_shopper_package_status;
-ALTER TABLE public.packages ENABLE TRIGGER trigger_notify_traveler_package_status;
-ALTER TABLE public.packages ENABLE TRIGGER tr_notify_shopper_quote_sent;
+SET 
+  recurrente_checkout_id = NULL,
+  updated_at = NOW()
+WHERE payment_method = 'card'
+  AND recurrente_payment_id IS NULL
+  AND recurrente_checkout_id IS NOT NULL
+  AND (payment_receipt IS NULL OR (payment_receipt->>'filePath') IS NULL);
 ```
 
+**Paso 3: Verificar deteccion de metodo de pago en tabla financiera**
+Confirmar que `FinancialSummaryTable.tsx` usa la logica correcta para detectar el metodo de pago (ya deberia funcionar bien con estos cambios en la BD).
+
 ### Resultado esperado
-
-- 53 paquetes aparecen en la tabla financiera como `completed`
-- 2 paquetes con reembolso aparecen como `cancelled`
-- El pedido de Cristina por Q375 queda visible en la tabla financiera
-- Ningun usuario recibe notificacion
-- Los ~100 paquetes sin pago permanecen sin cambios
-
+- Paquetes que pagaron por transferencia se muestran correctamente como "Transferencia"
+- Paquetes que nunca completaron pago con tarjeta se limpian para evitar confusion
+- La tabla financiera refleja los metodos de pago reales
