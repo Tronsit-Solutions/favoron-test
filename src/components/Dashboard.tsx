@@ -439,55 +439,6 @@ const Dashboard = ({ user }: DashboardProps) => {
     }
   };
 
-  const handleArchivePackage = async (pkg: any) => {
-    // Para paquetes ya cancelados, solo cambiar a archived_by_shopper
-    if (pkg.status === 'cancelled') {
-      try {
-        console.log('📦 Archiving cancelled package:', pkg.id);
-        await updatePackage(pkg.id, { status: 'archived_by_shopper' });
-        toast({
-          title: "Pedido archivado",
-          description: "El pedido se ha movido a tu historial.",
-        });
-        await refreshPackages();
-      } catch (error) {
-        console.error('Error archiving cancelled package:', error);
-        toast({
-          title: "Error",
-          description: "No se pudo archivar el pedido. Inténtalo de nuevo.",
-          variant: "destructive",
-        });
-      }
-      return;
-    }
-    
-    // Validar si se puede cancelar (archivar = cancelar para paquetes activos)
-    if (!canCancelPackage(pkg, currentUser.id)) {
-      toast({
-        title: "No se puede archivar",
-        description: "Este pedido no puede ser archivado porque el pago ya fue procesado o el proceso está muy avanzado.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      console.log('📦 Archiving package:', pkg.id);
-      await updatePackage(pkg.id, { status: 'cancelled' });
-      toast({
-        title: "Paquete archivado",
-        description: "El paquete ha sido archivado exitosamente.",
-      });
-      await refreshPackages();
-    } catch (error) {
-      console.error('Error archiving package:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo archivar el paquete. Inténtalo de nuevo.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleRequestRequote = async (pkg: any) => {
     try {
@@ -666,8 +617,8 @@ const Dashboard = ({ user }: DashboardProps) => {
             </div>
 
             {userPackages.filter(pkg => {
-              // Excluir paquetes completados y archivados (pero mantener rechazados y cancelados para que shopper pueda ver/archivar)
-              if (pkg.status === 'completed' || pkg.status === 'archived_by_shopper') return false;
+              // Excluir paquetes completados, archivados y cancelados del dashboard activo
+              if (pkg.status === 'completed' || pkg.status === 'archived_by_shopper' || pkg.status === 'cancelled') return false;
               
               // Excluir paquetes que pertenecen a viajes completados y pagados
               if (pkg.matched_trip_id) {
@@ -683,8 +634,8 @@ const Dashboard = ({ user }: DashboardProps) => {
             ) : (
               <div className="grid gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-hidden px-0">
                  {userPackages.filter(pkg => {
-                   // Excluir paquetes completados y archivados (pero mantener rechazados y cancelados para que shopper pueda ver/archivar)
-                   if (pkg.status === 'completed' || pkg.status === 'archived_by_shopper') return false;
+                   // Excluir paquetes completados, archivados y cancelados del dashboard activo
+                   if (pkg.status === 'completed' || pkg.status === 'archived_by_shopper' || pkg.status === 'cancelled') return false;
                    
                    // Excluir paquetes que pertenecen a viajes completados y pagados
                    if (pkg.matched_trip_id) {
@@ -725,7 +676,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                         onUploadDocument={handleUploadDocument}
                          onEditPackage={handleEditPackage}
                          onDeletePackage={handleDiscardPackage}
-                         onArchivePackage={handleArchivePackage}
+                         
                          onRequestRequote={handleRequestRequote}
                         viewMode="user"
                         // URL-based navigation from notifications
