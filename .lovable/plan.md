@@ -1,35 +1,34 @@
 
 
-## Corregir distribucion de reembolsos en la tabla financiera
+## Fix: Columna "Ingreso Favoron" en filas de reembolso
 
 ### Problema
-Cuando se crea una fila de reembolso en la tabla financiera, todo el monto negativo se asigna a la columna "Ingreso Favoron" (`favoronRevenue: -refund.amount`). Pero el reembolso incluye tanto el tip del viajero como el service fee de Favoron. Esto infla negativamente los ingresos de Favoron y no refleja que parte del reembolso corresponde al viajero.
+La columna "Ingreso Favoron" tiene un override en el render (linea 747) que ignora el valor calculado de `favoronRevenue` y muestra el monto total del reembolso:
 
-### Ejemplo con datos reales
-- Reembolso de Q22.50: tip=Q15, serviceFee=Q7.50
-- Actualmente: Tip Viajero=Q0, Ingreso Favoron=-Q22.50
-- Correcto: Tip Viajero=-Q15, Ingreso Favoron=-Q7.50
+```text
+// Linea 747 actual:
+{item.isRefund ? `-${formatCurrency(item.refundAmount || 0)}` : formatCurrency(item.favoronRevenue)}
+```
+
+Esto significa que aunque el calculo en lineas 360-361 es correcto (`favoronRevenue: -refundServiceFee`), la celda siempre muestra `-refund.amount` para reembolsos.
 
 ### Solucion
 
-**Archivo: `src/components/admin/FinancialSummaryTable.tsx`** (lineas 319-356)
+**Archivo: `src/components/admin/FinancialSummaryTable.tsx` (linea 747)**
 
-Extraer el desglose del tip y service fee desde `cancelled_products` para distribuir correctamente el monto negativo:
-
-1. **Formato nuevo** (productos con campos `tip` y `serviceFee`): sumar directamente esos campos
-2. **Formato antiguo** (productos con solo `adminAssignedTip`): el tip es la suma de `adminAssignedTip`, y el service fee es `refund.amount - totalTips - penalty`
-3. Si no hay datos suficientes, usar el paquete original para obtener la proporcion
-
-### Detalle tecnico
+Cambiar para que use `item.favoronRevenue` directamente (que ya contiene el valor negativo correcto):
 
 ```text
-Antes:
-  travelerTip: 0
-  favoronRevenue: -refund.amount
+// Antes:
+{item.isRefund ? `-${formatCurrency(item.refundAmount || 0)}` : formatCurrency(item.favoronRevenue)}
 
-Despues:
-  travelerTip: -(suma de tips de productos cancelados)
-  favoronRevenue: -(refund.amount - suma de tips)
+// Despues:
+{formatCurrency(item.favoronRevenue)}
 ```
 
-Esto tambien corrige los totales en el footer de la tabla y en la exportacion a Excel, ya que ambos usan los mismos campos `travelerTip` y `favoronRevenue`.
+El valor de `favoronRevenue` ya es negativo para reembolsos (ej: -7.50), asi que `formatCurrency` lo mostrara correctamente.
+
+### Resultado esperado
+- Reembolso Q22.50 (tip=Q15, serviceFee=Q7.50): Tip Viajero=-Q15.00, Ingreso Favoron=-Q7.50
+- Reembolso Q205 (tip=Q140): Tip Viajero=-Q140.00, Ingreso Favoron=-Q65.00
+
