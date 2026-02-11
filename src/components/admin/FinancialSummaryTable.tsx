@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Package } from "@/types";
+import { startOfMonth, endOfMonth, addMonths, parse } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -63,30 +64,57 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string[]>([]);
   const itemsPerPage = 50;
 
-  // Filter packages to include only those in advanced payment states
+  // Independent query: fetch ALL paid packages for the selected month directly from Supabase
+  const selectedMonthDate = useMemo(() => {
+    if (selectedMonth === 'all') return null;
+    // selectedMonth is "YYYY-MM" format
+    return parse(selectedMonth, 'yyyy-MM', new Date());
+  }, [selectedMonth]);
+
+  const advancedStates = [
+    'pending_purchase', 
+    'purchase_confirmed',
+    'shipped',
+    'in_transit',
+    'received_by_traveler',
+    'pending_office_confirmation',
+    'delivered_to_office',
+    'ready_for_pickup',
+    'ready_for_delivery',
+    'out_for_delivery',
+    'completed'
+  ];
+  const cancelledButPaidStates = ['cancelled', 'archived_by_shopper'];
+  const allEligibleStates = [...advancedStates, ...cancelledButPaidStates];
+
+  const { data: fetchedPackages, isLoading: isLoadingPackages } = useQuery({
+    queryKey: ['financial-summary-packages', selectedMonth],
+    queryFn: async () => {
+      let query = supabase
+        .from('packages')
+        .select('id, user_id, status, item_description, item_link, matched_trip_id, created_at, updated_at, quote, payment_receipt, products_data, payment_method, recurrente_checkout_id, recurrente_payment_id, delivery_method, admin_assigned_tip, estimated_price, incident_flag')
+        .in('status', allEligibleStates)
+        .order('created_at', { ascending: false });
+
+      if (selectedMonthDate) {
+        const monthStart = startOfMonth(selectedMonthDate);
+        const monthEnd = startOfMonth(addMonths(selectedMonthDate, 1));
+        query = query.gte('created_at', monthStart.toISOString()).lt('created_at', monthEnd.toISOString());
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []) as Package[];
+    },
+  });
+
+  // Filter: keep advanced-state packages + cancelled-but-paid packages (client-side check for payment evidence)
   const eligiblePackages = useMemo(() => {
-    const advancedStates = [
-      'pending_purchase', 
-      'purchase_confirmed',
-      'shipped',
-      'in_transit',
-      'received_by_traveler',
-      'pending_office_confirmation',
-      'delivered_to_office',
-      'ready_for_pickup',
-      'ready_for_delivery',
-      'out_for_delivery',
-      'completed'
-    ];
-
-    const cancelledButPaid = ['cancelled', 'archived_by_shopper'];
-    
-    return packages.filter(pkg => {
+    if (!fetchedPackages) return [];
+    return fetchedPackages.filter(pkg => {
       if (!pkg.quote || typeof pkg.quote !== 'object') return false;
-
       if (advancedStates.includes(pkg.status)) return true;
-
-      if (cancelledButPaid.includes(pkg.status)) {
+      if (cancelledButPaidStates.includes(pkg.status)) {
         const receipt = pkg.payment_receipt as any;
         const hasManualReceipt = receipt && typeof receipt === 'object' && receipt.filePath;
         const hasCardPayment = !!pkg.recurrente_payment_id;
@@ -94,10 +122,9 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
           (receipt.method === 'card' || receipt.payment_id || receipt.provider === 'recurrente');
         return hasManualReceipt || hasCardPayment || hasCardReceiptEvidence;
       }
-
       return false;
     });
-  }, [packages]);
+  }, [fetchedPackages]);
 
   // Fetch approved prime memberships
   const { data: primeMemberships } = useQuery({
