@@ -775,8 +775,9 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                           onClick={() => {
                             let normalized = item.refundReceiptUrl!;
                             if (!normalized.startsWith('http') && !normalized.includes('/storage/v1/object')) {
-                              if (!normalized.startsWith('refund-receipts/')) {
-                                normalized = `refund-receipts/${normalized}`;
+                              // Refund receipts live inside payment-receipts bucket
+                              if (!normalized.startsWith('payment-receipts/')) {
+                                normalized = `payment-receipts/${normalized}`;
                               }
                             }
                             setSelectedPaymentReceipt(normalized);
