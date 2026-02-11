@@ -1,73 +1,64 @@
 
 
-## Agregar reembolsos como filas negativas en la Tabla Resumen Financiera
+## Mostrar comprobante de devolucion en filas de reembolso
 
 ### Objetivo
 
-Intercalar los reembolsos aprobados/completados cronologicamente en la tabla financiera como filas con valores negativos, para reflejar el ingreso neto real.
+Que las filas de reembolso muestren el boton "Ver" para ver el comprobante de transferencia que el admin subio al completar el reembolso (campo `receipt_url` de `refund_orders`).
 
-### Cambios
+### Cambios en `src/components/admin/FinancialSummaryTable.tsx`
 
-| Archivo | Cambio |
+| Seccion | Cambio |
 |---------|--------|
-| `src/components/admin/FinancialSummaryTable.tsx` | Fetch refund_orders, crear filas negativas, actualizar totales y Excel export |
+| Query de refunds (linea ~102) | Agregar `receipt_url, receipt_filename` al SELECT |
+| Interface `EnrichedPackageData` (linea ~42) | Agregar `refundReceiptUrl?: string` y `refundReceiptFilename?: string` |
+| Mapeo de refund data (linea ~333) | Pasar `receipt_url` y `receipt_filename` del refund al objeto enriquecido |
+| Celda de comprobante (linea ~734) | Agregar condicion para refunds: si `item.isRefund && item.refundReceiptUrl`, mostrar boton "Ver" que abre el receipt desde el bucket `payment-receipts` (donde se guardan los comprobantes de reembolso) |
 
 ### Detalle tecnico
 
-**1. Nuevo query** - Fetch reembolsos aprobados y completados:
-
-```typescript
-const { data: refundOrders } = useQuery({
-  queryKey: ['refunds-for-financial-table'],
-  queryFn: async () => {
-    const { data } = await supabase
-      .from('refund_orders')
-      .select('id, package_id, shopper_id, amount, reason, status, created_at, completed_at, cancelled_products')
-      .in('status', ['approved', 'completed'])
-      .order('created_at', { ascending: true });
-    return data || [];
-  }
-});
+**1. Query** - Agregar campos al select:
+```
+.select('id, package_id, shopper_id, amount, reason, status, created_at, completed_at, cancelled_products, receipt_url, receipt_filename')
 ```
 
-**2. Interface** - Agregar campo `isRefund` y `refundAmount` a `EnrichedPackageData`:
-
+**2. Interface** - Dos campos nuevos opcionales:
 ```typescript
-isRefund?: boolean;
-refundAmount?: number;
+refundReceiptUrl?: string;
+refundReceiptFilename?: string;
 ```
 
-**3. Crear filas de reembolso** en el `useMemo` de `enrichedData` (~linea 310):
+**3. Mapeo** - En el return del map de refundData:
+```typescript
+refundReceiptUrl: refund.receipt_url || null,
+refundReceiptFilename: refund.receipt_filename || null,
+```
 
-- Cada refund_order genera una fila con:
-  - `shopperName`: nombre del shopper (del profiles map, usando `shopper_id`)
-  - `productDescription`: "Reembolso - [razon]" + productos cancelados
-  - `paymentDate`: fecha de `completed_at` o `created_at`
-  - `totalToPay`: **-amount** (negativo)
-  - `favoronRevenue`: **-amount** (negativo, ya que es dinero que sale)
-  - `travelerTip`: 0
-  - `messengerPayment`: 0
-  - `isRefund: true`
+**4. UI** - Modificar la condicion en linea ~734 para tambien mostrar el boton en reembolsos:
+```typescript
+{!item.isPrimeMembership && !item.isRefund && item.package.payment_receipt && (
+  // ... boton existente
+)}
+{item.isRefund && item.refundReceiptUrl && (
+  <Button
+    variant="outline"
+    size="sm"
+    onClick={() => {
+      let normalized = item.refundReceiptUrl!;
+      if (!normalized.startsWith('http') && !normalized.includes('/storage/v1/object')) {
+        if (!normalized.startsWith('refund-receipts/')) {
+          normalized = `refund-receipts/${normalized}`;
+        }
+      }
+      setSelectedPaymentReceipt(normalized);
+      setSelectedReceiptFilename(item.refundReceiptFilename || 'comprobante-reembolso.jpg');
+    }}
+  >
+    <Eye className="h-3 w-3 mr-1" />
+    Ver
+  </Button>
+)}
+```
 
-**4. UI de la fila** (~linea 539):
-
-- Fondo rojo suave: `bg-red-50/50 hover:bg-red-100/50`
-- Badge rojo "Reembolso" en la columna Estado
-- Valores monetarios en rojo con signo negativo
-- Icono `RotateCcw` en la columna de metodo de pago mostrando "Reembolso"
-
-**5. Totales** (~linea 358):
-
-- Agregar `totalRefunds` al acumulador
-- En el summary card superior, agregar una nueva celda "Reembolsos" con el total en rojo
-- En la fila de totales de la tabla, los valores ya se restan automaticamente porque son negativos
-
-**6. Excel export** (~linea 383):
-
-- Las filas de reembolso se exportan con tipo "Reembolso" y montos negativos
-- Se agrega fila de "Total Reembolsos" al final
-
-**7. Contador de transacciones** (~linea 456):
-
-- Actualizar el texto para incluir reembolsos: "X paquetes + Y membresías Prime + Z reembolsos"
+El path usa `refund-receipts/` como prefijo (que es donde `uploadRefundReceipt` en `useRefundOrders` guarda los archivos dentro del bucket `payment-receipts`).
 
