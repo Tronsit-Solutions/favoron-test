@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Package as PackageIcon, Calendar, Download, CreditCard, Landmark } from "lucide-react";
+import { Eye, Package as PackageIcon, Calendar, Download, CreditCard, Landmark, RotateCcw } from "lucide-react";
 import { formatCurrency, formatDate, getStatusLabel } from "@/lib/formatters";
 import { format } from "date-fns";
 import { calculateFavoronRevenue, calculateServiceFee, getDeliveryFee } from '@/lib/pricing';
@@ -38,6 +38,8 @@ interface EnrichedPackageData {
   isPrimeMembership?: boolean;
   primeAmount?: number;
   isFromPrimeShopper?: boolean;
+  isRefund?: boolean;
+  refundAmount?: number;
 }
 
 const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
@@ -91,9 +93,22 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     }
   });
 
+  // Fetch approved/completed refund orders
+  const { data: refundOrders } = useQuery({
+    queryKey: ['refunds-for-financial-table'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('refund_orders')
+        .select('id, package_id, shopper_id, amount, reason, status, created_at, completed_at, cancelled_products')
+        .in('status', ['approved', 'completed'])
+        .order('created_at', { ascending: true });
+      return data || [];
+    }
+  });
+
   // Fetch profiles data for shoppers and travelers
   const { data: profiles } = useQuery({
-    queryKey: ['profiles-for-financial-table'],
+    queryKey: ['profiles-for-financial-table', refundOrders?.map(r => r.shopper_id)],
     queryFn: async () => {
       const userIds = new Set<string>();
       
@@ -123,6 +138,11 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         if (membership.user_id) userIds.add(membership.user_id);
       });
 
+      // Add refund order shopper_ids
+      refundOrders?.forEach(refund => {
+        if (refund.shopper_id) userIds.add(refund.shopper_id);
+      });
+
       // Fetch all profiles
       if (userIds.size === 0) return {};
       
@@ -142,7 +162,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
 
       return profilesMap;
     },
-    enabled: eligiblePackages.length > 0 || (primeMemberships && primeMemberships.length > 0)
+    enabled: eligiblePackages.length > 0 || (primeMemberships && primeMemberships.length > 0) || (refundOrders && refundOrders.length > 0)
   });
 
   // Fetch trips data to get traveler IDs
@@ -190,7 +210,6 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       const travelerName = travelerProfile 
         ? `${travelerProfile.first_name} ${travelerProfile.last_name}`.trim() || 'Viajero'
         : 'Sin asignar';
-      const travelerTrustLevel = travelerProfile?.trust_level || 'basic';
 
       // Get product description
       let productDescription = pkg.item_description || 'Sin descripción';
@@ -216,7 +235,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         }
       }
 
-      // Extract payment date - support both bank transfer (uploadedAt) and card (paid_at)
+      // Extract payment date
       let paymentDate = 'Pendiente';
       if (pkg.payment_receipt && typeof pkg.payment_receipt === 'object') {
         const receipt = pkg.payment_receipt as any;
@@ -228,29 +247,15 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         paymentDate = new Date(pkg.updated_at).toLocaleDateString('es-GT');
       }
 
-      // Use centralized getQuoteValues for consistent reading across the app
       const quoteValues = getQuoteValues(quote);
-      
-      // Traveler tip is the base price
       const travelerTip = quoteValues.price;
-      
-      // Use saved quote values - these represent what was actually charged
       const serviceFee = quoteValues.serviceFee;
       const deliveryFee = quoteValues.deliveryFee;
-      
-      // Total is what the client actually paid (after discount)
       const totalToPay = quoteValues.finalTotalPrice;
-      
-      // Favoron revenue is the service fee
       const favoronRevenue = serviceFee;
-      
-      // Messenger payment = delivery fee (what we pay to messenger)
       const messengerPayment = deliveryFee;
-
-      // Discount from quote
       const discountAmount = quoteValues.discountAmount;
 
-      // Determine payment method
       const receipt = pkg.payment_receipt as any;
       const paymentMethod = 
         pkg.recurrente_checkout_id || pkg.payment_method === 'card' || receipt?.method === 'card'
@@ -308,20 +313,56 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       };
     });
 
+    // Add refund orders as negative entries
+    const refundData: EnrichedPackageData[] = (refundOrders || []).map(refund => {
+      const shopperProfile = profiles?.[refund.shopper_id];
+      const shopperName = shopperProfile
+        ? `${shopperProfile.first_name} ${shopperProfile.last_name}`.trim() || 'Usuario'
+        : 'Usuario';
+
+      const cancelledProducts = Array.isArray(refund.cancelled_products) ? refund.cancelled_products : [];
+      const productNames = cancelledProducts.map((p: any) => p.itemDescription || p.item_description || '').filter(Boolean);
+      const productDescription = productNames.length > 0
+        ? `Reembolso - ${refund.reason || 'Productos cancelados'}: ${productNames.join(', ')}`
+        : `Reembolso - ${refund.reason || 'Productos cancelados'}`;
+
+      const paymentDate = refund.completed_at
+        ? new Date(refund.completed_at).toLocaleDateString('es-GT')
+        : new Date(refund.created_at).toLocaleDateString('es-GT');
+
+      return {
+        package: { id: refund.id } as Package,
+        shopperName,
+        travelerName: '-',
+        tripId: null,
+        productDescription,
+        productLink: null,
+        paymentDate,
+        totalToPay: -refund.amount,
+        discountAmount: 0,
+        travelerTip: 0,
+        favoronRevenue: -refund.amount,
+        messengerPayment: 0,
+        paymentMethod: 'Reembolso',
+        isPrimeMembership: false,
+        isRefund: true,
+        refundAmount: refund.amount
+      };
+    });
+
     // Combine and sort by date
-    return [...packageData, ...primeData].sort((a, b) => {
+    return [...packageData, ...primeData, ...refundData].sort((a, b) => {
       const dateA = new Date(a.paymentDate.split('/').reverse().join('-'));
       const dateB = new Date(b.paymentDate.split('/').reverse().join('-'));
       return dateB.getTime() - dateA.getTime();
     });
-  }, [eligiblePackages, profiles, trips, primeMemberships]);
+  }, [eligiblePackages, profiles, trips, primeMemberships, refundOrders]);
 
   // Generate available months from the data
   const availableMonths = useMemo(() => {
     const monthsSet = new Set<string>();
     
     enrichedData.forEach(item => {
-      // Parse date from format "dd/mm/yyyy" to get month/year
       const dateParts = item.paymentDate.split('/');
       if (dateParts.length === 3) {
         const month = dateParts[1];
@@ -362,14 +403,16 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       travelerTip: acc.travelerTip + item.travelerTip,
       favoronRevenue: acc.favoronRevenue + item.favoronRevenue,
       messengerPayment: acc.messengerPayment + item.messengerPayment,
-      primePayments: acc.primePayments + (item.isPrimeMembership ? item.primeAmount || 0 : 0)
+      primePayments: acc.primePayments + (item.isPrimeMembership ? item.primeAmount || 0 : 0),
+      totalRefunds: acc.totalRefunds + (item.isRefund ? item.refundAmount || 0 : 0)
     }), {
       totalToPay: 0,
       discountAmount: 0,
       travelerTip: 0,
       favoronRevenue: 0,
       messengerPayment: 0,
-      primePayments: 0
+      primePayments: 0,
+      totalRefunds: 0
     });
   }, [filteredData]);
 
@@ -380,16 +423,19 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     setCurrentPage(1);
   }, [selectedMonth]);
 
+  const packageCount = filteredData.filter(e => !e.isPrimeMembership && !e.isRefund).length;
+  const primeCount = filteredData.filter(e => e.isPrimeMembership).length;
+  const refundCount = filteredData.filter(e => e.isRefund).length;
+
   const handleDownloadExcel = () => {
-    // Prepare data for Excel
     const excelData = filteredData.map(item => ({
       'Fecha Pago': item.paymentDate,
       'Shopper': item.shopperName,
       'Viajero': item.travelerName,
       'ID Viaje': item.tripId || '-',
       'Producto': item.productDescription,
-      'Tipo': item.isPrimeMembership ? 'Membresía Prime' : 'Paquete',
-      'Estado': item.isPrimeMembership ? 'Aprobado' : getStatusLabel(item.package.status),
+      'Tipo': item.isRefund ? 'Reembolso' : item.isPrimeMembership ? 'Membresía Prime' : 'Paquete',
+      'Estado': item.isRefund ? 'Reembolso' : item.isPrimeMembership ? 'Aprobado' : getStatusLabel(item.package.status),
       'Método Pago': item.paymentMethod,
       'Total a Pagar (Q)': item.totalToPay.toFixed(2),
       'Descuento (Q)': item.discountAmount > 0 ? `-${item.discountAmount.toFixed(2)}` : '0.00',
@@ -414,6 +460,25 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       'Ingreso Favorón (Q)': totals.favoronRevenue.toFixed(2),
       'Pago Mensajero (Q)': totals.messengerPayment.toFixed(2),
     });
+
+    // Add total refunds row if any
+    if (totals.totalRefunds > 0) {
+      excelData.push({
+        'Fecha Pago': '',
+        'Shopper': '',
+        'Viajero': '',
+        'ID Viaje': '',
+        'Producto': '',
+        'Tipo': '',
+        'Estado': 'TOTAL REEMBOLSOS',
+        'Método Pago': '',
+        'Total a Pagar (Q)': `-${totals.totalRefunds.toFixed(2)}`,
+        'Descuento (Q)': '0.00',
+        'Tip Viajero (Q)': '0.00',
+        'Ingreso Favorón (Q)': `-${totals.totalRefunds.toFixed(2)}`,
+        'Pago Mensajero (Q)': '0.00',
+      });
+    }
 
     // Create worksheet and workbook
     const ws = XLSX.utils.json_to_sheet(excelData);
@@ -453,7 +518,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
             <div className="flex flex-col gap-2">
               <CardTitle>Tabla Resumen Financiera</CardTitle>
               <span className="text-sm font-normal text-muted-foreground">
-                {filteredData.length} transacciones ({filteredData.filter(e => !e.isPrimeMembership).length} paquetes + {filteredData.filter(e => e.isPrimeMembership).length} membresías Prime)
+                {filteredData.length} transacciones ({packageCount} paquetes + {primeCount} membresías Prime{refundCount > 0 ? ` + ${refundCount} reembolsos` : ''})
               </span>
             </div>
           </div>
@@ -485,7 +550,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         <div className="overflow-x-auto">
           {/* Totals Summary Card */}
           <div className="mb-4 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
               <div className="text-center">
                 <p className="text-xs text-muted-foreground mb-1">Total a Pagar</p>
                 <p className="text-lg font-bold text-primary">{formatCurrency(totals.totalToPay)}</p>
@@ -508,6 +573,12 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                 <p className="text-xs text-muted-foreground mb-1">Pago Mensajeros</p>
                 <p className="text-lg font-bold text-orange-600">{formatCurrency(totals.messengerPayment)}</p>
               </div>
+              {totals.totalRefunds > 0 && (
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Reembolsos</p>
+                  <p className="text-lg font-bold text-red-600">-{formatCurrency(totals.totalRefunds)}</p>
+                </div>
+              )}
             </div>
             {selectedMonth !== "all" && (
               <p className="text-xs text-center text-muted-foreground mt-2">
@@ -536,7 +607,16 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
             </TableHeader>
             <TableBody>
               {paginatedData.map((item) => (
-                <TableRow key={item.package.id} className={item.isPrimeMembership || item.isFromPrimeShopper ? 'bg-purple-50/50 hover:bg-purple-100/50' : ''}>
+                <TableRow 
+                  key={item.package.id} 
+                  className={
+                    item.isRefund 
+                      ? 'bg-red-50/50 hover:bg-red-100/50' 
+                      : item.isPrimeMembership || item.isFromPrimeShopper 
+                        ? 'bg-purple-50/50 hover:bg-purple-100/50' 
+                        : ''
+                  }
+                >
                   <TableCell className="text-sm">{item.paymentDate}</TableCell>
                   <TableCell className="font-medium">
                     {item.shopperName}
@@ -549,7 +629,12 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                     {item.tripId ? item.tripId.slice(0, 8) + '...' : '-'}
                   </TableCell>
                   <TableCell className="max-w-sm">
-                    {item.isPrimeMembership ? (
+                    {item.isRefund ? (
+                      <div className="text-sm text-red-700">
+                        <RotateCcw className="h-3 w-3 inline mr-1" />
+                        {item.productDescription}
+                      </div>
+                    ) : item.isPrimeMembership ? (
                       <div className="text-sm font-medium text-purple-700">
                         💎 Membresía Prime - 1 año
                       </div>
@@ -601,7 +686,9 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                     )}
                   </TableCell>
                   <TableCell>
-                    {item.isPrimeMembership ? (
+                    {item.isRefund ? (
+                      <Badge className="bg-red-600">Reembolso</Badge>
+                    ) : item.isPrimeMembership ? (
                       <Badge className="bg-purple-600">Aprobado</Badge>
                     ) : (
                       <Badge variant="secondary">
@@ -610,7 +697,12 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                     )}
                   </TableCell>
                   <TableCell>
-                    {item.paymentMethod !== '-' ? (
+                    {item.isRefund ? (
+                      <Badge variant="outline" className="gap-1 border-red-300 text-red-700">
+                        <RotateCcw className="h-3 w-3" />
+                        Reembolso
+                      </Badge>
+                    ) : item.paymentMethod !== '-' ? (
                       <Badge variant="outline" className="gap-1">
                         {item.paymentMethod === 'Tarjeta' ? (
                           <CreditCard className="h-3 w-3" />
@@ -623,8 +715,8 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right font-mono">
-                    {formatCurrency(item.totalToPay)}
+                  <TableCell className={`text-right font-mono ${item.isRefund ? 'text-red-600' : ''}`}>
+                    {item.isRefund ? `-${formatCurrency(item.refundAmount || 0)}` : formatCurrency(item.totalToPay)}
                   </TableCell>
                   <TableCell className="text-right font-mono text-green-600">
                     {item.discountAmount > 0 ? `-${formatCurrency(item.discountAmount)}` : '-'}
@@ -632,14 +724,14 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                   <TableCell className="text-right font-mono">
                     {formatCurrency(item.travelerTip)}
                   </TableCell>
-                  <TableCell className="text-right font-mono">
-                    {formatCurrency(item.favoronRevenue)}
+                  <TableCell className={`text-right font-mono ${item.isRefund ? 'text-red-600' : ''}`}>
+                    {item.isRefund ? `-${formatCurrency(item.refundAmount || 0)}` : formatCurrency(item.favoronRevenue)}
                   </TableCell>
                   <TableCell className="text-right font-mono">
                     {formatCurrency(item.messengerPayment)}
                   </TableCell>
                   <TableCell className="text-center">
-                    {!item.isPrimeMembership && item.package.payment_receipt && (
+                    {!item.isPrimeMembership && !item.isRefund && item.package.payment_receipt && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -656,7 +748,6 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                             return;
                           }
                           
-                          // Normalize path: add bucket if not a full URL and bucket not already present
                           let normalized = raw;
                           if (!raw.startsWith('http') && !raw.includes('/storage/v1/object')) {
                             if (!raw.startsWith('payment-receipts/')) {
