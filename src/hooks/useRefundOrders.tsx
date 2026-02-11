@@ -13,7 +13,7 @@ export interface RefundOrder {
   amount: number;
   reason: string;
   cancelled_products: any[];
-  status: 'pending' | 'approved' | 'completed' | 'rejected';
+  status: 'pending' | 'completed' | 'rejected';
   notes: string | null;
   receipt_url: string | null;
   receipt_filename: string | null;
@@ -76,7 +76,7 @@ export const useRefundOrders = (shopperId?: string) => {
         .from('refund_orders')
         .select('id, status')
         .eq('package_id', params.packageId)
-        .in('status', ['pending', 'approved'])
+        .in('status', ['pending'])
         .maybeSingle();
       
       if (checkError) {
@@ -240,7 +240,7 @@ export const useAdminRefundOrders = () => {
 
   const updateRefundStatus = async (
     id: string,
-    status: 'approved' | 'completed' | 'rejected',
+    status: 'completed' | 'rejected',
     notes?: string,
     receiptUrl?: string,
     receiptFilename?: string
@@ -266,7 +266,7 @@ export const useAdminRefundOrders = () => {
       
       if (error) throw error;
       
-      toast.success(`Reembolso ${status === 'approved' ? 'aprobado' : status === 'completed' ? 'completado' : 'rechazado'}`);
+      toast.success(`Reembolso ${status === 'completed' ? 'completado' : 'rechazado'}`);
       await fetchAllRefundOrders();
       return true;
     } catch (error) {
