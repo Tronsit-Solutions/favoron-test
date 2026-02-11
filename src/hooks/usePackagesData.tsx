@@ -149,11 +149,7 @@ export const usePackagesData = () => {
         .from('packages')
         .update({
           status: 'cancelled',
-          matched_trip_id: null,
-          quote: null,
-          quote_expires_at: null,
-          matched_trip_dates: null,
-          traveler_address: null
+          quote_expires_at: null
         })
         .eq('id', id)
         .select()
