@@ -1,44 +1,35 @@
 
 
-## Unificar comportamiento de cancelacion completa
+## Corregir distribucion de reembolsos en la tabla financiera
 
-### Problema actual
-Hay dos flujos de cancelacion completa que se comportan diferente:
+### Problema
+Cuando se crea una fila de reembolso en la tabla financiera, todo el monto negativo se asigna a la columna "Ingreso Favoron" (`favoronRevenue: -refund.amount`). Pero el reembolso incluye tanto el tip del viajero como el service fee de Favoron. Esto infla negativamente los ingresos de Favoron y no refleja que parte del reembolso corresponde al viajero.
 
-1. **`deletePackage` (usePackagesData.tsx)**: Limpia `matched_trip_id`, `quote`, `quote_expires_at`, `matched_trip_dates`, `traveler_address` -- esto borra la referencia al viajero, haciendo imposible el rastreo financiero.
-2. **`PackageCancellationModal`**: Solo cambia status a `cancelled` y agrega `rejection_reason` -- preserva la referencia al viajero.
+### Ejemplo con datos reales
+- Reembolso de Q22.50: tip=Q15, serviceFee=Q7.50
+- Actualmente: Tip Viajero=Q0, Ingreso Favoron=-Q22.50
+- Correcto: Tip Viajero=-Q15, Ingreso Favoron=-Q7.50
 
 ### Solucion
 
-**El `PackageCancellationModal` ya tiene el comportamiento correcto.** El problema esta en `deletePackage` y en `handleDiscardPackage`/`handleArchivePackage` que tambien cancelan paquetes sin preservar la info del viajero.
+**Archivo: `src/components/admin/FinancialSummaryTable.tsx`** (lineas 319-356)
 
-### Cambios a realizar
+Extraer el desglose del tip y service fee desde `cancelled_products` para distribuir correctamente el monto negativo:
 
-**1. `src/hooks/usePackagesData.tsx` - Funcion `deletePackage`**
-- Dejar de limpiar `matched_trip_id`, `quote`, `matched_trip_dates`, `traveler_address`
-- Solo cambiar status a `cancelled` y limpiar `quote_expires_at` (para que no aparezca como timer activo)
+1. **Formato nuevo** (productos con campos `tip` y `serviceFee`): sumar directamente esos campos
+2. **Formato antiguo** (productos con solo `adminAssignedTip`): el tip es la suma de `adminAssignedTip`, y el service fee es `refund.amount - totalTips - penalty`
+3. Si no hay datos suficientes, usar el paquete original para obtener la proporcion
 
-**2. `src/components/admin/FinancialSummaryTable.tsx` - Incluir paquetes cancelados**
-- Agregar `cancelled` a la lista de estados elegibles para que el pago original siga visible junto al reembolso negativo
-
-**3. Visibilidad en dashboard del viajero (sin cambios necesarios)**
-- La logica de filtrado en "Mis Viajes" (lineas 878-906 de Dashboard.tsx) ya excluye paquetes `cancelled` -- solo muestra estados post-pago, timers activos y cotizaciones expiradas
-- Los paquetes cancelados no apareceran en el dashboard del viajero aunque se preserve `matched_trip_id`
-
-### Resumen tecnico
+### Detalle tecnico
 
 ```text
-Antes (deletePackage):
-  status -> cancelled
-  matched_trip_id -> null      (pierde referencia al viajero)
-  quote -> null                (pierde info financiera)
-  matched_trip_dates -> null
-  traveler_address -> null
+Antes:
+  travelerTip: 0
+  favoronRevenue: -refund.amount
 
-Despues (deletePackage):
-  status -> cancelled
-  quote_expires_at -> null     (evita timers activos)
-  (todo lo demas se preserva para auditoria financiera)
+Despues:
+  travelerTip: -(suma de tips de productos cancelados)
+  favoronRevenue: -(refund.amount - suma de tips)
 ```
 
-El viajero no vera el paquete cancelado porque el filtro de visibilidad solo muestra estados activos/post-pago. La tabla financiera si lo mostrara para tener el registro completo de ingresos y reembolsos.
+Esto tambien corrige los totales en el footer de la tabla y en la exportacion a Excel, ya que ambos usan los mismos campos `travelerTip` y `favoronRevenue`.
