@@ -111,7 +111,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
 
   // Fetch profiles data for shoppers and travelers
   const { data: profiles } = useQuery({
-    queryKey: ['profiles-for-financial-table', refundOrders?.map(r => r.shopper_id)],
+    queryKey: ['profiles-for-financial-table', eligiblePackages.map(p => p.user_id), eligiblePackages.map(p => p.matched_trip_id), primeMemberships?.map(m => m.user_id), refundOrders?.map(r => r.shopper_id)],
     queryFn: async () => {
       const userIds = new Set<string>();
       
