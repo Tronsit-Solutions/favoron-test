@@ -1,68 +1,56 @@
 
 
-## Corregir metodo de pago en paquetes con checkout fallido de Recurrente
+## Agregar filtros tipo Excel en los headers de la Tabla Financiera
 
-### Problema
-Hay 18 paquetes marcados con `payment_method = 'card'` que tienen un `recurrente_checkout_id` (el formulario de pago se genero) pero **no tienen `recurrente_payment_id`** (el pago nunca fue confirmado por el webhook de Recurrente). Algunos de estos usuarios terminaron pagando por transferencia bancaria.
+### Que se hara
 
-### Paquetes afectados (18 total)
+Se agregaran filtros desplegables (dropdown) en cada header de columna de la tabla `FinancialSummaryTable`, similar a como funcionan los filtros de autocompletar en Excel. Al hacer clic en el icono de filtro en un header, aparecera un popover con las opciones unicas de esa columna para filtrar.
 
-| Usuario | Monto | Status | Tiene comprobante transferencia? |
-|---------|-------|--------|----------------------------------|
-| Maria Cordero | Q72 | ready_for_pickup | Si (IMG_8380.png) |
-| Gabriel Gonzalez | Q285 | in_transit | Verificar |
-| Virginia Morales | Q111 | quote_expired | Verificar |
-| Maria Jose Juarez | Q90 | received_by_traveler | Verificar |
-| Gener Dardon | Q120 | received_by_traveler | Verificar |
-| Nicole Berger | Q174 | ready_for_delivery | Verificar |
-| Jose Garcia | Q180 | cancelled | Verificar |
-| Eduardo Giron | Q222 | in_transit | Verificar |
-| Emilie Salkeld | Q300 | pending_purchase | Verificar |
-| Sofia Lorenzana | Q90 | quote_expired | Verificar |
-| Luze Lopez | Q112.50 | quote_expired | Verificar |
-| Raul Garcia | Q90 | quote_expired | Verificar |
-| Beatriz Bautista | Q105 | pending_purchase | Verificar |
-| Rodrigo Orantes | Q72 | cancelled | Verificar |
-| Katia Leal | Q15 | quote_expired | Verificar |
-| Carmen Castillo | Q144 | ready_for_pickup | Verificar |
-| Fernando Casco | Q105 | ready_for_pickup | Verificar |
-| Admin Favoron | Q74 | quote_expired | Verificar |
+### Columnas con filtro
 
-### Plan de accion
+| Columna | Tipo de filtro |
+|---------|---------------|
+| Shopper | Busqueda por texto + lista de nombres unicos |
+| Viajero | Busqueda por texto + lista de nombres unicos |
+| Estado | Checkboxes con los estados disponibles |
+| Metodo Pago | Checkboxes (Tarjeta, Transferencia, Reembolso) |
 
-**Paso 1: Identificar cuales pagaron por transferencia**
-Consultar cuales de los 18 tienen `payment_receipt` con datos de comprobante (archivo subido). Estos deben corregirse a `bank_transfer`.
+Las columnas numericas (Total, Tip, Ingreso, etc.) y Fecha no tendran filtro en header ya que el mes ya se filtra arriba.
 
-**Paso 2: Migracion SQL (sin notificaciones)**
+### Comportamiento
 
-```text
--- Corregir paquetes que pagaron por transferencia pero estan marcados como card
-UPDATE public.packages
-SET 
-  payment_method = 'bank_transfer',
-  recurrente_checkout_id = NULL,
-  updated_at = NOW()
-WHERE payment_method = 'card'
-  AND recurrente_payment_id IS NULL
-  AND payment_receipt IS NOT NULL
-  AND (payment_receipt->>'filePath') IS NOT NULL;
+- Cada header mostrara un icono de filtro (funnel) junto al nombre
+- Al hacer clic, se abre un Popover con las opciones
+- Los filtros de texto (Shopper/Viajero) tendran un campo de busqueda para filtrar la lista
+- Los filtros de estado/metodo tendran checkboxes para seleccion multiple
+- Los filtros se aplican en cascada (todos activos simultaneamente)
+- Un indicador visual (icono coloreado) mostrara cuando un filtro esta activo
+- Boton "Limpiar" dentro de cada popover para resetear ese filtro
+- Los totales se recalcularan segun los filtros aplicados
 
--- Limpiar checkout ID de paquetes que nunca completaron pago con tarjeta
--- (dejar payment_method como card para los que aun podrian intentar)
-UPDATE public.packages
-SET 
-  recurrente_checkout_id = NULL,
-  updated_at = NOW()
-WHERE payment_method = 'card'
-  AND recurrente_payment_id IS NULL
-  AND recurrente_checkout_id IS NOT NULL
-  AND (payment_receipt IS NULL OR (payment_receipt->>'filePath') IS NULL);
-```
+### Detalle tecnico
 
-**Paso 3: Verificar deteccion de metodo de pago en tabla financiera**
-Confirmar que `FinancialSummaryTable.tsx` usa la logica correcta para detectar el metodo de pago (ya deberia funcionar bien con estos cambios en la BD).
+**Archivo a modificar:** `src/components/admin/FinancialSummaryTable.tsx`
 
-### Resultado esperado
-- Paquetes que pagaron por transferencia se muestran correctamente como "Transferencia"
-- Paquetes que nunca completaron pago con tarjeta se limpian para evitar confusion
-- La tabla financiera refleja los metodos de pago reales
+**Cambios:**
+
+1. **Nuevo estado para filtros:**
+   - `shopperFilter: string[]` - nombres seleccionados
+   - `travelerFilter: string[]` - nombres seleccionados
+   - `statusFilter: string[]` - estados seleccionados
+   - `paymentMethodFilter: string[]` - metodos seleccionados
+
+2. **Componente `ColumnFilter`** (inline o separado):
+   - Usa `Popover` + `PopoverTrigger` + `PopoverContent`
+   - Input de busqueda para filtrar opciones
+   - Lista de checkboxes con las opciones unicas
+   - Botones "Seleccionar todos" y "Limpiar"
+
+3. **Logica de filtrado:**
+   - Se aplica despues del filtro de mes existente y antes de la paginacion
+   - Los totales se recalculan con los filtros aplicados
+
+4. **Header modificado:**
+   - Cada `TableHead` filtrable tendra el nombre + icono de filtro
+   - El icono cambia de color cuando el filtro esta activo
+
