@@ -1,65 +1,44 @@
 
 
-## Corregir comprobantes de reembolso perdidos
+## Unificar comportamiento de cancelacion completa
 
-### Causa raiz
+### Problema actual
+Hay dos flujos de cancelacion completa que se comportan diferente:
 
-En `useRefundOrders.tsx`, la funcion `updateRefundStatus` solo guarda `receipt_url` y `receipt_filename` cuando `status === 'completed'`. Cuando el admin aprueba un reembolso con comprobante adjunto, el archivo se sube al storage exitosamente, pero la referencia nunca se guarda en la base de datos porque el status es `'approved'`, no `'completed'`.
+1. **`deletePackage` (usePackagesData.tsx)**: Limpia `matched_trip_id`, `quote`, `quote_expires_at`, `matched_trip_dates`, `traveler_address` -- esto borra la referencia al viajero, haciendo imposible el rastreo financiero.
+2. **`PackageCancellationModal`**: Solo cambia status a `cancelled` y agrega `rejection_reason` -- preserva la referencia al viajero.
+
+### Solucion
+
+**El `PackageCancellationModal` ya tiene el comportamiento correcto.** El problema esta en `deletePackage` y en `handleDiscardPackage`/`handleArchivePackage` que tambien cancelan paquetes sin preservar la info del viajero.
+
+### Cambios a realizar
+
+**1. `src/hooks/usePackagesData.tsx` - Funcion `deletePackage`**
+- Dejar de limpiar `matched_trip_id`, `quote`, `matched_trip_dates`, `traveler_address`
+- Solo cambiar status a `cancelled` y limpiar `quote_expires_at` (para que no aparezca como timer activo)
+
+**2. `src/components/admin/FinancialSummaryTable.tsx` - Incluir paquetes cancelados**
+- Agregar `cancelled` a la lista de estados elegibles para que el pago original siga visible junto al reembolso negativo
+
+**3. Visibilidad en dashboard del viajero (sin cambios necesarios)**
+- La logica de filtrado en "Mis Viajes" (lineas 878-906 de Dashboard.tsx) ya excluye paquetes `cancelled` -- solo muestra estados post-pago, timers activos y cotizaciones expiradas
+- Los paquetes cancelados no apareceran en el dashboard del viajero aunque se preserve `matched_trip_id`
+
+### Resumen tecnico
 
 ```text
-handleApprove -> uploadRefundReceipt (OK, archivo guardado en storage)
-             -> updateRefundStatus('approved', ..., receiptUrl, receiptFilename)
-                  -> if (status === 'completed') { ... } // NUNCA ENTRA
-                  -> receipt_url queda null en la DB
+Antes (deletePackage):
+  status -> cancelled
+  matched_trip_id -> null      (pierde referencia al viajero)
+  quote -> null                (pierde info financiera)
+  matched_trip_dates -> null
+  traveler_address -> null
+
+Despues (deletePackage):
+  status -> cancelled
+  quote_expires_at -> null     (evita timers activos)
+  (todo lo demas se preserva para auditoria financiera)
 ```
 
-### Solucion: 2 pasos
-
-**Paso 1: Reparar datos existentes (SQL)**
-
-Actualizar las 7 ordenes de reembolso que tienen archivos en storage pero `receipt_url = null`:
-
-```sql
-UPDATE refund_orders SET receipt_url = 'refund-receipts/015fd8ad-...-1769025787482.png', receipt_filename = 'comprobante.png', status = 'completed', completed_at = now() WHERE id = '015fd8ad-66b0-4abc-b1be-d8219c780177';
--- (repetir para las 7 ordenes)
-```
-
-**Paso 2: Corregir el codigo en `useRefundOrders.tsx`**
-
-Modificar `updateRefundStatus` para que siempre guarde `receipt_url` y `receipt_filename` cuando se proporcionan, sin importar el status:
-
-Antes:
-```typescript
-if (status === 'completed') {
-  updates.completed_at = new Date().toISOString();
-  updates.completed_by = user?.id;
-  if (receiptUrl) updates.receipt_url = receiptUrl;
-  if (receiptFilename) updates.receipt_filename = receiptFilename;
-}
-```
-
-Despues:
-```typescript
-// Siempre guardar receipt si se proporciona
-if (receiptUrl) updates.receipt_url = receiptUrl;
-if (receiptFilename) updates.receipt_filename = receiptFilename;
-
-if (status === 'completed') {
-  updates.completed_at = new Date().toISOString();
-  updates.completed_by = user?.id;
-}
-```
-
-### Archivos a modificar
-
-| Archivo | Cambio |
-|---------|--------|
-| `src/hooks/useRefundOrders.tsx` | Mover `receipt_url`/`receipt_filename` fuera del `if (status === 'completed')` |
-| Base de datos (SQL) | Actualizar 7 registros con sus `receipt_url` correctos y marcarlos como `completed` |
-
-### Resultado esperado
-
-- Las 7 ordenes con archivos existentes mostraran el boton "Ver" en la tabla financiera
-- Futuros reembolsos aprobados con comprobante guardaran la referencia correctamente
-- Las ordenes sin archivo en storage seguiran mostrando "Pendiente"
-
+El viajero no vera el paquete cancelado porque el filtro de visibilidad solo muestra estados activos/post-pago. La tabla financiera si lo mostrara para tener el registro completo de ingresos y reembolsos.
