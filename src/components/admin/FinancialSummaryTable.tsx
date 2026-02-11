@@ -251,11 +251,13 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       const discountAmount = quoteValues.discountAmount;
 
       // Determine payment method
-      const paymentMethod = pkg.recurrente_checkout_id || pkg.payment_method === 'card'
-        ? 'Tarjeta'
-        : (pkg.payment_method === 'bank_transfer' || pkg.payment_receipt)
-          ? 'Transferencia'
-          : '-';
+      const receipt = pkg.payment_receipt as any;
+      const paymentMethod = 
+        pkg.recurrente_checkout_id || pkg.payment_method === 'card' || receipt?.method === 'card'
+          ? 'Tarjeta'
+          : (pkg.payment_method === 'bank_transfer' || pkg.payment_receipt)
+            ? 'Transferencia'
+            : '-';
 
       return {
         package: pkg,
