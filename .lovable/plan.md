@@ -1,64 +1,51 @@
 
 
-## Mostrar comprobante de devolucion en filas de reembolso
+## Fix: Mostrar estado de comprobante en filas de reembolso
 
-### Objetivo
+### Diagnostico
 
-Que las filas de reembolso muestren el boton "Ver" para ver el comprobante de transferencia que el admin subio al completar el reembolso (campo `receipt_url` de `refund_orders`).
+El codigo esta correcto, pero **ninguna orden de reembolso tiene un comprobante subido** (`receipt_url` es `null` en las 10 ordenes). Todas estan en estado `approved` (no `completed`). El comprobante se sube cuando el admin marca el reembolso como "completado" desde la pestana de Reembolsos.
 
-### Cambios en `src/components/admin/FinancialSummaryTable.tsx`
+Por eso la columna aparece vacia: el boton "Ver" solo aparece cuando hay un `receipt_url`.
 
-| Seccion | Cambio |
-|---------|--------|
-| Query de refunds (linea ~102) | Agregar `receipt_url, receipt_filename` al SELECT |
-| Interface `EnrichedPackageData` (linea ~42) | Agregar `refundReceiptUrl?: string` y `refundReceiptFilename?: string` |
-| Mapeo de refund data (linea ~333) | Pasar `receipt_url` y `receipt_filename` del refund al objeto enriquecido |
-| Celda de comprobante (linea ~734) | Agregar condicion para refunds: si `item.isRefund && item.refundReceiptUrl`, mostrar boton "Ver" que abre el receipt desde el bucket `payment-receipts` (donde se guardan los comprobantes de reembolso) |
+### Mejora propuesta
 
-### Detalle tecnico
+Para que no se vea vacio/roto, mostrar un indicador en la columna de comprobante para filas de reembolso:
 
-**1. Query** - Agregar campos al select:
-```
-.select('id, package_id, shopper_id, amount, reason, status, created_at, completed_at, cancelled_products, receipt_url, receipt_filename')
-```
+- **Con comprobante**: Boton "Ver" (ya implementado, funcionara cuando se suba uno)
+- **Sin comprobante**: Texto "Pendiente" en gris para que el admin sepa que falta subir el comprobante de devolucion
 
-**2. Interface** - Dos campos nuevos opcionales:
+### Cambio en `src/components/admin/FinancialSummaryTable.tsx`
+
+Modificar la seccion de la celda de comprobante (linea ~770) para que las filas de reembolso siempre muestren algo:
+
 ```typescript
-refundReceiptUrl?: string;
-refundReceiptFilename?: string;
-```
-
-**3. Mapeo** - En el return del map de refundData:
-```typescript
-refundReceiptUrl: refund.receipt_url || null,
-refundReceiptFilename: refund.receipt_filename || null,
-```
-
-**4. UI** - Modificar la condicion en linea ~734 para tambien mostrar el boton en reembolsos:
-```typescript
-{!item.isPrimeMembership && !item.isRefund && item.package.payment_receipt && (
-  // ... boton existente
-)}
-{item.isRefund && item.refundReceiptUrl && (
-  <Button
-    variant="outline"
-    size="sm"
-    onClick={() => {
-      let normalized = item.refundReceiptUrl!;
-      if (!normalized.startsWith('http') && !normalized.includes('/storage/v1/object')) {
-        if (!normalized.startsWith('refund-receipts/')) {
-          normalized = `refund-receipts/${normalized}`;
+{item.isRefund && (
+  item.refundReceiptUrl ? (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => {
+        let normalized = item.refundReceiptUrl!;
+        if (!normalized.startsWith('http') && !normalized.includes('/storage/v1/object')) {
+          if (!normalized.startsWith('refund-receipts/')) {
+            normalized = `refund-receipts/${normalized}`;
+          }
         }
-      }
-      setSelectedPaymentReceipt(normalized);
-      setSelectedReceiptFilename(item.refundReceiptFilename || 'comprobante-reembolso.jpg');
-    }}
-  >
-    <Eye className="h-3 w-3 mr-1" />
-    Ver
-  </Button>
+        setSelectedPaymentReceipt(normalized);
+        setSelectedReceiptFilename(item.refundReceiptFilename || 'comprobante-reembolso.jpg');
+      }}
+    >
+      <Eye className="h-3 w-3 mr-1" />
+      Ver
+    </Button>
+  ) : (
+    <span className="text-xs text-muted-foreground">Pendiente</span>
+  )
 )}
 ```
 
-El path usa `refund-receipts/` como prefijo (que es donde `uploadRefundReceipt` en `useRefundOrders` guarda los archivos dentro del bucket `payment-receipts`).
+### Nota importante
+
+Para que aparezca el boton "Ver" en los reembolsos, el admin debe ir a la pestana **Reembolsos** y marcar cada reembolso como **"Completado"** subiendo el comprobante de transferencia. Actualmente todos los reembolsos estan en estado "Aprobado" sin comprobante.
 
