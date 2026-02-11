@@ -744,7 +744,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                     {formatCurrency(item.travelerTip)}
                   </TableCell>
                   <TableCell className={`text-right font-mono ${item.isRefund ? 'text-red-600' : ''}`}>
-                    {item.isRefund ? `-${formatCurrency(item.refundAmount || 0)}` : formatCurrency(item.favoronRevenue)}
+                    {formatCurrency(item.favoronRevenue)}
                   </TableCell>
                   <TableCell className="text-right font-mono">
                     {formatCurrency(item.messengerPayment)}
