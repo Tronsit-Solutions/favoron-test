@@ -76,15 +76,26 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       'ready_for_pickup',
       'ready_for_delivery',
       'out_for_delivery',
-      'completed',
-      'cancelled'
+      'completed'
     ];
+
+    const cancelledButPaid = ['cancelled', 'archived_by_shopper'];
     
-    return packages.filter(pkg => 
-      advancedStates.includes(pkg.status) && 
-      pkg.quote &&
-      typeof pkg.quote === 'object'
-    );
+    return packages.filter(pkg => {
+      if (!pkg.quote || typeof pkg.quote !== 'object') return false;
+
+      if (advancedStates.includes(pkg.status)) return true;
+
+      if (cancelledButPaid.includes(pkg.status)) {
+        const hasReceipt = pkg.payment_receipt && 
+          typeof pkg.payment_receipt === 'object' &&
+          (pkg.payment_receipt as any).filePath;
+        const hasCardPayment = !!pkg.recurrente_payment_id;
+        return hasReceipt || hasCardPayment;
+      }
+
+      return false;
+    });
   }, [packages]);
 
   // Fetch approved prime memberships
@@ -249,10 +260,10 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         const receipt = pkg.payment_receipt as any;
         const paidDate = receipt.uploadedAt || receipt.paid_at;
         if (paidDate) {
-          paymentDate = new Date(paidDate).toLocaleDateString('es-GT');
+          paymentDate = format(new Date(paidDate), 'dd/MM/yyyy');
         }
       } else if (['pending_purchase', 'purchase_confirmed', 'shipped', 'in_transit', 'received_by_traveler', 'delivered_to_office', 'completed'].includes(pkg.status)) {
-        paymentDate = new Date(pkg.updated_at).toLocaleDateString('es-GT');
+        paymentDate = format(new Date(pkg.updated_at), 'dd/MM/yyyy');
       }
 
       const quoteValues = getQuoteValues(quote);
@@ -299,8 +310,8 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         : 'Usuario';
       
       const paymentDate = membership.approved_at 
-        ? new Date(membership.approved_at).toLocaleDateString('es-GT')
-        : new Date(membership.created_at).toLocaleDateString('es-GT');
+        ? format(new Date(membership.approved_at), 'dd/MM/yyyy')
+        : format(new Date(membership.created_at), 'dd/MM/yyyy');
 
       return {
         package: { id: membership.id } as Package,
@@ -349,8 +360,8 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         : `Reembolso - ${refund.reason || 'Productos cancelados'}`;
 
       const paymentDate = refund.completed_at
-        ? new Date(refund.completed_at).toLocaleDateString('es-GT')
-        : new Date(refund.created_at).toLocaleDateString('es-GT');
+        ? format(new Date(refund.completed_at), 'dd/MM/yyyy')
+        : format(new Date(refund.created_at), 'dd/MM/yyyy');
 
       return {
         package: { id: refund.id } as Package,
