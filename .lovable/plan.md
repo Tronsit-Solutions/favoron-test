@@ -1,42 +1,49 @@
 
 
-## Fix: Paquete "Pachon Gatorade" de Valeria Villeda no aparece en tabla financiera
+## Fix: Tabla financiera con query propia de paquetes pagados
 
-### Causa raiz
+### Problema
 
-El filtro `cancelledButPaid` en `FinancialSummaryTable.tsx` (linea 89-94) no detecta el paquete porque:
-
-1. **`recurrente_payment_id` no se incluye en el query de admin** (`useAdminData.tsx` linea 96-107): el SELECT solo trae `recurrente_checkout_id` y `payment_method`, pero NO `recurrente_payment_id`. Por lo tanto `pkg.recurrente_payment_id` es siempre `undefined`.
-
-2. **La deteccion de comprobante manual falla para pagos con tarjeta**: el filtro busca `(payment_receipt as any).filePath` (una ruta de archivo subido manualmente), pero los pagos con tarjeta guardan en `payment_receipt` un objeto diferente con campos como `{ method: 'card', payment_id: 'pa_xxx', provider: 'recurrente' }` que no tiene `filePath`.
+La tabla financiera depende de los paquetes paginados del admin (50 por pagina). Los paquetes viejos como el de Valeria Villeda (22 enero) nunca se cargan.
 
 ### Solucion
 
-**Archivo 1: `src/hooks/useAdminData.tsx`**
-- Agregar `recurrente_payment_id` al SELECT de la funcion `fetchAdminPackages` (linea 106)
-- Cambiar: `payment_method, recurrente_checkout_id`
-- Por: `payment_method, recurrente_checkout_id, recurrente_payment_id`
+Agregar una query independiente en `FinancialSummaryTable.tsx` que solo traiga paquetes **pagados** del mes seleccionado. Esto es eficiente porque:
+- Filtra por mes (tipicamente 20-50 paquetes pagados por mes)
+- Solo trae estados que implican pago realizado
+- No trae paquetes pendientes, en cotizacion, etc.
 
-**Archivo 2: `src/components/admin/FinancialSummaryTable.tsx`**
-- Mejorar la deteccion de `cancelledButPaid` (lineas 89-94) para tambien detectar pagos con tarjeta via `payment_receipt`:
+### Cambios en `src/components/admin/FinancialSummaryTable.tsx`
 
-```typescript
-if (cancelledButPaid.includes(pkg.status)) {
-  const receipt = pkg.payment_receipt as any;
-  const hasManualReceipt = receipt && typeof receipt === 'object' && receipt.filePath;
-  const hasCardPayment = !!pkg.recurrente_payment_id;
-  const hasCardReceiptEvidence = receipt && typeof receipt === 'object' && 
-    (receipt.method === 'card' || receipt.payment_id || receipt.provider === 'recurrente');
-  return hasManualReceipt || hasCardPayment || hasCardReceiptEvidence;
-}
+1. Agregar un `useQuery` independiente que consulte directamente a Supabase:
+
+```text
+Query: packages donde:
+  - created_at dentro del mes seleccionado
+  - status IN ('pending_purchase', 'purchase_confirmed', 'shipped', 
+    'in_transit', 'received_by_traveler', 'pending_office_confirmation',
+    'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 
+    'out_for_delivery', 'completed')
+  
+  O (para cancelados pagados):
+  - status IN ('cancelled', 'archived_by_shopper') 
+    Y tiene evidencia de pago (filtro client-side)
 ```
 
-Esto cubre tres escenarios de pago:
-- Transferencia bancaria manual (tiene `filePath` en payment_receipt)
-- Pago con tarjeta detectado via `recurrente_payment_id` (ahora si se fetchea)
-- Pago con tarjeta detectado via campos en `payment_receipt` (redundancia de seguridad)
+2. Los campos a traer son solo los que usa el componente: `id, user_id, status, item_description, matched_trip_id, created_at, quote, payment_receipt, products_data, payment_method, recurrente_checkout_id, recurrente_payment_id, delivery_method, admin_assigned_tip, estimated_price, incident_flag`
+
+3. Usar los datos de esta query en lugar del prop `packages` para los calculos y la tabla
+
+4. La query se re-ejecuta cuando cambia el mes seleccionado
+
+### Volumen esperado por query
+
+- Paquetes pagados activos por mes: ~20-40
+- Paquetes cancelados con pago por mes: ~2-5
+- Total: ~25-45 registros por mes (muy eficiente)
 
 ### Impacto
 
-Solo afecta paquetes cancelados que fueron pagados. No cambia la logica para paquetes en estados normales del flujo.
-
+- Solo se modifica `FinancialSummaryTable.tsx`
+- No cambia la interfaz del componente (sigue recibiendo `packages` prop por compatibilidad)
+- La tabla mostrara TODOS los paquetes pagados del mes, sin importar la paginacion del admin
