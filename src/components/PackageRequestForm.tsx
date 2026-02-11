@@ -1004,29 +1004,30 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                     </div>
 
                     {/* Necesita empaque original */}
-                    <div className="pt-2 border-t border-border/50 mt-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label className="text-xs text-muted-foreground">
-                            ¿Necesitas la etiqueta/empaque original?
-                          </Label>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            Empaque del producto (ej: caja del iPhone), no la caja de envío
-                          </p>
+                    <div className="pt-3 border-t border-border/50 mt-3">
+                      <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <Package className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                          <div className="space-y-0.5">
+                            <Label className="text-sm font-medium">Empaque original del producto</Label>
+                            <p className="text-xs text-muted-foreground leading-snug">
+                              Necesito la caja/empaque de la marca (ej: caja del iPhone, bolsa de Nike). No es la caja de envío.
+                            </p>
+                          </div>
                         </div>
                         <RadioGroup
                           value={product.needsOriginalPackaging === true ? 'yes' : 'no'}
                           onValueChange={(value) => updateProduct(index, 'needsOriginalPackaging', value === 'yes')}
-                          className="flex space-x-4"
+                          className="grid grid-cols-2 gap-2"
                         >
-                          <div className="flex items-center space-x-1">
+                          <label htmlFor={`packaging-yes-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors min-h-[44px]">
                             <RadioGroupItem value="yes" id={`packaging-yes-${index}`} />
-                            <Label htmlFor={`packaging-yes-${index}`} className="text-xs cursor-pointer">Sí</Label>
-                          </div>
-                          <div className="flex items-center space-x-1">
+                            <span className="text-sm">Sí, lo necesito</span>
+                          </label>
+                          <label htmlFor={`packaging-no-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors min-h-[44px]">
                             <RadioGroupItem value="no" id={`packaging-no-${index}`} />
-                            <Label htmlFor={`packaging-no-${index}`} className="text-xs cursor-pointer">No</Label>
-                          </div>
+                            <span className="text-sm">No lo necesito</span>
+                          </label>
                         </RadioGroup>
                       </div>
                     </div>
@@ -1122,29 +1123,30 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                     </div>
 
                     {/* Necesita empaque original */}
-                    <div className="pt-2 border-t border-border/50 mt-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label className="text-xs text-muted-foreground">
-                            ¿Necesitas la etiqueta/empaque original?
-                          </Label>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                            Empaque del producto (ej: caja del iPhone), no la caja de envío
-                          </p>
+                    <div className="pt-3 border-t border-border/50 mt-3">
+                      <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
+                        <div className="flex items-start gap-2">
+                          <Package className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                          <div className="space-y-0.5">
+                            <Label className="text-sm font-medium">Empaque original del producto</Label>
+                            <p className="text-xs text-muted-foreground leading-snug">
+                              Necesito la caja/empaque de la marca (ej: caja del iPhone, bolsa de Nike). No es la caja de envío.
+                            </p>
+                          </div>
                         </div>
                         <RadioGroup
                           value={product.needsOriginalPackaging === true ? 'yes' : 'no'}
                           onValueChange={(value) => updateProduct(index, 'needsOriginalPackaging', value === 'yes')}
-                          className="flex space-x-4"
+                          className="grid grid-cols-2 gap-2"
                         >
-                          <div className="flex items-center space-x-1">
+                          <label htmlFor={`packaging-personal-yes-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors min-h-[44px]">
                             <RadioGroupItem value="yes" id={`packaging-personal-yes-${index}`} />
-                            <Label htmlFor={`packaging-personal-yes-${index}`} className="text-xs cursor-pointer">Sí</Label>
-                          </div>
-                          <div className="flex items-center space-x-1">
+                            <span className="text-sm">Sí, lo necesito</span>
+                          </label>
+                          <label htmlFor={`packaging-personal-no-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors min-h-[44px]">
                             <RadioGroupItem value="no" id={`packaging-personal-no-${index}`} />
-                            <Label htmlFor={`packaging-personal-no-${index}`} className="text-xs cursor-pointer">No</Label>
-                          </div>
+                            <span className="text-sm">No lo necesito</span>
+                          </label>
                         </RadioGroup>
                       </div>
                     </div>
