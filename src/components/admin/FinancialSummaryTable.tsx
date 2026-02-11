@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Package as PackageIcon, Calendar, Download } from "lucide-react";
+import { Eye, Package as PackageIcon, Calendar, Download, CreditCard, Landmark } from "lucide-react";
 import { formatCurrency, formatDate, getStatusLabel } from "@/lib/formatters";
 import { format } from "date-fns";
 import { calculateFavoronRevenue, calculateServiceFee, getDeliveryFee } from '@/lib/pricing';
@@ -34,6 +34,7 @@ interface EnrichedPackageData {
   travelerTip: number;
   favoronRevenue: number;
   messengerPayment: number;
+  paymentMethod: string;
   isPrimeMembership?: boolean;
   primeAmount?: number;
   isFromPrimeShopper?: boolean;
@@ -249,6 +250,13 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       // Discount from quote
       const discountAmount = quoteValues.discountAmount;
 
+      // Determine payment method
+      const paymentMethod = pkg.recurrente_checkout_id || pkg.payment_method === 'card'
+        ? 'Tarjeta'
+        : (pkg.payment_method === 'bank_transfer' || pkg.payment_receipt)
+          ? 'Transferencia'
+          : '-';
+
       return {
         package: pkg,
         shopperName,
@@ -262,6 +270,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         travelerTip,
         favoronRevenue,
         messengerPayment,
+        paymentMethod,
         isPrimeMembership: false,
         isFromPrimeShopper: shopperTrustLevel === 'prime'
       };
@@ -291,6 +300,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         travelerTip: 0,
         favoronRevenue: membership.amount,
         messengerPayment: 0,
+        paymentMethod: 'Transferencia',
         isPrimeMembership: true,
         primeAmount: membership.amount
       };
@@ -378,6 +388,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       'Producto': item.productDescription,
       'Tipo': item.isPrimeMembership ? 'Membresía Prime' : 'Paquete',
       'Estado': item.isPrimeMembership ? 'Aprobado' : getStatusLabel(item.package.status),
+      'Método Pago': item.paymentMethod,
       'Total a Pagar (Q)': item.totalToPay.toFixed(2),
       'Descuento (Q)': item.discountAmount > 0 ? `-${item.discountAmount.toFixed(2)}` : '0.00',
       'Tip Viajero (Q)': item.travelerTip.toFixed(2),
@@ -394,6 +405,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       'Producto': '',
       'Tipo': '',
       'Estado': 'TOTAL',
+      'Método Pago': '',
       'Total a Pagar (Q)': totals.totalToPay.toFixed(2),
       'Descuento (Q)': totals.discountAmount > 0 ? `-${totals.discountAmount.toFixed(2)}` : '0.00',
       'Tip Viajero (Q)': totals.travelerTip.toFixed(2),
@@ -511,6 +523,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                 <TableHead>ID Viaje</TableHead>
                 <TableHead>Productos</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead>Método Pago</TableHead>
                 <TableHead className="text-right">Total a Pagar</TableHead>
                 <TableHead className="text-right">Descuento</TableHead>
                 <TableHead className="text-right">Tip Viajero</TableHead>
@@ -594,6 +607,20 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                       </Badge>
                     )}
                   </TableCell>
+                  <TableCell>
+                    {item.paymentMethod !== '-' ? (
+                      <Badge variant="outline" className="gap-1">
+                        {item.paymentMethod === 'Tarjeta' ? (
+                          <CreditCard className="h-3 w-3" />
+                        ) : (
+                          <Landmark className="h-3 w-3" />
+                        )}
+                        {item.paymentMethod}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-right font-mono">
                     {formatCurrency(item.totalToPay)}
                   </TableCell>
@@ -653,6 +680,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                 <TableCell colSpan={5} className="text-right">
                   <strong>TOTALES {selectedMonth !== "all" ? "(Mes seleccionado)" : "(Todos)"}:</strong>
                 </TableCell>
+                <TableCell></TableCell>
                 <TableCell></TableCell>
                   <TableCell className="text-right font-mono">
                     <strong>{formatCurrency(totals.totalToPay)}</strong>
