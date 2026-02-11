@@ -370,18 +370,28 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       const cancelledProducts = Array.isArray(refund.cancelled_products) ? refund.cancelled_products : [];
       const productNames = cancelledProducts.map((p: any) => p.itemDescription || p.item_description || '').filter(Boolean);
 
-      // Extract tip breakdown from cancelled_products to distribute refund correctly
+      // Extract tip and serviceFee breakdown from cancelled_products metadata
       let refundTips = 0;
+      let refundServiceFee = 0;
+
       if (cancelledProducts.length > 0) {
         refundTips = (cancelledProducts as any[]).reduce((sum: number, p: any) => {
-          // New format: products have explicit tip field
           if (p.tip !== undefined) return sum + (Number(p.tip) || 0);
-          // Old format: products have adminAssignedTip
           if (p.adminAssignedTip !== undefined) return sum + (Number(p.adminAssignedTip) || 0);
           return sum;
         }, 0);
+
+        // Use serviceFee from metadata (new format) instead of calculating by subtraction
+        refundServiceFee = (cancelledProducts as any[]).reduce((sum: number, p: any) => {
+          if (p.serviceFee !== undefined) return sum + (Number(p.serviceFee) || 0);
+          return sum;
+        }, 0);
+
+        // Fallback for legacy records without explicit serviceFee in metadata
+        if (refundServiceFee === 0 && refundTips > 0) {
+          refundServiceFee = Math.max(0, refund.amount - refundTips);
+        }
       }
-      const refundServiceFee = Math.max(0, refund.amount - refundTips);
 
       const productDescription = productNames.length > 0
         ? `Reembolso - ${refund.reason || 'Productos cancelados'}: ${productNames.join(', ')}`
