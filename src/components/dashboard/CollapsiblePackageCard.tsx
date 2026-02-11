@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Archive, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw, MapPin, DollarSign, Ban, Phone, Clock, XCircle, Send } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw, MapPin, DollarSign, Ban, Phone, Clock, XCircle, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -48,7 +48,7 @@ interface CollapsiblePackageCardProps {
   onUploadDocument: (packageId: string, type: 'confirmation' | 'tracking' | 'payment_receipt', data: any) => void;
   onEditPackage?: (packageData: PackageType) => void;
   onDeletePackage?: (pkg: PackageType) => void;
-  onArchivePackage?: (pkg: PackageType) => void;
+  
   onRequestRequote?: (pkg: PackageType) => void;
   viewMode?: 'user';
   // External control props (for URL navigation from notifications)
@@ -63,7 +63,7 @@ const CollapsiblePackageCard = ({
   onUploadDocument,
   onEditPackage,
   onDeletePackage,
-  onArchivePackage,
+  
   onRequestRequote,
   viewMode = 'user',
   forceOpen,
@@ -324,13 +324,6 @@ const CollapsiblePackageCard = ({
                       <Edit className="mr-2 h-4 w-4" />
                       Editar pedido
                     </DropdownMenuItem>}
-                  {onArchivePackage && <DropdownMenuItem onClick={(e) => {
-                e.stopPropagation();
-                onArchivePackage(pkg);
-              }}>
-                      <Archive className="mr-2 h-4 w-4" />
-                      Archivar
-                    </DropdownMenuItem>}
                   {onDeletePackage && canDeleteSimple && !needsRefund && <DropdownMenuItem onClick={e => {
                 e.stopPropagation();
                 setShowDeleteDialog(true);
@@ -438,20 +431,6 @@ const CollapsiblePackageCard = ({
                           }
                         })()}
                       </p>
-                      {onArchivePackage && (
-                        <Button 
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onArchivePackage(pkg);
-                          }}
-                          className="w-full text-xs"
-                        >
-                          <Archive className="h-3.5 w-3.5 mr-2" />
-                          Archivar y mover al historial
-                        </Button>
-                      )}
                     </div>
                   </div>
                 )}
@@ -697,20 +676,6 @@ const CollapsiblePackageCard = ({
                             })()}
                           </p>
                         </div>
-                        {onArchivePackage && (
-                          <Button 
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onArchivePackage(pkg);
-                            }}
-                            className="flex-shrink-0 text-xs"
-                          >
-                            <Archive className="h-3.5 w-3.5 mr-2" />
-                            Archivar
-                          </Button>
-                        )}
                       </div>
                     </div>
                   </div>
