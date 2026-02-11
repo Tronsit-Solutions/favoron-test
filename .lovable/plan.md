@@ -1,56 +1,64 @@
 
 
-## Agregar filtros tipo Excel en los headers de la Tabla Financiera
+## Corregir visibilidad de pedidos cancelados pagados en la Tabla Financiera
 
-### Que se hara
+### Problema identificado
 
-Se agregaran filtros desplegables (dropdown) en cada header de columna de la tabla `FinancialSummaryTable`, similar a como funcionan los filtros de autocompletar en Excel. Al hacer clic en el icono de filtro en un header, aparecera un popover con las opciones unicas de esa columna para filtrar.
+El pedido de **Valeria Villeda** (Pachon Gatorade, Q45, pagado con tarjeta confirmada) tiene status `cancelled` y existe en la base de datos con un quote valido. Al investigar:
 
-### Columnas con filtro
+1. **El paquete esta en la lista de datos elegibles** -- el filtro `advancedStates` incluye `cancelled` y el paquete tiene `quote` como objeto.
+2. **El paquete cae en Enero 2026** -- la fecha de pago es `24/1/2026`, pero la tabla por defecto muestra el mes actual (Febrero 2026), por lo que no aparece al abrir la pestaña.
+3. **Falta `archived_by_shopper`** en los estados elegibles -- segun la logica documentada, deberia estar incluido para ordenes legadas pagadas.
+4. **El filtro de cancelled es demasiado amplio** -- incluye TODOS los paquetes cancelados con quote, incluyendo los que nunca fueron pagados, lo cual contamina la tabla.
 
-| Columna | Tipo de filtro |
-|---------|---------------|
-| Shopper | Busqueda por texto + lista de nombres unicos |
-| Viajero | Busqueda por texto + lista de nombres unicos |
-| Estado | Checkboxes con los estados disponibles |
-| Metodo Pago | Checkboxes (Tarjeta, Transferencia, Reembolso) |
+### Cambios propuestos
 
-Las columnas numericas (Total, Tip, Ingreso, etc.) y Fecha no tendran filtro en header ya que el mes ya se filtra arriba.
+**Archivo:** `src/components/admin/FinancialSummaryTable.tsx`
 
-### Comportamiento
+1. **Agregar `archived_by_shopper` a `advancedStates`** para consistencia con la logica documentada.
 
-- Cada header mostrara un icono de filtro (funnel) junto al nombre
-- Al hacer clic, se abre un Popover con las opciones
-- Los filtros de texto (Shopper/Viajero) tendran un campo de busqueda para filtrar la lista
-- Los filtros de estado/metodo tendran checkboxes para seleccion multiple
-- Los filtros se aplican en cascada (todos activos simultaneamente)
-- Un indicador visual (icono coloreado) mostrara cuando un filtro esta activo
-- Boton "Limpiar" dentro de cada popover para resetear ese filtro
-- Los totales se recalcularan segun los filtros aplicados
+2. **Refinar el filtro de cancelled/archived**: Solo incluir paquetes cancelados que tengan evidencia de pago:
+   - Tienen `payment_receipt` con datos (comprobante subido)
+   - O tienen `recurrente_payment_id` (pago con tarjeta confirmado)
+   - Esto evita que paquetes cancelados sin pago aparezcan en el resumen financiero
+
+3. **Corregir formato de mes**: Asegurar que el mes se genere con zero-padding (`01` en vez de `1`) para evitar inconsistencias de filtrado entre meses.
 
 ### Detalle tecnico
 
-**Archivo a modificar:** `src/components/admin/FinancialSummaryTable.tsx`
+```text
+// Cambio en eligiblePackages:
+const advancedStates = [
+  'pending_purchase', 'purchase_confirmed', 'shipped', 'in_transit',
+  'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office',
+  'ready_for_pickup', 'ready_for_delivery', 'out_for_delivery', 'completed'
+];
 
-**Cambios:**
+const cancelledButPaid = ['cancelled', 'archived_by_shopper'];
 
-1. **Nuevo estado para filtros:**
-   - `shopperFilter: string[]` - nombres seleccionados
-   - `travelerFilter: string[]` - nombres seleccionados
-   - `statusFilter: string[]` - estados seleccionados
-   - `paymentMethodFilter: string[]` - metodos seleccionados
+return packages.filter(pkg => {
+  if (!pkg.quote || typeof pkg.quote !== 'object') return false;
 
-2. **Componente `ColumnFilter`** (inline o separado):
-   - Usa `Popover` + `PopoverTrigger` + `PopoverContent`
-   - Input de busqueda para filtrar opciones
-   - Lista de checkboxes con las opciones unicas
-   - Botones "Seleccionar todos" y "Limpiar"
+  // Incluir estados activos normalmente
+  if (advancedStates.includes(pkg.status)) return true;
 
-3. **Logica de filtrado:**
-   - Se aplica despues del filtro de mes existente y antes de la paginacion
-   - Los totales se recalculan con los filtros aplicados
+  // Cancelados/archivados solo si fueron pagados
+  if (cancelledButPaid.includes(pkg.status)) {
+    const hasReceipt = pkg.payment_receipt && 
+      typeof pkg.payment_receipt === 'object' &&
+      (pkg.payment_receipt as any).filePath;
+    const hasCardPayment = !!pkg.recurrente_payment_id;
+    return hasReceipt || hasCardPayment;
+  }
 
-4. **Header modificado:**
-   - Cada `TableHead` filtrable tendra el nombre + icono de filtro
-   - El icono cambia de color cuando el filtro esta activo
+  return false;
+});
+```
+
+Para el formato de mes, cambiar `toLocaleDateString('es-GT')` a un formato consistente con zero-padding usando `date-fns format()` para evitar que `1` vs `01` cause problemas de matching.
+
+### Resultado esperado
+- El pedido de Valeria Villeda aparecera en Enero 2026 (ya aparece, pero el filtro por defecto muestra Febrero)
+- Los paquetes cancelados sin pago no contaminaran la tabla
+- Los meses tendran formato consistente para el filtrado
 
