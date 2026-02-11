@@ -1,51 +1,65 @@
 
 
-## Fix: Mostrar estado de comprobante en filas de reembolso
+## Corregir comprobantes de reembolso perdidos
 
-### Diagnostico
+### Causa raiz
 
-El codigo esta correcto, pero **ninguna orden de reembolso tiene un comprobante subido** (`receipt_url` es `null` en las 10 ordenes). Todas estan en estado `approved` (no `completed`). El comprobante se sube cuando el admin marca el reembolso como "completado" desde la pestana de Reembolsos.
+En `useRefundOrders.tsx`, la funcion `updateRefundStatus` solo guarda `receipt_url` y `receipt_filename` cuando `status === 'completed'`. Cuando el admin aprueba un reembolso con comprobante adjunto, el archivo se sube al storage exitosamente, pero la referencia nunca se guarda en la base de datos porque el status es `'approved'`, no `'completed'`.
 
-Por eso la columna aparece vacia: el boton "Ver" solo aparece cuando hay un `receipt_url`.
-
-### Mejora propuesta
-
-Para que no se vea vacio/roto, mostrar un indicador en la columna de comprobante para filas de reembolso:
-
-- **Con comprobante**: Boton "Ver" (ya implementado, funcionara cuando se suba uno)
-- **Sin comprobante**: Texto "Pendiente" en gris para que el admin sepa que falta subir el comprobante de devolucion
-
-### Cambio en `src/components/admin/FinancialSummaryTable.tsx`
-
-Modificar la seccion de la celda de comprobante (linea ~770) para que las filas de reembolso siempre muestren algo:
-
-```typescript
-{item.isRefund && (
-  item.refundReceiptUrl ? (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() => {
-        let normalized = item.refundReceiptUrl!;
-        if (!normalized.startsWith('http') && !normalized.includes('/storage/v1/object')) {
-          if (!normalized.startsWith('refund-receipts/')) {
-            normalized = `refund-receipts/${normalized}`;
-          }
-        }
-        setSelectedPaymentReceipt(normalized);
-        setSelectedReceiptFilename(item.refundReceiptFilename || 'comprobante-reembolso.jpg');
-      }}
-    >
-      <Eye className="h-3 w-3 mr-1" />
-      Ver
-    </Button>
-  ) : (
-    <span className="text-xs text-muted-foreground">Pendiente</span>
-  )
-)}
+```text
+handleApprove -> uploadRefundReceipt (OK, archivo guardado en storage)
+             -> updateRefundStatus('approved', ..., receiptUrl, receiptFilename)
+                  -> if (status === 'completed') { ... } // NUNCA ENTRA
+                  -> receipt_url queda null en la DB
 ```
 
-### Nota importante
+### Solucion: 2 pasos
 
-Para que aparezca el boton "Ver" en los reembolsos, el admin debe ir a la pestana **Reembolsos** y marcar cada reembolso como **"Completado"** subiendo el comprobante de transferencia. Actualmente todos los reembolsos estan en estado "Aprobado" sin comprobante.
+**Paso 1: Reparar datos existentes (SQL)**
+
+Actualizar las 7 ordenes de reembolso que tienen archivos en storage pero `receipt_url = null`:
+
+```sql
+UPDATE refund_orders SET receipt_url = 'refund-receipts/015fd8ad-...-1769025787482.png', receipt_filename = 'comprobante.png', status = 'completed', completed_at = now() WHERE id = '015fd8ad-66b0-4abc-b1be-d8219c780177';
+-- (repetir para las 7 ordenes)
+```
+
+**Paso 2: Corregir el codigo en `useRefundOrders.tsx`**
+
+Modificar `updateRefundStatus` para que siempre guarde `receipt_url` y `receipt_filename` cuando se proporcionan, sin importar el status:
+
+Antes:
+```typescript
+if (status === 'completed') {
+  updates.completed_at = new Date().toISOString();
+  updates.completed_by = user?.id;
+  if (receiptUrl) updates.receipt_url = receiptUrl;
+  if (receiptFilename) updates.receipt_filename = receiptFilename;
+}
+```
+
+Despues:
+```typescript
+// Siempre guardar receipt si se proporciona
+if (receiptUrl) updates.receipt_url = receiptUrl;
+if (receiptFilename) updates.receipt_filename = receiptFilename;
+
+if (status === 'completed') {
+  updates.completed_at = new Date().toISOString();
+  updates.completed_by = user?.id;
+}
+```
+
+### Archivos a modificar
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/hooks/useRefundOrders.tsx` | Mover `receipt_url`/`receipt_filename` fuera del `if (status === 'completed')` |
+| Base de datos (SQL) | Actualizar 7 registros con sus `receipt_url` correctos y marcarlos como `completed` |
+
+### Resultado esperado
+
+- Las 7 ordenes con archivos existentes mostraran el boton "Ver" en la tabla financiera
+- Futuros reembolsos aprobados con comprobante guardaran la referencia correctamente
+- Las ordenes sin archivo en storage seguiran mostrando "Pendiente"
 
