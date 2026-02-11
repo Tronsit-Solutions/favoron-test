@@ -1,59 +1,44 @@
 
 
-## Fix: Usar serviceFee de metadatos en lugar de calcular por resta
+## Mejora UI: Empaque original en formulario mobile
 
 ### Problema actual
+La seccion de "empaque original" en mobile se ve apretada: el texto largo y los radio buttons estan en una sola linea horizontal (`flex items-center justify-between`), lo que hace dificil leer y tocar en pantallas pequenas.
 
-Linea 384 del archivo `FinancialSummaryTable.tsx`:
-```
-const refundServiceFee = Math.max(0, refund.amount - refundTips);
-```
+### Cambios propuestos
 
-Esto asume que todo lo que no es tip es serviceFee, pero el monto del reembolso tambien incluye:
-- **deliveryFee** (ej: Q60)
-- **cancellationPenalty** (ya restada del monto)
+**Archivo: `src/components/PackageRequestForm.tsx`** (2 secciones identicas: lineas 1006-1032 y 1124-1150)
 
-Ejemplo real (Valeria Villeda):
-- amount: Q190, tip: Q90, serviceFee real: Q45, deliveryFee: Q60
-- Calculo actual: `190 - 90 = Q100` como Fee Favoron (INCORRECTO)
-- Calculo correcto: `Q45` como Fee Favoron
+Reemplazar el layout horizontal por un layout vertical mas claro en mobile:
 
-### Solucion
+1. **Mejor texto explicativo**: Cambiar el label a algo mas claro como "Empaque original del producto" y mejorar la descripcion para que sea mas intuitiva: "Necesito la caja/empaque de la marca (ej: caja del iPhone, bolsa de Nike). No es la caja de envio."
 
-En `src/components/admin/FinancialSummaryTable.tsx`, lineas 374-384, cambiar la logica para extraer el `serviceFee` directamente de los metadatos de `cancelled_products`:
+2. **Layout vertical en mobile**: En lugar de `flex justify-between` horizontal, usar un layout que apile el texto arriba y los radio buttons abajo, con touch targets mas grandes (min-height 44px).
 
-```typescript
-// Extraer tips
-let refundTips = 0;
-let refundServiceFee = 0;
+3. **Radio buttons mas grandes y claros**: Hacer los labels de "Si" y "No" mas grandes con padding para mejor tap target en mobile.
 
-if (cancelledProducts.length > 0) {
-  refundTips = cancelledProducts.reduce((sum, p) => {
-    if (p.tip !== undefined) return sum + (Number(p.tip) || 0);
-    if (p.adminAssignedTip !== undefined) return sum + (Number(p.adminAssignedTip) || 0);
-    return sum;
-  }, 0);
+4. **Icono visual**: Agregar el icono de Package (de lucide-react) para dar contexto visual rapido.
 
-  // Usar serviceFee guardado en metadatos (nuevo formato)
-  refundServiceFee = cancelledProducts.reduce((sum, p) => {
-    if (p.serviceFee !== undefined) return sum + (Number(p.serviceFee) || 0);
-    return sum;
-  }, 0);
+### Estructura nueva (ambas secciones):
 
-  // Fallback para registros antiguos sin serviceFee en metadatos:
-  // usar el calculo por resta solo si ningun producto tiene serviceFee
-  if (refundServiceFee === 0 && refundTips > 0) {
-    refundServiceFee = Math.max(0, refund.amount - refundTips);
-  }
-}
+```text
++------------------------------------------+
+| [icono] Empaque original del producto     |
+| Necesito la caja/empaque de la marca      |
+| (ej: caja del iPhone, bolsa de Nike).     |
+| No es la caja de envio.                   |
+|                                           |
+|   ( ) Si, necesito empaque original       |
+|   (o) No, no lo necesito                  |
++------------------------------------------+
 ```
 
-### Logica del fallback
+### Detalles tecnicos
 
-- Registros nuevos (como Valeria): tienen `serviceFee` explicito en cancelled_products -> lo usa directamente
-- Registros viejos (como los otros 2 sin serviceFee): no tienen el campo -> usa el calculo por resta como fallback
-
-### Archivo a modificar
-
-Solo `src/components/admin/FinancialSummaryTable.tsx`, lineas 374-384.
+- Modificar las 2 secciones identicas en `PackageRequestForm.tsx` (online y personal order)
+- Cambiar `flex items-center justify-between` por `space-y-2` para layout vertical
+- Agregar `Package` icon de lucide-react (ya importado en el archivo)
+- Radio items con labels descriptivos y min-height 44px para touch targets
+- Texto del label: font-weight medium, tamano text-sm en lugar de text-xs
+- Descripcion: text-xs con color muted
 
