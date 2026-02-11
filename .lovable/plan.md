@@ -1,32 +1,37 @@
 
 
-## Agregar columna "Método de Pago" a la Tabla Resumen Financiera
+## Fix: Columna "Método de Pago" muestra "Transferencia" para pagos con tarjeta
 
-### Cambio
+### Problema
 
-Agregar una nueva columna entre "Estado" y "Total a Pagar" que muestre el metodo de pago utilizado por el shopper.
+El paquete de Edgar Osla se pagó con tarjeta (Recurrente), pero la tabla muestra "Transferencia". Esto ocurre porque los campos `payment_method` y `recurrente_checkout_id` **no se cargan** en las consultas de admin (son consultas "lightweight" optimizadas que omiten esos campos). Como resultado, la lógica cae al fallback de `payment_receipt` (que sí existe como JSON), y lo interpreta como transferencia.
 
-### Logica de deteccion
+### Solución
 
-El metodo se determina a partir de los datos existentes en cada paquete:
-
-- Si `payment_method === 'card'` o existe `recurrente_checkout_id` -> **Tarjeta**
-- Si `payment_method === 'bank_transfer'` o hay comprobante manual -> **Transferencia**
-- Para membresías Prime -> **Transferencia** (siempre son por deposito)
-- Si no hay datos -> **-**
-
-### Archivos a modificar
+Dos cambios sencillos:
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/admin/FinancialSummaryTable.tsx` | Agregar campo `paymentMethod` al interface `EnrichedPackageData`, calcularlo en el `useMemo`, agregar `TableHead` y `TableCell` en la tabla, y agregar la columna al export de Excel |
+| `src/hooks/useAdminData.tsx` | Agregar `payment_method, recurrente_checkout_id` a las dos consultas de paquetes (lineas ~97 y ~206) |
+| `src/components/admin/FinancialSummaryTable.tsx` | Mejorar la lógica de detección para también revisar `payment_receipt.method === 'card'` como fallback adicional |
 
-### Detalle tecnico
+### Detalle técnico
 
-1. **Interface**: Agregar `paymentMethod: string` a `EnrichedPackageData`
-2. **Calculo** (linea ~252): Extraer el metodo de `pkg.payment_method` y `pkg.recurrente_checkout_id`
-3. **Header** (linea ~513): Agregar `<TableHead>Metodo Pago</TableHead>` despues de "Estado"
-4. **Celda** (linea ~596): Mostrar un Badge con icono (tarjeta de credito o banco) y texto corto
-5. **Excel** (linea ~373): Agregar columna `'Metodo Pago'` al export
-6. **Fila totales** (linea ~650): Agregar `<TableCell></TableCell>` vacia para mantener la alineacion
+**1. useAdminData.tsx** - Agregar campos a ambas queries:
 
+- Query principal (linea ~97): agregar `payment_method, recurrente_checkout_id` al SELECT
+- Query de matched packages (linea ~206): agregar `payment_method, recurrente_checkout_id` al SELECT
+
+**2. FinancialSummaryTable.tsx** - Mejorar detección (linea ~254):
+
+```typescript
+const receipt = pkg.payment_receipt as any;
+const paymentMethod = 
+  pkg.recurrente_checkout_id || pkg.payment_method === 'card' || receipt?.method === 'card'
+    ? 'Tarjeta'
+    : (pkg.payment_method === 'bank_transfer' || pkg.payment_receipt)
+      ? 'Transferencia'
+      : '-';
+```
+
+Esto cubre el caso donde `payment_receipt` existe con `method: "card"` incluso si los otros campos no estuvieran cargados.
