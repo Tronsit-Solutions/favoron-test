@@ -119,7 +119,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       const { data } = await supabase
         .from('refund_orders')
         .select('id, package_id, shopper_id, amount, reason, status, created_at, completed_at, cancelled_products, receipt_url, receipt_filename')
-        .in('status', ['approved', 'completed'])
+        .eq('status', 'completed')
         .order('created_at', { ascending: true });
       return data || [];
     }

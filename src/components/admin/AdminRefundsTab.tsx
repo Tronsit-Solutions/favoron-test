@@ -27,7 +27,6 @@ import {
   RefreshCw, 
   Check, 
   X, 
-  Upload, 
   Eye, 
   Loader2,
   Banknote,
@@ -41,17 +40,14 @@ const AdminRefundsTab = () => {
   const { refundOrders, loading, updateRefundStatus, uploadRefundReceipt, refreshRefundOrders } = useAdminRefundOrders();
   const [selectedRefund, setSelectedRefund] = useState<any>(null);
   const [actionModal, setActionModal] = useState<{
-    type: 'approve' | 'reject' | 'complete';
+    type: 'complete' | 'reject';
     refund: any;
   } | null>(null);
   const [notes, setNotes] = useState('');
-  const [uploading, setUploading] = useState(false);
+  const [completeFile, setCompleteFile] = useState<File | null>(null);
   const [processing, setProcessing] = useState(false);
-  const [approveFile, setApproveFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const pendingRefunds = refundOrders.filter(r => r.status === 'pending');
-  const approvedRefunds = refundOrders.filter(r => r.status === 'approved');
   const completedRefunds = refundOrders.filter(r => r.status === 'completed');
   const rejectedRefunds = refundOrders.filter(r => r.status === 'rejected');
 
@@ -59,8 +55,6 @@ const AdminRefundsTab = () => {
     switch (status) {
       case 'pending':
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300"><Clock className="h-3 w-3 mr-1" />Pendiente</Badge>;
-      case 'approved':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300"><Check className="h-3 w-3 mr-1" />Aprobado</Badge>;
       case 'completed':
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300"><CheckCircle2 className="h-3 w-3 mr-1" />Completado</Badge>;
       case 'rejected':
@@ -68,28 +62,6 @@ const AdminRefundsTab = () => {
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
-  };
-
-  const handleApprove = async () => {
-    if (!actionModal) return;
-    setProcessing(true);
-    
-    let receiptUrl: string | undefined;
-    let receiptFilename: string | undefined;
-    
-    if (approveFile) {
-      const uploadedPath = await uploadRefundReceipt(actionModal.refund.id, approveFile);
-      if (uploadedPath) {
-        receiptUrl = uploadedPath;
-        receiptFilename = approveFile.name;
-      }
-    }
-    
-    await updateRefundStatus(actionModal.refund.id, 'approved', notes || undefined, receiptUrl, receiptFilename);
-    setProcessing(false);
-    setActionModal(null);
-    setNotes('');
-    setApproveFile(null);
   };
 
   const handleReject = async () => {
@@ -101,18 +73,18 @@ const AdminRefundsTab = () => {
     setNotes('');
   };
 
-  const handleComplete = async (file?: File) => {
+  const handleComplete = async () => {
     if (!actionModal) return;
     setProcessing(true);
     
     let receiptUrl: string | undefined;
     let receiptFilename: string | undefined;
     
-    if (file) {
-      const uploadedPath = await uploadRefundReceipt(actionModal.refund.id, file);
+    if (completeFile) {
+      const uploadedPath = await uploadRefundReceipt(actionModal.refund.id, completeFile);
       if (uploadedPath) {
         receiptUrl = uploadedPath;
-        receiptFilename = file.name;
+        receiptFilename = completeFile.name;
       }
     }
     
@@ -120,13 +92,7 @@ const AdminRefundsTab = () => {
     setProcessing(false);
     setActionModal(null);
     setNotes('');
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleComplete(file);
-    }
+    setCompleteFile(null);
   };
 
   const RefundTable = ({ refunds, showActions = true }: { refunds: any[]; showActions?: boolean }) => (
@@ -202,7 +168,7 @@ const AdminRefundsTab = () => {
                           variant="ghost"
                           size="sm"
                           className="text-green-600 hover:text-green-700"
-                          onClick={() => setActionModal({ type: 'approve', refund })}
+                          onClick={() => setActionModal({ type: 'complete', refund })}
                         >
                           <Check className="h-4 w-4" />
                         </Button>
@@ -215,16 +181,6 @@ const AdminRefundsTab = () => {
                           <X className="h-4 w-4" />
                         </Button>
                       </>
-                    )}
-                    {refund.status === 'approved' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-blue-600 hover:text-blue-700"
-                        onClick={() => setActionModal({ type: 'complete', refund })}
-                      >
-                        <Upload className="h-4 w-4" />
-                      </Button>
                     )}
                   </div>
                 </TableCell>
@@ -239,7 +195,7 @@ const AdminRefundsTab = () => {
   return (
     <div className="space-y-4">
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2">
@@ -247,17 +203,6 @@ const AdminRefundsTab = () => {
               <div>
                 <p className="text-2xl font-bold">{pendingRefunds.length}</p>
                 <p className="text-xs text-muted-foreground">Pendientes</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2">
-              <Check className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="text-2xl font-bold">{approvedRefunds.length}</p>
-                <p className="text-xs text-muted-foreground">Aprobados</p>
               </div>
             </div>
           </CardContent>
@@ -316,16 +261,12 @@ const AdminRefundsTab = () => {
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="approved">Aprobados ({approvedRefunds.length})</TabsTrigger>
                 <TabsTrigger value="completed">Completados ({completedRefunds.length})</TabsTrigger>
                 <TabsTrigger value="rejected">Rechazados ({rejectedRefunds.length})</TabsTrigger>
               </TabsList>
 
               <TabsContent value="pending">
                 <RefundTable refunds={pendingRefunds} />
-              </TabsContent>
-              <TabsContent value="approved">
-                <RefundTable refunds={approvedRefunds} />
               </TabsContent>
               <TabsContent value="completed">
                 <RefundTable refunds={completedRefunds} showActions={false} />
@@ -376,17 +317,12 @@ const AdminRefundsTab = () => {
                     const productName = p.description || p.itemDescription || 'Producto sin descripción';
                     const quantity = p.quantity || 1;
                     const tip = p.tip || p.adminAssignedTip || 0;
-                    // Use stored serviceFee, fallback to 50% (basic rate) if not stored
                     const serviceFee = p.serviceFee ?? Math.round(tip * 0.5 * 100) / 100;
-                    // Calculate dynamic percentage for display
                     const serviceFeePercent = tip > 0 ? Math.round((serviceFee / tip) * 100) : 50;
-                    // Calculate penalty: use stored value or default to Q5 (unless Prime exempt)
                     const isPrimeExempt = p.isPrimeExempt || false;
                     const penalty = isPrimeExempt ? 0 : (p.cancellationPenalty ?? p.penaltyApplied ?? 5);
                     const estimatedPrice = p.estimatedPrice;
-                    // Get delivery fee (only present for full package cancellations)
                     const deliveryFee = p.deliveryFee || 0;
-                    // Calculate total: tip + serviceFee + deliveryFee - penalty
                     const calculatedTotal = tip + serviceFee + deliveryFee - penalty;
                     const totalRefund = p.totalRefund || p.grossRefund || calculatedTotal;
                     
@@ -394,7 +330,6 @@ const AdminRefundsTab = () => {
                       <div key={i} className="bg-muted p-3 rounded text-sm">
                         <p className="font-medium mb-2">{productName}</p>
                         
-                        {/* Product info */}
                         <div className="flex gap-4 text-xs text-muted-foreground mb-2">
                           {quantity > 1 && (
                             <p>Cantidad: <span className="text-foreground">{quantity}</span></p>
@@ -404,7 +339,6 @@ const AdminRefundsTab = () => {
                           )}
                         </div>
                         
-                        {/* Refund breakdown */}
                         <div className="border-t border-border/50 pt-2 space-y-1">
                           <p className="text-xs font-medium text-muted-foreground mb-1">Desglose del Reembolso:</p>
                           <div className="flex justify-between text-xs">
@@ -463,13 +397,12 @@ const AdminRefundsTab = () => {
       </Dialog>
 
       {/* Action Modal */}
-      <Dialog open={!!actionModal} onOpenChange={() => { setActionModal(null); setNotes(''); setApproveFile(null); }}>
+      <Dialog open={!!actionModal} onOpenChange={() => { setActionModal(null); setNotes(''); setCompleteFile(null); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {actionModal?.type === 'approve' && 'Aprobar Reembolso'}
-              {actionModal?.type === 'reject' && 'Rechazar Reembolso'}
               {actionModal?.type === 'complete' && 'Completar Reembolso'}
+              {actionModal?.type === 'reject' && 'Rechazar Reembolso'}
             </DialogTitle>
           </DialogHeader>
           
@@ -493,58 +426,39 @@ const AdminRefundsTab = () => {
               />
             </div>
 
-            {actionModal?.type === 'approve' && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Comprobante (opcional)</label>
-                <Input
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={(e) => setApproveFile(e.target.files?.[0] || null)}
-                  disabled={processing}
-                />
-                {approveFile && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <FileText className="h-3 w-3" />
-                    {approveFile.name}
-                  </p>
-                )}
-              </div>
-            )}
-
             {actionModal?.type === 'complete' && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Comprobante de transferencia</label>
+                <label className="text-sm font-medium">Comprobante de transferencia (opcional)</label>
                 <Input
-                  ref={fileInputRef}
                   type="file"
                   accept="image/*,.pdf"
-                  onChange={handleFileSelect}
-                  disabled={uploading || processing}
+                  onChange={(e) => setCompleteFile(e.target.files?.[0] || null)}
+                  disabled={processing}
                 />
+                {completeFile && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <FileText className="h-3 w-3" />
+                    {completeFile.name}
+                  </p>
+                )}
               </div>
             )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setActionModal(null); setNotes(''); }} disabled={processing}>
+            <Button variant="outline" onClick={() => { setActionModal(null); setNotes(''); setCompleteFile(null); }} disabled={processing}>
               Cancelar
             </Button>
-            {actionModal?.type === 'approve' && (
-              <Button onClick={handleApprove} disabled={processing}>
+            {actionModal?.type === 'complete' && (
+              <Button onClick={handleComplete} disabled={processing}>
                 {processing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                Aprobar
+                Completar Reembolso
               </Button>
             )}
             {actionModal?.type === 'reject' && (
               <Button variant="destructive" onClick={handleReject} disabled={processing}>
                 {processing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
                 Rechazar
-              </Button>
-            )}
-            {actionModal?.type === 'complete' && (
-              <Button onClick={() => handleComplete()} disabled={processing}>
-                {processing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                Completar sin comprobante
               </Button>
             )}
           </DialogFooter>
