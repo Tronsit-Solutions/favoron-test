@@ -87,11 +87,12 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       if (advancedStates.includes(pkg.status)) return true;
 
       if (cancelledButPaid.includes(pkg.status)) {
-        const hasReceipt = pkg.payment_receipt && 
-          typeof pkg.payment_receipt === 'object' &&
-          (pkg.payment_receipt as any).filePath;
+        const receipt = pkg.payment_receipt as any;
+        const hasManualReceipt = receipt && typeof receipt === 'object' && receipt.filePath;
         const hasCardPayment = !!pkg.recurrente_payment_id;
-        return hasReceipt || hasCardPayment;
+        const hasCardReceiptEvidence = receipt && typeof receipt === 'object' && 
+          (receipt.method === 'card' || receipt.payment_id || receipt.provider === 'recurrente');
+        return hasManualReceipt || hasCardPayment || hasCardReceiptEvidence;
       }
 
       return false;
