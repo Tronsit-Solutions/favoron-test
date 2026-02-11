@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Package as PackageIcon, Calendar, Download, CreditCard, Landmark, RotateCcw } from "lucide-react";
+import ColumnFilter from "./ColumnFilter";
 import { formatCurrency, formatDate, getStatusLabel } from "@/lib/formatters";
 import { format } from "date-fns";
 import { calculateFavoronRevenue, calculateServiceFee, getDeliveryFee } from '@/lib/pricing';
@@ -56,6 +57,10 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
   const [selectedPaymentReceipt, setSelectedPaymentReceipt] = useState<string | null>(null);
   const [selectedReceiptFilename, setSelectedReceiptFilename] = useState<string | null>(null);
+  const [shopperFilter, setShopperFilter] = useState<string[]>([]);
+  const [travelerFilter, setTravelerFilter] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string[]>([]);
   const itemsPerPage = 50;
 
   // Filter packages to include only those in advanced payment states
@@ -393,20 +398,61 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     return Array.from(monthsSet).sort((a, b) => b.localeCompare(a));
   }, [enrichedData]);
 
-  // Filter data by selected month
+  // Filter data by selected month + column filters
   const filteredData = useMemo(() => {
+    let data = enrichedData;
+
+    if (selectedMonth !== "all") {
+      data = data.filter(item => {
+        const dateParts = item.paymentDate.split('/');
+        if (dateParts.length === 3) {
+          const month = dateParts[1];
+          const year = dateParts[2];
+          return `${year}-${month}` === selectedMonth;
+        }
+        return false;
+      });
+    }
+
+    if (shopperFilter.length > 0) {
+      data = data.filter(item => shopperFilter.includes(item.shopperName));
+    }
+    if (travelerFilter.length > 0) {
+      data = data.filter(item => travelerFilter.includes(item.travelerName));
+    }
+    if (statusFilter.length > 0) {
+      data = data.filter(item => {
+        const label = item.isRefund ? 'Reembolso' : item.isPrimeMembership ? 'Aprobado' : getStatusLabel(item.package.status);
+        return statusFilter.includes(label);
+      });
+    }
+    if (paymentMethodFilter.length > 0) {
+      data = data.filter(item => paymentMethodFilter.includes(item.paymentMethod));
+    }
+
+    return data;
+  }, [enrichedData, selectedMonth, shopperFilter, travelerFilter, statusFilter, paymentMethodFilter]);
+
+  // Unique values for column filters (computed from month-filtered data, not column-filtered)
+  const monthFilteredData = useMemo(() => {
     if (selectedMonth === "all") return enrichedData;
-    
     return enrichedData.filter(item => {
       const dateParts = item.paymentDate.split('/');
       if (dateParts.length === 3) {
-        const month = dateParts[1];
-        const year = dateParts[2];
-        return `${year}-${month}` === selectedMonth;
+        return `${dateParts[2]}-${dateParts[1]}` === selectedMonth;
       }
       return false;
     });
   }, [enrichedData, selectedMonth]);
+
+  const uniqueShoppers = useMemo(() => [...new Set(monthFilteredData.map(i => i.shopperName))].sort(), [monthFilteredData]);
+  const uniqueTravelers = useMemo(() => [...new Set(monthFilteredData.map(i => i.travelerName))].sort(), [monthFilteredData]);
+  const uniqueStatuses = useMemo(() => {
+    return [...new Set(monthFilteredData.map(i => 
+      i.isRefund ? 'Reembolso' : i.isPrimeMembership ? 'Aprobado' : getStatusLabel(i.package.status)
+    ))].sort();
+  }, [monthFilteredData]);
+  const uniquePaymentMethods = useMemo(() => [...new Set(monthFilteredData.map(i => i.paymentMethod).filter(m => m !== '-'))].sort(), [monthFilteredData]);
 
   // Paginate filtered data
   const paginatedData = useMemo(() => {
@@ -440,7 +486,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
   // Reset to page 1 when month filter changes
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [selectedMonth]);
+  }, [selectedMonth, shopperFilter, travelerFilter, statusFilter, paymentMethodFilter]);
 
   const packageCount = filteredData.filter(e => !e.isPrimeMembership && !e.isRefund).length;
   const primeCount = filteredData.filter(e => e.isPrimeMembership).length;
@@ -610,12 +656,20 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
             <TableHeader>
               <TableRow>
                 <TableHead>Fecha Pago</TableHead>
-                <TableHead>Shopper</TableHead>
-                <TableHead>Viajero</TableHead>
+                <TableHead>
+                  <ColumnFilter title="Shopper" options={uniqueShoppers} selectedValues={shopperFilter} onSelectionChange={setShopperFilter} showSearch />
+                </TableHead>
+                <TableHead>
+                  <ColumnFilter title="Viajero" options={uniqueTravelers} selectedValues={travelerFilter} onSelectionChange={setTravelerFilter} showSearch />
+                </TableHead>
                 <TableHead>ID Viaje</TableHead>
                 <TableHead>Productos</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Método Pago</TableHead>
+                <TableHead>
+                  <ColumnFilter title="Estado" options={uniqueStatuses} selectedValues={statusFilter} onSelectionChange={setStatusFilter} />
+                </TableHead>
+                <TableHead>
+                  <ColumnFilter title="Método Pago" options={uniquePaymentMethods} selectedValues={paymentMethodFilter} onSelectionChange={setPaymentMethodFilter} />
+                </TableHead>
                 <TableHead className="text-right">Total a Pagar</TableHead>
                 <TableHead className="text-right">Descuento</TableHead>
                 <TableHead className="text-right">Tip Viajero</TableHead>
