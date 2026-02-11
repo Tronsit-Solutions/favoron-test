@@ -767,24 +767,28 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                         Ver
                       </Button>
                     )}
-                    {item.isRefund && item.refundReceiptUrl && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          let normalized = item.refundReceiptUrl!;
-                          if (!normalized.startsWith('http') && !normalized.includes('/storage/v1/object')) {
-                            if (!normalized.startsWith('refund-receipts/')) {
-                              normalized = `refund-receipts/${normalized}`;
+                    {item.isRefund && (
+                      item.refundReceiptUrl ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            let normalized = item.refundReceiptUrl!;
+                            if (!normalized.startsWith('http') && !normalized.includes('/storage/v1/object')) {
+                              if (!normalized.startsWith('refund-receipts/')) {
+                                normalized = `refund-receipts/${normalized}`;
+                              }
                             }
-                          }
-                          setSelectedPaymentReceipt(normalized);
-                          setSelectedReceiptFilename(item.refundReceiptFilename || 'comprobante-reembolso.jpg');
-                        }}
-                      >
-                        <Eye className="h-3 w-3 mr-1" />
-                        Ver
-                      </Button>
+                            setSelectedPaymentReceipt(normalized);
+                            setSelectedReceiptFilename(item.refundReceiptFilename || 'comprobante-reembolso.jpg');
+                          }}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          Ver
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Pendiente</span>
+                      )
                     )}
                   </TableCell>
                 </TableRow>
