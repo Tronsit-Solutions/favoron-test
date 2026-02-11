@@ -40,6 +40,8 @@ interface EnrichedPackageData {
   isFromPrimeShopper?: boolean;
   isRefund?: boolean;
   refundAmount?: number;
+  refundReceiptUrl?: string;
+  refundReceiptFilename?: string;
 }
 
 const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
@@ -99,7 +101,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     queryFn: async () => {
       const { data } = await supabase
         .from('refund_orders')
-        .select('id, package_id, shopper_id, amount, reason, status, created_at, completed_at, cancelled_products')
+        .select('id, package_id, shopper_id, amount, reason, status, created_at, completed_at, cancelled_products, receipt_url, receipt_filename')
         .in('status', ['approved', 'completed'])
         .order('created_at', { ascending: true });
       return data || [];
@@ -346,7 +348,9 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         paymentMethod: 'Reembolso',
         isPrimeMembership: false,
         isRefund: true,
-        refundAmount: refund.amount
+        refundAmount: refund.amount,
+        refundReceiptUrl: refund.receipt_url || undefined,
+        refundReceiptFilename: refund.receipt_filename || undefined
       };
     });
 
@@ -757,6 +761,25 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                           
                           setSelectedPaymentReceipt(normalized);
                           setSelectedReceiptFilename(receipt?.filename || receipt?.fileName || 'comprobante.jpg');
+                        }}
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        Ver
+                      </Button>
+                    )}
+                    {item.isRefund && item.refundReceiptUrl && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          let normalized = item.refundReceiptUrl!;
+                          if (!normalized.startsWith('http') && !normalized.includes('/storage/v1/object')) {
+                            if (!normalized.startsWith('refund-receipts/')) {
+                              normalized = `refund-receipts/${normalized}`;
+                            }
+                          }
+                          setSelectedPaymentReceipt(normalized);
+                          setSelectedReceiptFilename(item.refundReceiptFilename || 'comprobante-reembolso.jpg');
                         }}
                       >
                         <Eye className="h-3 w-3 mr-1" />
