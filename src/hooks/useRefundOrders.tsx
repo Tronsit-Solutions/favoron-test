@@ -250,11 +250,13 @@ export const useAdminRefundOrders = () => {
       
       const updates: any = { status, notes };
       
+      // Siempre guardar receipt si se proporciona, sin importar el status
+      if (receiptUrl) updates.receipt_url = receiptUrl;
+      if (receiptFilename) updates.receipt_filename = receiptFilename;
+
       if (status === 'completed') {
         updates.completed_at = new Date().toISOString();
         updates.completed_by = user?.id;
-        if (receiptUrl) updates.receipt_url = receiptUrl;
-        if (receiptFilename) updates.receipt_filename = receiptFilename;
       }
       
       const { error } = await supabase
