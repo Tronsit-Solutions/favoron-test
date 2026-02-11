@@ -373,6 +373,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       // Extract tip and serviceFee breakdown from cancelled_products metadata
       let refundTips = 0;
       let refundServiceFee = 0;
+      let refundDeliveryFee = 0;
 
       if (cancelledProducts.length > 0) {
         refundTips = (cancelledProducts as any[]).reduce((sum: number, p: any) => {
@@ -387,12 +388,17 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
           return sum;
         }, 0);
 
+        // Extract deliveryFee from cancelled_products metadata (full package cancellations)
+        refundDeliveryFee = (cancelledProducts as any[]).reduce((sum: number, p: any) => {
+          if (p.deliveryFee !== undefined) return sum + (Number(p.deliveryFee) || 0);
+          return sum;
+        }, 0);
+
         // Fallback for legacy records without explicit serviceFee in metadata
         if (refundServiceFee === 0 && refundTips > 0) {
-          refundServiceFee = Math.max(0, refund.amount - refundTips);
+          refundServiceFee = Math.max(0, refund.amount - refundTips - refundDeliveryFee);
         }
       }
-
       const productDescription = productNames.length > 0
         ? `Reembolso - ${refund.reason || 'Productos cancelados'}: ${productNames.join(', ')}`
         : `Reembolso - ${refund.reason || 'Productos cancelados'}`;
@@ -413,7 +419,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         discountAmount: 0,
         travelerTip: -refundTips,
         favoronRevenue: -refundServiceFee,
-        messengerPayment: 0,
+        messengerPayment: -refundDeliveryFee,
         paymentMethod: 'Reembolso',
         isPrimeMembership: false,
         isRefund: true,
