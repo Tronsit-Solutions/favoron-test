@@ -1,49 +1,59 @@
 
 
-## Fix: Tabla financiera con query propia de paquetes pagados
+## Fix: Usar serviceFee de metadatos en lugar de calcular por resta
 
-### Problema
+### Problema actual
 
-La tabla financiera depende de los paquetes paginados del admin (50 por pagina). Los paquetes viejos como el de Valeria Villeda (22 enero) nunca se cargan.
+Linea 384 del archivo `FinancialSummaryTable.tsx`:
+```
+const refundServiceFee = Math.max(0, refund.amount - refundTips);
+```
+
+Esto asume que todo lo que no es tip es serviceFee, pero el monto del reembolso tambien incluye:
+- **deliveryFee** (ej: Q60)
+- **cancellationPenalty** (ya restada del monto)
+
+Ejemplo real (Valeria Villeda):
+- amount: Q190, tip: Q90, serviceFee real: Q45, deliveryFee: Q60
+- Calculo actual: `190 - 90 = Q100` como Fee Favoron (INCORRECTO)
+- Calculo correcto: `Q45` como Fee Favoron
 
 ### Solucion
 
-Agregar una query independiente en `FinancialSummaryTable.tsx` que solo traiga paquetes **pagados** del mes seleccionado. Esto es eficiente porque:
-- Filtra por mes (tipicamente 20-50 paquetes pagados por mes)
-- Solo trae estados que implican pago realizado
-- No trae paquetes pendientes, en cotizacion, etc.
+En `src/components/admin/FinancialSummaryTable.tsx`, lineas 374-384, cambiar la logica para extraer el `serviceFee` directamente de los metadatos de `cancelled_products`:
 
-### Cambios en `src/components/admin/FinancialSummaryTable.tsx`
+```typescript
+// Extraer tips
+let refundTips = 0;
+let refundServiceFee = 0;
 
-1. Agregar un `useQuery` independiente que consulte directamente a Supabase:
+if (cancelledProducts.length > 0) {
+  refundTips = cancelledProducts.reduce((sum, p) => {
+    if (p.tip !== undefined) return sum + (Number(p.tip) || 0);
+    if (p.adminAssignedTip !== undefined) return sum + (Number(p.adminAssignedTip) || 0);
+    return sum;
+  }, 0);
 
-```text
-Query: packages donde:
-  - created_at dentro del mes seleccionado
-  - status IN ('pending_purchase', 'purchase_confirmed', 'shipped', 
-    'in_transit', 'received_by_traveler', 'pending_office_confirmation',
-    'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 
-    'out_for_delivery', 'completed')
-  
-  O (para cancelados pagados):
-  - status IN ('cancelled', 'archived_by_shopper') 
-    Y tiene evidencia de pago (filtro client-side)
+  // Usar serviceFee guardado en metadatos (nuevo formato)
+  refundServiceFee = cancelledProducts.reduce((sum, p) => {
+    if (p.serviceFee !== undefined) return sum + (Number(p.serviceFee) || 0);
+    return sum;
+  }, 0);
+
+  // Fallback para registros antiguos sin serviceFee en metadatos:
+  // usar el calculo por resta solo si ningun producto tiene serviceFee
+  if (refundServiceFee === 0 && refundTips > 0) {
+    refundServiceFee = Math.max(0, refund.amount - refundTips);
+  }
+}
 ```
 
-2. Los campos a traer son solo los que usa el componente: `id, user_id, status, item_description, matched_trip_id, created_at, quote, payment_receipt, products_data, payment_method, recurrente_checkout_id, recurrente_payment_id, delivery_method, admin_assigned_tip, estimated_price, incident_flag`
+### Logica del fallback
 
-3. Usar los datos de esta query en lugar del prop `packages` para los calculos y la tabla
+- Registros nuevos (como Valeria): tienen `serviceFee` explicito en cancelled_products -> lo usa directamente
+- Registros viejos (como los otros 2 sin serviceFee): no tienen el campo -> usa el calculo por resta como fallback
 
-4. La query se re-ejecuta cuando cambia el mes seleccionado
+### Archivo a modificar
 
-### Volumen esperado por query
+Solo `src/components/admin/FinancialSummaryTable.tsx`, lineas 374-384.
 
-- Paquetes pagados activos por mes: ~20-40
-- Paquetes cancelados con pago por mes: ~2-5
-- Total: ~25-45 registros por mes (muy eficiente)
-
-### Impacto
-
-- Solo se modifica `FinancialSummaryTable.tsx`
-- No cambia la interfaz del componente (sigue recibiendo `packages` prop por compatibilidad)
-- La tabla mostrara TODOS los paquetes pagados del mes, sin importar la paginacion del admin
