@@ -1,64 +1,44 @@
 
 
-## Corregir visibilidad de pedidos cancelados pagados en la Tabla Financiera
+## Eliminar "Archivar" y usar solo "Cancelar" (sin migrar legacy)
 
-### Problema identificado
+### Que cambia
 
-El pedido de **Valeria Villeda** (Pachon Gatorade, Q45, pagado con tarjeta confirmada) tiene status `cancelled` y existe en la base de datos con un quote valido. Al investigar:
+El boton "Archivar" desaparece por completo de la UI. Los paquetes que el shopper ya no quiere se cancelan con el boton existente "Cancelar pedido". Los paquetes cancelados dejan de aparecer en el dashboard activo y pasan al historial automaticamente.
 
-1. **El paquete esta en la lista de datos elegibles** -- el filtro `advancedStates` incluye `cancelled` y el paquete tiene `quote` como objeto.
-2. **El paquete cae en Enero 2026** -- la fecha de pago es `24/1/2026`, pero la tabla por defecto muestra el mes actual (Febrero 2026), por lo que no aparece al abrir la pestaña.
-3. **Falta `archived_by_shopper`** en los estados elegibles -- segun la logica documentada, deberia estar incluido para ordenes legadas pagadas.
-4. **El filtro de cancelled es demasiado amplio** -- incluye TODOS los paquetes cancelados con quote, incluyendo los que nunca fueron pagados, lo cual contamina la tabla.
+Los ~101 paquetes legacy con status `archived_by_shopper` se quedan como estan -- siguen apareciendo en el historial con su label actual.
 
-### Cambios propuestos
+### Archivos a modificar
 
-**Archivo:** `src/components/admin/FinancialSummaryTable.tsx`
+**1. `src/components/Dashboard.tsx`**
+- Eliminar la funcion `handleArchivePackage` completa (lineas 442-490)
+- Dejar de pasar `onArchivePackage={handleArchivePackage}` al componente `CollapsiblePackageCard` (linea 728)
+- Agregar `cancelled` al filtro del dashboard activo: los paquetes cancelados ya no se muestran en el dashboard, van directo al historial
+  - Cambiar `pkg.status === 'completed' || pkg.status === 'archived_by_shopper'` por `pkg.status === 'completed' || pkg.status === 'archived_by_shopper' || pkg.status === 'cancelled'`
+  - Esto se aplica en dos lugares (lineas 670 y 687)
 
-1. **Agregar `archived_by_shopper` a `advancedStates`** para consistencia con la logica documentada.
+**2. `src/components/dashboard/CollapsiblePackageCard.tsx`**
+- Eliminar la prop `onArchivePackage` de la interfaz y destructuring
+- Eliminar el `DropdownMenuItem` de "Archivar" en el menu desplegable (lineas 327-333)
+- Eliminar los botones "Archivar y mover al historial" en los banners de paquetes cancelados (lineas 441-454 y 700-713)
+- Eliminar el import de `Archive` de lucide-react
 
-2. **Refinar el filtro de cancelled/archived**: Solo incluir paquetes cancelados que tengan evidencia de pago:
-   - Tienen `payment_receipt` con datos (comprobante subido)
-   - O tienen `recurrente_payment_id` (pago con tarjeta confirmado)
-   - Esto evita que paquetes cancelados sin pago aparezcan en el resumen financiero
+**3. `src/components/profile/PackageHistory.tsx`**
+- Sin cambios -- ya incluye `cancelled` y `archived_by_shopper` en el historial
 
-3. **Corregir formato de mes**: Asegurar que el mes se genere con zero-padding (`01` en vez de `1`) para evitar inconsistencias de filtrado entre meses.
+**4. Tabla financiera, status badges, etc.**
+- Sin cambios -- los legacy `archived_by_shopper` siguen siendo reconocidos en mapas de status y filtros financieros
 
-### Detalle tecnico
+### Flujo resultante
 
 ```text
-// Cambio en eligiblePackages:
-const advancedStates = [
-  'pending_purchase', 'purchase_confirmed', 'shipped', 'in_transit',
-  'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office',
-  'ready_for_pickup', 'ready_for_delivery', 'out_for_delivery', 'completed'
-];
-
-const cancelledButPaid = ['cancelled', 'archived_by_shopper'];
-
-return packages.filter(pkg => {
-  if (!pkg.quote || typeof pkg.quote !== 'object') return false;
-
-  // Incluir estados activos normalmente
-  if (advancedStates.includes(pkg.status)) return true;
-
-  // Cancelados/archivados solo si fueron pagados
-  if (cancelledButPaid.includes(pkg.status)) {
-    const hasReceipt = pkg.payment_receipt && 
-      typeof pkg.payment_receipt === 'object' &&
-      (pkg.payment_receipt as any).filePath;
-    const hasCardPayment = !!pkg.recurrente_payment_id;
-    return hasReceipt || hasCardPayment;
-  }
-
-  return false;
-});
+Paquete activo en dashboard
+   |
+   |-- Shopper lo cancela ("Cancelar pedido") --> status = 'cancelled' --> sale del dashboard, aparece en historial
+   |-- Se completa --> status = 'completed' --> sale del dashboard, aparece en historial
 ```
 
-Para el formato de mes, cambiar `toLocaleDateString('es-GT')` a un formato consistente con zero-padding usando `date-fns format()` para evitar que `1` vs `01` cause problemas de matching.
+### Mensajes de la UI actualizados
 
-### Resultado esperado
-- El pedido de Valeria Villeda aparecera en Enero 2026 (ya aparece, pero el filtro por defecto muestra Febrero)
-- Los paquetes cancelados sin pago no contaminaran la tabla
-- Los meses tendran formato consistente para el filtrado
+El boton "Cancelar pedido" ya existe con su logica de validacion (`canCancelPackage`). Los toasts de confirmacion ya dicen "Pedido cancelado". No hace falta cambiar mensajes.
 
