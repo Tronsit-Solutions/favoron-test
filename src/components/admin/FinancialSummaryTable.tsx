@@ -71,7 +71,8 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       'ready_for_pickup',
       'ready_for_delivery',
       'out_for_delivery',
-      'completed'
+      'completed',
+      'cancelled'
     ];
     
     return packages.filter(pkg => 
