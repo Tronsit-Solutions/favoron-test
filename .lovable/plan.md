@@ -1,37 +1,73 @@
 
 
-## Fix: Columna "Método de Pago" muestra "Transferencia" para pagos con tarjeta
+## Agregar reembolsos como filas negativas en la Tabla Resumen Financiera
 
-### Problema
+### Objetivo
 
-El paquete de Edgar Osla se pagó con tarjeta (Recurrente), pero la tabla muestra "Transferencia". Esto ocurre porque los campos `payment_method` y `recurrente_checkout_id` **no se cargan** en las consultas de admin (son consultas "lightweight" optimizadas que omiten esos campos). Como resultado, la lógica cae al fallback de `payment_receipt` (que sí existe como JSON), y lo interpreta como transferencia.
+Intercalar los reembolsos aprobados/completados cronologicamente en la tabla financiera como filas con valores negativos, para reflejar el ingreso neto real.
 
-### Solución
-
-Dos cambios sencillos:
+### Cambios
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/hooks/useAdminData.tsx` | Agregar `payment_method, recurrente_checkout_id` a las dos consultas de paquetes (lineas ~97 y ~206) |
-| `src/components/admin/FinancialSummaryTable.tsx` | Mejorar la lógica de detección para también revisar `payment_receipt.method === 'card'` como fallback adicional |
+| `src/components/admin/FinancialSummaryTable.tsx` | Fetch refund_orders, crear filas negativas, actualizar totales y Excel export |
 
-### Detalle técnico
+### Detalle tecnico
 
-**1. useAdminData.tsx** - Agregar campos a ambas queries:
-
-- Query principal (linea ~97): agregar `payment_method, recurrente_checkout_id` al SELECT
-- Query de matched packages (linea ~206): agregar `payment_method, recurrente_checkout_id` al SELECT
-
-**2. FinancialSummaryTable.tsx** - Mejorar detección (linea ~254):
+**1. Nuevo query** - Fetch reembolsos aprobados y completados:
 
 ```typescript
-const receipt = pkg.payment_receipt as any;
-const paymentMethod = 
-  pkg.recurrente_checkout_id || pkg.payment_method === 'card' || receipt?.method === 'card'
-    ? 'Tarjeta'
-    : (pkg.payment_method === 'bank_transfer' || pkg.payment_receipt)
-      ? 'Transferencia'
-      : '-';
+const { data: refundOrders } = useQuery({
+  queryKey: ['refunds-for-financial-table'],
+  queryFn: async () => {
+    const { data } = await supabase
+      .from('refund_orders')
+      .select('id, package_id, shopper_id, amount, reason, status, created_at, completed_at, cancelled_products')
+      .in('status', ['approved', 'completed'])
+      .order('created_at', { ascending: true });
+    return data || [];
+  }
+});
 ```
 
-Esto cubre el caso donde `payment_receipt` existe con `method: "card"` incluso si los otros campos no estuvieran cargados.
+**2. Interface** - Agregar campo `isRefund` y `refundAmount` a `EnrichedPackageData`:
+
+```typescript
+isRefund?: boolean;
+refundAmount?: number;
+```
+
+**3. Crear filas de reembolso** en el `useMemo` de `enrichedData` (~linea 310):
+
+- Cada refund_order genera una fila con:
+  - `shopperName`: nombre del shopper (del profiles map, usando `shopper_id`)
+  - `productDescription`: "Reembolso - [razon]" + productos cancelados
+  - `paymentDate`: fecha de `completed_at` o `created_at`
+  - `totalToPay`: **-amount** (negativo)
+  - `favoronRevenue`: **-amount** (negativo, ya que es dinero que sale)
+  - `travelerTip`: 0
+  - `messengerPayment`: 0
+  - `isRefund: true`
+
+**4. UI de la fila** (~linea 539):
+
+- Fondo rojo suave: `bg-red-50/50 hover:bg-red-100/50`
+- Badge rojo "Reembolso" en la columna Estado
+- Valores monetarios en rojo con signo negativo
+- Icono `RotateCcw` en la columna de metodo de pago mostrando "Reembolso"
+
+**5. Totales** (~linea 358):
+
+- Agregar `totalRefunds` al acumulador
+- En el summary card superior, agregar una nueva celda "Reembolsos" con el total en rojo
+- En la fila de totales de la tabla, los valores ya se restan automaticamente porque son negativos
+
+**6. Excel export** (~linea 383):
+
+- Las filas de reembolso se exportan con tipo "Reembolso" y montos negativos
+- Se agrega fila de "Total Reembolsos" al final
+
+**7. Contador de transacciones** (~linea 456):
+
+- Actualizar el texto para incluir reembolsos: "X paquetes + Y membresías Prime + Z reembolsos"
+
