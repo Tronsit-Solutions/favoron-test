@@ -1,36 +1,50 @@
 
-
-## Restar deliveryFee de reembolsos en "Pago Mensajeros"
+## Agregar los 22 departamentos de Guatemala al dropdown de destino
 
 ### Problema actual
-En `FinancialSummaryTable.tsx` (linea 416), los reembolsos se registran con `messengerPayment: 0`, por lo que el total de "Pago Mensajeros" no refleja las devoluciones de delivery fee cuando se cancela un paquete completo.
+El dropdown de ciudades para Guatemala en `PackageRequestForm.tsx` (linea 234-238) solo lista ~12 ciudades/cabeceras seleccionadas. Deberia incluir los 22 departamentos de Guatemala para dar cobertura completa.
 
 ### Cambio propuesto
 
-**Archivo: `src/components/admin/FinancialSummaryTable.tsx`**
+**Archivo: `src/components/PackageRequestForm.tsx`**
 
-En el bloque de procesamiento de refunds (lineas ~374-416), agregar extraccion de `deliveryFee` desde los metadatos de `cancelled_products`, siguiendo el mismo patron usado para `serviceFee`:
-
-1. **Extraer deliveryFee** (despues de linea 393): Sumar el campo `deliveryFee` de cada producto cancelado en los metadatos. Si no existe en metadatos individuales, buscar un campo `deliveryFee` a nivel del array o del refund mismo.
-
-2. **Asignar como negativo** (linea 416): Cambiar `messengerPayment: 0` a `messengerPayment: -refundDeliveryFee`.
-
-### Detalle tecnico
+Reemplazar la lista actual de ciudades de Guatemala (lineas 234-238) con los 22 departamentos completos, manteniendo "Cualquier ciudad" al inicio y "Otra ciudad" al final:
 
 ```text
-Lineas ~389-393: Agregar despues del calculo de refundServiceFee:
-
-  let refundDeliveryFee = 0;
-  refundDeliveryFee = cancelledProducts.reduce((sum, p) => {
-    if (p.deliveryFee !== undefined) return sum + (Number(p.deliveryFee) || 0);
-    return sum;
-  }, 0);
-
-Linea 416: Cambiar
-  messengerPayment: 0
-por
-  messengerPayment: -refundDeliveryFee
+'Guatemala': [
+  'Cualquier ciudad',
+  'Guatemala City',
+  'Sacatepéquez',
+  'Chimaltenango',
+  'Escuintla',
+  'Santa Rosa',
+  'Sololá',
+  'Totonicapán',
+  'Quetzaltenango',
+  'Suchitepéquez',
+  'Retalhuleu',
+  'San Marcos',
+  'Huehuetenango',
+  'Quiché',
+  'Baja Verapaz',
+  'Alta Verapaz',
+  'Petén',
+  'Izabal',
+  'Zacapa',
+  'Chiquimula',
+  'Jalapa',
+  'Jutiapa',
+  'El Progreso',
+  'Otra ciudad'
+],
 ```
 
-Esto solo afectara reembolsos que tengan `deliveryFee` en sus metadatos (cancelaciones de paquete completo). Las cancelaciones parciales de productos no incluyen deliveryFee en sus metadatos, por lo que seguiran con `messengerPayment: 0`, que es el comportamiento correcto segun la regla de negocio.
-
+### Notas
+- "Guatemala City" se mantiene como valor existente (representa el departamento de Guatemala) para no romper datos historicos.
+- "Sacatepequez" reemplaza "Antigua Guatemala" ya que estamos estandarizando por departamento, no por ciudad. Antigua es la cabecera de Sacatepequez.
+- "Coban" se elimina como entrada individual ya que queda cubierto por "Alta Verapaz".
+- "Mazatenango" se elimina ya que queda cubierto por "Suchitepequez".
+- "Puerto Barrios" se elimina ya que queda cubierto por "Izabal".
+- "Peten/Flores" se simplifica a "Peten".
+- Se mantiene "Cualquier ciudad" al inicio y "Otra ciudad" al final.
+- Este cambio solo afecta el formulario de solicitud de paquetes. La lista de `GUATEMALAN_CITIES` en `cities.ts` (usada en el formulario de viajes) se mantiene sin cambios ya que tiene un proposito diferente.
