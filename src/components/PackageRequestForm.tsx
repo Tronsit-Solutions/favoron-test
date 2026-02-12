@@ -232,9 +232,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const citiesByCountry: Record<string, string[]> = {
     'Guatemala': [
-      'Cualquier ciudad', 'Guatemala City', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla',
-      'Cobán', 'Huehuetenango', 'Mazatenango', 'Puerto Barrios',
-      'Retalhuleu', 'Zacapa', 'Petén/Flores', 'Otra ciudad'
+      'Cualquier ciudad', 'Guatemala City', 'Sacatepéquez', 'Chimaltenango', 'Escuintla',
+      'Santa Rosa', 'Sololá', 'Totonicapán', 'Quetzaltenango', 'Suchitepéquez',
+      'Retalhuleu', 'San Marcos', 'Huehuetenango', 'Quiché', 'Baja Verapaz',
+      'Alta Verapaz', 'Petén', 'Izabal', 'Zacapa', 'Chiquimula',
+      'Jalapa', 'Jutiapa', 'El Progreso', 'Otra ciudad'
     ],
     'Estados Unidos': [
       'Cualquier ciudad', 'Miami', 'New York', 'Los Angeles', 'Houston', 'Chicago',
