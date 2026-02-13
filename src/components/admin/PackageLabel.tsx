@@ -49,7 +49,7 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, la
   const getPackagePrice = () => {
     // Try to get price from products_data first
     if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
-      const total = pkg.products_data.reduce((sum, product) => {
+      const total = pkg.products_data.filter((p: any) => !p.cancelled).reduce((sum, product) => {
         const price = parseFloat(product.estimatedPrice || '0');
         const quantity = parseInt(product.quantity || '1');
         return sum + (price * quantity);
@@ -65,7 +65,7 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, la
 
   const getTotalQuantity = () => {
     if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
-      const total = pkg.products_data.reduce((sum, product) => {
+      const total = pkg.products_data.filter((p: any) => !p.cancelled).reduce((sum, product) => {
         return sum + parseInt(product.quantity || '1');
       }, 0);
       return total.toString();
@@ -89,9 +89,12 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, la
 
   const getFormattedDescription = () => {
     if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
-      return pkg.products_data.map((product, index) => {
+      const activeProducts = pkg.products_data
+        .map((product: any, originalIndex: number) => ({ ...product, originalIndex }))
+        .filter((p: any) => !p.cancelled);
+      return activeProducts.map((product: any, index: number) => {
         const quantity = parseInt(product.quantity || '1');
-        const description = customDescriptions?.[index] || product.itemDescription || '';
+        const description = customDescriptions?.[product.originalIndex] || product.itemDescription || '';
         const quantityText = quantity > 1 ? ` (${quantity}x)` : '';
         return (
           <div key={index} className="break-words">
