@@ -188,6 +188,9 @@ const Operations = () => {
         items={operationsData.labelCart}
         onClear={operationsData.clearLabelCart}
         onRemoveItem={operationsData.removeFromLabelCart}
+        labelHistory={operationsData.labelHistory}
+        onRestoreFromHistory={operationsData.restoreFromHistory}
+        onDeleteFromHistory={operationsData.deleteFromHistory}
       />
     </div>
   );
