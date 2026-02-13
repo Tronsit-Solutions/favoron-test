@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Tag, Printer, Trash2, Loader2, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { LabelCartItem } from '@/hooks/useOperationsData';
+import { Tag, Printer, Trash2, Loader2, X, ChevronLeft, ChevronRight, History, RotateCcw } from 'lucide-react';
+import { LabelCartItem, LabelBatch } from '@/hooks/useOperationsData';
 import { PackageLabel } from '@/components/admin/PackageLabel';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import {
   Dialog,
   DialogContent,
@@ -13,18 +15,23 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface LabelCartBarProps {
   items: LabelCartItem[];
   onClear: () => void;
   onRemoveItem: (id: string) => void;
+  labelHistory: LabelBatch[];
+  onRestoreFromHistory: (batchId: string) => void;
+  onDeleteFromHistory: (batchId: string) => void;
 }
 
 const LABELS_PER_PAGE = 4;
 
-const LabelCartBar = ({ items, onClear, onRemoveItem }: LabelCartBarProps) => {
+const LabelCartBar = ({ items, onClear, onRemoveItem, labelHistory, onRestoreFromHistory, onDeleteFromHistory }: LabelCartBarProps) => {
   const [generating, setGenerating] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
 
   const totalPages = Math.ceil(items.length / LABELS_PER_PAGE);
@@ -39,9 +46,29 @@ const LabelCartBar = ({ items, onClear, onRemoveItem }: LabelCartBarProps) => {
     setCurrentPage(totalPages - 1);
   }
 
-  if (items.length === 0) {
-    if (previewOpen) setPreviewOpen(false);
-    return null;
+  if (items.length === 0 && !historyOpen) {
+    return labelHistory.length > 0 ? (
+      <>
+        <div className="fixed bottom-4 right-4 z-50">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setHistoryOpen(true)}
+            className="shadow-lg"
+          >
+            <History className="h-4 w-4 mr-1" />
+            Historial ({labelHistory.length})
+          </Button>
+        </div>
+        <HistoryDialog
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          history={labelHistory}
+          onRestore={onRestoreFromHistory}
+          onDelete={onDeleteFromHistory}
+        />
+      </>
+    ) : null;
   }
 
   const buildLabelData = (item: LabelCartItem) => {
@@ -85,11 +112,9 @@ const LabelCartBar = ({ items, onClear, onRemoveItem }: LabelCartBarProps) => {
         format: 'letter',
       });
 
-      // Compact label size
       const labelW = 252;
       const labelH = 360;
 
-      // 4 positions on a letter page (612x792)
       const positions = [
         { x: 18, y: 18 },
         { x: 342, y: 18 },
@@ -163,10 +188,6 @@ const LabelCartBar = ({ items, onClear, onRemoveItem }: LabelCartBarProps) => {
     }
   };
 
-  const handleRemoveFromPreview = (id: string) => {
-    onRemoveItem(id);
-  };
-
   return (
     <>
       {/* Floating bottom bar */}
@@ -181,6 +202,17 @@ const LabelCartBar = ({ items, onClear, onRemoveItem }: LabelCartBarProps) => {
             </div>
 
             <div className="flex items-center gap-2">
+              {labelHistory.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setHistoryOpen(true)}
+                >
+                  <History className="h-4 w-4 mr-1" />
+                  <span className="hidden sm:inline">Historial</span>
+                  <span className="ml-1 text-xs">({labelHistory.length})</span>
+                </Button>
+              )}
               <Button
                 size="sm"
                 variant="secondary"
@@ -207,12 +239,9 @@ const LabelCartBar = ({ items, onClear, onRemoveItem }: LabelCartBarProps) => {
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              Vista previa de etiquetas
-            </DialogTitle>
+            <DialogTitle>Vista previa de etiquetas</DialogTitle>
           </DialogHeader>
 
-          {/* Page simulation */}
           <div className="bg-muted/50 rounded-lg p-4 flex justify-center">
             <div
               className="bg-white border shadow-sm rounded grid grid-cols-2 gap-2 p-3"
@@ -223,22 +252,17 @@ const LabelCartBar = ({ items, onClear, onRemoveItem }: LabelCartBarProps) => {
                 return (
                   <div key={item.id} className="relative group">
                     <button
-                      onClick={() => handleRemoveFromPreview(item.id)}
+                      onClick={() => onRemoveItem(item.id)}
                       className="absolute -top-1 -right-1 z-10 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="h-3 w-3" />
                     </button>
                     <div style={{ transform: 'scale(1)', transformOrigin: 'top left' }}>
-                      <PackageLabel
-                        pkg={pkgData}
-                        trip={tripData}
-                        labelNumber={labelNumber}
-                      />
+                      <PackageLabel pkg={pkgData} trip={tripData} labelNumber={labelNumber} />
                     </div>
                   </div>
                 );
               })}
-              {/* Fill empty slots with placeholder */}
               {Array.from({ length: LABELS_PER_PAGE - currentPageItems.length }).map((_, i) => (
                 <div
                   key={`empty-${i}`}
@@ -251,26 +275,13 @@ const LabelCartBar = ({ items, onClear, onRemoveItem }: LabelCartBarProps) => {
             </div>
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-4">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                disabled={currentPage === 0}
-              >
+              <Button size="sm" variant="outline" onClick={() => setCurrentPage(p => Math.max(0, p - 1))} disabled={currentPage === 0}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="text-sm text-muted-foreground">
-                Hoja {currentPage + 1} de {totalPages}
-              </span>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
-                disabled={currentPage === totalPages - 1}
-              >
+              <span className="text-sm text-muted-foreground">Hoja {currentPage + 1} de {totalPages}</span>
+              <Button size="sm" variant="outline" onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))} disabled={currentPage === totalPages - 1}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
@@ -280,21 +291,100 @@ const LabelCartBar = ({ items, onClear, onRemoveItem }: LabelCartBarProps) => {
             <span className="text-sm text-muted-foreground">
               {items.length} etiqueta{items.length !== 1 ? 's' : ''} en {totalPages} hoja{totalPages !== 1 ? 's' : ''}
             </span>
-            <Button
-              onClick={handleDownloadPDF}
-              disabled={generating}
-            >
-              {generating ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Printer className="h-4 w-4 mr-2" />
-              )}
+            <Button onClick={handleDownloadPDF} disabled={generating}>
+              {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Printer className="h-4 w-4 mr-2" />}
               Descargar PDF
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* History Dialog */}
+      <HistoryDialog
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        history={labelHistory}
+        onRestore={(batchId) => {
+          onRestoreFromHistory(batchId);
+          setHistoryOpen(false);
+          setTimeout(() => {
+            setCurrentPage(0);
+            setPreviewOpen(true);
+          }, 100);
+        }}
+        onDelete={onDeleteFromHistory}
+      />
     </>
+  );
+};
+
+// ============= History Dialog =============
+
+interface HistoryDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  history: LabelBatch[];
+  onRestore: (batchId: string) => void;
+  onDelete: (batchId: string) => void;
+}
+
+const HistoryDialog = ({ open, onOpenChange, history, onRestore, onDelete }: HistoryDialogProps) => {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <History className="h-5 w-5" />
+            Historial de lotes
+          </DialogTitle>
+        </DialogHeader>
+
+        {history.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            No hay lotes anteriores
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {history.map((batch) => (
+              <div
+                key={batch.id}
+                className="flex items-center justify-between p-3 rounded-lg border bg-card"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">
+                    {batch.items.length} etiqueta{batch.items.length !== 1 ? 's' : ''}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(batch.createdAt), "d MMM yyyy, HH:mm", { locale: es })}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {batch.items.map(i => i.shopper_name).filter((v, idx, a) => a.indexOf(v) === idx).join(', ')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 ml-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onRestore(batch.id)}
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                    Restaurar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onDelete(batch.id)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 };
 

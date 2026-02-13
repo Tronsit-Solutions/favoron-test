@@ -109,6 +109,35 @@ export interface LabelCartItem {
   traveler_name: string;
 }
 
+export interface LabelBatch {
+  id: string;
+  createdAt: string;
+  items: LabelCartItem[];
+}
+
+// ============= localStorage helpers =============
+
+const CART_STORAGE_KEY = 'ops_label_cart';
+const HISTORY_STORAGE_KEY = 'ops_label_history';
+const MAX_HISTORY_BATCHES = 20;
+
+function readFromStorage<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeToStorage<T>(key: string, value: T) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // localStorage full or unavailable – ignore
+  }
+}
+
 // ============= Hook =============
 
 const CACHE_TTL_MS = 30000; // 30 seconds cache
@@ -117,7 +146,18 @@ export const useOperationsData = () => {
   const [allPackages, setAllPackages] = useState<OperationsPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
-  const [labelCart, setLabelCart] = useState<LabelCartItem[]>([]);
+  const [labelCart, setLabelCart] = useState<LabelCartItem[]>(() => readFromStorage(CART_STORAGE_KEY, []));
+  const [labelHistory, setLabelHistory] = useState<LabelBatch[]>(() => readFromStorage(HISTORY_STORAGE_KEY, []));
+
+  // Sync cart to localStorage
+  useEffect(() => {
+    writeToStorage(CART_STORAGE_KEY, labelCart);
+  }, [labelCart]);
+
+  // Sync history to localStorage
+  useEffect(() => {
+    writeToStorage(HISTORY_STORAGE_KEY, labelHistory);
+  }, [labelHistory]);
 
   // Fetch with retry logic for handling timeouts
   const fetchWithRetry = async (retries = 2): Promise<any[]> => {
@@ -449,11 +489,33 @@ export const useOperationsData = () => {
   }, [allPackages]);
 
   const clearLabelCart = useCallback(() => {
-    setLabelCart([]);
+    // Move current cart to history before clearing
+    setLabelCart(prev => {
+      if (prev.length > 0) {
+        const batch: LabelBatch = {
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString(),
+          items: prev,
+        };
+        setLabelHistory(h => [batch, ...h].slice(0, MAX_HISTORY_BATCHES));
+      }
+      return [];
+    });
   }, []);
 
   const removeFromLabelCart = useCallback((packageId: string) => {
     setLabelCart(prev => prev.filter(item => item.id !== packageId));
+  }, []);
+
+  const restoreFromHistory = useCallback((batchId: string) => {
+    const batch = labelHistory.find(b => b.id === batchId);
+    if (batch) {
+      setLabelCart(batch.items);
+    }
+  }, [labelHistory]);
+
+  const deleteFromHistory = useCallback((batchId: string) => {
+    setLabelHistory(prev => prev.filter(b => b.id !== batchId));
   }, []);
 
   // Force refresh wrapper for onClick handlers
@@ -487,5 +549,10 @@ export const useOperationsData = () => {
     addManyToLabelCart,
     clearLabelCart,
     removeFromLabelCart,
+    
+    // Label history
+    labelHistory,
+    restoreFromHistory,
+    deleteFromHistory,
   };
 };
