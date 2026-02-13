@@ -1,36 +1,62 @@
 
 
-## Excluir productos cancelados de las etiquetas
+## Persistir carrito de etiquetas y agregar historial de lotes
 
 ### Problema
-El componente `PackageLabel` (`src/components/admin/PackageLabel.tsx`) no filtra productos con `cancelled: true` en `products_data`. Esto causa:
-1. Productos cancelados aparecen listados en la etiqueta (ej: "3. Makeup Amarillo")
-2. La cantidad total incluye productos cancelados (muestra 5 en vez de 4)
-3. El precio total incluye productos cancelados
+El carrito de etiquetas usa `useState` en memoria. Cuando la pagina se recarga (por suscripciones realtime u otras causas), las etiquetas acumuladas se pierden y no hay forma de recuperarlas.
 
-### Cambio propuesto
+### Solucion en 2 partes
 
-**Archivo: `src/components/admin/PackageLabel.tsx`**
+---
 
-Filtrar `products_data` para excluir productos cancelados en las tres funciones que iteran sobre los productos:
+### Parte 1: Persistir el carrito en localStorage
 
-1. **`getFormattedDescription`** (linea ~87): Filtrar `products_data` con `.filter(p => !p.cancelled)` antes de mapear las descripciones.
+**Archivo: `src/hooks/useOperationsData.tsx`**
 
-2. **`getTotalQuantity`** (linea ~68): Filtrar productos cancelados antes de sumar cantidades.
+- Cambiar `useState<LabelCartItem[]>([])` por una version que lea/escriba en `localStorage` bajo la llave `"ops_label_cart"`.
+- Al inicializar, leer del localStorage. En cada cambio al carrito, escribir al localStorage.
+- Esto asegura que si la pagina se recarga, el carrito sigue intacto.
 
-3. **`getPackagePrice`** (linea ~52): Filtrar productos cancelados antes de calcular el precio total.
+---
 
-### Detalle tecnico
+### Parte 2: Historial de lotes de etiquetas
 
-En cada una de las tres funciones, cambiar:
+**Archivo: `src/hooks/useOperationsData.tsx`**
+
+- Agregar un nuevo estado `labelHistory` que almacena los ultimos N lotes (ej. 20) en localStorage bajo `"ops_label_history"`.
+- Cada lote tiene: `id`, `createdAt`, `items[]` (las etiquetas del lote).
+- Cuando se descarga el PDF (al llamar `clearLabelCart`), mover el lote actual al historial antes de limpiar.
+- Exponer `labelHistory`, `restoreFromHistory(batchId)`, y `deleteFromHistory(batchId)`.
+
+**Archivo: `src/components/operations/LabelCartBar.tsx`**
+
+- Agregar un boton "Historial" en la barra flotante o junto al boton de imprimir.
+- En el dialog de preview, agregar una pestana o seccion "Historial" que muestre los lotes anteriores con:
+  - Fecha/hora del lote
+  - Cantidad de etiquetas
+  - Boton "Restaurar" para cargar ese lote al carrito actual
+  - Boton "Eliminar" para borrar del historial
+- Cuando se restaura un lote, se carga al carrito y se abre el preview para reimprimir.
+
+---
+
+### Estructura de datos del historial
+
+```text
+interface LabelBatch {
+  id: string;          // generado con crypto.randomUUID()
+  createdAt: string;   // ISO timestamp
+  items: LabelCartItem[];
+}
 ```
-pkg.products_data.map/reduce(...)
-```
-por:
-```
-pkg.products_data.filter(p => !p.cancelled).map/reduce(...)
-```
 
-En `getFormattedDescription`, ademas hay que ajustar el indice de `customDescriptions` para que use el indice original (del array sin filtrar) y no el indice filtrado, o alternativamente re-indexar. La solucion mas simple es filtrar primero y re-numerar.
+Almacenado en localStorage como array JSON, maximo 20 lotes (los mas antiguos se eliminan automaticamente).
 
-Esto sigue el mismo patron ya establecido en `QuoteDialog`, `ProductReceiptConfirmation`, y `usePackageActions` donde los productos cancelados se excluyen de calculos y confirmaciones.
+---
+
+### Archivos a modificar
+
+1. `src/hooks/useOperationsData.tsx` - Persistir carrito + historial en localStorage
+2. `src/components/operations/LabelCartBar.tsx` - UI del historial
+3. `src/pages/Operations.tsx` - Pasar props de historial al LabelCartBar
+
