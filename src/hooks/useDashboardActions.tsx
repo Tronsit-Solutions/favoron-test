@@ -437,6 +437,18 @@ export const useDashboardActions = (
               }
             }
             
+            // Build admin_actions_log entry for audit trail
+            const existingLog = Array.isArray(selectedPackage.admin_actions_log) ? selectedPackage.admin_actions_log : [];
+            const quoteRejectionLogEntry = {
+              action_type: 'quote_rejection',
+              previous_trip_id: rejectedTravelerInfo?.trip_id || selectedPackage.matched_trip_id || null,
+              previous_traveler_id: rejectedTravelerInfo?.traveler_id || null,
+              previous_traveler_name: rejectedTravelerInfo?.traveler_name || 'Desconocido',
+              rejection_reason: quoteData.rejectionReason || null,
+              wants_requote: !!quoteData.wantsRequote,
+              timestamp: new Date().toISOString(),
+            };
+
             const updateData: any = {
               // Contextual JSON payload with rejected traveler history
               quote_rejection: {
@@ -444,8 +456,10 @@ export const useDashboardActions = (
                 wants_requote: !!quoteData.wantsRequote,
                 additional_notes: quoteData.additionalNotes || null,
                 rejected_at: new Date().toISOString(),
-                rejected_traveler: rejectedTravelerInfo, // NEW: Preserve traveler info
+                rejected_traveler: rejectedTravelerInfo,
               },
+              // Append to admin_actions_log for permanent audit trail
+              admin_actions_log: [...existingLog, quoteRejectionLogEntry],
               // Legacy fields for backward compatibility
               rejection_reason: quoteData.rejectionReason || null,
               wants_requote: !!quoteData.wantsRequote,
@@ -666,12 +680,68 @@ export const useDashboardActions = (
           // Toast is shown by QuoteDialog when transitioning to payment step
           // Don't show duplicate toast here
         } else {
+          // Legacy rejection flow — capture traveler info before clearing
+          let legacyRejectedTravelerInfo = null;
+          if (selectedPackage.matched_trip_id) {
+            const matchedTrip = trips.find(trip => trip.id === selectedPackage.matched_trip_id);
+            if (matchedTrip && matchedTrip.profiles) {
+              const profile = matchedTrip.profiles;
+              legacyRejectedTravelerInfo = {
+                trip_id: matchedTrip.id,
+                traveler_id: matchedTrip.user_id,
+                traveler_name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || 'Desconocido',
+                arrival_date: matchedTrip.arrival_date,
+                delivery_date: matchedTrip.delivery_date,
+                from_city: matchedTrip.from_city,
+                to_city: matchedTrip.to_city,
+              };
+            } else {
+              try {
+                const { data: tripData, error } = await supabase
+                  .rpc('get_trip_with_traveler_info', { trip_id: selectedPackage.matched_trip_id });
+                if (!error && tripData && tripData.length > 0) {
+                  const trip = tripData[0];
+                  legacyRejectedTravelerInfo = {
+                    trip_id: trip.id,
+                    traveler_id: trip.user_id,
+                    traveler_name: trip.traveler_name || 'Desconocido',
+                    arrival_date: trip.arrival_date,
+                    delivery_date: trip.delivery_date,
+                    from_city: trip.from_city,
+                    to_city: trip.to_city,
+                  };
+                }
+              } catch (e) {
+                console.warn('Could not fetch rejected traveler info (legacy flow):', e);
+              }
+            }
+          }
+
+          // Build admin_actions_log entry
+          const existingLog = Array.isArray(selectedPackage.admin_actions_log) ? selectedPackage.admin_actions_log : [];
+          const legacyLogEntry = {
+            action_type: 'quote_rejection',
+            previous_trip_id: legacyRejectedTravelerInfo?.trip_id || selectedPackage.matched_trip_id || null,
+            previous_traveler_id: legacyRejectedTravelerInfo?.traveler_id || null,
+            previous_traveler_name: legacyRejectedTravelerInfo?.traveler_name || 'Desconocido',
+            rejection_reason: 'legacy_rejection',
+            wants_requote: false,
+            timestamp: new Date().toISOString(),
+          };
+
           await updatePackage(selectedPackage.id, {
             status: 'quote_rejected',
-            quote: null, // Clear the quote when rejected
-            matched_trip_id: null, // Clear the match when quote is rejected
-            traveler_address: null, // Clear sensitive address data
-            matched_trip_dates: null, // Clear trip dates
+            quote: null,
+            matched_trip_id: null,
+            traveler_address: null,
+            matched_trip_dates: null,
+            quote_rejection: {
+              reason: 'legacy_rejection',
+              wants_requote: false,
+              rejected_at: new Date().toISOString(),
+              rejected_traveler: legacyRejectedTravelerInfo,
+            },
+            admin_actions_log: [...existingLog, legacyLogEntry],
           });
           
           toast({
