@@ -1,20 +1,28 @@
 
 
-## Corregir link del producto "estuche de kindle"
+## Crear orden de cobro para Nicte Portillo
 
-### Problema
-El link del producto "estuche de kindle" en el pedido `fa770514` esta guardado sin protocolo: `amazon.com/-/es/gp/product/B0D9YJWVZG/...`. Aunque la funcion `normalizeProductUrl` deberia agregar `https://`, el navegador esta interpretando el link como ruta relativa del preview, resultando en una URL rota.
+### Datos del viaje
+- **Viajera**: Nicte Portillo (13ce954f-0d26-4b83-8411-8c52efb5a64a)
+- **Viaje**: Houston a Guatemala City (662b8f5b-145d-4de4-bd75-2bd640a65b41)
+- **Monto acumulado**: Q280.00 (3 paquetes entregados: Mittens Q80, Whoop Band Q130, Vestido Q70)
 
-### Solucion
-Actualizar el campo `products_data` del paquete para corregir el `itemLink` del segundo producto, agregandole `https://www.` al inicio.
+### Datos bancarios (de la imagen)
+- **Titular**: PORTILLO ESCOBAR NICTE ALEXANDRA
+- **Banco**: Banco Industrial
+- **Numero de cuenta**: 0142077360
+- **Tipo de cuenta**: Monetaria
 
-### Detalle tecnico
-- **Tabla**: `packages`
-- **ID**: `fa770514-d585-46be-882d-04b5e70c404b`
-- **Campo**: `products_data[1].itemLink`
-- **Valor actual**: `amazon.com/-/es/gp/product/B0D9YJWVZG/ref=ox_sc_act_title_2?smid=A15WS6LMRQ88GU&psc=1`
-- **Valor corregido**: `https://www.amazon.com/-/es/gp/product/B0D9YJWVZG/ref=ox_sc_act_title_2?smid=A15WS6LMRQ88GU&psc=1`
+### Accion
+Insertar un registro en la tabla `payment_orders` con:
+- `traveler_id`: 13ce954f-0d26-4b83-8411-8c52efb5a64a
+- `trip_id`: 662b8f5b-145d-4de4-bd75-2bd640a65b41
+- `amount`: 280
+- `bank_name`: Banco Industrial
+- `bank_account_holder`: PORTILLO ESCOBAR NICTE ALEXANDRA
+- `bank_account_number`: 0142077360
+- `bank_account_type`: monetaria
+- `status`: pending
 
-Se usara una migracion SQL con `jsonb_set` para actualizar solo ese elemento del arreglo JSON sin afectar los demas productos.
+Tambien actualizar el campo `payment_order_created` a `true` en `trip_payment_accumulator` para el registro correspondiente.
 
-Adicionalmente, se revisara que la funcion `normalizeProductUrl` se este aplicando correctamente en todos los lugares donde se renderizan links de productos, para prevenir este problema en el futuro.
