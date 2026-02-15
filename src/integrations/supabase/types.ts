@@ -1164,6 +1164,7 @@ export type Database = {
           status: string
           to_city: string
           to_country: string | null
+          trip_history_log: Json | null
           updated_at: string
           user_id: string
         }
@@ -1188,6 +1189,7 @@ export type Database = {
           status?: string
           to_city: string
           to_country?: string | null
+          trip_history_log?: Json | null
           updated_at?: string
           user_id: string
         }
@@ -1212,6 +1214,7 @@ export type Database = {
           status?: string
           to_city?: string
           to_country?: string | null
+          trip_history_log?: Json | null
           updated_at?: string
           user_id?: string
         }

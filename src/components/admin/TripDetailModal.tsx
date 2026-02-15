@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Mail, Phone, Plane, Calendar, MapPin, Package, Truck, CheckCircle, XCircle, Home, ShoppingBag, Download } from "lucide-react";
+import { TripHistoryTimeline } from './TripHistoryTimeline';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { PackageLabel } from './PackageLabel';
@@ -601,6 +602,9 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
               </div>
             </CardContent>
           </Card>
+
+          {/* Trip History Timeline */}
+          <TripHistoryTimeline historyLog={trip.trip_history_log} />
 
           {/* Packages Section */}
           <Card>
