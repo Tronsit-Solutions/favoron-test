@@ -1,0 +1,1 @@
+ALTER TABLE public.trips ADD COLUMN trip_history_log jsonb DEFAULT '[]'::jsonb;

@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useCachedData } from './useCachedData';
 import { normalizeToMiddayUTC } from '@/lib/formatters';
+import { createHistoryEntry, appendTripHistoryEntry } from '@/utils/tripHistoryHelpers';
 
 export type Trip = Tables<'trips'>;
 export type TripInsert = TablesInsert<'trips'>;
@@ -44,7 +45,7 @@ export const useOptimizedTripsData = () => {
           first_day_packages, last_day_packages, delivery_method, messenger_pickup_info,
           package_receiving_address, status, created_at, updated_at, user_id,
           available_space, last_mile_delivered, rejection_reason, admin_rejection,
-          client_request_id, delivery_point_id,
+          client_request_id, delivery_point_id, trip_history_log,
           profiles (
             id,
             first_name,
@@ -123,6 +124,22 @@ export const useOptimizedTripsData = () => {
       
       // Optimistic update
       setTrips(prev => [data, ...prev]);
+
+      // Log trip creation to history
+      const entry = createHistoryEntry(
+        'trip_created',
+        user.id,
+        'Viajero',
+        {
+          from_city: data.from_city,
+          to_city: data.to_city,
+          arrival_date: data.arrival_date,
+          delivery_date: data.delivery_date,
+          available_space: data.available_space,
+          delivery_method: data.delivery_method,
+        }
+      );
+      appendTripHistoryEntry(data.id, entry);
       
       toast({
         title: "¡Éxito!",

@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { normalizeQuote, shouldRecalculateQuote, createNormalizedQuote } from '@/lib/quoteHelpers';
 import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 import { sendWhatsAppNotification } from '@/lib/whatsappNotifications';
+import { createHistoryEntry, appendTripHistoryEntry, buildEditDiff } from '@/utils/tripHistoryHelpers';
 
 export const useDashboardActions = (
   packages: any[],
@@ -1043,10 +1044,31 @@ export const useDashboardActions = (
       }
 
       await updatePackage(packageId, updateData);
+
+      // Log package assignment to trip history
+      const currentPackage = packages.find(pkg => pkg.id === packageId);
+      const adminName = currentUser?.first_name
+        ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
+        : 'Admin';
+      const shopperProfile = currentPackage?.profiles;
+      const shopperName = shopperProfile?.first_name
+        ? `${shopperProfile.first_name} ${shopperProfile.last_name || ''}`.trim()
+        : 'Shopper';
+      const historyEntry = createHistoryEntry(
+        'package_assigned',
+        currentUser?.id || null,
+        adminName,
+        {
+          package_id: packageId,
+          item_description: currentPackage?.item_description || '',
+          shopper_name: shopperName,
+          admin_tip: adminTip,
+        }
+      );
+      appendTripHistoryEntry(tripId, historyEntry);
       
       // 📱 Enviar notificación WhatsApp al viajero
       if (matchedTrip?.user_id) {
-        const currentPackage = packages.find(pkg => pkg.id === packageId);
         const destination = currentPackage?.package_destination || 'Guatemala';
         
         sendWhatsAppNotification({
@@ -1085,6 +1107,22 @@ export const useDashboardActions = (
         if (status === 'approved' || status === 'pending_approval' || status === 'rejected') {
           if (currentPackage?.matched_trip_id) {
             console.log('🔄 Admin un-matching package, clearing match data...');
+            
+            // Log package_unassigned to trip history
+            const adminName = currentUser?.first_name
+              ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
+              : 'Admin';
+            const unassignEntry = createHistoryEntry(
+              'package_unassigned',
+              currentUser?.id || null,
+              adminName,
+              {
+                package_id: id,
+                item_description: currentPackage?.item_description || '',
+                reason: 'Cambio de estado por admin',
+              }
+            );
+            appendTripHistoryEntry(currentPackage.matched_trip_id, unassignEntry);
           }
           
           // Clear all match-related data to allow fresh matching
@@ -1289,8 +1327,25 @@ export const useDashboardActions = (
           };
           updateData.rejection_reason = reason; // legacy fallback
         }
+
+        // Clear edit metadata on approval
+        if (action === 'approve') {
+          updateData.trip_history_log = undefined; // don't clear history, just approve
+        }
         
         await updateTrip(id, updateData);
+
+        // Log approval/rejection to trip history
+        const adminName = currentUser?.first_name
+          ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
+          : 'Admin';
+        const entry = createHistoryEntry(
+          action === 'approve' ? 'trip_approved' : 'trip_rejected',
+          currentUser?.id || null,
+          adminName,
+          action === 'reject' ? { reason } : {}
+        );
+        appendTripHistoryEntry(id, entry);
         
         // Refresh trips after approval/rejection to ensure UI is updated
         if (refreshTrips) {
@@ -1764,6 +1819,9 @@ export const useDashboardActions = (
         return;
       }
 
+      // Find original trip for diff
+      const originalTrip = trips.find(t => t.id === editedTripData.id);
+
       // Prepare DB data with correct field mappings
       const dbTripData = {
         from_country: editedTripData.fromCountry,
@@ -1781,8 +1839,29 @@ export const useDashboardActions = (
         status: 'pending_approval' // Always reset to pending approval after edit
       };
 
-      // Update trip in database (this automatically updates local state)
+      // Update trip in database
       await updateTrip(editedTripData.id, dbTripData);
+
+      // Log edit to trip history
+      if (originalTrip) {
+        const diff = buildEditDiff(originalTrip, dbTripData);
+        if (diff.changed_fields.length > 0) {
+          const userName = currentUser?.first_name
+            ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
+            : 'Usuario';
+          const entry = createHistoryEntry(
+            'trip_edited',
+            currentUser?.id || null,
+            userName,
+            {
+              changed_fields: diff.changed_fields,
+              previous_values: diff.previous_values,
+              new_values: diff.new_values,
+            }
+          );
+          appendTripHistoryEntry(editedTripData.id, entry);
+        }
+      }
       
       toast({
         title: "¡Viaje actualizado!",
