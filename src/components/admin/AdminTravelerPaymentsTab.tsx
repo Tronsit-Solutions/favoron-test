@@ -256,6 +256,7 @@ const AdminTravelerPaymentsTab = () => {
       ? normalizedHistorical 
       : (fallbackTripPackages.length > 0 ? fallbackTripPackages : normalizedHistorical);
     const totalCompensation = packages.reduce((sum: number, pkg: any) => sum + parseFloat(pkg.quote?.price || 0), 0);
+    const amountMismatch = totalCompensation > 0 && Math.abs(order.amount - totalCompensation) > 0.01;
 
     const handleSaveNotes = async () => {
       setSavingNotes(true);
@@ -300,7 +301,13 @@ const AdminTravelerPaymentsTab = () => {
           </TableCell>
           <TableCell className="py-3">
             <div className="text-right">
-              <div className="font-bold text-lg text-green-600">Q{order.amount}</div>
+              <div className={`font-bold text-lg flex items-center justify-end gap-1 ${amountMismatch ? 'text-red-600' : 'text-green-600'}`}>
+                {amountMismatch && <AlertCircle className="h-4 w-4" />}
+                Q{order.amount}
+              </div>
+              {amountMismatch && (
+                <div className="text-xs text-red-500">Total comp: Q{totalCompensation.toFixed(2)}</div>
+              )}
               <div className="text-xs text-muted-foreground">GTQ</div>
             </div>
           </TableCell>
