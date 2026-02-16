@@ -1,23 +1,52 @@
 
 
-## Agregar preview de imagen adjunta en el modal de Completar Pago
+## Desglosar confirmacion de oficina por producto individual
 
-Cuando el admin adjunta una foto de comprobante de pago, actualmente solo se muestra el nombre del archivo. Se agregara una miniatura (thumbnail) de la imagen para que el admin pueda verificar visualmente que adjunto el archivo correcto antes de confirmar.
+### Problema actual
+El indicador de confirmacion de oficina (check verde / reloj naranja) se muestra a nivel de **paquete** en el header. Cuando un paquete tiene multiples productos, no se puede ver cual producto fue recibido y cual no.
 
-### Cambio en `src/components/admin/AdminTravelerPaymentsTab.tsx`
+### Solucion
 
-**Reemplazar la seccion de archivo adjunto (lineas 833-838)** que actualmente muestra solo el nombre del archivo con un preview visual:
+**Archivo**: `src/components/admin/AdminTravelerPaymentsTab.tsx`
 
-- Usar `URL.createObjectURL(receiptPhoto)` para generar una URL temporal del archivo seleccionado
-- Mostrar un thumbnail de la imagen (max 200px de alto, bordes redondeados)
-- Mantener el nombre del archivo debajo de la imagen
-- Hacer click en la imagen para verla en tamano completo (usando el ImageViewerModal que ya existe en el componente)
-- Limpiar el object URL cuando cambie la foto para evitar memory leaks (con `URL.revokeObjectURL`)
+### Cambios
 
-### Resultado esperado
+**1. Mover el check al nivel de producto individual (multi-producto)**
 
-Despues de adjuntar una foto, el admin vera:
-1. Boton "Cambiar foto" + boton X para eliminar
-2. Miniatura de la imagen adjuntada (clickeable para ver en grande)
-3. Nombre del archivo con check verde
+Para paquetes con multiples productos (lineas 664-681), agregar un checkbox/icono a la **izquierda** de cada producto individual usando los campos `receivedAtOffice` y `notArrived` del `products_data`:
+
+- `receivedAtOffice === true` -> CheckCircle verde
+- `notArrived === true` -> X rojo  
+- Ninguno de los dos -> Clock naranja (pendiente)
+
+Eliminar el icono de confirmacion del header del paquete (lineas 651-661) ya que ahora se muestra por producto.
+
+**2. Para paquetes de un solo producto (lineas 707-730)**
+
+Mover el icono de confirmacion a la **izquierda** de la fila, antes del icono de Package, para mantener alineacion vertical consistente con los multi-producto.
+
+**3. Layout actualizado por producto**
+
+Cada fila de producto tendra esta estructura:
+```
+[CheckIcon] • Nombre del producto                    Q20.00
+```
+
+El icono de check estara alineado a la izquierda, antes del bullet point, reemplazando la posicion actual (que estaba a la derecha junto al nombre).
+
+### Resultado visual esperado
+
+Para un paquete con 4 productos:
+```
+[Package] Pedido de 4 productos: Creatina, Vitaminas...
+  [check] • Creatina                                 Q20.00
+  [check] • Vitaminas                                Q25.00
+  [reloj] • Vitaminas                                Q20.00
+  [reloj] • libro                                    Q10.00
+```
+
+Para un paquete simple:
+```
+[check] [Package] Nombre del producto                Q120.00
+```
 
