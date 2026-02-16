@@ -85,7 +85,6 @@ Deno.serve(async (req) => {
       .select('id, quote, status, office_delivery, incident_flag, products_data, admin_assigned_tip')
       .eq('matched_trip_id', tripId)
       .in('status', ['completed', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'])
-      .not('quote', 'is', null)
       .or('incident_flag.is.null,incident_flag.eq.false');
 
     if (packagesError) {
