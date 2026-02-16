@@ -1,36 +1,57 @@
 
-## Corregir logica de seleccion de paquetes en ordenes de pago
 
-### Problema
-La logica actual en `CompactOrderRow` (linea 255) elige entre `historical_packages` (snapshot al crear la orden) y los paquetes actuales del viaje (fallback). El criterio es: si el fallback tiene MAS paquetes, lo usa. Esto causa que ordenes completadas/rechazadas muestren paquetes que no estaban incluidos en el monto original, generando discrepancias falsas (ej: orden de Q370 muestra Q630 porque ahora hay mas paquetes completados).
+## Recalcular acumulador al momento de crear la orden de pago
 
-### Solucion
-Cambiar la logica para que ordenes ya procesadas (`completed` o `rejected`) SIEMPRE usen `historical_packages`, ya que ese es el snapshot exacto de lo que se pago. El fallback a paquetes actuales solo debe usarse para ordenes `pending` cuando el snapshot historico esta vacio o incompleto.
+### Problema raiz
+Cuando el viajero crea su orden de cobro, el sistema usa el monto del acumulador (`tripPayment.accumulated_amount`) que pudo haberse calculado dias antes, cuando no todos los paquetes estaban entregados. Los paquetes que se completan despues no actualizan el acumulador automaticamente.
 
-### Cambio
+### Solucion propuesta
+Recalcular el acumulador **justo antes** de crear la orden de pago. Esto garantiza que el monto siempre refleje todos los paquetes entregados al momento de la solicitud.
 
-**Archivo:** `src/components/admin/AdminTravelerPaymentsTab.tsx`
+### Cambios
 
-Reemplazar la logica de seleccion de paquetes (lineas 254-257):
+**1. Frontend: `src/hooks/useTripPayments.tsx`**
 
+En la funcion `createPaymentOrder`, antes de llamar al RPC `create_payment_order_with_snapshot`:
+- Llamar a `createOrUpdateTripPaymentAccumulator(tripId, user.id)` para recalcular el acumulador
+- Luego volver a leer el acumulador actualizado de la base de datos
+- Usar el monto recalculado (no el valor viejo de `tripPayment.accumulated_amount`)
+
+```text
+// Flujo actual:
+1. Tomar tripPayment.accumulated_amount (puede estar desactualizado)
+2. Crear orden de pago con ese monto
+
+// Flujo corregido:
+1. Recalcular acumulador con createOrUpdateTripPaymentAccumulator()
+2. Leer el acumulador actualizado de la base de datos
+3. Crear orden de pago con el monto fresco
 ```
-// Logica actual (incorrecta para ordenes procesadas):
-const packages = normalizedHistorical.length >= fallbackTripPackages.length ...
 
-// Logica corregida:
-const isProcessed = order.status === 'completed' || order.status === 'rejected';
-const packages = isProcessed && normalizedHistorical.length > 0
-  ? normalizedHistorical
-  : (normalizedHistorical.length >= fallbackTripPackages.length && normalizedHistorical.length > 0
-    ? normalizedHistorical
-    : (fallbackTripPackages.length > 0 ? fallbackTripPackages : normalizedHistorical));
+**2. SQL: `create_payment_order_with_snapshot`**
+
+Agregar la captura de `admin_assigned_tip` en el snapshot de `historical_packages` para que el snapshot contenga toda la informacion necesaria para calculos futuros:
+
+```text
+jsonb_build_object(
+  'package_id', p.id,
+  'item_description', p.item_description,
+  'status', p.status,
+  'quote', p.quote,
+  'products_data', p.products_data,
+  'admin_assigned_tip', p.admin_assigned_tip  -- AGREGAR
+)
 ```
 
-Esto asegura que:
-- Ordenes `completed`/`rejected`: siempre usan historical_packages (el snapshot al momento del pago)
-- Ordenes `pending`: mantienen el comportamiento actual de usar fallback si tiene mas paquetes (para mostrar datos actualizados)
+### Por que esta solucion es mejor que un trigger
+
+- **Mas simple**: No requiere un trigger complejo que se ejecute en cada cambio de estado de paquete
+- **Mas eficiente**: Solo recalcula cuando realmente importa (al crear la orden)
+- **Punto unico de verdad**: El calculo ocurre exactamente cuando se necesita, no de forma reactiva
+- **Sin carga extra**: No agrega procesamiento a cada actualizacion de paquete
 
 ### Impacto
-- Ana Quezada mostrara correctamente Q370 (los 5 paquetes del snapshot) en vez de Q630
-- La alerta roja de discrepancia desaparecera para esta orden ya que Q370 == Q370
-- Ordenes pendientes seguiran mostrando datos actuales para facilitar la revision antes del pago
+- Cualquier paquete que se complete entre la ultima recalculacion y la solicitud de pago sera incluido automaticamente
+- Los casos como los de Ana Quezada, Bruce Betancourt y Maximiliano Rodriguez no se repetiran
+- No requiere cambios en la logica de admin ni en triggers existentes
+
