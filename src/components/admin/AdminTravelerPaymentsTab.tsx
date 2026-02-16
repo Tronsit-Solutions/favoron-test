@@ -72,9 +72,11 @@ const AdminTravelerPaymentsTab = () => {
   const [packageBreakdown, setPackageBreakdown] = useState<Array<{
     id: string;
     item_description: string;
+    status?: string;
     products_data?: any;
     quote?: { price?: number };
     admin_assigned_tip?: number;
+    office_delivery?: any;
   }>>([]);
   const [packageBreakdownLoading, setPackageBreakdownLoading] = useState(false);
   const { toast } = useToast();
@@ -115,7 +117,7 @@ const AdminTravelerPaymentsTab = () => {
         
         const { data, error } = await supabase
           .from('packages')
-          .select('id, item_description, status, quote, admin_assigned_tip, products_data')
+          .select('id, item_description, status, quote, admin_assigned_tip, products_data, office_delivery')
           .eq('matched_trip_id', confirmDialog.order.trip_id)
           .in('status', eligibleStatuses)
           .order('created_at', { ascending: true });
@@ -641,7 +643,18 @@ const AdminTravelerPaymentsTab = () => {
                           {/* Header del paquete con múltiples productos */}
                           <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground px-2 py-1 bg-muted/20 rounded-t">
                             <Package className="h-3 w-3" />
-                            <span className="truncate">{pkg.item_description}</span>
+                            <span className="truncate flex-1">{pkg.item_description}</span>
+                            {(() => {
+                              const officeDelivery = pkg.office_delivery as any;
+                              const postOfficeStatuses = ['completed', 'ready_for_pickup', 'ready_for_delivery', 'out_for_delivery'];
+                              const isConfirmed = postOfficeStatuses.includes(pkg.status) || 
+                                (pkg.status === 'delivered_to_office' && officeDelivery?.admin_confirmation);
+                              const isPending = pkg.status === 'delivered_to_office' && !officeDelivery?.admin_confirmation;
+                              
+                              if (isConfirmed) return <span title="Oficina confirmó recepción"><CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0" /></span>;
+                              if (isPending) return <span title="Pendiente confirmación oficina"><Clock className="h-3.5 w-3.5 text-orange-500 flex-shrink-0" /></span>;
+                              return null;
+                            })()}
                           </div>
                           {/* Desglose de cada producto */}
                           {productsArray.filter((product: any) => !product.cancelled).map((product: any, prodIndex: number) => {
@@ -694,6 +707,17 @@ const AdminTravelerPaymentsTab = () => {
                           <span className="text-muted-foreground truncate">
                             {pkg.item_description}
                           </span>
+                          {(() => {
+                            const officeDelivery = pkg.office_delivery as any;
+                            const postOfficeStatuses = ['completed', 'ready_for_pickup', 'ready_for_delivery', 'out_for_delivery'];
+                            const isConfirmed = postOfficeStatuses.includes(pkg.status) || 
+                              (pkg.status === 'delivered_to_office' && officeDelivery?.admin_confirmation);
+                            const isPending = pkg.status === 'delivered_to_office' && !officeDelivery?.admin_confirmation;
+                            
+                            if (isConfirmed) return <span title="Oficina confirmó recepción"><CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0" /></span>;
+                            if (isPending) return <span title="Pendiente confirmación oficina"><Clock className="h-3.5 w-3.5 text-orange-500 flex-shrink-0" /></span>;
+                            return null;
+                          })()}
                         </div>
                         <span className="font-medium text-green-600 ml-2 flex-shrink-0">
                           {formatCurrency(packageTip)}
