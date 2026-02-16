@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,8 +13,11 @@ import {
   CreditCard, 
   FileText,
   CheckCircle,
-  ExternalLink
+  ExternalLink,
+  Upload
 } from 'lucide-react';
+import FavoronPaymentReceiptUpload from './FavoronPaymentReceiptUpload';
+import FavoronPaymentReceiptViewer from './FavoronPaymentReceiptViewer';
 import { formatCurrency } from '@/lib/formatters';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -31,6 +34,8 @@ const PaymentOrderDetailModal: React.FC<PaymentOrderDetailModalProps> = ({
   onClose,
   paymentOrder
 }) => {
+  const [receiptJustUploaded, setReceiptJustUploaded] = useState(false);
+
   if (!paymentOrder) return null;
 
   const trip = paymentOrder.trips;
@@ -104,32 +109,30 @@ const PaymentOrderDetailModal: React.FC<PaymentOrderDetailModalProps> = ({
                   </p>
                 </div>
               )}
-              {paymentOrder.receipt_url && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Comprobante</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={async () => {
-                      const url = paymentOrder.receipt_url as string | undefined;
-                      if (url?.startsWith('http')) {
-                        window.open(url, '_blank');
-                      } else if (url) {
-                        const { data, error } = await supabase.storage
-                          .from('payment-receipts')
-                          .createSignedUrl(url, 3600);
-                        if (!error && data?.signedUrl) {
-                          window.open(data.signedUrl, '_blank');
-                        }
-                      }
-                    }}
-                    className="mt-1"
-                  >
-                    <ExternalLink className="w-4 h-4 mr-1" />
-                    Ver
-                  </Button>
+              {(paymentOrder.receipt_url && !receiptJustUploaded) ? (
+                <div className="col-span-2 md:col-span-4">
+                  <FavoronPaymentReceiptViewer
+                    receiptUrl={paymentOrder.receipt_url}
+                    receiptFilename={paymentOrder.receipt_filename}
+                    paymentOrderId={paymentOrder.id}
+                    amount={paymentOrder.amount}
+                  />
                 </div>
-              )}
+              ) : receiptJustUploaded ? (
+                <div className="col-span-2 md:col-span-4">
+                  <div className="flex items-center gap-2 text-sm text-green-600 p-3 bg-green-50 rounded-lg">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Comprobante subido exitosamente. Cierra y abre el modal para verlo.</span>
+                  </div>
+                </div>
+              ) : paymentOrder.status === 'completed' ? (
+                <div className="col-span-2 md:col-span-4">
+                  <FavoronPaymentReceiptUpload
+                    paymentOrderId={paymentOrder.id}
+                    onUploadComplete={() => setReceiptJustUploaded(true)}
+                  />
+                </div>
+              ) : null}
             </CardContent>
           </Card>
 
