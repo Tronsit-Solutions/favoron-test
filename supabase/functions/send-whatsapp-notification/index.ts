@@ -83,6 +83,21 @@ const normalizePhoneNumber = (phone: string): string => {
   return cleaned;
 };
 
+// Validate E.164 phone number format
+const isValidE164 = (phone: string): boolean => {
+  // E.164: + followed by 7-15 digits
+  const e164Regex = /^\+[1-9]\d{6,14}$/;
+  if (!e164Regex.test(phone)) return false;
+  
+  // Additional check: US numbers (+1) must have exactly 10 digits after country code
+  if (phone.startsWith("+1") && phone.length !== 12) return false;
+  
+  // Guatemala numbers (+502) must have exactly 8 digits after country code
+  if (phone.startsWith("+502") && phone.length !== 12) return false;
+  
+  return true;
+};
+
 // Log notification to database
 const logNotification = async (
   userId: string | null,
@@ -440,6 +455,30 @@ serve(async (req) => {
 
     console.log("✅ Número autorizado para envío:", targetPhone);
 
+    // Validate E.164 format before calling Twilio
+    const normalizedTarget = normalizePhoneNumber(targetPhone);
+    if (!isValidE164(normalizedTarget)) {
+      console.error("❌ Invalid phone number format:", normalizedTarget);
+      const skipReason = `Número de teléfono con formato inválido: ${normalizedTarget}`;
+      await logNotification(
+        user_id || null,
+        normalizedTarget,
+        userFullName,
+        template_id,
+        variables || {},
+        'skipped',
+        null,
+        null,
+        null,
+        skipReason,
+        { invalid_format: true }
+      );
+      return new Response(
+        JSON.stringify({ success: true, skipped: true, reason: skipReason }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Enrich variables with user's name automatically
     const enrichedVariables: Record<string, string> = {};
     if (userFullName) {
@@ -449,7 +488,7 @@ serve(async (req) => {
     console.log("📝 Final template variables:", finalVariables);
 
     // Send the WhatsApp template message
-    const result = await sendWhatsAppTemplate(targetPhone, contentSid, finalVariables);
+    const result = await sendWhatsAppTemplate(normalizedTarget, contentSid, finalVariables);
 
     // Log the result
     await logNotification(
