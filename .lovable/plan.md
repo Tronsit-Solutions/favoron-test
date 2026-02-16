@@ -1,47 +1,27 @@
 
-## Corregir inconsistencias en el calculo de tips para ordenes de pago
+## Eliminar filtro `.not('quote', 'is', null)` de la edge function
 
 ### Problema
+La edge function `recalculate-trip-accumulator` filtra paquetes donde `quote IS NULL` (linea 88). Esto excluye paquetes que no tienen quote pero si tienen `products_data` con `adminAssignedTip` o `admin_assigned_tip` a nivel de paquete.
 
-Hay 4 lugares que calculan el monto acumulado de tips para viajeros, y solo 1 esta correcto. Los otros 3 no incluyen todos los estados post-entrega (`ready_for_pickup`, `ready_for_delivery`) y no excluyen productos cancelados.
+En el caso de Sabrina Castaneda, el paquete `218f40ad` tiene Q250 en tips de productos pero `quote: null`, por lo que se excluye del calculo y solo se acumulan Q160 en vez de Q410.
 
-### Donde esta cada calculo
+### Causa raiz
+El filtro `.not('quote', 'is', null)` era necesario cuando el unico metodo de calculo era `quote.price`. Ahora que la funcion `getActiveTipFromPackage` tiene 3 niveles de fallback (products_data -> admin_assigned_tip -> quote.price), el filtro es innecesario y contraproducente.
 
-| Lugar | Estados para sumar tips | Excluye cancelados | Correcto? |
-|---|---|---|---|
-| `useCreateTripPaymentAccumulator.tsx` (cliente) | completed, delivered_to_office, ready_for_pickup, ready_for_delivery | Si (usa `getActiveTipFromPackage`) | Si |
-| `recalculate-trip-accumulator/index.ts` (edge function) | completed, delivered_to_office | No (usa `quote.price` directo) | **No** |
-| `admin_confirm_office_delivery` (funcion SQL) | completed, delivered_to_office | No (usa `quote->>'price'` directo) | **No** |
-| `AdminTravelerPaymentsTab.tsx` (UI admin) | Todos los post-entrega | Si (usa `getActiveTipFromPackage`) | Si |
+### Cambio
 
-### Cambios necesarios
+**Archivo:** `supabase/functions/recalculate-trip-accumulator/index.ts`
 
-**1. Edge Function `recalculate-trip-accumulator/index.ts`**
+Eliminar la linea 88 (`.not('quote', 'is', null)`).
 
-- Agregar `ready_for_pickup` y `ready_for_delivery` al filtro de paquetes entregados (linea 48)
-- Agregar `ready_for_pickup` y `ready_for_delivery` al filtro de paquetes totales elegibles (linea 86)
-- Agregar `products_data` y `admin_assigned_tip` al SELECT (linea 46)
-- Replicar la logica de `getActiveTipFromPackage` inline (la edge function no puede importar utilidades del cliente):
-  - Si hay `products_data`, sumar solo `adminAssignedTip` de productos no cancelados
-  - Fallback a `admin_assigned_tip` del paquete
-  - Fallback final a `quote.price`
-- Agregar verificacion de `admin_confirmation` para `ready_for_pickup` y `ready_for_delivery` (estos estados implican confirmacion previa, asi que se cuentan directamente)
+Tambien verificar el hook del cliente `useCreateTripPaymentAccumulator.tsx` para confirmar que no tiene el mismo filtro.
 
-**2. Migracion SQL para `admin_confirm_office_delivery`**
+### Verificacion
 
-Crear nueva migracion que actualice la funcion para:
-- Agregar `ready_for_pickup` y `ready_for_delivery` a la consulta de paquetes entregados (linea 96)
-- Agregar `ready_for_pickup` y `ready_for_delivery` a la consulta de paquetes totales (linea 104)
-- Cambiar el calculo de tip para considerar productos cancelados:
-  - Si `products_data` existe y tiene productos, sumar solo `adminAssignedTip` de productos donde `cancelled` no es `true`
-  - Fallback a `admin_assigned_tip` si es mayor que 0
-  - Fallback final a `quote->>'price'`
-- Excluir paquetes con `incident_flag = true` (ya se hace en el cliente pero no en la funcion SQL)
+Despues de desplegar, ejecutar la edge function nuevamente para el viaje `51a73d73` y confirmar que devuelve:
+- `accumulatedAmount: 410`
+- `deliveredPackagesCount: 3`
 
-### Resultado esperado
-
-Todos los calculos de tips en la plataforma usaran la misma logica:
-1. Mismos estados considerados como "entregado"
-2. Mismos estados considerados como "elegible"  
-3. Exclusion consistente de productos cancelados
-4. Exclusion consistente de paquetes con incidencia
+### Impacto
+Este mismo filtro podria estar afectando a otros viajeros con paquetes sin quote pero con tips asignados via productos o admin_assigned_tip.
