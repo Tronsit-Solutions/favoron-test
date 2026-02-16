@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { createOrUpdateTripPaymentAccumulator } from '@/hooks/useCreateTripPaymentAccumulator';
 
 export interface TripPaymentAccumulator {
   id: string;
@@ -129,6 +130,34 @@ export const useTripPayments = (tripId?: string) => {
         return existingOrder.id;
       }
 
+      // 🔄 Recalcular el acumulador ANTES de crear la orden de pago
+      // Esto garantiza que el monto refleje TODOS los paquetes entregados al momento
+      console.log('🔄 Recalculando acumulador antes de crear orden de pago...');
+      await createOrUpdateTripPaymentAccumulator(tripId!, user.id);
+
+      // Leer el acumulador actualizado de la base de datos
+      const { data: freshAccumulator, error: accError } = await supabase
+        .from('trip_payment_accumulator')
+        .select('accumulated_amount')
+        .eq('trip_id', tripId)
+        .eq('traveler_id', user.id)
+        .maybeSingle();
+
+      if (accError) throw accError;
+
+      const freshAmount = freshAccumulator?.accumulated_amount ?? tripPayment.accumulated_amount;
+      console.log('💰 Monto recalculado:', freshAmount, '(anterior:', tripPayment.accumulated_amount, ')');
+
+      if (freshAmount <= 0) {
+        toast({
+          title: "Sin monto pendiente",
+          description: "No hay monto acumulado para solicitar pago",
+          variant: "destructive",
+        });
+        setIsCreating(false);
+        return;
+      }
+
       // Actualizar información bancaria del usuario
       const { error: profileError } = await supabase
         .from('user_financial_data')
@@ -149,7 +178,7 @@ export const useTripPayments = (tripId?: string) => {
         .rpc('create_payment_order_with_snapshot', {
           _traveler_id: user.id,
           _trip_id: tripId,
-          _amount: tripPayment.accumulated_amount,
+          _amount: freshAmount,
           _bank_name: bankingInfo.bank_name,
           _bank_account_holder: bankingInfo.bank_account_holder,
           _bank_account_number: bankingInfo.bank_account_number,
