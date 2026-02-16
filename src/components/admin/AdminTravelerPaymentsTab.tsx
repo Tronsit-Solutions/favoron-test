@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
-import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, XCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip, ExternalLink, Receipt } from "lucide-react";
+import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, XCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip, ExternalLink, Receipt, MessageSquare, Save } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -229,6 +229,8 @@ const AdminTravelerPaymentsTab = () => {
 
   const CompactOrderRow = ({ order }: { order: any }) => {
     const isExpanded = expandedRows.has(order.id);
+    const [editableNotes, setEditableNotes] = useState(order.notes || '');
+    const [savingNotes, setSavingNotes] = useState(false);
     
     // Parse historical_packages correctamente
     const normalizedHistorical = (() => {
@@ -255,6 +257,21 @@ const AdminTravelerPaymentsTab = () => {
       : (fallbackTripPackages.length > 0 ? fallbackTripPackages : normalizedHistorical);
     const totalCompensation = packages.reduce((sum: number, pkg: any) => sum + parseFloat(pkg.quote?.price || 0), 0);
 
+    const handleSaveNotes = async () => {
+      setSavingNotes(true);
+      try {
+        await updatePaymentOrder(order.id, { notes: editableNotes.trim() || null });
+        toast({
+          title: "Nota guardada",
+          description: "La nota se actualizó correctamente.",
+        });
+      } catch (error) {
+        console.error('Error saving notes:', error);
+      } finally {
+        setSavingNotes(false);
+      }
+    };
+
     return (
       <>
         <TableRow className="hover:bg-muted/50">
@@ -270,8 +287,11 @@ const AdminTravelerPaymentsTab = () => {
           </TableCell>
           <TableCell className="py-3">
             <div className="space-y-1">
-              <div className="font-medium text-sm">
+              <div className="font-medium text-sm flex items-center gap-1">
                 {order.profiles?.first_name} {order.profiles?.last_name}
+                {order.notes && (
+                  <span title="Tiene notas"><MessageSquare className="h-3.5 w-3.5 text-muted-foreground" /></span>
+                )}
               </div>
               <div className="text-xs text-muted-foreground">
                 {order.profiles?.email}
@@ -377,11 +397,82 @@ const AdminTravelerPaymentsTab = () => {
                     <div><strong>Número:</strong> {order.bank_account_number}</div>
                   </div>
                 </div>
+
+                {/* Notes Section */}
+                <div className="bg-white border rounded-lg p-3">
+                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Notas
+                  </h4>
+                  <Textarea
+                    value={editableNotes}
+                    onChange={(e) => setEditableNotes(e.target.value)}
+                    placeholder="Agregar nota sobre este pago..."
+                    className="min-h-[60px] text-sm"
+                  />
+                  <div className="flex justify-end mt-2">
+                    <Button
+                      size="sm"
+                      className="h-7 px-3 text-xs"
+                      onClick={handleSaveNotes}
+                      disabled={savingNotes || editableNotes === (order.notes || '')}
+                    >
+                      <Save className="h-3 w-3 mr-1" />
+                      {savingNotes ? 'Guardando...' : 'Guardar nota'}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </TableCell>
           </TableRow>
         )}
       </>
+    );
+  };
+
+  const EditableNotesSection = ({ order }: { order: any }) => {
+    const [editableNotes, setEditableNotes] = useState(order.notes || '');
+    const [savingNotes, setSavingNotes] = useState(false);
+
+    const handleSaveNotes = async () => {
+      setSavingNotes(true);
+      try {
+        await updatePaymentOrder(order.id, { notes: editableNotes.trim() || null });
+        toast({
+          title: "Nota guardada",
+          description: "La nota se actualizó correctamente.",
+        });
+      } catch (error) {
+        console.error('Error saving notes:', error);
+      } finally {
+        setSavingNotes(false);
+      }
+    };
+
+    return (
+      <div>
+        <Label className="text-sm font-medium flex items-center gap-1">
+          <MessageSquare className="h-3.5 w-3.5" />
+          Notas
+        </Label>
+        <Textarea
+          value={editableNotes}
+          onChange={(e) => setEditableNotes(e.target.value)}
+          placeholder="Agregar nota sobre este pago..."
+          className="mt-1 min-h-[60px] text-sm"
+        />
+        <div className="flex justify-end mt-2">
+          <Button
+            size="sm"
+            className="h-7 px-3 text-xs"
+            onClick={handleSaveNotes}
+            disabled={savingNotes || editableNotes === (order.notes || '')}
+          >
+            <Save className="h-3 w-3 mr-1" />
+            {savingNotes ? 'Guardando...' : 'Guardar nota'}
+          </Button>
+        </div>
+      </div>
     );
   };
 
@@ -458,14 +549,7 @@ const AdminTravelerPaymentsTab = () => {
               </div>
             )}
 
-            {order.notes && (
-              <div>
-                <Label className="text-sm font-medium">Notas</Label>
-                <div className="bg-muted/30 rounded p-3 mt-1">
-                  <p className="text-sm">{order.notes}</p>
-                </div>
-              </div>
-            )}
+            <EditableNotesSection order={order} />
 
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
