@@ -1,52 +1,35 @@
 
 
-## Desglosar confirmacion de oficina por producto individual
+## Agregar comprobante a ordenes de pago ya procesadas
 
-### Problema actual
-El indicador de confirmacion de oficina (check verde / reloj naranja) se muestra a nivel de **paquete** en el header. Cuando un paquete tiene multiples productos, no se puede ver cual producto fue recibido y cual no.
+### Problema
+Cuando una orden de pago ya fue procesada (status `completed`) sin adjuntar comprobante, no hay manera de agregarlo despues desde el modal de detalle.
 
 ### Solucion
 
-**Archivo**: `src/components/admin/AdminTravelerPaymentsTab.tsx`
+**Archivo**: `src/components/admin/PaymentOrderDetailModal.tsx`
 
-### Cambios
+**1. Agregar imports necesarios**
+- Importar `useState` de React
+- Importar `FavoronPaymentReceiptUpload` desde `./FavoronPaymentReceiptUpload`
+- Importar `FavoronPaymentReceiptViewer` desde `./FavoronPaymentReceiptViewer`
+- Importar `Upload` de lucide-react
 
-**1. Mover el check al nivel de producto individual (multi-producto)**
+**2. Agregar estado local para refresh**
+- `receiptJustUploaded`: booleano para forzar re-render del modal despues de subir un comprobante, mostrando el viewer en lugar del uploader sin cerrar el modal.
 
-Para paquetes con multiples productos (lineas 664-681), agregar un checkbox/icono a la **izquierda** de cada producto individual usando los campos `receivedAtOffice` y `notArrived` del `products_data`:
+**3. Agregar seccion de comprobante al modal (despues de "Estado de la Orden")**
 
-- `receivedAtOffice === true` -> CheckCircle verde
-- `notArrived === true` -> X rojo  
-- Ninguno de los dos -> Clock naranja (pendiente)
+Dentro de la Card de "Estado de la Orden", reemplazar la seccion actual que solo muestra un boton "Ver" cuando existe `receipt_url` con una logica mas completa:
 
-Eliminar el icono de confirmacion del header del paquete (lineas 651-661) ya que ahora se muestra por producto.
+- **Si hay `receipt_url`**: Mostrar el `FavoronPaymentReceiptViewer` existente para ver/descargar el comprobante
+- **Si NO hay `receipt_url` y el status es `completed`**: Mostrar el componente `FavoronPaymentReceiptUpload` para que el admin pueda subir el comprobante que se le olvido
 
-**2. Para paquetes de un solo producto (lineas 707-730)**
+El `onUploadComplete` del uploader activara `receiptJustUploaded` para refrescar la vista y mostrar el viewer.
 
-Mover el icono de confirmacion a la **izquierda** de la fila, antes del icono de Package, para mantener alineacion vertical consistente con los multi-producto.
+### Resultado esperado
 
-**3. Layout actualizado por producto**
-
-Cada fila de producto tendra esta estructura:
-```
-[CheckIcon] • Nombre del producto                    Q20.00
-```
-
-El icono de check estara alineado a la izquierda, antes del bullet point, reemplazando la posicion actual (que estaba a la derecha junto al nombre).
-
-### Resultado visual esperado
-
-Para un paquete con 4 productos:
-```
-[Package] Pedido de 4 productos: Creatina, Vitaminas...
-  [check] • Creatina                                 Q20.00
-  [check] • Vitaminas                                Q25.00
-  [reloj] • Vitaminas                                Q20.00
-  [reloj] • libro                                    Q10.00
-```
-
-Para un paquete simple:
-```
-[check] [Package] Nombre del producto                Q120.00
-```
-
+En el modal de detalle de ordenes procesadas:
+- Si ya tiene comprobante: se ve el viewer con opciones de ver/descargar
+- Si no tiene comprobante: se muestra el formulario de subida con el texto "Subir Comprobante de Pago de Favoron"
+- Despues de subir: se muestra automaticamente el viewer sin cerrar el modal
