@@ -1,38 +1,36 @@
 
 
-## Agregar campo de comentarios para ordenes de pago
+## Marcar en rojo cuando el monto no coincide con el total de compensaciones
 
-### Contexto
-La tabla `payment_orders` ya tiene un campo `notes` y se puede agregar una nota al completar/rechazar un pago. Sin embargo, no hay forma de ver ni editar notas desde la tabla principal ni desde el modal de detalles (el de "Ver") una vez creada la orden.
+### Problema
+Actualmente, el monto de la orden de pago (`order.amount`) siempre se muestra en verde, aunque no coincida con la suma real de compensaciones de los paquetes del viaje. En el ejemplo de Jessica Borrayo, el monto es Q250 pero el total de compensaciones es Q370.
 
-### Cambios
+### Cambio
 
-**1. Tabla de ordenes - mostrar notas existentes en la fila expandida**
-- En `AdminTravelerPaymentsTab.tsx`, dentro del componente `CompactOrderRow`, agregar una seccion en el area expandida que muestre las notas actuales si existen.
-- Agregar un campo de texto editable (Textarea) con un boton "Guardar" para que el admin pueda agregar o editar notas directamente desde la fila expandida, sin necesidad de abrir un modal.
+**Archivo:** `src/components/admin/AdminTravelerPaymentsTab.tsx`
 
-**2. Modal de detalle ("Ver") - hacer las notas editables**
-- En el `OrderDetailModal` dentro del mismo archivo, cambiar la seccion de notas de solo lectura a editable.
-- Agregar un Textarea con un boton para guardar cambios en las notas.
-- Mostrar la seccion de notas siempre (no solo cuando ya existen notas).
+1. **Comparar `order.amount` con `totalCompensation`** dentro de `CompactOrderRow`. Si no coinciden, mostrar el monto en rojo en lugar de verde.
 
-**3. Logica de guardado**
-- Usar la funcion `updatePaymentOrder` que ya existe en el hook `usePaymentOrders` para actualizar el campo `notes`.
-- Mostrar un toast de confirmacion al guardar.
-
-### Archivos a modificar
-- `src/components/admin/AdminTravelerPaymentsTab.tsx`: Agregar notas editables en la fila expandida y en el modal de detalle.
-
-### Detalles tecnicos
-
-En `CompactOrderRow` (fila expandida), despues de la seccion de "Bank Details", agregar:
+2. **Mover el calculo de `totalCompensation` antes del return** (ya esta asi) y agregar una variable `amountMismatch`:
 ```text
-- Textarea con el valor actual de order.notes
-- Boton "Guardar nota" que llame updatePaymentOrder(order.id, { notes: newNotes })
-- Indicador visual si ya hay notas (icono de mensaje en la fila colapsada)
+const amountMismatch = totalCompensation > 0 && Math.abs(order.amount - totalCompensation) > 0.01;
 ```
 
-En `OrderDetailModal`, reemplazar el bloque de notas de solo lectura por un Textarea editable con boton de guardar.
+3. **Cambiar el color del monto** en la celda de la tabla (linea ~303):
+   - Si `amountMismatch` es true: clase `text-red-600` en lugar de `text-green-600`
+   - Agregar un tooltip o icono de alerta indicando la discrepancia
 
-No se requieren cambios en la base de datos ya que el campo `notes` ya existe en la tabla `payment_orders`.
+4. **Tambien marcar el total en la seccion expandida** para que sea evidente la diferencia entre ambos montos.
+
+### Detalle tecnico
+
+- En la celda del monto (linea 301-305), cambiar la clase condicionalmente:
+  ```text
+  className={`font-bold text-lg ${amountMismatch ? 'text-red-600' : 'text-green-600'}`}
+  ```
+- Agregar un icono `AlertCircle` junto al monto cuando hay discrepancia
+- Nota: El calculo de `totalCompensation` en la linea 258 usa `pkg.quote?.price` del `historical_packages`. Esto es correcto para comparar contra el monto snapshot de la orden. No se debe cambiar a `getActiveTipFromPackage` aqui porque los historical_packages son datos guardados al momento de crear la orden.
+
+### Archivos a modificar
+- `src/components/admin/AdminTravelerPaymentsTab.tsx`
 
