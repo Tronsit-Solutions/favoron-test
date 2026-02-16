@@ -51,116 +51,95 @@ const TermsAndConditions = () => {
           </div>
 
           <div className="grid gap-6 sm:gap-8">
-            {/* Términos Generales de Uso */}
+            {/* 1. Uso General de la Plataforma */}
             <Card className="border-l-4 border-l-blue-500">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <FileText className="h-6 w-6 text-blue-500" />
-                  📘 Términos Generales de Uso
+                  <Users className="h-6 w-6 text-blue-500" />
+                  📘 1. Uso General de la Plataforma
                 </CardTitle>
               </CardHeader>
-              <CardContent className="prose prose-gray max-w-none space-y-4">
-                <p className="text-gray-700 leading-relaxed">
-                  Al usar Favorón, aceptas estos términos. Si no estás de acuerdo, no uses el servicio.
-                </p>
-                
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">¿Qué es Favorón?</h4>
-                    <p className="text-gray-700">Es una plataforma que conecta a personas que quieren enviar cosas (shoppers) con personas que viajan (viajeros) y pueden llevar esos paquetes en su equipaje.</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">¿Quién puede usar Favorón?</h4>
-                    <p className="text-gray-700">Cualquier persona mayor de edad que proporcione información real y cumpla con las leyes del país de origen y destino.</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Datos personales</h4>
-                    <p className="text-gray-700">Usamos tus datos solo para coordinar entregas. Nunca los compartimos con terceros sin tu permiso.</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Buen trato</h4>
-                    <p className="text-gray-700">Esperamos respeto y buena comunicación entre usuarios. Si alguien rompe las reglas, Favorón puede suspender su cuenta.</p>
-                  </div>
-                  
-                  
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Cambios</h4>
-                    <p className="text-gray-700">Podemos modificar estos términos en cualquier momento. Si lo hacemos, te avisaremos.</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Riesgos</h4>
-                    <p className="text-gray-700">Aunque hacemos todo lo posible para que todo salga bien, Favorón es una plataforma colaborativa y pueden surgir imprevistos. Consulta nuestras garantías más abajo.</p>
-                  </div>
-                </div>
+              <CardContent className="prose prose-gray max-w-none">
+                <ul className="space-y-3 text-gray-700">
+                  <li><strong>Información verídica:</strong> Todos los usuarios deben crear una cuenta con información personal verídica.</li>
+                  <li><strong>Solo envíos personales:</strong> Favorón solo permite envíos personales y no comerciales.</li>
+                  <li><strong>Papel de intermediario de pagos:</strong> Favorón actúa como intermediario de pagos: cuando el shopper realiza un pago, Favorón recibe el dinero en nombre del viajero. Solo el monto correspondiente al servicio de Favorón constituye un ingreso propio de Favorón. El resto se transfiere al viajero.</li>
+                  <li><strong>IVA:</strong> En consecuencia, Favorón solo cobrará IVA sobre la comisión que le corresponde por facilitar el servicio, y no sobre el monto total pagado por el shopper.</li>
+                  <li><strong>Cumplimiento legal:</strong> Es responsabilidad del usuario cumplir con las leyes aduaneras y normativas locales (incluyendo la regulación CAUCA).</li>
+                  <li><strong>Prohibición de evasión del sistema:</strong> No está permitido realizar acuerdos por fuera de la plataforma para evitar el pago de la comisión de Favorón. Si se detecta este comportamiento, Favorón podrá suspender o bloquear la cuenta del usuario involucrado.</li>
+                  <li><strong>Derecho de rechazo:</strong> Favorón se reserva el derecho de rechazar usuarios, viajes o pedidos que no cumplan con las políticas internas.</li>
+                </ul>
               </CardContent>
             </Card>
 
-            {/* Términos para Shoppers */}
+            {/* 2. Para Shoppers */}
             <Card className="border-l-4 border-l-green-500">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <Package className="h-6 w-6 text-green-500" />
-                  📦 Términos para Shoppers (quienes hacen pedidos)
+                  📦 2. Para Shoppers (quienes piden productos)
                 </CardTitle>
               </CardHeader>
               <CardContent className="prose prose-gray max-w-none">
                 <ul className="space-y-3 text-gray-700">
-                  <li><strong>Tiempos de entrega estimados:</strong> Pueden variar. No garantizamos fechas exactas, pero facilitamos la entrega.</li>
-                  <li><strong>Garantía por robo:</strong> Si un viajero roba el paquete, Favorón reembolsa el 100% del valor, una vez validado el caso.</li>
-                  <li><strong>Pérdida de equipaje:</strong> Si la aerolínea pierde el equipaje del viajero, Favorón reembolsa el valor del paquete y el costo del envío.</li>
-                  <li><strong>Retrasos en la entrega al viajero:</strong> Si el paquete no llega a tiempo al viajero antes de su viaje, el shopper asume ese riesgo.</li>
-                  <li><strong>Impuestos y tributos:</strong> Si el viajero debe pagar impuestos o gastos de aduana, ese costo se traslada al shopper.</li>
-                  <li><strong>Autenticidad de la compra:</strong> Solo se aceptan compras en tiendas online reconocidas. No se aceptan artículos sin número de seguimiento ni productos prohibidos.</li>
-                  <li><strong>Entrega segura:</strong> Los paquetes deben ser enviados a la oficina de Favorón o al lugar autorizado.</li>
-                  <li><strong>Verificación del paquete:</strong> La garantía aplica solo si el viajero confirma que recibió el paquete.</li>
-                  <li><strong>Responsabilidad legal:</strong> El shopper debe respetar las regulaciones aduaneras, incluyendo el límite de USD 500 por paquete según CAUCA.</li>
+                  <li><strong>Solo compras online:</strong> Solo se aceptan productos comprados en tiendas online reconocidas (ej. Amazon, Zara, Apple). No se permiten artículos prohibidos ni sin número de seguimiento.</li>
+                  <li><strong>Confirmación y seguimiento:</strong> El shopper debe enviar el comprobante de compra y número de seguimiento una vez realizada la compra.</li>
+                  <li><strong>Tiempos de entrega:</strong> Las fechas son estimadas. No se garantizan entregas exactas, pero Favorón facilitará el proceso.</li>
+                  <li><strong>Entrega segura:</strong> Los paquetes deben enviarse a la oficina de Favorón o a un lugar autorizado previamente acordado.</li>
+                  <li><strong>Costes adicionales:</strong> Todo impuesto, tributo o gasto aduanero deberá ser cubierto por el shopper. Si el viajero incurre en estos pagos, el costo será trasladado al shopper.</li>
+                  <li><strong>Retrasos en la entrega:</strong> Cada pedido tiene una fecha límite de llegada pactada. Si el paquete llega más tarde a la dirección del viajero, Favorón no se hace responsable por daños, pérdidas, vencimientos o inconvenientes derivados. Si esto ocurre, Favorón podrá ayudar a recuperarlo, pero pueden aplicarse cargos por gestión, recuperación o nuevo envío.</li>
+                  <li><strong>Cobertura por pérdida o robo:</strong>
+                    <ul className="ml-4 mt-2 space-y-1 text-sm text-gray-600">
+                      <li>• Si el paquete es robado por el viajero, Favorón reembolsa el 100% del valor (una vez validado el caso).</li>
+                      <li>• Si la aerolínea pierde la maleta, se reembolsa el valor del paquete, pero no el costo del favorón.</li>
+                    </ul>
+                  </li>
+                  <li><strong>Garantía limitada:</strong> Solo aplica si el viajero confirma que recibió el paquete. No cubre casos en los que el shopper nunca realizó la compra.</li>
+                  <li><strong>Cancelaciones y reembolsos:</strong>
+                    <ul className="ml-4 mt-2 space-y-1 text-sm text-gray-600">
+                      <li>• Si el pedido no llega o se cancela antes de 72 horas de la fecha de salida, se devuelve el 50% de la cotización.</li>
+                      <li>• Si el paquete difiere considerablemente de la descripción proporcionada, Favorón podrá ajustar la cotización.</li>
+                    </ul>
+                  </li>
                 </ul>
               </CardContent>
             </Card>
 
-            {/* Términos para Viajeros */}
+            {/* 3. Para Viajeros */}
             <Card className="border-l-4 border-l-purple-500">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <Plane className="h-6 w-6 text-purple-500" />
-                  ✈️ Términos para Viajeros
+                  ✈️ 3. Para Viajeros (quienes traen paquetes)
                 </CardTitle>
               </CardHeader>
               <CardContent className="prose prose-gray max-w-none">
                 <ul className="space-y-3 text-gray-700">
-                  <li><strong>Verificación de identidad:</strong> Todos los viajeros deben verificar su identidad.</li>
-                  <li><strong>Recepción del paquete:</strong> El viajero debe confirmar que recibió el paquete. Si no lo recibe, Favorón no lo cubre.</li>
-                  <li><strong>Responsabilidad durante el viaje:</strong> El viajero debe cuidar el paquete. Si se pierde por negligencia, deberá reembolsar su valor.</li>
-                  <li><strong>Entrega en destino:</strong> El viajero debe entregar el paquete personalmente en la oficina de Favorón o punto acordado.</li>
-                  <li><strong>Contenido del paquete:</strong> Está prohibido transportar artículos ilegales, peligrosos o no declarados correctamente.</li>
-                  <li><strong>Declaración en aduanas:</strong> El viajero es responsable de cualquier declaración necesaria. Favorón puede dar apoyo, pero no se hace responsable.</li>
-                  <li><strong>Gastos extra:</strong> Si el hotel cobra por recibir el paquete, ese costo debe incluirse en la cotización del viajero al shopper.</li>
-                  <li><strong>Pérdida de equipaje:</strong> Si la aerolínea pierde el equipaje, Favorón se hace cargo del reembolso al shopper. El viajero no será penalizado si esto se demuestra.</li>
+                  <li><strong>Cumplimiento legal:</strong> El viajero es responsable de cumplir con todas las leyes aduaneras y normativas vigentes del país de salida y destino.</li>
+                  <li><strong>Requisitos para traer paquetes:</strong> Solo se deben aceptar productos de tiendas online reconocidas. El paquete debe entregarse en la oficina de Favorón, salvo que se acuerde otra ubicación.</li>
+                  <li><strong>Recepción del paquete:</strong> El viajero puede recibir los paquetes en una dirección de su elección (hotel, Airbnb, casa). Si hay costos asociados, deben incluirse en la cotización.</li>
+                  <li><strong>Responsabilidad:</strong> El viajero debe entregar el paquete en buen estado. En caso de daño o pérdida por negligencia, será responsable.</li>
+                  <li><strong>Deducción por daños:</strong> Si el paquete llega dañado por culpa del viajero, se podrá descontar el importe correspondiente de la propina (tip).</li>
+                  <li><strong>Prohibiciones:</strong> No se aceptan paquetes con dinero en efectivo, artículos prohibidos, sin tracking o ilegales.</li>
+                  <li><strong>Sanciones internas por incumplimiento grave:</strong> Si un viajero comete una falta grave como el robo de un paquete, Favorón podrá restringir su acceso a la plataforma y conservar su información en una lista interna de personas no autorizadas, con el fin de proteger a otros usuarios. Esta medida será confidencial y se gestionará conforme a las leyes de protección de datos aplicables.</li>
                 </ul>
               </CardContent>
             </Card>
 
-            {/* Limitaciones de Responsabilidad */}
+            {/* 4. Limitaciones de Responsabilidad */}
             <Card className="border-l-4 border-l-amber-500">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
-                  <AlertTriangle className="h-6 w-6 text-amber-500" />
-                  ⚖️ Limitaciones de Responsabilidad
+                  <Shield className="h-6 w-6 text-amber-500" />
+                  ⚖️ 4. Limitaciones de Responsabilidad
                 </CardTitle>
               </CardHeader>
               <CardContent className="prose prose-gray max-w-none">
                 <ul className="space-y-3 text-gray-700">
-                  <li>Favorón actúa solo como intermediario entre shoppers y viajeros.</li>
-                  <li>No somos responsables por paquetes no entregados a tiempo al viajero.</li>
-                  <li>No garantizamos el éxito de todos los envíos, pero ofrecemos garantías si se siguen nuestros procesos.</li>
-                  <li>No asumimos responsabilidad por problemas causados por terceros como aerolíneas, aduanas o servicios de mensajería.</li>
-                  <li>La garantía aplica solo si se respetan nuestras políticas, incluyendo el envío y entrega autorizados.</li>
-                  <li>El contenido del paquete es responsabilidad exclusiva del shopper y viajero.</li>
+                  <li><strong>Papel de intermediario:</strong> Favorón no es una empresa de transporte ni courier. Solo actúa como intermediario.</li>
+                  <li><strong>Problemas ajenos:</strong> No somos responsables por retrasos o problemas ajenos (aerolíneas, aduanas, etc.), aunque ayudaremos a resolverlos.</li>
+                  <li><strong>Retrasos y perjuicios:</strong> Si un paquete llega tarde al viajero, Favorón no se hace responsable por pérdidas, vencimientos o perjuicios derivados.</li>
+                  <li><strong>Responsabilidad limitada:</strong> La responsabilidad de Favorón se limita al valor declarado y comprobable del producto.</li>
                 </ul>
               </CardContent>
             </Card>
