@@ -251,10 +251,13 @@ const AdminTravelerPaymentsTab = () => {
       eligibleStatuses.includes(pkg.status)
     );
     
-    // Usar fallback si historical_packages está incompleto (menos paquetes que el actual)
-    const packages = normalizedHistorical.length >= fallbackTripPackages.length && normalizedHistorical.length > 0
-      ? normalizedHistorical 
-      : (fallbackTripPackages.length > 0 ? fallbackTripPackages : normalizedHistorical);
+    // Órdenes procesadas SIEMPRE usan historical_packages (snapshot al momento del pago)
+    const isProcessed = order.status === 'completed' || order.status === 'rejected';
+    const packages = isProcessed && normalizedHistorical.length > 0
+      ? normalizedHistorical
+      : (normalizedHistorical.length >= fallbackTripPackages.length && normalizedHistorical.length > 0
+        ? normalizedHistorical
+        : (fallbackTripPackages.length > 0 ? fallbackTripPackages : normalizedHistorical));
     const totalCompensation = packages.reduce((sum: number, pkg: any) => sum + parseFloat(pkg.quote?.price || 0), 0);
     const amountMismatch = totalCompensation > 0 && Math.abs(order.amount - totalCompensation) > 0.01;
 
