@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getActiveTipFromPackage } from '@/utils/tipHelpers';
 
 export const createOrUpdateTripPaymentAccumulator = async (tripId: string, travelerId: string) => {
   try {
@@ -7,7 +8,7 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
     // Excluir paquetes con incidencia del conteo de entregados
     const { data: completedPackages, error: packagesError } = await supabase
       .from('packages')
-      .select('id, quote, status, office_delivery, admin_assigned_tip, incident_flag')
+      .select('id, quote, status, office_delivery, admin_assigned_tip, incident_flag, products_data')
       .eq('matched_trip_id', tripId)
       .in('status', ['completed', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'])
       .or('incident_flag.is.null,incident_flag.eq.false');
@@ -33,12 +34,11 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
       
       deliveredEligibleCount += 1;
       
-      // Prioridad: admin_assigned_tip > quote.price
-      const tip = Number(pkg.admin_assigned_tip) || Number(pkg.quote?.price ?? 0);
+      // Use getActiveTipFromPackage to exclude cancelled products
+      const tip = getActiveTipFromPackage(pkg);
       if (tip > 0) {
         accumulatedAmount += tip;
-        console.log('✅ Package counted:', pkg.id, 'status:', pkg.status, 'tip:', tip, 
-          'source:', pkg.admin_assigned_tip ? 'admin_assigned_tip' : 'quote.price');
+        console.log('✅ Package counted:', pkg.id, 'status:', pkg.status, 'tip:', tip);
       } else {
         console.log('⚠️ Package has no tip:', pkg.id, 'status:', pkg.status);
       }

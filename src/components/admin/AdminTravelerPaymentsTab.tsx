@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/utils/priceHelpers";
 import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
+import { getActiveTipFromPackage } from "@/utils/tipHelpers";
 
 type PaymentOrderWithDetails = {
   id: string;
@@ -643,7 +644,7 @@ const AdminTravelerPaymentsTab = () => {
                             <span className="truncate">{pkg.item_description}</span>
                           </div>
                           {/* Desglose de cada producto */}
-                          {productsArray.map((product: any, prodIndex: number) => {
+                          {productsArray.filter((product: any) => !product.cancelled).map((product: any, prodIndex: number) => {
                             const productTip = product.adminAssignedTip || 0;
                             const productDesc = product.itemDescription || product.item_description || product.description || `Producto ${prodIndex + 1}`;
                             
@@ -661,12 +662,30 @@ const AdminTravelerPaymentsTab = () => {
                               </div>
                             );
                           })}
+                          {/* Show cancelled products with strikethrough */}
+                          {productsArray.filter((product: any) => product.cancelled).map((product: any, prodIndex: number) => {
+                            const productDesc = product.itemDescription || product.item_description || product.description || `Producto ${prodIndex + 1}`;
+                            return (
+                              <div key={`${pkg.id}-cancelled-${prodIndex}`} className="flex justify-between items-center text-xs py-1 px-2 pl-6 bg-red-50/50 rounded border-b border-muted/20 last:border-b-0 opacity-60">
+                                <div className="flex items-center gap-1 flex-1 min-w-0">
+                                  <span className="text-muted-foreground/60 mr-1">•</span>
+                                  <span className="text-muted-foreground truncate line-through">
+                                    {productDesc}
+                                  </span>
+                                  <Badge variant="destructive" className="text-[10px] h-4 px-1 ml-1">cancelado</Badge>
+                                </div>
+                                <span className="font-medium text-muted-foreground line-through ml-2 flex-shrink-0">
+                                  {formatCurrency(product.adminAssignedTip || 0)}
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
                       );
                     }
                     
                     // Si es un solo producto o no hay products_data, mostrar como antes
-                    const packageTip = pkg.admin_assigned_tip || pkg.quote?.price || 0;
+                    const packageTip = getActiveTipFromPackage(pkg);
                     
                     return (
                       <div key={pkg.id || index} className="flex justify-between items-center text-xs py-1 px-2 bg-white/50 rounded border-b border-muted/20 last:border-b-0">
