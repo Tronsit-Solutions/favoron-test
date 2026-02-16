@@ -5,6 +5,44 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/**
+ * Replicate getActiveTipFromPackage logic from client-side tipHelpers.ts
+ * Cannot import client utilities in edge functions, so we inline the logic.
+ * 
+ * Priority:
+ * 1. Sum of adminAssignedTip from non-cancelled products in products_data
+ * 2. Fallback to admin_assigned_tip (package-level)
+ * 3. Fallback to quote.price
+ */
+function getActiveTipFromPackage(pkg: any): number {
+  if (!pkg) return 0;
+
+  // If products_data exists, sum only active (non-cancelled) products' tips
+  let productsArray: any[] = [];
+  try {
+    if (pkg.products_data) {
+      if (typeof pkg.products_data === 'string') {
+        productsArray = JSON.parse(pkg.products_data);
+      } else if (Array.isArray(pkg.products_data)) {
+        productsArray = pkg.products_data;
+      }
+    }
+  } catch {
+    productsArray = [];
+  }
+
+  if (productsArray.length > 0) {
+    const activeProducts = productsArray.filter((p: any) => !p.cancelled);
+    const sum = activeProducts.reduce((acc: number, p: any) => acc + (Number(p.adminAssignedTip) || 0), 0);
+    if (sum > 0) return sum;
+  }
+
+  // Fallback: admin_assigned_tip > quote.price
+  if (Number(pkg.admin_assigned_tip) > 0) return Number(pkg.admin_assigned_tip);
+  const price = Number(pkg.quote?.price ?? 0);
+  return Number.isFinite(price) ? price : 0;
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -39,13 +77,14 @@ Deno.serve(async (req) => {
     const travelerId = trip.user_id;
     console.log('👤 Traveler ID:', travelerId);
 
-    // Get all packages for this trip with quotes
-    // Excluir paquetes con incidencia del cálculo
+    // Get all delivered packages for this trip with quotes
+    // Include ALL post-delivery states: completed, delivered_to_office, ready_for_pickup, ready_for_delivery
+    // Exclude packages with incident_flag
     const { data: completedPackages, error: packagesError } = await supabase
       .from('packages')
-      .select('id, quote, status, office_delivery, incident_flag')
+      .select('id, quote, status, office_delivery, incident_flag, products_data, admin_assigned_tip')
       .eq('matched_trip_id', tripId)
-      .in('status', ['completed', 'delivered_to_office'])
+      .in('status', ['completed', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'])
       .not('quote', 'is', null)
       .or('incident_flag.is.null,incident_flag.eq.false');
 
@@ -63,28 +102,32 @@ Deno.serve(async (req) => {
       const isCompleted = pkg.status === 'completed';
       const isDeliveredToOffice = pkg.status === 'delivered_to_office' && 
         pkg.office_delivery?.admin_confirmation;
+      const isReadyForPickup = pkg.status === 'ready_for_pickup';
+      const isReadyForDelivery = pkg.status === 'ready_for_delivery';
       
-      if (!isCompleted && !isDeliveredToOffice) {
+      if (!isCompleted && !isDeliveredToOffice && !isReadyForPickup && !isReadyForDelivery) {
         console.log('⏭️ Skipping package (not delivered):', pkg.id, 'status:', pkg.status);
         return;
       }
       
       deliveredEligibleCount += 1;
       
-      if (pkg.quote) {
-        const tip = Number(pkg.quote?.price ?? 0);
-        if (tip > 0) {
-          accumulatedAmount += tip;
-          console.log('✅ Package counted:', pkg.id, 'status:', pkg.status, 'tip:', tip);
-        }
+      // Use getActiveTipFromPackage to exclude cancelled products
+      const tip = getActiveTipFromPackage(pkg);
+      if (tip > 0) {
+        accumulatedAmount += tip;
+        console.log('✅ Package counted:', pkg.id, 'status:', pkg.status, 'tip:', tip);
+      } else {
+        console.log('⚠️ Package has no tip:', pkg.id, 'status:', pkg.status);
       }
     });
 
     console.log('📊 Delivered packages:', deliveredEligibleCount, 'Amount:', accumulatedAmount);
 
     // Get total packages count (in_transit or later)
-    const eligibleStatuses = ['in_transit', 'received_by_traveler', 'delivered_to_office', 'completed', 'delivered'];
-    // Excluir paquetes con incidencia del total para no bloquear pagos
+    // Include ready_for_pickup and ready_for_delivery in eligible statuses
+    const eligibleStatuses = ['in_transit', 'received_by_traveler', 'delivered_to_office', 'completed', 'delivered', 'ready_for_pickup', 'ready_for_delivery'];
+    // Exclude packages with incident_flag
     const { data: inTransitOrLaterPackages, error: eligiblePkgsError } = await supabase
       .from('packages')
       .select('id, status, incident_flag')
