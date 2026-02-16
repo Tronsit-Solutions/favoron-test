@@ -65,6 +65,8 @@ const AdminTravelerPaymentsTab = () => {
   });
   const [notes, setNotes] = useState("");
   const [receiptPhoto, setReceiptPhoto] = useState<File | null>(null);
+  const [receiptPreviewUrl, setReceiptPreviewUrl] = useState<string | null>(null);
+  const [receiptPreviewOpen, setReceiptPreviewOpen] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [viewingReceiptUrl, setViewingReceiptUrl] = useState<string>("");
@@ -194,7 +196,9 @@ const AdminTravelerPaymentsTab = () => {
         order: null
       });
       setNotes("");
+      if (receiptPreviewUrl) URL.revokeObjectURL(receiptPreviewUrl);
       setReceiptPhoto(null);
+      setReceiptPreviewUrl(null);
     } catch (error) {
       console.error('Error updating payment order:', error);
     }
@@ -805,7 +809,11 @@ const AdminTravelerPaymentsTab = () => {
                     accept="image/*"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      if (file) setReceiptPhoto(file);
+                      if (file) {
+                        if (receiptPreviewUrl) URL.revokeObjectURL(receiptPreviewUrl);
+                        setReceiptPhoto(file);
+                        setReceiptPreviewUrl(URL.createObjectURL(file));
+                      }
                     }}
                     className="hidden"
                   />
@@ -823,17 +831,30 @@ const AdminTravelerPaymentsTab = () => {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => setReceiptPhoto(null)}
+                      onClick={() => {
+                        if (receiptPreviewUrl) URL.revokeObjectURL(receiptPreviewUrl);
+                        setReceiptPhoto(null);
+                        setReceiptPreviewUrl(null);
+                      }}
                       className="text-destructive hover:text-destructive"
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
-                {receiptPhoto && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>{receiptPhoto.name}</span>
+                {receiptPhoto && receiptPreviewUrl && (
+                  <div className="space-y-2">
+                    <img
+                      src={receiptPreviewUrl}
+                      alt="Vista previa del comprobante"
+                      className="max-h-[200px] rounded-lg border shadow-sm cursor-pointer object-contain"
+                      onClick={() => setReceiptPreviewOpen(true)}
+                      title="Click para ver en tamaño completo"
+                    />
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span>{receiptPhoto.name}</span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -844,7 +865,9 @@ const AdminTravelerPaymentsTab = () => {
                 onClick={() => {
                   setConfirmDialog(prev => ({ ...prev, isOpen: false }));
                   setNotes("");
+                  if (receiptPreviewUrl) URL.revokeObjectURL(receiptPreviewUrl);
                   setReceiptPhoto(null);
+                  setReceiptPreviewUrl(null);
                 }}
               >
                 Cancelar
@@ -875,6 +898,17 @@ const AdminTravelerPaymentsTab = () => {
         title="Comprobante de Pago"
         filename={viewingReceiptFilename}
       />
+
+      {/* Receipt Preview Modal */}
+      {receiptPreviewUrl && (
+        <ImageViewerModal
+          isOpen={receiptPreviewOpen}
+          onClose={() => setReceiptPreviewOpen(false)}
+          imageUrl={receiptPreviewUrl}
+          title="Vista previa del comprobante"
+          filename={receiptPhoto?.name || 'comprobante'}
+        />
+      )}
     </div>
   );
 };
