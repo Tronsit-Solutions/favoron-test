@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
-import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip, ExternalLink, Receipt } from "lucide-react";
+import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, XCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip, ExternalLink, Receipt } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -648,17 +648,6 @@ const AdminTravelerPaymentsTab = () => {
                           <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground px-2 py-1 bg-muted/20 rounded-t">
                             <Package className="h-3 w-3" />
                             <span className="truncate flex-1">{pkg.item_description}</span>
-                            {(() => {
-                              const officeDelivery = pkg.office_delivery as any;
-                              const postOfficeStatuses = ['completed', 'ready_for_pickup', 'ready_for_delivery', 'out_for_delivery'];
-                              const isConfirmed = postOfficeStatuses.includes(pkg.status) || 
-                                (pkg.status === 'delivered_to_office' && officeDelivery?.admin_confirmation);
-                              const isPending = pkg.status === 'delivered_to_office' && !officeDelivery?.admin_confirmation;
-                              
-                              if (isConfirmed) return <span title="Oficina confirmó recepción"><CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0" /></span>;
-                              if (isPending) return <span title="Pendiente confirmación oficina"><Clock className="h-3.5 w-3.5 text-orange-500 flex-shrink-0" /></span>;
-                              return null;
-                            })()}
                           </div>
                           {/* Desglose de cada producto */}
                           {productsArray.filter((product: any) => !product.cancelled).map((product: any, prodIndex: number) => {
@@ -666,9 +655,16 @@ const AdminTravelerPaymentsTab = () => {
                             const productDesc = product.itemDescription || product.item_description || product.description || `Producto ${prodIndex + 1}`;
                             
                             return (
-                              <div key={`${pkg.id}-${prodIndex}`} className="flex justify-between items-center text-xs py-1 px-2 pl-6 bg-white/50 rounded border-b border-muted/20 last:border-b-0">
-                                <div className="flex items-center gap-1 flex-1 min-w-0">
-                                  <span className="text-muted-foreground/60 mr-1">•</span>
+                              <div key={`${pkg.id}-${prodIndex}`} className="flex justify-between items-center text-xs py-1 px-2 pl-4 bg-white/50 rounded border-b border-muted/20 last:border-b-0">
+                                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                  {product.receivedAtOffice ? (
+                                    <span title="Recibido en oficina"><CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0" /></span>
+                                  ) : product.notArrived ? (
+                                    <span title="No llegó"><XCircle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" /></span>
+                                  ) : (
+                                    <span title="Pendiente confirmación"><Clock className="h-3.5 w-3.5 text-orange-500 flex-shrink-0" /></span>
+                                  )}
+                                  <span className="text-muted-foreground/60">•</span>
                                   <span className="text-muted-foreground truncate">
                                     {productDesc}
                                   </span>
@@ -706,11 +702,7 @@ const AdminTravelerPaymentsTab = () => {
                     
                     return (
                       <div key={pkg.id || index} className="flex justify-between items-center text-xs py-1 px-2 bg-white/50 rounded border-b border-muted/20 last:border-b-0">
-                        <div className="flex items-center gap-1 flex-1 min-w-0">
-                          <Package className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                          <span className="text-muted-foreground truncate">
-                            {pkg.item_description}
-                          </span>
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
                           {(() => {
                             const officeDelivery = pkg.office_delivery as any;
                             const postOfficeStatuses = ['completed', 'ready_for_pickup', 'ready_for_delivery', 'out_for_delivery'];
@@ -722,6 +714,10 @@ const AdminTravelerPaymentsTab = () => {
                             if (isPending) return <span title="Pendiente confirmación oficina"><Clock className="h-3.5 w-3.5 text-orange-500 flex-shrink-0" /></span>;
                             return null;
                           })()}
+                          <Package className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                          <span className="text-muted-foreground truncate">
+                            {pkg.item_description}
+                          </span>
                         </div>
                         <span className="font-medium text-green-600 ml-2 flex-shrink-0">
                           {formatCurrency(packageTip)}
