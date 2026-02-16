@@ -1,61 +1,47 @@
 
-
-## Unificar Terminos y Condiciones (Pagina y Modal)
+## Corregir inconsistencias en el calculo de tips para ordenes de pago
 
 ### Problema
-Existen dos versiones de los terminos y condiciones con contenido diferente:
-- **Modal** (`TermsAndConditionsModal.tsx`): Version mas completa con clausulas legales detalladas (IVA, intermediario de pagos, prohibicion de evasion, derecho de rechazo, cancelaciones, sanciones, etc.)
-- **Pagina** (`TermsAndConditions.tsx`): Version simplificada que omite varias clausulas importantes
 
-### Solucion
+Hay 4 lugares que calculan el monto acumulado de tips para viajeros, y solo 1 esta correcto. Los otros 3 no incluyen todos los estados post-entrega (`ready_for_pickup`, `ready_for_delivery`) y no excluyen productos cancelados.
 
-Usar el contenido del **modal** como fuente de verdad (es el mas completo legalmente) y actualizar la **pagina** para que contenga exactamente las mismas clausulas.
+### Donde esta cada calculo
 
-### Cambios
+| Lugar | Estados para sumar tips | Excluye cancelados | Correcto? |
+|---|---|---|---|
+| `useCreateTripPaymentAccumulator.tsx` (cliente) | completed, delivered_to_office, ready_for_pickup, ready_for_delivery | Si (usa `getActiveTipFromPackage`) | Si |
+| `recalculate-trip-accumulator/index.ts` (edge function) | completed, delivered_to_office | No (usa `quote.price` directo) | **No** |
+| `admin_confirm_office_delivery` (funcion SQL) | completed, delivered_to_office | No (usa `quote->>'price'` directo) | **No** |
+| `AdminTravelerPaymentsTab.tsx` (UI admin) | Todos los post-entrega | Si (usa `getActiveTipFromPackage`) | Si |
 
-**Archivo**: `src/pages/TermsAndConditions.tsx`
+### Cambios necesarios
 
-1. **Seccion "Terminos Generales de Uso"** -> Renombrar a **"1. Uso General de la Plataforma"** y agregar las clausulas faltantes:
-   - Papel de intermediario de pagos
-   - IVA
-   - Prohibicion de evasion del sistema
-   - Derecho de rechazo
-   - Mantener las existentes (informacion veridica, solo envios personales, cumplimiento legal)
-   - Eliminar subsecciones que no estan en el modal (Que es Favoron, Quien puede usar, Datos personales, Buen trato, Cambios, Riesgos)
+**1. Edge Function `recalculate-trip-accumulator/index.ts`**
 
-2. **Seccion "Terminos para Shoppers"** -> Renombrar a **"2. Para Shoppers (quienes piden productos)"** y sincronizar contenido con el modal:
-   - Solo compras online (con detalle de tiendas reconocidas)
-   - Confirmacion y seguimiento
-   - Tiempos de entrega
-   - Entrega segura
-   - Costes adicionales
-   - Retrasos en la entrega (con detalle de fecha limite)
-   - Cobertura por perdida o robo (con sub-items)
-   - Garantia limitada
-   - Cancelaciones y reembolsos (con sub-items del 50% y ajuste de cotizacion)
+- Agregar `ready_for_pickup` y `ready_for_delivery` al filtro de paquetes entregados (linea 48)
+- Agregar `ready_for_pickup` y `ready_for_delivery` al filtro de paquetes totales elegibles (linea 86)
+- Agregar `products_data` y `admin_assigned_tip` al SELECT (linea 46)
+- Replicar la logica de `getActiveTipFromPackage` inline (la edge function no puede importar utilidades del cliente):
+  - Si hay `products_data`, sumar solo `adminAssignedTip` de productos no cancelados
+  - Fallback a `admin_assigned_tip` del paquete
+  - Fallback final a `quote.price`
+- Agregar verificacion de `admin_confirmation` para `ready_for_pickup` y `ready_for_delivery` (estos estados implican confirmacion previa, asi que se cuentan directamente)
 
-3. **Seccion "Terminos para Viajeros"** -> Renombrar a **"3. Para Viajeros (quienes traen paquetes)"** y sincronizar:
-   - Cumplimiento legal
-   - Requisitos para traer paquetes
-   - Recepcion del paquete (con detalle de hotel/Airbnb)
-   - Responsabilidad
-   - Deduccion por danos (nueva)
-   - Prohibiciones
-   - Sanciones internas por incumplimiento grave (nueva, incluye lista interna)
+**2. Migracion SQL para `admin_confirm_office_delivery`**
 
-4. **Seccion "Limitaciones de Responsabilidad"** -> Mantener titulo, sincronizar items con el modal:
-   - Papel de intermediario
-   - Problemas ajenos
-   - Retrasos y perjuicios
-   - Responsabilidad limitada al valor declarado
-
-5. **Seccion "Notificaciones por WhatsApp"** -> Sin cambios significativos, ya coincide
-
-**Archivo**: `src/components/TermsAndConditionsModal.tsx`
-
-No requiere cambios, ya tiene el contenido completo.
+Crear nueva migracion que actualice la funcion para:
+- Agregar `ready_for_pickup` y `ready_for_delivery` a la consulta de paquetes entregados (linea 96)
+- Agregar `ready_for_pickup` y `ready_for_delivery` a la consulta de paquetes totales (linea 104)
+- Cambiar el calculo de tip para considerar productos cancelados:
+  - Si `products_data` existe y tiene productos, sumar solo `adminAssignedTip` de productos donde `cancelled` no es `true`
+  - Fallback a `admin_assigned_tip` si es mayor que 0
+  - Fallback final a `quote->>'price'`
+- Excluir paquetes con `incident_flag = true` (ya se hace en el cliente pero no en la funcion SQL)
 
 ### Resultado esperado
 
-Ambas versiones (pagina publica y modal) mostraran exactamente las mismas clausulas legales, con la misma estructura de 5 secciones numeradas y el mismo nivel de detalle. La unica diferencia sera el estilo visual (pagina completa vs modal con scroll).
-
+Todos los calculos de tips en la plataforma usaran la misma logica:
+1. Mismos estados considerados como "entregado"
+2. Mismos estados considerados como "elegible"  
+3. Exclusion consistente de productos cancelados
+4. Exclusion consistente de paquetes con incidencia
