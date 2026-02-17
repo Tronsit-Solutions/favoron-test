@@ -79,12 +79,13 @@ export const useDeliveryPoints = () => {
   }, [toast]);
 
   const getDeliveryPointByCity = useCallback((city: string, country: string) => {
-    const normalizedCity = city.toLowerCase().trim();
-    const normalizedCountry = country.toLowerCase().trim();
+    const normalize = (s: string) => s.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const normalizedCity = normalize(city);
+    const normalizedCountry = normalize(country);
     
     return deliveryPoints.find(dp => 
-      dp.city.toLowerCase().trim() === normalizedCity &&
-      dp.country.toLowerCase().trim() === normalizedCountry &&
+      normalize(dp.city) === normalizedCity &&
+      normalize(dp.country) === normalizedCountry &&
       dp.is_active
     );
   }, [deliveryPoints]);
