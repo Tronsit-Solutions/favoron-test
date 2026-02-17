@@ -584,6 +584,8 @@ export type Database = {
           estimated_price: number | null
           id: string
           incident_flag: boolean | null
+          incident_history: Json
+          incident_status: string | null
           internal_notes: string | null
           item_description: string
           item_link: string | null
@@ -628,6 +630,8 @@ export type Database = {
           estimated_price?: number | null
           id?: string
           incident_flag?: boolean | null
+          incident_history?: Json
+          incident_status?: string | null
           internal_notes?: string | null
           item_description: string
           item_link?: string | null
@@ -672,6 +676,8 @@ export type Database = {
           estimated_price?: number | null
           id?: string
           incident_flag?: boolean | null
+          incident_history?: Json
+          incident_status?: string | null
           internal_notes?: string | null
           item_description?: string
           item_link?: string | null

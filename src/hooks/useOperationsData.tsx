@@ -31,6 +31,8 @@ export interface OperationsPackage {
   products_data: ProductData[] | null;
   confirmed_delivery_address: any;
   incident_flag: boolean;
+  incident_status: string | null;
+  incident_history: any[];
   // Joined data
   shopper_name: string;
   traveler_name: string;
@@ -219,6 +221,8 @@ export const useOperationsData = () => {
         products_data: row.products_summary,
         confirmed_delivery_address: row.confirmed_delivery_address,
         incident_flag: row.incident_flag || false,
+        incident_status: row.incident_status || (row.incident_flag ? 'active' : null),
+        incident_history: row.incident_history || [],
         shopper_name: `${row.shopper_first_name || ''} ${row.shopper_last_name || ''}`.trim() || 'Shopper desconocido',
         traveler_name: `${row.traveler_first_name || ''} ${row.traveler_last_name || ''}`.trim() || 'Viajero desconocido',
         traveler_phone: row.traveler_phone 
@@ -414,9 +418,14 @@ export const useOperationsData = () => {
     ));
   }, []);
 
-  const updatePackageIncidentFlag = useCallback((packageId: string, incidentFlag: boolean) => {
+  const updatePackageIncidentFlag = useCallback((packageId: string, incidentFlag: boolean, incidentStatus?: string | null, incidentHistory?: any[]) => {
     setAllPackages(prev => prev.map(p => 
-      p.id === packageId ? { ...p, incident_flag: incidentFlag } : p
+      p.id === packageId ? { 
+        ...p, 
+        incident_flag: incidentFlag,
+        ...(incidentStatus !== undefined ? { incident_status: incidentStatus } : {}),
+        ...(incidentHistory !== undefined ? { incident_history: incidentHistory } : {}),
+      } : p
     ));
   }, []);
 

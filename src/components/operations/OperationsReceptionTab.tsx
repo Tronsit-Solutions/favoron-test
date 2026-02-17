@@ -115,15 +115,48 @@ const OperationsReceptionTab = ({
 
     setMarkingIncidentIds(prev => new Set(prev).add(packageId));
     try {
-      const { error } = await supabase
-        .from('packages')
-        .update({ incident_flag: newFlag })
-        .eq('id', packageId);
+      if (newFlag) {
+        // Marking as incident: set flag + status + add history entry
+        const newEntry = {
+          action: 'marked',
+          timestamp: new Date().toISOString(),
+          admin_id: user.id,
+          admin_name: 'Operaciones',
+          reason: 'Marcado desde panel de recepción',
+        };
 
-      if (error) throw error;
+        // Fetch current history
+        const { data: currentPkg } = await supabase
+          .from('packages')
+          .select('incident_history')
+          .eq('id', packageId)
+          .single();
 
-      toast.success(newFlag ? 'Paquete marcado como incidencia' : 'Incidencia removida');
-      onUpdateIncidentFlag(packageId, newFlag);
+        const currentHistory: any[] = (currentPkg?.incident_history as any[]) || [];
+
+        const { error } = await supabase
+          .from('packages')
+          .update({ 
+            incident_flag: true, 
+            incident_status: 'active',
+            incident_history: [...currentHistory, newEntry],
+          })
+          .eq('id', packageId);
+
+        if (error) throw error;
+        toast.success('Paquete marcado como incidencia');
+        onUpdateIncidentFlag(packageId, true);
+      } else {
+        // Removing incident flag completely (clearing)
+        const { error } = await supabase
+          .from('packages')
+          .update({ incident_flag: false, incident_status: null })
+          .eq('id', packageId);
+
+        if (error) throw error;
+        toast.success('Incidencia removida');
+        onUpdateIncidentFlag(packageId, false);
+      }
     } catch (error: any) {
       console.error('Error updating incident flag:', error);
       toast.error(error.message || 'Error al actualizar incidencia');
