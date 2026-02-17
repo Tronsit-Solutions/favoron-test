@@ -4,15 +4,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin, Phone, Home, Building2 } from "lucide-react";
-import { GUATEMALA_MUNICIPALITIES } from "@/lib/cities";
+import { GUATEMALA_MUNICIPALITIES, SPAIN_PROVINCES } from "@/lib/cities";
 
 interface AddressFormProps {
   onSubmit: (addressData: any) => void;
   onCancel: () => void;
   initialData?: any;
+  destinationCountry?: string;
 }
 
-const AddressForm = ({ onSubmit, onCancel, initialData }: AddressFormProps) => {
+const AddressForm = ({ onSubmit, onCancel, initialData, destinationCountry }: AddressFormProps) => {
+  const normalizedCountry = destinationCountry?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') || '';
+  const isGuatemala = normalizedCountry === 'guatemala';
+  const isSpain = normalizedCountry === 'espana' || normalizedCountry === 'españa';
+  const hasDropdown = isGuatemala || isSpain;
+
+  const locationOptions = isGuatemala
+    ? GUATEMALA_MUNICIPALITIES.map(m => ({ value: m.value, label: m.isCapital ? `${m.label} (Q25)` : m.label }))
+    : isSpain
+    ? SPAIN_PROVINCES
+    : [];
+
+  const locationLabel = isGuatemala ? 'Ciudad/Municipio' : isSpain ? 'Provincia' : 'Ciudad/Provincia';
+
   const [formData, setFormData] = useState({
     streetAddress: initialData?.streetAddress || '',
     cityArea: initialData?.cityArea || '',
@@ -64,30 +78,47 @@ const AddressForm = ({ onSubmit, onCancel, initialData }: AddressFormProps) => {
 
         <div className="space-y-2">
           <Label htmlFor="cityArea" className="text-sm font-medium">
-            Ciudad/Municipio *
+            {locationLabel} *
           </Label>
-          <div className="relative">
-            <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
-            <Select
-              value={formData.cityArea}
-              onValueChange={(value) => handleInputChange('cityArea', value)}
-            >
-              <SelectTrigger className="pl-10">
-                <SelectValue placeholder="Selecciona tu municipio" />
-              </SelectTrigger>
-              <SelectContent className="bg-white z-50">
-                {GUATEMALA_MUNICIPALITIES.map((muni) => (
-                  <SelectItem key={muni.value} value={muni.value}>
-                    {muni.label}
-                    {muni.isCapital && <span className="text-xs text-green-600 ml-2">(Q25)</span>}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Ciudad de Guatemala: Q25 | Otros municipios: Q60
-          </p>
+          {hasDropdown ? (
+            <>
+              <div className="relative">
+                <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none z-10" />
+                <Select
+                  value={formData.cityArea}
+                  onValueChange={(value) => handleInputChange('cityArea', value)}
+                >
+                  <SelectTrigger className="pl-10">
+                    <SelectValue placeholder={`Selecciona ${isGuatemala ? 'tu municipio' : 'tu provincia'}`} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-50">
+                    {locationOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {isGuatemala && (
+                <p className="text-xs text-muted-foreground">
+                  Ciudad de Guatemala: Q25 | Otros municipios: Q60
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="relative">
+              <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="cityArea"
+                placeholder="Ej: Ciudad, provincia o estado"
+                value={formData.cityArea}
+                onChange={(e) => handleInputChange('cityArea', e.target.value)}
+                className="pl-10"
+                required
+              />
+            </div>
+          )}
         </div>
 
         <div className="space-y-2">
