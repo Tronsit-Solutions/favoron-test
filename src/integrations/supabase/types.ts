@@ -1601,6 +1601,8 @@ export type Database = {
           estimated_price: number
           id: string
           incident_flag: boolean
+          incident_history: Json
+          incident_status: string
           item_description: string
           label_number: number
           matched_trip_id: string
