@@ -20,6 +20,7 @@ import { es } from "date-fns/locale";
 import AddressForm from "@/components/AddressForm";
 import ProductPhotoUpload from "@/components/ProductPhotoUpload";
 import type { Product } from "@/types";
+import { inferCountryFromCity } from "@/lib/cities";
 import { MetaPixel } from "@/lib/metaPixel";
 import "./ui/mobile-safe-form.css";
 
@@ -334,6 +335,19 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     if (!formData.deliveryMethod) missingFields.push('método de entrega');
     if (formData.deliveryMethod === 'delivery' && !addressData) {
       missingFields.push('dirección de entrega');
+    }
+
+    // Cross-validate: city must belong to the selected country
+    if (selectedCountry && finalDestination && finalDestination !== 'Cualquier ciudad') {
+      const countryCities = citiesByCountry[selectedCountry] || [];
+      const cityBelongsToCountry = countryCities.includes(finalDestination) || formData.packageDestination === 'Otra ciudad';
+      if (!cityBelongsToCountry) {
+        // Check if the city belongs to a different country
+        const inferredCountry = inferCountryFromCity(finalDestination);
+        if (inferredCountry && inferredCountry !== selectedCountry) {
+          missingFields.push(`la ciudad "${finalDestination}" no corresponde al país "${selectedCountry}" (debería ser "${inferredCountry}")`);
+        }
+      }
     }
     
     return { valid: missingFields.length === 0, missingFields };

@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban, Clock, Globe } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { inferCountryFromCity } from '@/lib/cities';
 
 // Country/city options (same as PackageRequestForm)
 // Online purchases: foreign stores only (no Guatemala)
@@ -700,7 +701,7 @@ const [editForm, setEditForm] = useState({
         estimated_price: totalPrice,
         purchase_origin: editForm.purchase_origin,
         package_destination: editForm.package_destination,
-        package_destination_country: selectedDestinationCountry || 'guatemala',
+        package_destination_country: selectedDestinationCountry || inferCountryFromCity(editForm.package_destination) || null,
         additional_notes: editForm.additional_notes?.trim() || null
       };
       
