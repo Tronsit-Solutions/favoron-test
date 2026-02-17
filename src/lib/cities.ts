@@ -17,6 +17,35 @@ export const GUATEMALA_MUNICIPALITIES = [
   { value: 'San Juan Sacatepéquez', label: 'San Juan Sacatepéquez', isCapital: false },
 ];
 
+// Provinces for delivery address form (Spain)
+export const SPAIN_PROVINCES = [
+  { value: 'Madrid', label: 'Madrid' },
+  { value: 'Barcelona', label: 'Barcelona' },
+  { value: 'Valencia', label: 'Valencia' },
+  { value: 'Sevilla', label: 'Sevilla' },
+  { value: 'Alicante', label: 'Alicante' },
+  { value: 'Málaga', label: 'Málaga' },
+  { value: 'Murcia', label: 'Murcia' },
+  { value: 'Cádiz', label: 'Cádiz' },
+  { value: 'Vizcaya', label: 'Vizcaya' },
+  { value: 'A Coruña', label: 'A Coruña' },
+  { value: 'Las Palmas', label: 'Las Palmas' },
+  { value: 'Santa Cruz de Tenerife', label: 'Santa Cruz de Tenerife' },
+  { value: 'Asturias', label: 'Asturias' },
+  { value: 'Zaragoza', label: 'Zaragoza' },
+  { value: 'Pontevedra', label: 'Pontevedra' },
+  { value: 'Granada', label: 'Granada' },
+  { value: 'Tarragona', label: 'Tarragona' },
+  { value: 'Córdoba', label: 'Córdoba' },
+  { value: 'Girona', label: 'Girona' },
+  { value: 'Guipúzcoa', label: 'Guipúzcoa' },
+  { value: 'Toledo', label: 'Toledo' },
+  { value: 'Badajoz', label: 'Badajoz' },
+  { value: 'Navarra', label: 'Navarra' },
+  { value: 'Islas Baleares', label: 'Islas Baleares' },
+  { value: 'Otra provincia', label: 'Otra provincia' },
+];
+
 // Cities for trip form
 export const GUATEMALAN_CITIES = [
   { value: 'Guatemala City', label: 'Ciudad de Guatemala' },
