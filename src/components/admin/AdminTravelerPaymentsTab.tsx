@@ -43,6 +43,375 @@ type PaymentOrderWithDetails = {
   };
 };
 
+const maskAccountUtil = (num?: string) => (num && typeof num === 'string' ? `•••• ${num.slice(-4)}` : 'N/A');
+
+// ─── Extracted Components (defined outside parent to prevent remounting) ───
+
+interface EditableNotesSectionProps {
+  order: any;
+  updatePaymentOrder: (id: string, data: any) => Promise<any>;
+  toast: ReturnType<typeof useToast>['toast'];
+}
+
+const EditableNotesSection = ({ order, updatePaymentOrder, toast }: EditableNotesSectionProps) => {
+  const [editableNotes, setEditableNotes] = useState(order.notes || '');
+  const [savingNotes, setSavingNotes] = useState(false);
+
+  const handleSaveNotes = async () => {
+    setSavingNotes(true);
+    try {
+      await updatePaymentOrder(order.id, { notes: editableNotes.trim() || null });
+      toast({
+        title: "Nota guardada",
+        description: "La nota se actualizó correctamente.",
+      });
+    } catch (error) {
+      console.error('Error saving notes:', error);
+    } finally {
+      setSavingNotes(false);
+    }
+  };
+
+  return (
+    <div>
+      <Label className="text-sm font-medium flex items-center gap-1">
+        <MessageSquare className="h-3.5 w-3.5" />
+        Notas
+      </Label>
+      <Textarea
+        value={editableNotes}
+        onChange={(e) => setEditableNotes(e.target.value)}
+        placeholder="Agregar nota sobre este pago..."
+        className="mt-1 min-h-[60px] text-sm"
+      />
+      <div className="flex justify-end mt-2">
+        <Button
+          size="sm"
+          className="h-7 px-3 text-xs"
+          onClick={handleSaveNotes}
+          disabled={savingNotes || editableNotes === (order.notes || '')}
+        >
+          <Save className="h-3 w-3 mr-1" />
+          {savingNotes ? 'Guardando...' : 'Guardar nota'}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+interface OrderDetailModalProps {
+  order: any;
+  isOpen: boolean;
+  onClose: () => void;
+  updatePaymentOrder: (id: string, data: any) => Promise<any>;
+  toast: ReturnType<typeof useToast>['toast'];
+  onViewReceipt: (url: string, filename: string) => void;
+}
+
+const OrderDetailModal = ({ order, isOpen, onClose, updatePaymentOrder, toast, onViewReceipt }: OrderDetailModalProps) => {
+  if (!order) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Detalles de la orden de pago</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium">Viajero</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <User className="h-4 w-4" />
+                <span>{order.profiles?.first_name || 'N/A'} {order.profiles?.last_name || ''}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">{order.profiles?.email || 'Sin email'}</p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Monto</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <CreditCard className="h-4 w-4" />
+                <span className="text-lg font-bold">Q{order.amount}</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium">Información bancaria</Label>
+            <div className="bg-muted/30 rounded p-3 mt-1">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div><span className="font-medium">Titular:</span> {order.bank_account_holder || 'N/A'}</div>
+                <div><span className="font-medium">Banco:</span> {order.bank_name || 'N/A'}</div>
+                <div><span className="font-medium">Tipo:</span> {order.bank_account_type || 'N/A'}</div>
+                <div><span className="font-medium">Número:</span> {order.bank_account_number || 'N/A'}</div>
+              </div>
+            </div>
+          </div>
+
+          {order.receipt_url && (
+            <div>
+              <Label className="text-sm font-medium">Comprobante de Pago</Label>
+              <div className="bg-muted/30 rounded p-3 mt-1">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={async () => {
+                    const url = order.receipt_url;
+                    let receiptUrl = url;
+                    
+                    if (url && !url.startsWith('http')) {
+                      const { data, error } = await supabase.storage
+                        .from('payment-receipts')
+                        .createSignedUrl(url, 3600);
+                      if (!error && data?.signedUrl) {
+                        receiptUrl = data.signedUrl;
+                      }
+                    }
+                    
+                    onViewReceipt(receiptUrl || url, order.receipt_filename || 'Comprobante de Pago');
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Ver Comprobante
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <EditableNotesSection order={order} updatePaymentOrder={updatePaymentOrder} toast={toast} />
+
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <Label className="text-sm font-medium">Fecha de creación</Label>
+              <p className="mt-1">{new Date(order.created_at).toLocaleString('es-GT')}</p>
+            </div>
+            {order.completed_at && (
+              <div>
+                <Label className="text-sm font-medium">Fecha de completado</Label>
+                <p className="mt-1">{new Date(order.completed_at).toLocaleString('es-GT')}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+interface CompactOrderRowProps {
+  order: any;
+  isExpanded: boolean;
+  onToggleExpansion: (id: string) => void;
+  updatePaymentOrder: (id: string, data: any) => Promise<any>;
+  toast: ReturnType<typeof useToast>['toast'];
+  onConfirmAction: (action: 'complete' | 'reject', order: any) => void;
+  onSelectOrder: (order: any) => void;
+}
+
+const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOrder, toast, onConfirmAction, onSelectOrder }: CompactOrderRowProps) => {
+  const [editableNotes, setEditableNotes] = useState(order.notes || '');
+  const [savingNotes, setSavingNotes] = useState(false);
+  
+  const normalizedHistorical = (() => {
+    const h = order.historical_packages;
+    if (!h) return [];
+    try {
+      const parsed = typeof h === 'string' ? JSON.parse(h) : h;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      console.warn('historical_packages no es JSON válido', h);
+      return [];
+    }
+  })();
+  
+  const eligibleStatuses = ['in_transit', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'];
+  const fallbackTripPackages = ((order as any).trips?.packages || []).filter((pkg: any) => 
+    eligibleStatuses.includes(pkg.status)
+  );
+  
+  const isProcessed = order.status === 'completed' || order.status === 'rejected';
+  const packages = isProcessed && normalizedHistorical.length > 0
+    ? normalizedHistorical
+    : (normalizedHistorical.length >= fallbackTripPackages.length && normalizedHistorical.length > 0
+      ? normalizedHistorical
+      : (fallbackTripPackages.length > 0 ? fallbackTripPackages : normalizedHistorical));
+  const totalCompensation = packages.reduce((sum: number, pkg: any) => sum + parseFloat(pkg.quote?.price || 0), 0);
+  const amountMismatch = totalCompensation > 0 && Math.abs(order.amount - totalCompensation) > 0.01;
+
+  const handleSaveNotes = async () => {
+    setSavingNotes(true);
+    try {
+      await updatePaymentOrder(order.id, { notes: editableNotes.trim() || null });
+      toast({
+        title: "Nota guardada",
+        description: "La nota se actualizó correctamente.",
+      });
+    } catch (error) {
+      console.error('Error saving notes:', error);
+    } finally {
+      setSavingNotes(false);
+    }
+  };
+
+  return (
+    <>
+      <TableRow className="hover:bg-muted/50">
+        <TableCell className="py-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={() => onToggleExpansion(order.id)}
+          >
+            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </Button>
+        </TableCell>
+        <TableCell className="py-3">
+          <div className="space-y-1">
+            <div className="font-medium text-sm flex items-center gap-1">
+              {order.profiles?.first_name} {order.profiles?.last_name}
+              {order.notes && (
+                <span title="Tiene notas"><MessageSquare className="h-3.5 w-3.5 text-muted-foreground" /></span>
+              )}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {order.profiles?.email}
+            </div>
+          </div>
+        </TableCell>
+        <TableCell className="py-3">
+          <div className="text-right">
+            <div className={`font-bold text-lg flex items-center justify-end gap-1 ${amountMismatch ? 'text-red-600' : 'text-green-600'}`}>
+              {amountMismatch && <AlertCircle className="h-4 w-4" />}
+              Q{order.amount}
+            </div>
+            {amountMismatch && (
+              <div className="text-xs text-red-500">Total comp: Q{totalCompensation.toFixed(2)}</div>
+            )}
+            <div className="text-xs text-muted-foreground">GTQ</div>
+          </div>
+        </TableCell>
+        <TableCell className="py-3">
+          <div className="space-y-1">
+            <div className="font-medium text-sm">{order.bank_account_holder}</div>
+            <div className="text-xs text-muted-foreground">{order.bank_name}</div>
+            <div className="text-xs font-mono text-gray-700">{maskAccountUtil(order.bank_account_number)}</div>
+            <div className="text-xs text-muted-foreground capitalize">{order.bank_account_type}</div>
+          </div>
+        </TableCell>
+        <TableCell className="py-3">
+          <div className="flex gap-1">
+            {order.status === 'pending' && (
+              <>
+                <Button 
+                  size="sm" 
+                  className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700"
+                  onClick={() => onConfirmAction('complete', order)}
+                >
+                  <Check className="h-3 w-3 mr-1" />
+                  Pagar
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="destructive"
+                  className="h-8 px-3 text-xs"
+                  onClick={() => onConfirmAction('reject', order)}
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Rechazar
+                </Button>
+              </>
+            )}
+            <Button 
+              size="sm" 
+              variant="outline"
+              className="h-8 px-3 text-xs"
+              onClick={() => onSelectOrder(order)}
+            >
+              <Eye className="h-3 w-3 mr-1" />
+              Ver
+            </Button>
+          </div>
+        </TableCell>
+      </TableRow>
+      {isExpanded && (
+        <TableRow className="bg-muted/20">
+          <TableCell colSpan={5} className="py-3">
+            <div className="space-y-3">
+              {/* Invoice Details */}
+              <div className="bg-white border rounded-lg p-3">
+                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Detalle de Compensaciones
+                </h4>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {packages.map((pkg: any, index: number) => (
+                    <div key={pkg.package_id || pkg.id || index} className="flex justify-between items-center py-1 border-b border-gray-100 last:border-0">
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{pkg.item_description}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {(pkg.package_id || pkg.id || '').toString().slice(0, 8)}... • {(pkg.status || '').replace(/_/g, ' ')}
+                        </div>
+                      </div>
+                      <div className="text-sm font-semibold text-green-600">
+                        Q{parseFloat(pkg.quote?.price || 0).toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 pt-2 border-t border-gray-200 flex justify-between items-center">
+                  <span className="text-sm font-medium">Total de Compensaciones:</span>
+                  <span className="text-base font-bold text-green-600">Q{totalCompensation.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Bank Details */}
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div className="space-y-1">
+                  <div><strong>Titular:</strong> {order.bank_account_holder}</div>
+                  <div><strong>Tipo de Cuenta:</strong> {order.bank_account_type}</div>
+                </div>
+                <div className="space-y-1">
+                  <div><strong>Banco:</strong> {order.bank_name}</div>
+                  <div><strong>Número:</strong> {order.bank_account_number}</div>
+                </div>
+              </div>
+
+              {/* Notes Section */}
+              <div className="bg-white border rounded-lg p-3">
+                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Notas
+                </h4>
+                <Textarea
+                  value={editableNotes}
+                  onChange={(e) => setEditableNotes(e.target.value)}
+                  placeholder="Agregar nota sobre este pago..."
+                  className="min-h-[60px] text-sm"
+                />
+                <div className="flex justify-end mt-2">
+                  <Button
+                    size="sm"
+                    className="h-7 px-3 text-xs"
+                    onClick={handleSaveNotes}
+                    disabled={savingNotes || editableNotes === (order.notes || '')}
+                  >
+                    <Save className="h-3 w-3 mr-1" />
+                    {savingNotes ? 'Guardando...' : 'Guardar nota'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
+  );
+};
+
+// ─── Main Component ───
+
 const AdminTravelerPaymentsTab = () => {
   const { paymentOrders, loading, updatePaymentOrder } = usePaymentOrders();
   
@@ -82,7 +451,6 @@ const AdminTravelerPaymentsTab = () => {
   }>>([]);
   const [packageBreakdownLoading, setPackageBreakdownLoading] = useState(false);
   const { toast } = useToast();
-  const maskAccount = (num?: string) => (num && typeof num === 'string' ? `•••• ${num.slice(-4)}` : 'N/A');
   
   const pendingOrders = orders.filter(order => order && order.status === 'pending');
   const processedOrders = orders.filter(order => order && order.status !== 'pending');
@@ -95,6 +463,16 @@ const AdminTravelerPaymentsTab = () => {
       newExpanded.add(orderId);
     }
     setExpandedRows(newExpanded);
+  };
+
+  const handleConfirmAction = (action: 'complete' | 'reject', order: any) => {
+    setConfirmDialog({ isOpen: true, action, order });
+  };
+
+  const handleViewReceipt = (url: string, filename: string) => {
+    setViewingReceiptUrl(url);
+    setViewingReceiptFilename(filename);
+    setImageViewerOpen(true);
   };
 
   // Fetch packages when dialog opens
@@ -156,7 +534,6 @@ const AdminTravelerPaymentsTab = () => {
       if (confirmDialog.action === 'complete') {
         updateData.completed_at = new Date().toISOString();
         
-        // Subir foto del recibo si existe
         if (receiptPhoto) {
           try {
             const fileExt = receiptPhoto.name.split('.').pop();
@@ -167,7 +544,6 @@ const AdminTravelerPaymentsTab = () => {
               .upload(fileName, receiptPhoto);
               
             if (!uploadError) {
-              // Store storage file path (private bucket)
               updateData.receipt_url = fileName;
               updateData.receipt_filename = receiptPhoto.name;
             } else {
@@ -225,358 +601,6 @@ const AdminTravelerPaymentsTab = () => {
       month: '2-digit',
       year: '2-digit'
     });
-  };
-
-  const CompactOrderRow = ({ order }: { order: any }) => {
-    const isExpanded = expandedRows.has(order.id);
-    const [editableNotes, setEditableNotes] = useState(order.notes || '');
-    const [savingNotes, setSavingNotes] = useState(false);
-    
-    // Parse historical_packages correctamente
-    const normalizedHistorical = (() => {
-      const h = order.historical_packages;
-      if (!h) return [];
-      try {
-        const parsed = typeof h === 'string' ? JSON.parse(h) : h;
-        return Array.isArray(parsed) ? parsed : [];
-      } catch {
-        console.warn('historical_packages no es JSON válido', h);
-        return [];
-      }
-    })();
-    
-    // Estados válidos para pago
-    const eligibleStatuses = ['in_transit', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'];
-    const fallbackTripPackages = ((order as any).trips?.packages || []).filter((pkg: any) => 
-      eligibleStatuses.includes(pkg.status)
-    );
-    
-    // Órdenes procesadas SIEMPRE usan historical_packages (snapshot al momento del pago)
-    const isProcessed = order.status === 'completed' || order.status === 'rejected';
-    const packages = isProcessed && normalizedHistorical.length > 0
-      ? normalizedHistorical
-      : (normalizedHistorical.length >= fallbackTripPackages.length && normalizedHistorical.length > 0
-        ? normalizedHistorical
-        : (fallbackTripPackages.length > 0 ? fallbackTripPackages : normalizedHistorical));
-    const totalCompensation = packages.reduce((sum: number, pkg: any) => sum + parseFloat(pkg.quote?.price || 0), 0);
-    const amountMismatch = totalCompensation > 0 && Math.abs(order.amount - totalCompensation) > 0.01;
-
-    const handleSaveNotes = async () => {
-      setSavingNotes(true);
-      try {
-        await updatePaymentOrder(order.id, { notes: editableNotes.trim() || null });
-        toast({
-          title: "Nota guardada",
-          description: "La nota se actualizó correctamente.",
-        });
-      } catch (error) {
-        console.error('Error saving notes:', error);
-      } finally {
-        setSavingNotes(false);
-      }
-    };
-
-    return (
-      <>
-        <TableRow className="hover:bg-muted/50">
-          <TableCell className="py-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={() => toggleRowExpansion(order.id)}
-            >
-              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </Button>
-          </TableCell>
-          <TableCell className="py-3">
-            <div className="space-y-1">
-              <div className="font-medium text-sm flex items-center gap-1">
-                {order.profiles?.first_name} {order.profiles?.last_name}
-                {order.notes && (
-                  <span title="Tiene notas"><MessageSquare className="h-3.5 w-3.5 text-muted-foreground" /></span>
-                )}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {order.profiles?.email}
-              </div>
-            </div>
-          </TableCell>
-          <TableCell className="py-3">
-            <div className="text-right">
-              <div className={`font-bold text-lg flex items-center justify-end gap-1 ${amountMismatch ? 'text-red-600' : 'text-green-600'}`}>
-                {amountMismatch && <AlertCircle className="h-4 w-4" />}
-                Q{order.amount}
-              </div>
-              {amountMismatch && (
-                <div className="text-xs text-red-500">Total comp: Q{totalCompensation.toFixed(2)}</div>
-              )}
-              <div className="text-xs text-muted-foreground">GTQ</div>
-            </div>
-          </TableCell>
-          <TableCell className="py-3">
-            <div className="space-y-1">
-              <div className="font-medium text-sm">{order.bank_account_holder}</div>
-              <div className="text-xs text-muted-foreground">{order.bank_name}</div>
-              <div className="text-xs font-mono text-gray-700">{maskAccount(order.bank_account_number)}</div>
-              <div className="text-xs text-muted-foreground capitalize">{order.bank_account_type}</div>
-            </div>
-          </TableCell>
-          <TableCell className="py-3">
-            <div className="flex gap-1">
-              {order.status === 'pending' && (
-                <>
-                  <Button 
-                    size="sm" 
-                    className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700"
-                    onClick={() => setConfirmDialog({
-                      isOpen: true,
-                      action: 'complete',
-                      order
-                    })}
-                  >
-                    <Check className="h-3 w-3 mr-1" />
-                    Pagar
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="destructive"
-                    className="h-8 px-3 text-xs"
-                    onClick={() => setConfirmDialog({
-                      isOpen: true,
-                      action: 'reject',
-                      order
-                    })}
-                  >
-                    <X className="h-3 w-3 mr-1" />
-                    Rechazar
-                  </Button>
-                </>
-              )}
-              <Button 
-                size="sm" 
-                variant="outline"
-                className="h-8 px-3 text-xs"
-                onClick={() => setSelectedOrder(order)}
-              >
-                <Eye className="h-3 w-3 mr-1" />
-                Ver
-              </Button>
-            </div>
-          </TableCell>
-        </TableRow>
-        {isExpanded && (
-          <TableRow className="bg-muted/20">
-            <TableCell colSpan={5} className="py-3">
-              <div className="space-y-3">
-                {/* Invoice Details */}
-                <div className="bg-white border rounded-lg p-3">
-                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <Package className="h-4 w-4" />
-                    Detalle de Compensaciones
-                  </h4>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {packages.map((pkg: any, index: number) => (
-                      <div key={pkg.package_id || pkg.id || index} className="flex justify-between items-center py-1 border-b border-gray-100 last:border-0">
-                        <div className="flex-1">
-                          <div className="text-sm font-medium">{pkg.item_description}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {(pkg.package_id || pkg.id || '').toString().slice(0, 8)}... • {(pkg.status || '').replace(/_/g, ' ')}
-                          </div>
-                        </div>
-                        <div className="text-sm font-semibold text-green-600">
-                          Q{parseFloat(pkg.quote?.price || 0).toFixed(2)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-3 pt-2 border-t border-gray-200 flex justify-between items-center">
-                    <span className="text-sm font-medium">Total de Compensaciones:</span>
-                    <span className="text-base font-bold text-green-600">Q{totalCompensation.toFixed(2)}</span>
-                  </div>
-                </div>
-
-                {/* Bank Details */}
-                <div className="grid grid-cols-2 gap-4 text-xs">
-                  <div className="space-y-1">
-                    <div><strong>Titular:</strong> {order.bank_account_holder}</div>
-                    <div><strong>Tipo de Cuenta:</strong> {order.bank_account_type}</div>
-                  </div>
-                  <div className="space-y-1">
-                    <div><strong>Banco:</strong> {order.bank_name}</div>
-                    <div><strong>Número:</strong> {order.bank_account_number}</div>
-                  </div>
-                </div>
-
-                {/* Notes Section */}
-                <div className="bg-white border rounded-lg p-3">
-                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4" />
-                    Notas
-                  </h4>
-                  <Textarea
-                    value={editableNotes}
-                    onChange={(e) => setEditableNotes(e.target.value)}
-                    placeholder="Agregar nota sobre este pago..."
-                    className="min-h-[60px] text-sm"
-                  />
-                  <div className="flex justify-end mt-2">
-                    <Button
-                      size="sm"
-                      className="h-7 px-3 text-xs"
-                      onClick={handleSaveNotes}
-                      disabled={savingNotes || editableNotes === (order.notes || '')}
-                    >
-                      <Save className="h-3 w-3 mr-1" />
-                      {savingNotes ? 'Guardando...' : 'Guardar nota'}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </TableCell>
-          </TableRow>
-        )}
-      </>
-    );
-  };
-
-  const EditableNotesSection = ({ order }: { order: any }) => {
-    const [editableNotes, setEditableNotes] = useState(order.notes || '');
-    const [savingNotes, setSavingNotes] = useState(false);
-
-    const handleSaveNotes = async () => {
-      setSavingNotes(true);
-      try {
-        await updatePaymentOrder(order.id, { notes: editableNotes.trim() || null });
-        toast({
-          title: "Nota guardada",
-          description: "La nota se actualizó correctamente.",
-        });
-      } catch (error) {
-        console.error('Error saving notes:', error);
-      } finally {
-        setSavingNotes(false);
-      }
-    };
-
-    return (
-      <div>
-        <Label className="text-sm font-medium flex items-center gap-1">
-          <MessageSquare className="h-3.5 w-3.5" />
-          Notas
-        </Label>
-        <Textarea
-          value={editableNotes}
-          onChange={(e) => setEditableNotes(e.target.value)}
-          placeholder="Agregar nota sobre este pago..."
-          className="mt-1 min-h-[60px] text-sm"
-        />
-        <div className="flex justify-end mt-2">
-          <Button
-            size="sm"
-            className="h-7 px-3 text-xs"
-            onClick={handleSaveNotes}
-            disabled={savingNotes || editableNotes === (order.notes || '')}
-          >
-            <Save className="h-3 w-3 mr-1" />
-            {savingNotes ? 'Guardando...' : 'Guardar nota'}
-          </Button>
-        </div>
-      </div>
-    );
-  };
-
-  const OrderDetailModal = ({ order, isOpen, onClose }: any) => {
-    if (!order) return null;
-    
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Detalles de la orden de pago</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-sm font-medium">Viajero</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <User className="h-4 w-4" />
-                  <span>{order.profiles?.first_name || 'N/A'} {order.profiles?.last_name || ''}</span>
-                </div>
-                <p className="text-sm text-muted-foreground">{order.profiles?.email || 'Sin email'}</p>
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Monto</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <CreditCard className="h-4 w-4" />
-                  <span className="text-lg font-bold">Q{order.amount}</span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium">Información bancaria</Label>
-              <div className="bg-muted/30 rounded p-3 mt-1">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div><span className="font-medium">Titular:</span> {order.bank_account_holder || 'N/A'}</div>
-                  <div><span className="font-medium">Banco:</span> {order.bank_name || 'N/A'}</div>
-                  <div><span className="font-medium">Tipo:</span> {order.bank_account_type || 'N/A'}</div>
-                  <div><span className="font-medium">Número:</span> {order.bank_account_number || 'N/A'}</div>
-                </div>
-              </div>
-            </div>
-
-            {order.receipt_url && (
-              <div>
-                <Label className="text-sm font-medium">Comprobante de Pago</Label>
-                <div className="bg-muted/30 rounded p-3 mt-1">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={async () => {
-                      const url = order.receipt_url;
-                      let receiptUrl = url;
-                      
-                      if (url && !url.startsWith('http')) {
-                        const { data, error } = await supabase.storage
-                          .from('payment-receipts')
-                          .createSignedUrl(url, 3600);
-                        if (!error && data?.signedUrl) {
-                          receiptUrl = data.signedUrl;
-                        }
-                      }
-                      
-                      setViewingReceiptUrl(receiptUrl || url);
-                      setViewingReceiptFilename(order.receipt_filename || 'Comprobante de Pago');
-                      setImageViewerOpen(true);
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Ver Comprobante
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            <EditableNotesSection order={order} />
-
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <Label className="text-sm font-medium">Fecha de creación</Label>
-                <p className="mt-1">{new Date(order.created_at).toLocaleString('es-GT')}</p>
-              </div>
-              {order.completed_at && (
-                <div>
-                  <Label className="text-sm font-medium">Fecha de completado</Label>
-                  <p className="mt-1">{new Date(order.completed_at).toLocaleString('es-GT')}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
   };
 
   if (loading) {
@@ -638,7 +662,16 @@ const AdminTravelerPaymentsTab = () => {
                   </TableHeader>
                   <TableBody>
                     {pendingOrders.map(order => (
-                      <CompactOrderRow key={order.id} order={order} />
+                      <CompactOrderRow
+                        key={order.id}
+                        order={order}
+                        isExpanded={expandedRows.has(order.id)}
+                        onToggleExpansion={toggleRowExpansion}
+                        updatePaymentOrder={updatePaymentOrder}
+                        toast={toast}
+                        onConfirmAction={handleConfirmAction}
+                        onSelectOrder={setSelectedOrder}
+                      />
                     ))}
                   </TableBody>
                 </Table>
@@ -672,7 +705,16 @@ const AdminTravelerPaymentsTab = () => {
                   </TableHeader>
                   <TableBody>
                     {processedOrders.map(order => (
-                      <CompactOrderRow key={order.id} order={order} />
+                      <CompactOrderRow
+                        key={order.id}
+                        order={order}
+                        isExpanded={expandedRows.has(order.id)}
+                        onToggleExpansion={toggleRowExpansion}
+                        updatePaymentOrder={updatePaymentOrder}
+                        toast={toast}
+                        onConfirmAction={handleConfirmAction}
+                        onSelectOrder={setSelectedOrder}
+                      />
                     ))}
                   </TableBody>
                 </Table>
@@ -720,7 +762,6 @@ const AdminTravelerPaymentsTab = () => {
                   </div>
                 ) : packageBreakdown.length > 0 ? (
                   packageBreakdown.map((pkg, index) => {
-                    // Parse products_data if it exists
                     let productsArray: any[] = [];
                     try {
                       if (pkg.products_data) {
@@ -734,16 +775,13 @@ const AdminTravelerPaymentsTab = () => {
                       console.error('Error parsing products_data:', e);
                     }
 
-                    // Si hay múltiples productos, mostrar desglose por producto
                     if (productsArray.length > 1) {
                       return (
                         <div key={pkg.id || index} className="space-y-1">
-                          {/* Header del paquete con múltiples productos */}
                           <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground px-2 py-1 bg-muted/20 rounded-t">
                             <Package className="h-3 w-3" />
                             <span className="truncate flex-1">{pkg.item_description}</span>
                           </div>
-                          {/* Desglose de cada producto */}
                           {productsArray.filter((product: any) => !product.cancelled).map((product: any, prodIndex: number) => {
                             const productTip = product.adminAssignedTip || 0;
                             const productDesc = product.itemDescription || product.item_description || product.description || `Producto ${prodIndex + 1}`;
@@ -769,7 +807,6 @@ const AdminTravelerPaymentsTab = () => {
                               </div>
                             );
                           })}
-                          {/* Show cancelled products with strikethrough */}
                           {productsArray.filter((product: any) => product.cancelled).map((product: any, prodIndex: number) => {
                             const productDesc = product.itemDescription || product.item_description || product.description || `Producto ${prodIndex + 1}`;
                             return (
@@ -791,7 +828,6 @@ const AdminTravelerPaymentsTab = () => {
                       );
                     }
                     
-                    // Si es un solo producto o no hay products_data, mostrar como antes
                     const packageTip = getActiveTipFromPackage(pkg);
                     
                     return (
@@ -800,7 +836,7 @@ const AdminTravelerPaymentsTab = () => {
                           {(() => {
                             const officeDelivery = pkg.office_delivery as any;
                             const postOfficeStatuses = ['completed', 'ready_for_pickup', 'ready_for_delivery', 'out_for_delivery'];
-                            const isConfirmed = postOfficeStatuses.includes(pkg.status) || 
+                            const isConfirmed = postOfficeStatuses.includes(pkg.status || '') || 
                               (pkg.status === 'delivered_to_office' && officeDelivery?.admin_confirmation);
                             const isPending = pkg.status === 'delivered_to_office' && !officeDelivery?.admin_confirmation;
                             
@@ -977,7 +1013,10 @@ const AdminTravelerPaymentsTab = () => {
       <OrderDetailModal 
         order={selectedOrder} 
         isOpen={!!selectedOrder} 
-        onClose={() => setSelectedOrder(null)} 
+        onClose={() => setSelectedOrder(null)}
+        updatePaymentOrder={updatePaymentOrder}
+        toast={toast}
+        onViewReceipt={handleViewReceipt}
       />
 
       {/* Image Viewer Modal */}
