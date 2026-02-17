@@ -21,6 +21,7 @@ import AddressForm from "@/components/AddressForm";
 import ProductPhotoUpload from "@/components/ProductPhotoUpload";
 import type { Product } from "@/types";
 import { inferCountryFromCity } from "@/lib/cities";
+import { useDeliveryPoints } from "@/hooks/useDeliveryPoints";
 import { MetaPixel } from "@/lib/metaPixel";
 import "./ui/mobile-safe-form.css";
 
@@ -35,6 +36,7 @@ interface PackageRequestFormProps {
 const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
   const { openModal, closeModal } = useModalState();
   const { profile, updateProfile } = useAuth();
+  const { getDeliveryPointByCity } = useDeliveryPoints();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
   
   // State for "Don't show again" checkbox
@@ -1333,30 +1335,45 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             Forma de entrega en {formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination} *
           </Label>
           <div className="space-y-3">
-            {/* Solo mostrar opción de pickup si es Guatemala City */}
-            {isGuatemalaCityDestination && (
-              <div 
-                onClick={() => handleInputChange('deliveryMethod', 'pickup')}
-                className={cn(
-                  "border-2 rounded-lg p-4 cursor-pointer transition-all",
-                  formData.deliveryMethod === 'pickup' 
-                    ? 'border-primary bg-primary/5' 
-                    : 'border-border hover:border-muted-foreground'
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Pickup en Oficina (zona 14)</p>
-                    <p className="text-sm text-muted-foreground">Gratis - Recoge en nuestra oficina</p>
-                  </div>
-                  {formData.deliveryMethod === 'pickup' && (
-                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary-foreground"></div>
-                    </div>
+            {/* Pickup option - show if there's a delivery point for the destination OR if it's Guatemala City */}
+            {(() => {
+              const destinationDeliveryPoint = getDeliveryPointByCity(actualDestination, selectedCountry);
+              const showPickup = isGuatemalaCityDestination || !!destinationDeliveryPoint;
+              
+              if (!showPickup) return null;
+              
+              const pickupLabel = destinationDeliveryPoint 
+                ? `Recoger en ${destinationDeliveryPoint.name}`
+                : 'Pickup en Oficina (zona 14)';
+              const pickupAddress = destinationDeliveryPoint?.address_line_1;
+              const pickupSubtext = destinationDeliveryPoint
+                ? `Gratis - ${pickupAddress || 'Ver dirección al confirmar'}`
+                : 'Gratis - Recoge en nuestra oficina';
+
+              return (
+                <div 
+                  onClick={() => handleInputChange('deliveryMethod', 'pickup')}
+                  className={cn(
+                    "border-2 rounded-lg p-4 cursor-pointer transition-all",
+                    formData.deliveryMethod === 'pickup' 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-muted-foreground'
                   )}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{pickupLabel}</p>
+                      <p className="text-sm text-muted-foreground">{pickupSubtext}</p>
+                    </div>
+                    {formData.deliveryMethod === 'pickup' && (
+                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                        <div className="w-2 h-2 rounded-full bg-primary-foreground"></div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
             
             {/* Opción de delivery siempre disponible */}
             <div 
@@ -1410,19 +1427,21 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             </div>
           )}
           
-          {/* Notas de costos - solo mostrar si NO es devolución */}
-          {isGuatemalaCityDestination ? (
-            <div className="bg-primary/10 border border-primary/20 rounded p-3">
-              <p className="text-sm text-primary">
-                📌 <strong>Nota:</strong> El envío a domicilio dentro de Ciudad de Guatemala tiene un costo de Q25 (gratis para usuarios Prime).
-              </p>
-            </div>
-          ) : (
-            <div className="bg-primary/10 border border-primary/20 rounded p-3">
-              <p className="text-sm text-primary">
-                📌 <strong>Nota:</strong> El costo de envío a domicilio fuera de Ciudad de Guatemala es de Q60 (Q35 para usuarios Prime).
-              </p>
-            </div>
+          {/* Notas de costos - solo para Guatemala */}
+          {selectedCountry === 'Guatemala' && (
+            isGuatemalaCityDestination ? (
+              <div className="bg-primary/10 border border-primary/20 rounded p-3">
+                <p className="text-sm text-primary">
+                  📌 <strong>Nota:</strong> El envío a domicilio dentro de Ciudad de Guatemala tiene un costo de Q25 (gratis para usuarios Prime).
+                </p>
+              </div>
+            ) : (
+              <div className="bg-primary/10 border border-primary/20 rounded p-3">
+                <p className="text-sm text-primary">
+                  📌 <strong>Nota:</strong> El costo de envío a domicilio fuera de Ciudad de Guatemala es de Q60 (Q35 para usuarios Prime).
+                </p>
+              </div>
+            )
           )}
         </div>
       ) : selectedCountry ? (
