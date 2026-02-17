@@ -1,37 +1,26 @@
 
 
-## Corregir dropdown de Ciudad/Municipio segun pais de destino
+## Fix: Auto-scroll al expandir filas de ordenes de pago
 
 ### Problema
-El formulario `AddressForm` siempre muestra los municipios de Guatemala (`GUATEMALA_MUNICIPALITIES`) sin importar el pais de destino. Si el destino es Madrid, Espana, el dropdown deberia mostrar provincias de Espana, no municipios guatemaltecos.
+Al hacer clic en el chevron para expandir los detalles de una orden de pago, la pagina se desplaza automaticamente hacia arriba. Esto ocurre porque el componente `CompactOrderRow` esta definido **dentro** de `AdminTravelerPaymentsTab` (linea 230), lo que significa que React lo recrea en cada render. Cuando se actualiza `expandedRows`, React desmonta y remonta todas las filas de la tabla, perdiendo la posicion del scroll.
 
 ### Solucion
 
-**1. Agregar provincias de Espana en `src/lib/cities.ts`**
+**Archivo: `src/components/admin/AdminTravelerPaymentsTab.tsx`**
 
-Crear una nueva constante `SPAIN_PROVINCES` con las provincias principales de Espana (Madrid, Barcelona, Valencia, Sevilla, etc.) con un formato similar a `GUATEMALA_MUNICIPALITIES`.
+1. **Mover `CompactOrderRow` fuera del componente padre** - Extraer `CompactOrderRow` como un componente independiente fuera de `AdminTravelerPaymentsTab`, pasando las dependencias necesarias como props (`expandedRows`, `toggleRowExpansion`, `updatePaymentOrder`, `setConfirmDialog`, `setSelectedOrder`, `toast`, `maskAccount`).
 
-**2. Hacer `AddressForm` dinamico segun el pais**
+2. **Hacer lo mismo con `EditableNotesSection` y `OrderDetailModal`** - Estos tambien estan definidos dentro del componente padre y deben extraerse.
 
-- Agregar una prop `destinationCountry` al componente `AddressForm`
-- Segun el pais, mostrar la lista correcta de municipios/provincias:
-  - Guatemala: `GUATEMALA_MUNICIPALITIES` (comportamiento actual con Q25/Q60)
-  - Espana: `SPAIN_PROVINCES`
-  - Otros paises: campo de texto libre en lugar de dropdown
-- Cambiar las etiquetas contextuales:
-  - Guatemala: "Ciudad/Municipio" con nota de precios Q25/Q60
-  - Espana: "Provincia" sin nota de precios
-  - Otros: "Ciudad/Provincia" como campo de texto
-
-**3. Pasar el pais desde `PackageRequestForm`**
-
-En la linea donde se renderiza `<AddressForm>`, agregar la prop `destinationCountry={selectedCountry}` para que el formulario sepa que lista mostrar.
+3. De esta forma, React podra reconciliar los componentes correctamente usando las `key` existentes (`order.id`) sin necesidad de desmontarlos y remontarlos.
 
 ### Detalle tecnico
 
-| Archivo | Cambio |
-|---------|--------|
-| `src/lib/cities.ts` | Agregar constante `SPAIN_PROVINCES` con las provincias de Espana |
-| `src/components/AddressForm.tsx` | Recibir prop `destinationCountry`, seleccionar lista de opciones segun pais, adaptar etiquetas y notas de precio |
-| `src/components/PackageRequestForm.tsx` | Pasar `destinationCountry={selectedCountry}` al componente AddressForm |
+El problema raiz es que cuando un componente se define dentro de otro componente con `const CompactOrderRow = ...` dentro del cuerpo de la funcion:
+- Cada re-render crea una **nueva referencia** de la funcion del componente
+- React interpreta esto como un **componente diferente** y desmonta el anterior
+- Al desmontar/remontar toda la tabla, el navegador pierde la posicion del scroll
+
+La solucion es mover estas definiciones fuera del scope del componente padre, o alternativamente usar `useCallback`/`useMemo`, pero la forma idiomatica en React es simplemente definirlos fuera.
 
