@@ -31,7 +31,8 @@ import {
   Calendar,
   ChevronRight,
   ChevronDown,
-  Truck
+  Truck,
+  RotateCcw
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -40,6 +41,8 @@ import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 import ProductTipAssignmentModal from "./ProductTipAssignmentModal";
+import IncidentReasonModal from "./IncidentReasonModal";
+import IncidentTimeline from "./IncidentTimeline";
 import PackageProductDisplay from "@/components/dashboard/PackageProductDisplay";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { formatDateUTC } from "@/lib/formatters";
@@ -64,6 +67,8 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
   const [adminNotes, setAdminNotes] = useState("");
   const [showProductTipModal, setShowProductTipModal] = useState(false);
   const [expandedTrips, setExpandedTrips] = useState<Set<string>>(new Set());
+  const [incidentModalAction, setIncidentModalAction] = useState<'mark' | 'resolve' | 'reopen' | null>(null);
+  const [showIncidentTimeline, setShowIncidentTimeline] = useState(false);
   const { user, userRole } = useAuth();
   const { toast } = useToast();
   const { createPaymentOrder } = usePaymentOrders();
@@ -384,34 +389,67 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
     }
   };
 
-  const toggleIncidentFlag = async () => {
+  // Incident management
+
+  const handleIncidentAction = async (text: string) => {
+    if (!incidentModalAction || !user) return;
     setIsLoading(true);
     try {
+      // Fetch current incident_history from DB
+      const { data: currentPkg } = await supabase
+        .from('packages')
+        .select('incident_history')
+        .eq('id', pkg.id)
+        .single();
+
+      const currentHistory: any[] = (currentPkg?.incident_history as any[]) || [];
+
+      const newEntry = {
+        action: incidentModalAction === 'mark' ? 'marked' : incidentModalAction === 'resolve' ? 'resolved' : 'reopened',
+        timestamp: new Date().toISOString(),
+        admin_id: user.id,
+        admin_name: `Admin`,
+        ...(incidentModalAction === 'resolve' ? { resolution_notes: text } : { reason: text }),
+      };
+
+      const updatedHistory = [...currentHistory, newEntry];
+      const newStatus = incidentModalAction === 'resolve' ? 'resolved' : 'active';
+      const newFlag = incidentModalAction === 'resolve' ? true : true; // flag stays true in all cases
+
       const { error } = await supabase
         .from('packages')
-        .update({ incident_flag: !pkg.incident_flag })
+        .update({
+          incident_flag: newFlag,
+          incident_status: newStatus,
+          incident_history: updatedHistory,
+        })
         .eq('id', pkg.id);
 
       if (error) throw error;
 
-      await logAction(
-        pkg.incident_flag ? 'incident_unmarked' : 'incident_marked',
-        pkg.incident_flag ? 'Incidencia removida' : 'Marcado como incidencia'
-      );
-      
+      const actionLabel = incidentModalAction === 'mark' ? 'incident_marked' : incidentModalAction === 'resolve' ? 'incident_resolved' : 'incident_reopened';
+      const descLabel = incidentModalAction === 'mark' ? 'Incidencia marcada' : incidentModalAction === 'resolve' ? 'Incidencia resuelta' : 'Incidencia reabierta';
+
+      await logAction(actionLabel, descLabel, { text });
+
       toast({
-        title: pkg.incident_flag ? "Incidencia removida" : "Marcado como incidencia",
-        description: pkg.incident_flag ? "El paquete ya no está marcado como incidencia" : "El paquete se marcó como incidencia"
+        title: descLabel,
+        description: incidentModalAction === 'resolve' 
+          ? 'La incidencia fue resuelta y queda registrada en el historial'
+          : incidentModalAction === 'reopen'
+          ? 'La incidencia fue reabierta'
+          : 'Se registró la incidencia con la razón proporcionada',
       });
 
       onRefresh?.();
     } catch (error) {
-      console.error('Error toggling incident flag:', error);
+      console.error('Error updating incident:', error);
       toast({
         title: "Error",
         description: "No se pudo actualizar la incidencia",
         variant: "destructive"
       });
+      throw error; // Propagate to modal
     } finally {
       setIsLoading(false);
     }
@@ -581,6 +619,14 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
 
   return (
     <>
+      {incidentModalAction && (
+        <IncidentReasonModal
+          isOpen={!!incidentModalAction}
+          onClose={() => setIncidentModalAction(null)}
+          onConfirm={handleIncidentAction}
+          action={incidentModalAction}
+        />
+      )}
       <ProductTipAssignmentModal
         key={pkg.id}
         isOpen={showProductTipModal}
@@ -718,16 +764,82 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
                   Cambiar Estado
                 </Button>
 
-                <div className="pt-4 border-t">
-                  <Button 
-                    onClick={toggleIncidentFlag}
-                    variant={pkg.incident_flag ? "outline" : "destructive"}
-                    disabled={isLoading}
-                    className="w-full"
-                  >
-                    <AlertTriangle className="h-4 w-4 mr-2" />
-                    {pkg.incident_flag ? 'Quitar Marca de Incidencia' : 'Marcar como Incidencia'}
-                  </Button>
+                <div className="pt-4 border-t space-y-3">
+                  <p className="text-sm font-medium text-muted-foreground">Gestión de Incidencia</p>
+                  
+                  {/* Show current incident status */}
+                  {pkg.incident_flag && (
+                    <div className={`flex items-center gap-2 p-2 rounded text-sm ${
+                      pkg.incident_status === 'resolved' || (!pkg.incident_status && !pkg.incident_flag)
+                        ? 'bg-green-50 text-green-700 border border-green-200'
+                        : 'bg-red-50 text-red-700 border border-red-200'
+                    }`}>
+                      {(pkg.incident_status === 'resolved') ? (
+                        <>
+                          <CheckCircle className="h-4 w-4" />
+                          <span>Incidencia resuelta</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle className="h-4 w-4" />
+                          <span>Incidencia activa</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Action buttons based on current state */}
+                  {!pkg.incident_flag ? (
+                    <Button 
+                      onClick={() => setIncidentModalAction('mark')}
+                      variant="destructive"
+                      disabled={isLoading}
+                      className="w-full"
+                    >
+                      <AlertTriangle className="h-4 w-4 mr-2" />
+                      Marcar como Incidencia
+                    </Button>
+                  ) : pkg.incident_status === 'resolved' ? (
+                    <Button 
+                      onClick={() => setIncidentModalAction('reopen')}
+                      variant="outline"
+                      disabled={isLoading}
+                      className="w-full"
+                    >
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Reabrir Incidencia
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={() => setIncidentModalAction('resolve')}
+                      variant="default"
+                      disabled={isLoading}
+                      className="w-full"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Resolver Incidencia
+                    </Button>
+                  )}
+
+                  {/* Show timeline toggle */}
+                  {pkg.incident_history && (pkg.incident_history as any[]).length > 0 && (
+                    <>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setShowIncidentTimeline(!showIncidentTimeline)}
+                        className="w-full text-muted-foreground"
+                      >
+                        <Clock className="h-4 w-4 mr-2" />
+                        {showIncidentTimeline ? 'Ocultar historial' : `Ver historial (${(pkg.incident_history as any[]).length})`}
+                      </Button>
+                      {showIncidentTimeline && (
+                        <div className="border rounded-lg p-3">
+                          <IncidentTimeline history={pkg.incident_history as any[]} />
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>

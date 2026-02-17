@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, AlertTriangle, Eye, Package, User, Phone, Mail, Hash, Loader2, RefreshCcw, Settings, Database } from "lucide-react";
+import { Search, AlertTriangle, Eye, Package, User, Phone, Mail, Hash, Loader2, RefreshCcw, Settings, Database, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -63,9 +63,13 @@ const AdminSupportTab = ({
   const { user } = useAuth();
 
   // Filter options
+  const incidentActiveCount = packages.filter(p => p.incident_flag && p.incident_status !== 'resolved').length;
+  const incidentResolvedCount = packages.filter(p => p.incident_flag && p.incident_status === 'resolved').length;
+  
   const filters = [
     { id: "all", label: "Todos", count: packages.length },
-    { id: "incidents", label: "Incidencias", count: packages.filter(p => p.incident_flag).length },
+    { id: "incidents_active", label: "Incidencias Activas", count: incidentActiveCount },
+    { id: "incidents_resolved", label: "Resueltas", count: incidentResolvedCount },
     { id: "pending", label: "Pendientes", count: packages.filter(p => p.status === 'pending_approval').length },
     { id: "payment_pending", label: "Pagos pendientes", count: packages.filter(p => p.status === 'payment_pending').length },
   ];
@@ -186,8 +190,10 @@ const AdminSupportTab = ({
     const packagesToFilter = searchTerm ? searchResults : packages;
     
     switch (activeFilter) {
-      case "incidents":
-        return packagesToFilter.filter(p => p.incident_flag);
+      case "incidents_active":
+        return packagesToFilter.filter(p => p.incident_flag && p.incident_status !== 'resolved');
+      case "incidents_resolved":
+        return packagesToFilter.filter(p => p.incident_flag && p.incident_status === 'resolved');
       case "pending":
         return packagesToFilter.filter(p => p.status === 'pending_approval');
       case "payment_pending":
@@ -213,10 +219,24 @@ const AdminSupportTab = ({
   };
 
   const markAsIncident = async (packageId: string) => {
+    // This is now a simple mark - the modal-based flow is handled in AdminActionsModal
+    // This is kept for backward compatibility but should ideally open the actions modal
     try {
+      const newEntry = {
+        action: 'marked',
+        timestamp: new Date().toISOString(),
+        admin_id: user?.id || '',
+        admin_name: 'Admin',
+        reason: 'Marcado desde pestaña de soporte',
+      };
+
       const { error } = await supabase
         .from('packages')
-        .update({ incident_flag: true })
+        .update({ 
+          incident_flag: true, 
+          incident_status: 'active',
+          incident_history: [newEntry],
+        })
         .eq('id', packageId);
 
       if (error) throw error;
@@ -227,12 +247,11 @@ const AdminSupportTab = ({
           _package_id: packageId,
           _admin_id: user.id,
           _action_type: 'incident_marked',
-          _action_description: 'Paquete marcado como incidencia'
+          _action_description: 'Paquete marcado como incidencia desde soporte'
         });
       }
 
-      // Update will come from real-time subscription
-      console.log('✅ Package marked as incident - real-time will update UI');
+      console.log('✅ Package marked as incident with history');
     } catch (error) {
       console.error('Error marking as incident:', error);
     }
@@ -523,9 +542,9 @@ const AdminSupportTab = ({
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="packages" className="relative">
             Solicitudes
-            {packages.filter(p => p.incident_flag).length > 0 && (
+            {packages.filter(p => p.incident_flag && p.incident_status !== 'resolved').length > 0 && (
               <Badge variant="secondary" className="ml-2 min-w-[20px] h-5 rounded-full">
-                {packages.filter(p => p.incident_flag).length}
+                {packages.filter(p => p.incident_flag && p.incident_status !== 'resolved').length}
               </Badge>
             )}
           </TabsTrigger>
@@ -578,7 +597,7 @@ const AdminSupportTab = ({
 
           {/* Filters */}
           <Tabs value={activeFilter} onValueChange={setActiveFilter}>
-            <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
               {filters.map(filter => (
                 <TabsTrigger key={filter.id} value={filter.id} className="relative">
                   {filter.label}
@@ -599,10 +618,16 @@ const AdminSupportTab = ({
                     <span>
                       {searchTerm ? `Resultados de búsqueda (${filteredPackages.length})` : `${filters.find(f => f.id === activeFilter)?.label} (${filteredPackages.length})`}
                     </span>
-                    {activeFilter === 'incidents' && (
+                    {activeFilter === 'incidents_active' && (
                       <Badge variant="destructive" className="flex items-center space-x-1">
                         <AlertTriangle className="h-3 w-3" />
                         <span>Incidencias Activas</span>
+                      </Badge>
+                    )}
+                    {activeFilter === 'incidents_resolved' && (
+                      <Badge className="flex items-center space-x-1 bg-green-600">
+                        <CheckCircle className="h-3 w-3" />
+                        <span>Incidencias Resueltas</span>
                       </Badge>
                     )}
                   </CardTitle>
@@ -622,12 +647,17 @@ const AdminSupportTab = ({
                           <div className="flex items-start justify-between">
                             <div className="flex-1 space-y-2">
                               <div className="flex items-center space-x-2">
-                                {pkg.incident_flag && (
+                                {pkg.incident_flag && pkg.incident_status === 'resolved' ? (
+                                  <Badge className="flex items-center space-x-1 bg-green-600">
+                                    <CheckCircle className="h-3 w-3" />
+                                    <span>Resuelta</span>
+                                  </Badge>
+                                ) : pkg.incident_flag ? (
                                   <Badge variant="destructive" className="flex items-center space-x-1">
                                     <AlertTriangle className="h-3 w-3" />
                                     <span>Incidencia</span>
                                   </Badge>
-                                )}
+                                ) : null}
                                 {getStatusBadge(pkg.status)}
                                 <Badge variant="outline" className="text-xs">
                                   #{pkg.id.slice(0, 8)}
