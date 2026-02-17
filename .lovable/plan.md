@@ -1,47 +1,37 @@
 
 
-## Agregar opcion de pickup en oficina para destinos internacionales con punto de entrega
+## Corregir dropdown de Ciudad/Municipio segun pais de destino
 
-### Problema actual
-Cuando el destino del paquete es Madrid (Espana), el formulario solo muestra "Enviarlo a mi domicilio". Pero existe un Punto de Entrega configurado en Madrid (Calle de Julian Besteiro 26) que deberia aparecer como opcion de pickup gratuito.
+### Problema
+El formulario `AddressForm` siempre muestra los municipios de Guatemala (`GUATEMALA_MUNICIPALITIES`) sin importar el pais de destino. Si el destino es Madrid, Espana, el dropdown deberia mostrar provincias de Espana, no municipios guatemaltecos.
 
 ### Solucion
 
-Integrar el hook `useDeliveryPoints` en `PackageRequestForm.tsx` para que, cuando el destino seleccionado coincida con un punto de entrega activo, se muestre la opcion de "Recoger en oficina" con la direccion del punto.
+**1. Agregar provincias de Espana en `src/lib/cities.ts`**
 
-### Cambios
+Crear una nueva constante `SPAIN_PROVINCES` con las provincias principales de Espana (Madrid, Barcelona, Valencia, Sevilla, etc.) con un formato similar a `GUATEMALA_MUNICIPALITIES`.
 
-**1. `src/components/PackageRequestForm.tsx`**
+**2. Hacer `AddressForm` dinamico segun el pais**
 
-- Importar y usar `useDeliveryPoints` para obtener los puntos de entrega activos
-- Buscar si existe un punto de entrega para la ciudad y pais seleccionados usando `getDeliveryPointByCity(city, country)`
-- Cuando exista un punto de entrega para el destino:
-  - Mostrar una opcion de pickup con el nombre y direccion del punto (ej: "Recoger en Punto de Entrega Madrid - Calle de Julian Besteiro 26")
-  - Mantener la opcion de "Enviarlo a mi domicilio" como segunda opcion
-- La logica aplica tanto para destinos internacionales como para Guatemala City (que ya tiene su opcion de pickup hardcodeada en zona 14)
+- Agregar una prop `destinationCountry` al componente `AddressForm`
+- Segun el pais, mostrar la lista correcta de municipios/provincias:
+  - Guatemala: `GUATEMALA_MUNICIPALITIES` (comportamiento actual con Q25/Q60)
+  - Espana: `SPAIN_PROVINCES`
+  - Otros paises: campo de texto libre en lugar de dropdown
+- Cambiar las etiquetas contextuales:
+  - Guatemala: "Ciudad/Municipio" con nota de precios Q25/Q60
+  - Espana: "Provincia" sin nota de precios
+  - Otros: "Ciudad/Provincia" como campo de texto
 
-**2. Logica de renderizado en Step 3 (seccion de entrega)**
+**3. Pasar el pais desde `PackageRequestForm`**
 
-Actualmente el flujo es:
-- Si es devolucion: opciones de devolucion
-- Si tiene destino (`isGuatemalaDestination`, que en realidad es "tiene cualquier destino"): opciones de pickup (solo Guatemala City) + delivery
-- Si no tiene ciudad: mensaje "selecciona ciudad"
-
-El cambio agrega una verificacion: si `getDeliveryPointByCity(actualDestination, selectedCountry)` retorna un punto activo, mostrar la opcion de pickup con los datos de ese punto, ademas de la opcion de delivery existente. Esto aplica para cualquier destino, no solo Guatemala City.
+En la linea donde se renderiza `<AddressForm>`, agregar la prop `destinationCountry={selectedCountry}` para que el formulario sepa que lista mostrar.
 
 ### Detalle tecnico
 
-```
-// Dentro de PackageRequestForm:
-const { getDeliveryPointByCity } = useDeliveryPoints();
-
-// En la seccion de delivery options:
-const deliveryPoint = getDeliveryPointByCity(actualDestination, selectedCountry);
-
-// Si hay delivery point, mostrar:
-// - "Recoger en [nombre del punto]" con la direccion como subtexto
-// - "Enviarlo a mi domicilio" (opcion existente)
-```
-
-El valor de `deliveryMethod` seguira siendo `'pickup'` cuando seleccionen la oficina, igual que con Guatemala City, por lo que no hay cambios necesarios en el backend ni en la logica de cotizacion.
+| Archivo | Cambio |
+|---------|--------|
+| `src/lib/cities.ts` | Agregar constante `SPAIN_PROVINCES` con las provincias de Espana |
+| `src/components/AddressForm.tsx` | Recibir prop `destinationCountry`, seleccionar lista de opciones segun pais, adaptar etiquetas y notas de precio |
+| `src/components/PackageRequestForm.tsx` | Pasar `destinationCountry={selectedCountry}` al componente AddressForm |
 
