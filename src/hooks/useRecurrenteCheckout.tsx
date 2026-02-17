@@ -5,7 +5,6 @@ import { Package } from '@/types';
 
 interface CreateCheckoutParams {
   packageId: string;
-  userId: string;
   amount: number;
   itemDescription: string;
 }
@@ -24,7 +23,6 @@ export function useRecurrenteCheckout() {
 
   const createCheckout = useCallback(async ({
     packageId,
-    userId,
     amount,
     itemDescription
   }: CreateCheckoutParams): Promise<CheckoutResult | null> => {
@@ -38,7 +36,6 @@ export function useRecurrenteCheckout() {
       const { data, error: invokeError } = await supabase.functions.invoke('create-recurrente-checkout', {
         body: {
           package_id: packageId,
-          user_id: userId,
           amount,
           item_description: itemDescription,
           success_url: `${window.location.origin}/payment-callback?payment=success&package_id=${packageId}&amount=${amount}`,
