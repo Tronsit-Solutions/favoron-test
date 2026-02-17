@@ -10,16 +10,80 @@ const corsHeaders = {
 const RECURRENTE_API_URL = 'https://app.recurrente.com/api/checkouts/';
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // 1. Validate authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // User-context client (respects RLS)
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      console.error('Invalid auth token:', claimsError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const userId = claimsData.claims.sub as string;
+    console.log('Authenticated user:', userId);
+
+    // 2. Parse request body
+    const { package_id, amount, success_url, cancel_url, item_description } = await req.json();
+
+    if (!package_id || !amount) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields: package_id, amount' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 3. Verify package ownership via user-context client (RLS enforced)
+    const { data: pkg, error: pkgError } = await userClient
+      .from('packages')
+      .select('id, user_id')
+      .eq('id', package_id)
+      .single();
+
+    if (pkgError || !pkg) {
+      console.error('Package not found or access denied:', package_id, pkgError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Package not found or access denied' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (pkg.user_id !== userId) {
+      console.error('Package ownership mismatch:', { packageUserId: pkg.user_id, authUserId: userId });
+      return new Response(
+        JSON.stringify({ error: 'Package does not belong to authenticated user' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Package ownership verified:', { package_id, userId });
+
+    // 4. Check Recurrente API keys
     const publicKey = Deno.env.get('RECURRENTE_PUBLIC_KEY');
     const secretKey = Deno.env.get('RECURRENTE_SECRET_KEY');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
     if (!publicKey || !secretKey) {
       console.error('Missing Recurrente API keys');
@@ -29,35 +93,22 @@ serve(async (req) => {
       );
     }
 
-    const { package_id, user_id, amount, success_url, cancel_url, item_description } = await req.json();
-
-    console.log('Creating Recurrente checkout:', { package_id, user_id, amount, item_description });
-
-    if (!package_id || !user_id || !amount) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields: package_id, user_id, amount' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Initialize Supabase client early to clear previous checkout
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // 5. Service role client for package updates (bypasses RLS)
+    const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
     // Clear any previous checkout to avoid webhook conflicts
-    const { error: clearError } = await supabase
+    const { error: clearError } = await serviceClient
       .from('packages')
       .update({ recurrente_checkout_id: null })
       .eq('id', package_id);
 
     if (clearError) {
       console.warn('Failed to clear previous checkout:', clearError);
-      // Continue anyway - this is not critical
     }
 
-    // Convert amount to cents (Recurrente uses cents)
+    // 6. Create checkout in Recurrente
     const amountInCents = Math.round(amount * 100);
 
-    // Create checkout in Recurrente
     const checkoutPayload = {
       items: [{
         name: item_description || `Pago Paquete Favorón`,
@@ -70,7 +121,7 @@ serve(async (req) => {
       cancel_url: cancel_url || 'https://preview--favoron.lovable.app/dashboard?payment=cancelled',
       metadata: {
         package_id,
-        user_id,
+        user_id: userId,
         source: 'favoron_web_app'
       }
     };
@@ -88,13 +139,11 @@ serve(async (req) => {
     });
 
     const recurrenteData = await recurrenteResponse.json();
-
     console.log('Recurrente response:', JSON.stringify(recurrenteData));
 
     if (!recurrenteResponse.ok) {
       console.error('Recurrente rejection:', {
         status: recurrenteResponse.status,
-        statusText: recurrenteResponse.statusText,
         body: recurrenteData,
         package_id,
         amount
@@ -105,7 +154,6 @@ serve(async (req) => {
       );
     }
 
-    // Extract checkout ID and URL from response
     const checkoutId = recurrenteData.id;
     const checkoutUrl = recurrenteData.checkout_url;
 
@@ -117,8 +165,8 @@ serve(async (req) => {
       );
     }
 
-    // Update package with Recurrente checkout ID
-    const { error: updateError } = await supabase
+    // 7. Update package with service role client
+    const { error: updateError } = await serviceClient
       .from('packages')
       .update({
         recurrente_checkout_id: checkoutId,
@@ -129,7 +177,6 @@ serve(async (req) => {
 
     if (updateError) {
       console.error('Failed to update package:', updateError);
-      // Don't fail the request, the checkout was created successfully
     }
 
     console.log('Checkout created successfully:', { checkoutId, checkoutUrl });

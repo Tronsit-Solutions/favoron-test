@@ -52,7 +52,6 @@ export default function RecurrenteCheckout({
     
     const result = await createCheckout({
       packageId: pkg.id,
-      userId: pkg.user_id,
       amount,
       itemDescription: getItemDescription()
     });
