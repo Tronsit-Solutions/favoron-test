@@ -5,6 +5,7 @@ import { normalizeQuote, shouldRecalculateQuote, createNormalizedQuote } from '@
 import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 import { sendWhatsAppNotification } from '@/lib/whatsappNotifications';
 import { createHistoryEntry, appendTripHistoryEntry, buildEditDiff } from '@/utils/tripHistoryHelpers';
+import { inferCountryFromCity } from '@/lib/cities';
 
 export const useDashboardActions = (
   packages: any[],
@@ -72,7 +73,7 @@ export const useDashboardActions = (
               : packageData.deliveryDeadline.toISOString())
           : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default 30 days
         package_destination: packageData.packageDestination,
-        package_destination_country: packageData.packageDestinationCountry || 'guatemala', // NEW: save country
+        package_destination_country: packageData.packageDestinationCountry || inferCountryFromCity(packageData.packageDestination) || null,
         purchase_origin: packageData.purchaseOrigin,
         additional_notes: packageData.additionalNotes || null,
         internal_notes: (packageData.internal_notes ?? packageData.internalNotes)?.trim() || null,

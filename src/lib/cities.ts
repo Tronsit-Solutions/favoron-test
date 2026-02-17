@@ -122,3 +122,30 @@ export const getCitiesByCountry = (countryCode: string): { value: string; label:
 export const countryHasCities = (countryCode: string): boolean => {
   return ['guatemala', 'estados-unidos', 'espana', 'mexico'].includes(countryCode.toLowerCase());
 };
+
+// Map well-known cities to their country value (used as fallback inference)
+const CITY_TO_COUNTRY: Record<string, string> = {
+  // España
+  'Madrid': 'España', 'Barcelona': 'España', 'Valencia': 'España', 'Sevilla': 'España',
+  'Málaga': 'España', 'Bilbao': 'España', 'Zaragoza': 'España', 'Granada': 'España',
+  'Palma de Mallorca': 'España', 'San Sebastián': 'España',
+  // Estados Unidos
+  'Miami': 'Estados Unidos', 'New York': 'Estados Unidos', 'Los Angeles': 'Estados Unidos',
+  'Houston': 'Estados Unidos', 'Chicago': 'Estados Unidos', 'San Francisco': 'Estados Unidos',
+  'Dallas': 'Estados Unidos', 'Atlanta': 'Estados Unidos', 'Phoenix': 'Estados Unidos',
+  'Las Vegas': 'Estados Unidos', 'Orlando': 'Estados Unidos', 'Washington D.C.': 'Estados Unidos',
+  // México
+  'Ciudad de México': 'México', 'Guadalajara': 'México', 'Monterrey': 'México',
+  'Cancún': 'México', 'Tijuana': 'México', 'Puebla': 'México', 'Mérida': 'México',
+  'Querétaro': 'México',
+};
+
+/**
+ * Infer country from a city name as a last-resort fallback.
+ * Returns the country display label (e.g. "España") or undefined.
+ */
+export const inferCountryFromCity = (city: string | undefined | null): string | undefined => {
+  if (!city) return undefined;
+  const trimmed = city.trim();
+  return CITY_TO_COUNTRY[trimmed];
+};
