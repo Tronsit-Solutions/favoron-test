@@ -1,77 +1,47 @@
 
 
-## Fix: Destino de paquetes personales guarda pais incorrecto
+## Agregar opcion de pickup en oficina para destinos internacionales con punto de entrega
 
-### Problema encontrado
+### Problema actual
+Cuando el destino del paquete es Madrid (Espana), el formulario solo muestra "Enviarlo a mi domicilio". Pero existe un Punto de Entrega configurado en Madrid (Calle de Julian Besteiro 26) que deberia aparecer como opcion de pickup gratuito.
 
-El paquete "bote blanco (pastillero) NaturDreams" tiene estos datos en la base de datos:
-- `purchase_origin`: "guatemala" (correcto - el paquete esta en Guatemala)
-- `package_destination`: "Madrid" (correcto - la ciudad destino)
-- `package_destination_country`: "guatemala" (INCORRECTO - deberia ser "Espana")
+### Solucion
 
-Esto causa que el matching muestre viajes hacia Guatemala en vez de viajes hacia Espana/Madrid.
+Integrar el hook `useDeliveryPoints` en `PackageRequestForm.tsx` para que, cuando el destino seleccionado coincida con un punto de entrega activo, se muestre la opcion de "Recoger en oficina" con la direccion del punto.
 
-### Causa raiz
+### Cambios
 
-Hay **dos problemas** trabajando juntos:
+**1. `src/components/PackageRequestForm.tsx`**
 
-**1. Fallback silencioso a "guatemala"** en dos lugares:
-- `src/hooks/useDashboardActions.tsx` linea 75: `package_destination_country: packageData.packageDestinationCountry || 'guatemala'`
-- `src/components/admin/PackageDetailModal.tsx` linea 703: `package_destination_country: selectedDestinationCountry || 'guatemala'`
-- La columna en la base de datos tiene default `'guatemala'::text`
+- Importar y usar `useDeliveryPoints` para obtener los puntos de entrega activos
+- Buscar si existe un punto de entrega para la ciudad y pais seleccionados usando `getDeliveryPointByCity(city, country)`
+- Cuando exista un punto de entrega para el destino:
+  - Mostrar una opcion de pickup con el nombre y direccion del punto (ej: "Recoger en Punto de Entrega Madrid - Calle de Julian Besteiro 26")
+  - Mantener la opcion de "Enviarlo a mi domicilio" como segunda opcion
+- La logica aplica tanto para destinos internacionales como para Guatemala City (que ya tiene su opcion de pickup hardcodeada en zona 14)
 
-Si por cualquier razon el campo `selectedCountry` llega vacio (por el autosave del formulario, por un click rapido, etc.), el sistema guarda "guatemala" silenciosamente.
+**2. Logica de renderizado en Step 3 (seccion de entrega)**
 
-**2. No hay validacion cruzada** entre la ciudad de destino y el pais de destino. El usuario podria seleccionar "Guatemala" como pais y escribir "Madrid" en "Otra ciudad", o el autosave podria restaurar un estado inconsistente.
+Actualmente el flujo es:
+- Si es devolucion: opciones de devolucion
+- Si tiene destino (`isGuatemalaDestination`, que en realidad es "tiene cualquier destino"): opciones de pickup (solo Guatemala City) + delivery
+- Si no tiene ciudad: mensaje "selecciona ciudad"
 
-### Solucion propuesta
+El cambio agrega una verificacion: si `getDeliveryPointByCity(actualDestination, selectedCountry)` retorna un punto activo, mostrar la opcion de pickup con los datos de ese punto, ademas de la opcion de delivery existente. Esto aplica para cualquier destino, no solo Guatemala City.
 
-**A. Eliminar el fallback silencioso a "guatemala"**
+### Detalle tecnico
 
-En `useDashboardActions.tsx` y `PackageDetailModal.tsx`, cambiar el fallback `|| 'guatemala'` por una validacion que lance un error si el pais no esta seleccionado:
+```
+// Dentro de PackageRequestForm:
+const { getDeliveryPointByCity } = useDeliveryPoints();
 
-```typescript
-// Antes
-package_destination_country: packageData.packageDestinationCountry || 'guatemala'
+// En la seccion de delivery options:
+const deliveryPoint = getDeliveryPointByCity(actualDestination, selectedCountry);
 
-// Despues  
-package_destination_country: packageData.packageDestinationCountry
+// Si hay delivery point, mostrar:
+// - "Recoger en [nombre del punto]" con la direccion como subtexto
+// - "Enviarlo a mi domicilio" (opcion existente)
 ```
 
-La validacion del formulario (Step 3) ya exige `selectedCountry`, asi que nunca deberia llegar vacio. Si llega vacio, es mejor que falle con un error visible que guardar datos incorrectos silenciosamente.
-
-**B. Agregar validacion cruzada en el submit**
-
-En `PackageRequestForm.tsx`, antes de enviar, verificar que la ciudad seleccionada corresponda al pais seleccionado:
-
-- Si `selectedCountry` es "Guatemala" pero la ciudad no esta en la lista de ciudades de Guatemala, mostrar un error
-- Si la ciudad es "Madrid" y el pais es "Guatemala", bloquear el envio
-
-**C. Inferir el pais desde la ciudad como ultimo recurso**
-
-Si por alguna razon el pais llega vacio al backend, intentar inferirlo de la ciudad usando un mapa simple (Madrid->Espana, Miami->USA, etc.) en vez de defaultear a Guatemala.
-
-**D. Corregir el paquete existente**
-
-Ejecutar un UPDATE directo para corregir este paquete especifico:
-```sql
-UPDATE packages 
-SET package_destination_country = 'España'
-WHERE id = 'bdadf0ac-76d5-4d4e-8a09-f045471bea99';
-```
-
-Y buscar otros paquetes con inconsistencias similares para corregirlos tambien.
-
-### Archivos a modificar
-
-| Archivo | Cambio |
-|---------|--------|
-| `src/hooks/useDashboardActions.tsx` | Remover fallback `\|\| 'guatemala'`, agregar validacion |
-| `src/components/admin/PackageDetailModal.tsx` | Remover fallback `\|\| 'guatemala'`, agregar validacion |
-| `src/components/PackageRequestForm.tsx` | Agregar validacion cruzada pais-ciudad en Step 3 y submit |
-| Migration SQL | Corregir paquetes existentes con pais incorrecto, cambiar DB default a NULL |
-
-### Verificacion adicional
-
-Buscar en la base de datos otros paquetes donde `package_destination` no corresponda al `package_destination_country` para detectar mas casos del mismo problema.
+El valor de `deliveryMethod` seguira siendo `'pickup'` cuando seleccionen la oficina, igual que con Guatemala City, por lo que no hay cambios necesarios en el backend ni en la logica de cotizacion.
 
