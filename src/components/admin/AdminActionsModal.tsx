@@ -51,7 +51,7 @@ import { sendWhatsAppNotification } from '@/lib/whatsappNotifications';
 interface AdminActionsModalProps {
   modalId: string;
   trips: any[];
-  onRefresh?: () => void;
+  onRefresh?: () => void | Promise<void>;
 }
 
 const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps) => {
@@ -220,7 +220,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
         description: `El estado se cambió a ${statusOptions.find(s => s.value === newStatus)?.label}${newStatus === 'quote_sent' ? ' y se generó la cotización automáticamente' : ''}`
       });
 
-      onRefresh?.();
+      await onRefresh?.();
       closeModal(modalId);
     } catch (error) {
       console.error('Error updating status:', error);
@@ -305,7 +305,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
         description: "El nuevo viajero tiene 24h para aceptar. El shopper verá instrucciones cuando el viajero acepte.",
       });
 
-      onRefresh?.();
+      await onRefresh?.();
       closeModal(modalId);
     } catch (error) {
       console.error('Error reassigning trip:', error);
@@ -441,8 +441,8 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
           : 'Se registró la incidencia con la razón proporcionada',
       });
 
+      await onRefresh?.();
       closeModal(modalId);
-      onRefresh?.();
     } catch (error) {
       console.error('Error updating incident:', error);
       toast({
@@ -561,7 +561,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
         });
       }
 
-      onRefresh?.();
+      await onRefresh?.();
       closeModal(modalId);
 
     } catch (error) {
