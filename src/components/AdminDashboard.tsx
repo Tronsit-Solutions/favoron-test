@@ -672,12 +672,10 @@ const AdminDashboard = ({
       <AdminActionsModal
         modalId="admin-actions"
         trips={localTrips}
-        onRefresh={() => {
-          console.log('🔄 AdminActionsModal refresh requested - using incremental update');
-          if (!hasOpenModals()) {
-            processQueuedUpdates();
-          } else {
-            console.log('📱 Refresh blocked by open modals - will process when modals close');
+        onRefresh={async () => {
+          console.log('AdminActionsModal refresh - fetching latest data');
+          if (refreshAdminData) {
+            await refreshAdminData();
           }
         }}
       />
@@ -686,12 +684,10 @@ const AdminDashboard = ({
       <AdminActionsModal
         modalId="admin-actions-matches"
         trips={localTrips}
-        onRefresh={() => {
-          console.log('🔄 AdminActionsModal refresh requested - using incremental update');
-          if (!hasOpenModals()) {
-            processQueuedUpdates();
-          } else {
-            console.log('📱 Refresh blocked by open modals - will process when modals close');
+        onRefresh={async () => {
+          console.log('AdminActionsModal refresh - fetching latest data');
+          if (refreshAdminData) {
+            await refreshAdminData();
           }
         }}
       />
