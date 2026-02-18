@@ -1,14 +1,18 @@
 
 
+## Fix: Mostrar sugerencia contextual segun motivo de rechazo
 
-## ✅ Preservar el tip asignado en el historial de rechazos del viajero
+### Problema
+El tooltip de "Cotizacion Rechazada" siempre muestra "Asignar un tip menor a QX" sin importar el motivo del rechazo. Si el viajero rechazo por "tiempo de entrega", esa sugerencia no tiene sentido.
 
-**Estado: Completado**
+### Solucion
+Condicionar la sugerencia en `RejectionTooltip.tsx` para que solo aparezca cuando el motivo de rechazo esta relacionado con el tip (ej: "tip_bajo", "low_tip", "Price too high", etc.). Para otros motivos, no mostrar sugerencia o mostrar una relevante al motivo.
 
-### Cambios realizados
+### Cambios
 
-1. **Función SQL `traveler_reject_assignment`** — Captura `previous_admin_assigned_tip`, `previous_quote_price` y `previous_products_tips` en `traveler_rejection` y `admin_actions_log` antes de limpiarlos.
+**Archivo: `src/components/admin/RejectionTooltip.tsx`**
 
-2. **`PackageDetailModal.tsx`** — Muestra el tip ofrecido en la sección de rechazo del viajero y en cada entrada del historial de rechazos.
+- Agregar logica para determinar si el rechazo es por tip: verificar si `rejectionReason` contiene palabras clave como `tip`, `precio`, `price`, `caro`, `expensive`, `bajo`.
+- Solo mostrar el bloque de sugerencia "Asignar un tip menor" cuando el motivo sea relacionado al tip.
+- Para otros motivos, omitir la sugerencia o mostrar solo el tip anterior como referencia sin la recomendacion de bajarlo.
 
-3. **`AdminMatchDialog.tsx`** — Banner naranja antes de la lista de viajes mostrando el último tip ofrecido y motivo de rechazo. También corregido `wasPreviouslyRejected` para usar `previous_traveler_id`.
