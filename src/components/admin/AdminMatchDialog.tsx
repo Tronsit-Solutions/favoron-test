@@ -820,6 +820,21 @@ const AdminMatchDialog = ({
             </div>
           )}
 
+          {/* Previous rejection tip banner */}
+          {selectedPackage?.traveler_rejection?.previous_admin_assigned_tip != null && (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-3 flex-shrink-0">
+              <div className="flex items-center gap-2 text-orange-800">
+                <DollarSign className="h-4 w-4" />
+                <span className="text-sm">
+                  <span className="font-medium">Último tip ofrecido: Q{Number(selectedPackage.traveler_rejection.previous_admin_assigned_tip).toFixed(2)}</span>
+                  <span className="text-orange-600 ml-1">
+                    — rechazado por {selectedPackage.traveler_rejection.rejection_reason === 'tip_bajo' ? 'tip bajo' : selectedPackage.traveler_rejection.rejection_reason || 'viajero'}
+                  </span>
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Trips List */}
           <div className="flex flex-col flex-1 min-h-0">
             <div className="flex items-center justify-between mb-3 flex-shrink-0">
@@ -931,7 +946,7 @@ const AdminMatchDialog = ({
                   const packageOriginNormalized = normalizeCountry(selectedPackage?.purchase_origin || '');
                   const tripOriginNormalized = normalizeCountry(trip.from_country || '');
                   const isDifferentCountry = showAllTrips && tripOriginNormalized !== packageOriginNormalized;
-                  const wasPreviouslyRejected = selectedPackage?.traveler_rejection?.rejected_by === trip.user_id;
+                  const wasPreviouslyRejected = (selectedPackage?.traveler_rejection?.previous_traveler_id || selectedPackage?.traveler_rejection?.rejected_by) === trip.user_id;
                   const isDifferentCity = showOtherCities && 
                     trip.to_city?.toLowerCase().trim() !== selectedPackage?.package_destination?.toLowerCase().trim();
                   
@@ -1159,7 +1174,7 @@ const AdminMatchDialog = ({
                     </div>
                     
                     {otherUSCityTrips.map((trip) => {
-                      const wasPreviouslyRejected = selectedPackage?.traveler_rejection?.rejected_by === trip.user_id;
+                      const wasPreviouslyRejected = (selectedPackage?.traveler_rejection?.previous_traveler_id || selectedPackage?.traveler_rejection?.rejected_by) === trip.user_id;
                       
                       return (
                         <Card 
@@ -1288,7 +1303,7 @@ const AdminMatchDialog = ({
                     </div>
                     
                     {otherSpainCityTrips.map((trip) => {
-                      const wasPreviouslyRejected = selectedPackage?.traveler_rejection?.rejected_by === trip.user_id;
+                      const wasPreviouslyRejected = (selectedPackage?.traveler_rejection?.previous_traveler_id || selectedPackage?.traveler_rejection?.rejected_by) === trip.user_id;
                       
                       return (
                         <Card 

@@ -1159,6 +1159,25 @@ const [editForm, setEditForm] = useState({
                           <span className="font-medium">Motivo: </span>
                           {translateRejectionReason((pkg.traveler_rejection as any)?.reason || (pkg.traveler_rejection as any)?.rejection_reason)}
                         </p>
+                        
+                        {/* Tip previo ofrecido */}
+                        {(pkg.traveler_rejection as any)?.previous_admin_assigned_tip != null && (
+                          <div className="mt-2 bg-orange-100 border border-orange-300 rounded-md p-2">
+                            <p className="text-sm text-orange-900 flex items-center gap-1">
+                              <DollarSign className="h-3.5 w-3.5" />
+                              <span className="font-medium">Tip ofrecido:</span> Q{Number((pkg.traveler_rejection as any).previous_admin_assigned_tip).toFixed(2)}
+                            </p>
+                            {(pkg.traveler_rejection as any)?.previous_products_tips && Array.isArray((pkg.traveler_rejection as any).previous_products_tips) && (
+                              <div className="mt-1 space-y-0.5">
+                                {(pkg.traveler_rejection as any).previous_products_tips.map((pt: any, i: number) => (
+                                  <p key={i} className="text-xs text-orange-700 pl-5">
+                                    {pt.itemDescription}: Q{pt.adminAssignedTip}
+                                  </p>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       
                       {(pkg.traveler_rejection as any)?.additional_comments && (
@@ -1215,6 +1234,11 @@ const [editForm, setEditForm] = useState({
                             {log.additional_data?.rejection_reason && (
                               <p className="text-xs text-amber-700 mt-1">
                                 Motivo: {translateRejectionReason(log.additional_data.rejection_reason)}
+                              </p>
+                            )}
+                            {log.additional_data?.previous_admin_assigned_tip != null && (
+                              <p className="text-xs text-amber-700 mt-0.5">
+                                💰 Tip ofrecido: Q{Number(log.additional_data.previous_admin_assigned_tip).toFixed(2)}
                               </p>
                             )}
                           </div>
