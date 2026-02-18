@@ -441,6 +441,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
           : 'Se registró la incidencia con la razón proporcionada',
       });
 
+      closeModal(modalId);
       onRefresh?.();
     } catch (error) {
       console.error('Error updating incident:', error);
