@@ -1,46 +1,43 @@
 
 
-## Fix: Resolver incidencia no actualiza la UI
+## Fix: Resolver incidencia no actualiza la UI (la UI no se refresca)
 
 ### Problema
-Cuando se resuelve una incidencia, los datos se guardan en la base de datos pero la UI no se actualiza. El fix anterior (agregar `closeModal`) era necesario pero insuficiente.
+Aunque los datos se guardan correctamente en la base de datos (PATCH retorna 204), la UI no se actualiza porque no se ejecuta un re-fetch de los datos despues de resolver la incidencia.
 
-**Causa raiz:** El callback `onRefresh` del `AdminActionsModal` solo llama `processQueuedUpdates()`, que procesa actualizaciones de realtime pendientes. Pero resolver una incidencia es una mutacion directa a la base de datos -- no genera un evento en la cola de realtime. Por lo tanto, `processQueuedUpdates()` no tiene nada que procesar y la UI queda sin cambios.
+**Causa raiz:** En `handleIncidentAction`, se llama `closeModal(modalId)` primero y luego `onRefresh?.()` sin await. `closeModal` elimina los datos del modal del contexto global, lo que causa que `AdminActionsModal` se desmonte (porque `pkg` se vuelve `null` y retorna `null`). El `onRefresh?.()` inicia la cadena asincrona, pero como el componente se esta desmontando, la promesa puede no completarse o ejecutarse correctamente.
 
-Otros componentes como `AdminPaymentsUnifiedTab` ya usan `refreshAdminData` (que re-fetch completo de la base de datos) como su `onRefresh`, y funciona correctamente.
+Los logs de red confirman: despues del PATCH exitoso, no se ejecuta ningun GET para refrescar los datos.
 
 ### Solucion
-Cambiar el `onRefresh` del `AdminActionsModal` para que llame `refreshAdminData` en lugar de solo `processQueuedUpdates`.
+Cambiar el orden de operaciones: primero ejecutar y esperar (`await`) el refresh de datos, y solo despues cerrar el modal. Esto garantiza que los datos se refrescan antes de que el componente se desmonte.
 
 ### Cambios
 
-**Archivo: `src/components/AdminDashboard.tsx` (lineas ~675-682 y ~689-696)**
+**Archivo: `src/components/admin/AdminActionsModal.tsx` (lineas ~444-445)**
 
-Para ambas instancias de `AdminActionsModal`, cambiar:
-```
-onRefresh={() => {
-  console.log('...');
-  if (!hasOpenModals()) {
-    processQueuedUpdates();
-  } else {
-    console.log('...');
-  }
-}}
+Cambiar:
+```typescript
+closeModal(modalId);
+onRefresh?.();
 ```
 
 A:
-```
-onRefresh={async () => {
-  console.log('AdminActionsModal refresh - fetching latest data');
-  if (refreshAdminData) {
-    await refreshAdminData();
-  }
-}}
+```typescript
+await onRefresh?.();
+closeModal(modalId);
 ```
 
-Esto garantiza que despues de cualquier accion en el modal (cambio de estado, resolucion de incidencia, reasignacion), se haga un re-fetch real de los datos desde la base de datos.
+Tambien actualizar la firma del prop `onRefresh` para reflejar que es asincrono:
 
-### Seccion tecnica
-- `processQueuedUpdates()` solo aplica eventos de realtime acumulados. Mutaciones directas via `supabase.from('packages').update()` no generan entradas en esa cola.
-- `refreshAdminData` es una funcion pasada como prop que hace un fetch completo de paquetes y viajes desde Supabase, garantizando que la UI refleje el estado actual de la base de datos.
-- El `closeModal(modalId)` agregado anteriormente sigue siendo necesario para que el modal se cierre, pero ya no necesita desbloquear el refresh porque `refreshAdminData` no tiene el check de `hasOpenModals()`.
+```typescript
+onRefresh?: () => void | Promise<void>;
+```
+
+### Por que funciona
+- Al hacer `await onRefresh?.()`, el refresh completa el fetch de datos desde la base de datos ANTES de que `closeModal` desmonte el componente
+- Los datos actualizados ya estaran en el estado global cuando el componente se cierre
+- El modal se cerrara despues con los datos frescos ya disponibles en la UI
+
+### Nota sobre consistencia
+Este mismo patron (await refresh, luego close) debe aplicarse a los otros handlers que ya llaman `closeModal` + `onRefresh`, como `handleStatusChange` y `handleReassignTrip`, para prevenir el mismo tipo de problema.
