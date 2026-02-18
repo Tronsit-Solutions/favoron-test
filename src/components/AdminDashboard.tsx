@@ -646,8 +646,7 @@ const AdminDashboard = ({
             trips={localTrips}
             onViewPackageDetail={handleViewPackageDetail}
             onOpenActionsModal={(pkg) => {
-              const modalId = `admin-actions-${pkg.id}`;
-              openModal(modalId, 'admin-actions', pkg);
+              openModal("admin-actions", 'admin-actions', pkg);
             }}
           />
         </TabsContent>
