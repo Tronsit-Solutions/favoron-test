@@ -1,18 +1,35 @@
 
 
-## Fix: Mostrar sugerencia contextual segun motivo de rechazo
+## Fix: Boton "Acciones" no funciona en la pestana de Incidencias Activas
 
 ### Problema
-El tooltip de "Cotizacion Rechazada" siempre muestra "Asignar un tip menor a QX" sin importar el motivo del rechazo. Si el viajero rechazo por "tiempo de entrega", esa sugerencia no tiene sentido.
+El boton "Acciones" en la pestana de Soporte/Incidencias Activas no abre ningun modal. La causa es un desajuste en los IDs de modal:
+
+- La pestana de soporte llama `openModal("admin-actions-${pkg.id}", ...)` con un ID dinamico (ej: `"admin-actions-f56904bf"`)
+- El componente `AdminActionsModal` solo escucha el ID fijo `"admin-actions"` 
+- Como los IDs no coinciden, `isModalOpen` siempre retorna `false` y el modal nunca se abre
 
 ### Solucion
-Condicionar la sugerencia en `RejectionTooltip.tsx` para que solo aparezca cuando el motivo de rechazo esta relacionado con el tip (ej: "tip_bajo", "low_tip", "Price too high", etc.). Para otros motivos, no mostrar sugerencia o mostrar una relevante al motivo.
+Cambiar la llamada en `AdminDashboard.tsx` linea 648-651 para que la pestana de soporte use el mismo `modalId` fijo que el componente `AdminActionsModal` ya tiene registrado.
 
-### Cambios
+### Cambio
 
-**Archivo: `src/components/admin/RejectionTooltip.tsx`**
+**Archivo: `src/components/AdminDashboard.tsx` (linea ~648-651)**
 
-- Agregar logica para determinar si el rechazo es por tip: verificar si `rejectionReason` contiene palabras clave como `tip`, `precio`, `price`, `caro`, `expensive`, `bajo`.
-- Solo mostrar el bloque de sugerencia "Asignar un tip menor" cuando el motivo sea relacionado al tip.
-- Para otros motivos, omitir la sugerencia o mostrar solo el tip anterior como referencia sin la recomendacion de bajarlo.
+Cambiar:
+```
+onOpenActionsModal={(pkg) => {
+  const modalId = `admin-actions-${pkg.id}`;
+  openModal(modalId, 'admin-actions', pkg);
+}}
+```
+
+A:
+```
+onOpenActionsModal={(pkg) => {
+  openModal("admin-actions", 'admin-actions', pkg);
+}}
+```
+
+Esto hace que use el mismo ID `"admin-actions"` que el `AdminActionsModal` ya esta escuchando (linea 674), identico a como funciona correctamente en la pestana de Matches.
 
