@@ -1,35 +1,36 @@
 
 
-## Fix: Boton "Acciones" no funciona en la pestana de Incidencias Activas
+## Fix: La UI no se actualiza al resolver incidencias
 
 ### Problema
-El boton "Acciones" en la pestana de Soporte/Incidencias Activas no abre ningun modal. La causa es un desajuste en los IDs de modal:
+Los datos SI se guardan correctamente en la base de datos (verificado: el paquete tiene `incident_status: 'resolved'` y el `incident_history` contiene la entrada de resolucion). Sin embargo, la interfaz no refleja el cambio.
 
-- La pestana de soporte llama `openModal("admin-actions-${pkg.id}", ...)` con un ID dinamico (ej: `"admin-actions-f56904bf"`)
-- El componente `AdminActionsModal` solo escucha el ID fijo `"admin-actions"` 
-- Como los IDs no coinciden, `isModalOpen` siempre retorna `false` y el modal nunca se abre
+**Causa raiz:** Cuando `handleIncidentAction` termina exitosamente, llama `onRefresh()` pero NO cierra el modal. En `AdminDashboard.tsx`, el callback `onRefresh` verifica `hasOpenModals()` y bloquea el refresh si hay modales abiertos. Como el `AdminActionsModal` sigue abierto, el refresh nunca se ejecuta.
 
 ### Solucion
-Cambiar la llamada en `AdminDashboard.tsx` linea 648-651 para que la pestana de soporte use el mismo `modalId` fijo que el componente `AdminActionsModal` ya tiene registrado.
+Modificar `handleIncidentAction` en `AdminActionsModal.tsx` para que, tras el exito, actualice el estado local del paquete y/o cierre el modal antes de llamar `onRefresh`.
 
-### Cambio
+### Cambios
 
-**Archivo: `src/components/AdminDashboard.tsx` (linea ~648-651)**
+**Archivo: `src/components/admin/AdminActionsModal.tsx` (linea ~444)**
+
+Despues del toast de exito, agregar `closeModal(modalId)` antes de `onRefresh()`, igual que hacen los otros handlers (cambio de estado, reasignacion). Esto permite que `onRefresh` se ejecute sin ser bloqueado por el modal.
 
 Cambiar:
-```
-onOpenActionsModal={(pkg) => {
-  const modalId = `admin-actions-${pkg.id}`;
-  openModal(modalId, 'admin-actions', pkg);
-}}
+```typescript
+toast({ ... });
+onRefresh?.();
 ```
 
 A:
-```
-onOpenActionsModal={(pkg) => {
-  openModal("admin-actions", 'admin-actions', pkg);
-}}
+```typescript
+toast({ ... });
+closeModal(modalId);
+onRefresh?.();
 ```
 
-Esto hace que use el mismo ID `"admin-actions"` que el `AdminActionsModal` ya esta escuchando (linea 674), identico a como funciona correctamente en la pestana de Matches.
+### Seccion tecnica
+- Los otros handlers exitosos del modal (`handleStatusChange`, `handleReassignTrip`) ya siguen este patron de `closeModal` + `onRefresh`.
+- `handleIncidentAction` es el unico que omite `closeModal`, causando que `hasOpenModals()` retorne `true` y bloquee el refresh.
+- El `IncidentReasonModal` hijo ya llama su propio `onClose` internamente, pero eso no cierra el `AdminActionsModal` padre.
 
