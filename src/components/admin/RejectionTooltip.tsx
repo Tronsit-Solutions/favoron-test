@@ -16,15 +16,9 @@ const RejectionTooltip = ({
   wantsRequote, 
   additionalNotes 
 }: RejectionTooltipProps) => {
-  console.log('RejectionTooltip debug:', {
-    adminAssignedTip,
-    rejectionReason,
-    wantsRequote,
-    additionalNotes,
-    REJECTION_REASONS
-  });
-  
   const rejectionLabel = REJECTION_REASONS[rejectionReason as keyof typeof REJECTION_REASONS] || rejectionReason;
+  
+  const isTipRelatedRejection = rejectionReason === 'too_expensive';
 
   return (
     <TooltipProvider>
@@ -40,18 +34,20 @@ const RejectionTooltip = ({
               📋 Cotización Rechazada
             </div>
             
-            {adminAssignedTip && (
+            {adminAssignedTip != null && (
               <div className="space-y-2">
                 <div className="text-sm">
                   <span className="font-medium">💰 Tip anterior asignado:</span>
                   <span className="ml-2">Q{adminAssignedTip}</span>
                 </div>
-                <div className="bg-orange-50 border border-orange-200 p-2 rounded text-xs">
-                  <span className="font-medium text-orange-800">💡 Sugerencia:</span>
-                  <span className="text-orange-700 ml-1">
-                    Asignar un tip menor a Q{adminAssignedTip}
-                  </span>
-                </div>
+                {isTipRelatedRejection && (
+                  <div className="bg-orange-50 border border-orange-200 p-2 rounded text-xs">
+                    <span className="font-medium text-orange-800">💡 Sugerencia:</span>
+                    <span className="text-orange-700 ml-1">
+                      Asignar un tip menor a Q{adminAssignedTip}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
             
