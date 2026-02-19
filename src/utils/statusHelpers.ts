@@ -27,6 +27,7 @@ export const getStatusBadge = (status: string) => {
     out_for_delivery: { label: 'En camino', variant: 'default' },
     cancelled: { label: 'Cancelado', variant: 'destructive' },
     rejected: { label: 'Rechazado', variant: 'destructive' },
+    deadline_expired: { label: 'Fecha límite vencida', variant: 'warning' },
     // Trip statuses
     active: { label: 'Activo', variant: 'default' },
     completed: { label: 'Completado', variant: 'default' },

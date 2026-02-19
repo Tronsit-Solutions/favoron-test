@@ -44,9 +44,14 @@ const ShopperPackagePriorityActions = ({
     if (!newDeadline) return;
     setIsSaving(true);
     try {
+      const updateData: Record<string, string> = { delivery_deadline: newDeadline.toISOString() };
+      // If package is deadline_expired, move it back to approved
+      if (pkg.status === 'deadline_expired') {
+        updateData.status = 'approved';
+      }
       const { error } = await supabase
         .from('packages')
-        .update({ delivery_deadline: newDeadline.toISOString() })
+        .update(updateData)
         .eq('id', pkg.id);
       if (error) throw error;
       toast({ title: "Fecha actualizada", description: "La nueva fecha límite fue guardada exitosamente." });
@@ -152,6 +157,16 @@ const ShopperPackagePriorityActions = ({
           title: "⏰ Cotización expirada",
           description: "La cotización para este paquete ha expirado. Puedes contactar al viajero para solicitar una nueva.",
           button: null
+        };
+      case 'deadline_expired':
+        return {
+          icon: Clock,
+          title: "⚠️ Fecha límite vencida",
+          description: "No logramos encontrar un viajero disponible antes de tu fecha límite. Puedes reprogramar una nueva fecha para seguir buscando.",
+          button: {
+            text: "Reprogramar fecha límite",
+            onClick: () => setShowRescheduleDialog(true)
+          }
         };
       case 'matched':
         return {

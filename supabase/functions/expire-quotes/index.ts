@@ -30,6 +30,14 @@ serve(async (req) => {
 
     console.log('✅ Quote expiration check completed successfully');
 
+    // Expire approved packages with passed delivery deadlines
+    const { data: deadlineData, error: deadlineError } = await supabase.rpc('expire_approved_deadlines');
+    if (deadlineError) {
+      console.error('❌ Error expiring approved deadlines:', deadlineError);
+    } else {
+      console.log('✅ Approved deadline expiration completed:', deadlineData);
+    }
+
     // Trigger shopper quote reminders at 12h and 1h before expiration
     const { error: remindersError } = await supabase.rpc('send_quote_reminders');
     if (remindersError) {
@@ -43,6 +51,7 @@ serve(async (req) => {
         success: true, 
         message: 'Quote expiration check completed',
         expiredCount: data?.expired_count || 0,
+        deadlineExpiredCount: deadlineData?.expired_count || 0,
         remindersTriggered: true
       }),
       {
