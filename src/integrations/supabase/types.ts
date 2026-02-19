@@ -1561,6 +1561,7 @@ export type Database = {
         }
         Returns: string
       }
+      expire_approved_deadlines: { Args: never; Returns: Json }
       expire_old_quotes: { Args: never; Returns: undefined }
       expire_prime_memberships: { Args: never; Returns: undefined }
       expire_unresponded_assignments: { Args: never; Returns: undefined }

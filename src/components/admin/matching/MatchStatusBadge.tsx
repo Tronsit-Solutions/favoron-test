@@ -28,7 +28,8 @@ const STATUS_MAP: Record<string, StatusInfo> = {
   'completed': { icon: '🎉', label: 'Completado', color: 'bg-success/10 text-black border-success/20' },
   'rejected': { icon: '❌', label: 'Rechazado', color: 'bg-destructive/10 text-black border-destructive/20' },
   'cancelled': { icon: '❌', label: 'Cancelado', color: 'bg-muted/50 text-black border-muted' },
-  'archived_by_shopper': { icon: '📁', label: 'Archivado por shopper', color: 'bg-muted/50 text-black border-muted' }
+  'archived_by_shopper': { icon: '📁', label: 'Archivado por shopper', color: 'bg-muted/50 text-black border-muted' },
+  'deadline_expired': { icon: '⏰', label: 'Fecha límite vencida', color: 'bg-warning/10 text-black border-warning/20' }
 };
 
 export const getStatusInfo = (status: string): StatusInfo => {
