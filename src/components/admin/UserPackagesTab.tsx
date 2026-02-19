@@ -8,6 +8,7 @@ import { useStatusHelpers } from "@/hooks/useStatusHelpers";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Package as PackageIcon, Edit, Eye, ExternalLink, MapPin, Calendar, Loader2 } from "lucide-react";
+import ProductDetailsModal from "@/components/dashboard/ProductDetailsModal";
 
 interface UserPackagesTabProps {
   packages: Package[];
@@ -142,6 +143,14 @@ const UserPackagesTab = ({ packages, loadingPackages = false }: UserPackagesTabP
           </Table>
         </CardContent>
       </Card>
+
+      {selectedPackage && (
+        <ProductDetailsModal
+          isOpen={!!selectedPackage}
+          onClose={() => setSelectedPackage(null)}
+          pkg={selectedPackage}
+        />
+      )}
 
       {/* Document Actions Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
