@@ -1,11 +1,17 @@
-
+import { useState } from "react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, CreditCard, Package2 } from "lucide-react";
+import { Clock, CreditCard, Package2, CalendarIcon } from "lucide-react";
 import { Package } from "@/types";
 import QuoteCountdown from "../QuoteCountdown";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client"; // Nuevo: para actualizar en DB
+import { supabase } from "@/integrations/supabase/client";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from "@/components/ui/alert-dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface ShopperPackagePriorityActionsProps {
   pkg: Package;
@@ -25,6 +31,35 @@ const ShopperPackagePriorityActions = ({
   onShowTimeline
 }: ShopperPackagePriorityActionsProps) => {
   const { toast } = useToast();
+  const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
+  const [newDeadline, setNewDeadline] = useState<Date | undefined>();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const isDeadlineExpired = new Date(pkg.delivery_deadline) < new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+
+  const handleRescheduleDeadline = async () => {
+    if (!newDeadline) return;
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('packages')
+        .update({ delivery_deadline: newDeadline.toISOString() })
+        .eq('id', pkg.id);
+      if (error) throw error;
+      toast({ title: "Fecha actualizada", description: "La nueva fecha límite fue guardada exitosamente." });
+      setShowRescheduleDialog(false);
+      setNewDeadline(undefined);
+      onRefresh?.();
+    } catch (err) {
+      console.error('Error updating deadline:', err);
+      toast({ title: "Error", description: "No se pudo actualizar la fecha límite.", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleQuoteExpire = () => {
     toast({
@@ -126,6 +161,17 @@ const ShopperPackagePriorityActions = ({
           button: null
         };
       case 'approved':
+        if (isDeadlineExpired) {
+          return {
+            icon: Clock,
+            title: "⚠️ Fecha límite vencida",
+            description: "No logramos encontrar un viajero disponible antes de tu fecha límite. Puedes reprogramar una nueva fecha para seguir buscando.",
+            button: {
+              text: "Reprogramar fecha límite",
+              onClick: () => setShowRescheduleDialog(true)
+            }
+          };
+        }
         return {
           icon: Clock,
           title: "✅ Pedido aprobado",
@@ -269,6 +315,7 @@ const ShopperPackagePriorityActions = ({
   const IconComponent = config.icon;
 
   return (
+    <>
     <div className="space-y-4">
       <div 
         className="p-4 bg-gradient-to-r from-primary/5 to-primary/10 border-l-4 border-primary rounded-lg cursor-pointer hover:from-primary/10 hover:to-primary/15 transition-colors"
@@ -292,7 +339,7 @@ const ShopperPackagePriorityActions = ({
             {config.button && (
               <Button 
                 size="sm"
-                onClick={config.button.onClick}
+                onClick={(e) => { e.stopPropagation(); config.button!.onClick(); }}
                 className="mt-3"
               >
                 {config.button.text}
@@ -336,6 +383,51 @@ const ShopperPackagePriorityActions = ({
         </div>
       )}
     </div>
+
+    {/* Reschedule deadline dialog */}
+    <AlertDialog open={showRescheduleDialog} onOpenChange={setShowRescheduleDialog}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Reprogramar fecha límite</AlertDialogTitle>
+          <AlertDialogDescription>
+            Selecciona una nueva fecha límite para tu pedido. Solo se permiten fechas futuras.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="flex justify-center py-4">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal",
+                  !newDeadline && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {newDeadline ? format(newDeadline, "PPP", { locale: es }) : "Seleccionar fecha"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={newDeadline}
+                onSelect={setNewDeadline}
+                disabled={(date) => date < tomorrow}
+                initialFocus
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <Button onClick={handleRescheduleDeadline} disabled={!newDeadline || isSaving}>
+            {isSaving ? "Guardando..." : "Guardar nueva fecha"}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 
