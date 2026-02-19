@@ -110,7 +110,12 @@ const ProductDetailsModal = ({ isOpen, onClose, pkg, onProductCancelled }: Produ
                   Pedido Personal
                 </Badge>
               )}
-            </DialogTitle>
+          </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Fecha límite: {new Date(pkg.delivery_deadline).toLocaleDateString('es-GT', { 
+                day: 'numeric', month: 'long', year: 'numeric' 
+              })}
+            </p>
           </DialogHeader>
           
           <div className="space-y-4">
