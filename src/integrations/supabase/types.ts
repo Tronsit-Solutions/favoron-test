@@ -802,6 +802,63 @@ export type Database = {
           },
         ]
       }
+      platform_reviews: {
+        Row: {
+          communication_quality: string
+          consent_to_publish: boolean
+          created_at: string
+          id: string
+          package_id: string
+          process_was_clear: boolean
+          rating: number
+          review_text: string | null
+          shopper_id: string
+          would_recommend: boolean
+          would_use_again: string
+        }
+        Insert: {
+          communication_quality: string
+          consent_to_publish?: boolean
+          created_at?: string
+          id?: string
+          package_id: string
+          process_was_clear: boolean
+          rating: number
+          review_text?: string | null
+          shopper_id: string
+          would_recommend: boolean
+          would_use_again: string
+        }
+        Update: {
+          communication_quality?: string
+          consent_to_publish?: boolean
+          created_at?: string
+          id?: string
+          package_id?: string
+          process_was_clear?: boolean
+          rating?: number
+          review_text?: string | null
+          shopper_id?: string
+          would_recommend?: boolean
+          would_use_again?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_reviews_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: true
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_reviews_shopper_id_fkey"
+            columns: ["shopper_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_stats_snapshot: {
         Row: {
           id: string
@@ -928,6 +985,9 @@ export type Database = {
           phone_number: string | null
           prime_expires_at: string | null
           referrer_name: string | null
+          traveler_avg_rating: number | null
+          traveler_ontime_rate: number | null
+          traveler_total_ratings: number | null
           trust_level: Database["public"]["Enums"]["trust_level"] | null
           ui_preferences: Json | null
           updated_at: string | null
@@ -958,6 +1018,9 @@ export type Database = {
           phone_number?: string | null
           prime_expires_at?: string | null
           referrer_name?: string | null
+          traveler_avg_rating?: number | null
+          traveler_ontime_rate?: number | null
+          traveler_total_ratings?: number | null
           trust_level?: Database["public"]["Enums"]["trust_level"] | null
           ui_preferences?: Json | null
           updated_at?: string | null
@@ -988,6 +1051,9 @@ export type Database = {
           phone_number?: string | null
           prime_expires_at?: string | null
           referrer_name?: string | null
+          traveler_avg_rating?: number | null
+          traveler_ontime_rate?: number | null
+          traveler_total_ratings?: number | null
           trust_level?: Database["public"]["Enums"]["trust_level"] | null
           ui_preferences?: Json | null
           updated_at?: string | null
@@ -1078,6 +1144,77 @@ export type Database = {
             columns: ["shopper_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      traveler_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          delivered_on_time: boolean
+          id: string
+          package_id: string
+          product_condition: string
+          rating: number
+          shopper_id: string
+          traveler_confirmed: boolean
+          traveler_id: string
+          trip_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          delivered_on_time?: boolean
+          id?: string
+          package_id: string
+          product_condition: string
+          rating: number
+          shopper_id: string
+          traveler_confirmed?: boolean
+          traveler_id: string
+          trip_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          delivered_on_time?: boolean
+          id?: string
+          package_id?: string
+          product_condition?: string
+          rating?: number
+          shopper_id?: string
+          traveler_confirmed?: boolean
+          traveler_id?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "traveler_ratings_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: true
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "traveler_ratings_shopper_id_fkey"
+            columns: ["shopper_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "traveler_ratings_traveler_id_fkey"
+            columns: ["traveler_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "traveler_ratings_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
             referencedColumns: ["id"]
           },
         ]

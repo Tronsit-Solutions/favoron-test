@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, CreditCard, Package2, CalendarIcon } from "lucide-react";
+import { Clock, CreditCard, Package2, CalendarIcon, Star } from "lucide-react";
 import { Package } from "@/types";
 import QuoteCountdown from "../QuoteCountdown";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,10 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import StarRating from "@/components/ui/star-rating";
+import TravelerRatingModal from "@/components/dashboard/TravelerRatingModal";
+import PlatformReviewModal from "@/components/dashboard/PlatformReviewModal";
 
 interface ShopperPackagePriorityActionsProps {
   pkg: Package;
@@ -34,6 +38,35 @@ const ShopperPackagePriorityActions = ({
   const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
   const [newDeadline, setNewDeadline] = useState<Date | undefined>();
   const [isSaving, setIsSaving] = useState(false);
+  const [showTravelerRating, setShowTravelerRating] = useState(false);
+  const [showPlatformReview, setShowPlatformReview] = useState(false);
+
+  // Rating queries for completed packages
+  const { data: travelerRating } = useQuery({
+    queryKey: ['traveler-rating', pkg.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('traveler_ratings')
+        .select('rating, comment')
+        .eq('package_id', pkg.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: pkg.status === 'completed'
+  });
+
+  const { data: platformReview } = useQuery({
+    queryKey: ['platform-review', pkg.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('platform_reviews')
+        .select('rating')
+        .eq('package_id', pkg.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: pkg.status === 'completed' && !!travelerRating
+  });
 
   const isDeadlineExpired = new Date(pkg.delivery_deadline) < new Date();
   const tomorrow = new Date();
@@ -287,6 +320,28 @@ const ShopperPackagePriorityActions = ({
           button: null
         };
       case 'completed':
+        if (!travelerRating) {
+          return {
+            icon: Package2,
+            title: "🎉 ¡Solicitud completada!",
+            description: "Califica al viajero para ayudar a la comunidad.",
+            button: {
+              text: "⭐ Calificar viajero",
+              onClick: () => setShowTravelerRating(true)
+            }
+          };
+        }
+        if (!platformReview) {
+          return {
+            icon: Package2,
+            title: "✅ Completado — ¡Gracias por calificar!",
+            description: "¿Nos cuentas cómo fue tu experiencia con Favorón?",
+            button: {
+              text: "💬 Calificar experiencia",
+              onClick: () => setShowPlatformReview(true)
+            }
+          };
+        }
         return {
           icon: Package2,
           title: "✅ Completado",
@@ -399,6 +454,14 @@ const ShopperPackagePriorityActions = ({
       )}
     </div>
 
+    {/* Read-only rating display for completed packages */}
+    {pkg.status === 'completed' && travelerRating && platformReview && (
+      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">Viajero: <StarRating value={travelerRating.rating} readonly size="sm" /></span>
+        <span className="flex items-center gap-1">Favorón: <StarRating value={platformReview.rating} readonly size="sm" /></span>
+      </div>
+    )}
+
     {/* Reschedule deadline dialog */}
     <AlertDialog open={showRescheduleDialog} onOpenChange={setShowRescheduleDialog}>
       <AlertDialogContent>
@@ -442,6 +505,18 @@ const ShopperPackagePriorityActions = ({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    {/* Rating modals */}
+    <TravelerRatingModal
+      open={showTravelerRating}
+      onOpenChange={setShowTravelerRating}
+      pkg={pkg}
+    />
+    <PlatformReviewModal
+      open={showPlatformReview}
+      onOpenChange={setShowPlatformReview}
+      packageId={pkg.id}
+    />
     </>
   );
 };

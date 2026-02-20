@@ -377,6 +377,32 @@ const UserDetailModal = ({
                   </div>
                 </div>
 
+                {/* Traveler Rating Stats */}
+                {((user as any).traveler_total_ratings > 0) && (
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium mb-3 flex items-center gap-1">
+                      <Shield className="h-4 w-4" />
+                      Calificación como Viajero
+                    </h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-1">
+                        <Label>Rating Promedio</Label>
+                        <p className="text-lg font-semibold flex items-center gap-1">
+                          ⭐ {Number((user as any).traveler_avg_rating).toFixed(1)} / 5
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <Label>Total Calificaciones</Label>
+                        <p className="text-lg font-semibold">{(user as any).traveler_total_ratings}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <Label>Entregas a Tiempo</Label>
+                        <p className="text-lg font-semibold">{Number((user as any).traveler_ontime_rate || 0).toFixed(0)}%</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Document Information */}
                 <div className="border-t pt-4">
                   <h4 className="font-medium mb-3">Información de Documentos</h4>
