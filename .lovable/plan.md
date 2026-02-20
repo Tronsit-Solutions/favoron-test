@@ -1,30 +1,24 @@
 
 
-## Corregir paquete archivado que fue completado
+## Mostrar boton "Calificar viajero" en la tarjeta colapsada
 
-### Hallazgo
+### Problema actual
+Cuando un paquete esta en status `completed` con `feedback_completed = false`, el boton de "Calificar viajero" solo aparece al expandir la tarjeta. El usuario no sabe que tiene feedback pendiente sin expandir.
 
-De los 113 paquetes con status `archived_by_shopper`, solo **1** tiene etiqueta asignada (`label_number`), lo que indica que fue procesado y deberia estar en status `completed`:
+### Solucion
+Agregar un boton "Calificar viajero" directamente en la preview (tarjeta colapsada) del `CollapsiblePackageCard`, visible tanto en mobile como en desktop cuando el paquete esta completado y el feedback no se ha dado.
 
-| ID | Label | feedback_completed |
-|----|-------|--------------------|
-| `6020dc3a-e0b2-4893-bfef-4fb432fb9e14` | 329 | true |
+### Cambios tecnicos
 
-### Cambio
+**Archivo: `src/components/dashboard/CollapsiblePackageCard.tsx`**
 
-Una sola sentencia SQL para corregir el status:
+1. Importar `TravelerRatingModal` y `Star` (icono) al inicio del archivo
+2. Agregar estado `showTravelerRatingFromPreview` para controlar el modal desde la preview
+3. En la seccion mobile (lineas ~542-595), despues de los botones de accion existentes, agregar una condicion:
+   - Si `pkg.status === 'completed'` y `pkg.feedback_completed !== true`, mostrar un boton "Calificar viajero" con icono de estrella
+   - El boton abre directamente el `TravelerRatingModal`
+4. En la seccion desktop (lineas ~598+), agregar el mismo boton con la misma logica
+5. Renderizar el `TravelerRatingModal` junto a los otros modales al final del componente, con un callback `onRefresh` que recargue los datos
 
-```text
-UPDATE packages 
-SET status = 'completed'
-WHERE status = 'archived_by_shopper' 
-  AND label_number IS NOT NULL;
-```
-
-### Detalles tecnicos
-
-- Afecta unicamente 1 registro
-- Solo cambia el campo `status` de `archived_by_shopper` a `completed`
-- `feedback_completed` ya esta en `true`, asi que no reaparecera en el dashboard del shopper
-- No requiere cambios en codigo frontend ni migracion de esquema
+El boton se mostrara con `variant="success"` y estilo similar a los demas botones de accion en la preview, con el texto "Calificar viajero" y un icono de estrella.
 
