@@ -103,16 +103,16 @@ const TravelerRatingModal = ({ open, onOpenChange, pkg }: TravelerRatingModalPro
             <Label>¿En qué condición llegaron tus productos?</Label>
             <RadioGroup value={productCondition} onValueChange={setProductCondition} className="flex gap-4">
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="good" id="cond-good" />
-                <Label htmlFor="cond-good" className="cursor-pointer">😊 Bien</Label>
+                <RadioGroupItem value="bad" id="cond-bad" />
+                <Label htmlFor="cond-bad" className="cursor-pointer">😞 Mal</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="fair" id="cond-fair" />
                 <Label htmlFor="cond-fair" className="cursor-pointer">😐 Regular</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="bad" id="cond-bad" />
-                <Label htmlFor="cond-bad" className="cursor-pointer">😞 Mal</Label>
+                <RadioGroupItem value="good" id="cond-good" />
+                <Label htmlFor="cond-good" className="cursor-pointer">😊 Bien</Label>
               </div>
             </RadioGroup>
           </div>
