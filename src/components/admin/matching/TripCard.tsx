@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, CalendarDays, Plane } from "lucide-react";
+import { Eye, CalendarDays, Plane, Star } from "lucide-react";
 import { formatPrice, formatDateUTC } from "@/lib/formatters";
 
 interface TripCardProps {
@@ -33,11 +33,17 @@ export const TripCard = ({
                   </h4>
                 </div>
                 
-                {/* Traveler name */}
-                <div className="text-xs text-muted-foreground mb-2">
+                {/* Traveler name + rating */}
+                <div className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
                   <span>👤 {trip.first_name && trip.last_name 
                     ? `${trip.first_name} ${trip.last_name}` 
                     : trip.username || 'Usuario sin nombre'}</span>
+                  {trip.traveler_avg_rating && (
+                    <Badge variant="outline" className="text-xs gap-0.5 px-1.5 py-0">
+                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                      {Number(trip.traveler_avg_rating).toFixed(1)}
+                    </Badge>
+                  )}
                 </div>
                 
                 {/* Packages total badge */}
