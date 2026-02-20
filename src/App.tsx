@@ -25,6 +25,7 @@ import AdminWhatsApp from "./pages/AdminWhatsApp";
 import Operations from "./pages/Operations";
 import AvisoLegal from "./pages/AvisoLegal";
 import PaymentCallback from "./pages/PaymentCallback";
+import SupportBubble from "./components/SupportBubble";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +102,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <SupportBubble />
           </PlatformFeesProvider>
         </AuthProvider>
       </BrowserRouter>
