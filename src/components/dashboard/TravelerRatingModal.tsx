@@ -14,9 +14,10 @@ interface TravelerRatingModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   pkg: Package;
+  onSuccess?: () => void;
 }
 
-const TravelerRatingModal = ({ open, onOpenChange, pkg }: TravelerRatingModalProps) => {
+const TravelerRatingModal = ({ open, onOpenChange, pkg, onSuccess }: TravelerRatingModalProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [rating, setRating] = useState(0);
@@ -73,6 +74,7 @@ const TravelerRatingModal = ({ open, onOpenChange, pkg }: TravelerRatingModalPro
       toast({ title: "¡Gracias!", description: "Tu calificación al viajero fue enviada." });
       queryClient.invalidateQueries({ queryKey: ['traveler-rating', pkg.id] });
       onOpenChange(false);
+      onSuccess?.();
     } catch (err: any) {
       console.error('Error submitting rating:', err);
       toast({ title: "Error", description: err.message || "No se pudo enviar la calificación.", variant: "destructive" });

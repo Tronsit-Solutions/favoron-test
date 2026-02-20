@@ -42,6 +42,7 @@ import { ProductStatusModal } from "@/components/ProductStatusModal";
 import { Badge } from "@/components/ui/badge";
 import { TripChangeAlertBadge } from "@/components/dashboard/TripChangeAlertBadge";
 import TravelerRatingModal from "@/components/dashboard/TravelerRatingModal";
+import PlatformReviewModal from "@/components/dashboard/PlatformReviewModal";
 interface CollapsiblePackageCardProps {
   pkg: PackageType;
   onQuote: (pkg: PackageType, userType: UserType) => void;
@@ -106,6 +107,7 @@ const CollapsiblePackageCard = ({
   const [showCancellationModal, setShowCancellationModal] = React.useState(false);
   const [isResubmitting, setIsResubmitting] = React.useState(false);
   const [showTravelerRatingFromPreview, setShowTravelerRatingFromPreview] = React.useState(false);
+  const [showPlatformReviewFromPreview, setShowPlatformReviewFromPreview] = React.useState(false);
 
   const needsFeedback = pkg.status === 'completed' && pkg.feedback_completed !== true;
   const {
@@ -1137,6 +1139,16 @@ const CollapsiblePackageCard = ({
           open={showTravelerRatingFromPreview}
           onOpenChange={setShowTravelerRatingFromPreview}
           pkg={pkg}
+          onSuccess={() => setShowPlatformReviewFromPreview(true)}
+        />
+      )}
+
+      {/* Platform Review Modal after traveler rating */}
+      {showPlatformReviewFromPreview && (
+        <PlatformReviewModal
+          open={showPlatformReviewFromPreview}
+          onOpenChange={setShowPlatformReviewFromPreview}
+          packageId={pkg.id}
         />
       )}
 

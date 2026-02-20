@@ -533,6 +533,7 @@ const ShopperPackagePriorityActions = ({
       open={showTravelerRating}
       onOpenChange={setShowTravelerRating}
       pkg={pkg}
+      onSuccess={() => setShowPlatformReview(true)}
     />
     <PlatformReviewModal
       open={showPlatformReview}
