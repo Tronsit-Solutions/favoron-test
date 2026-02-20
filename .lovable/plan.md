@@ -1,29 +1,36 @@
 
-## Corregir flujo de feedback: no marcar como completado hasta calificar a Favoron
 
-### Problema
-Despues de calificar al viajero, el boton amarillo "Calificar viajero" desaparece porque `needsFeedback` se vuelve `false` al encontrar un `existingRating`. Esto hace que el usuario pierda acceso al flujo de calificacion de Favoron si cierra el modal sin completarlo.
+## Burbuja flotante de Soporte (FAQ + WhatsApp)
 
-El flag `feedback_completed` en la base de datos no se marca prematuramente (solo se marca al enviar la resena de plataforma o al dar "Omitir"). Sin embargo, el boton desaparece visualmente del card, lo cual impide re-abrir el flujo.
-
-### Solucion
-Cambiar la logica de `needsFeedback` para que sea `true` mientras falte CUALQUIERA de las dos calificaciones (viajero O plataforma), y ajustar el boton para reflejar el paso actual.
+### Descripcion
+Crear un componente flotante fijo en la esquina inferior derecha de la pantalla con un icono de soporte. Al hacer clic, se expande un pequeno panel con preguntas frecuentes (FAQ) y un boton para redirigir a WhatsApp.
 
 ### Cambios tecnicos
 
-**Archivo: `src/components/dashboard/CollapsiblePackageCard.tsx`**
+**Nuevo archivo: `src/components/SupportBubble.tsx`**
+- Boton circular flotante con `position: fixed`, `bottom-6 right-6`, `z-50`
+- Icono de `Headphones` o `MessageCircle` de lucide-react
+- Al hacer clic, abre un panel pequeno encima del boton con:
+  - Titulo "Soporte"
+  - Lista de 4-5 preguntas frecuentes colapsables (usando Collapsible o Accordion de shadcn)
+  - Boton verde "Escribenos por WhatsApp" que redirige a `https://wa.me/50230616015` con un mensaje predeterminado
+- Al hacer clic fuera o en el boton de cerrar, el panel se cierra
+- Animacion suave de entrada/salida
 
-1. Agregar una query para verificar si ya existe `platform_review` para el paquete (similar a la de `existingRating`)
-2. Cambiar `needsFeedback` a:
-   ```
-   const needsFeedback = pkg.status === 'completed' 
-     && pkg.feedback_completed !== true 
-     && (!existingRating || !existingPlatformReview);
-   ```
-3. Cambiar el texto y comportamiento del boton amarillo:
-   - Si NO existe `existingRating`: mostrar "Calificar viajero" (abre TravelerRatingModal)
-   - Si existe `existingRating` pero NO existe `existingPlatformReview`: mostrar "Calificar Favoron" (abre PlatformReviewModal directamente)
-4. Aplicar esto tanto en la version mobile como desktop del boton
+**Preguntas frecuentes sugeridas** (editables despues):
+1. "Como funciona Favoron?" - Explicacion breve del servicio
+2. "Cuanto cuesta el servicio?" - Informacion sobre comisiones
+3. "Cuanto tarda mi pedido?" - Tiempos estimados
+4. "Como me registro como viajero?" - Pasos para viajeros
+5. "Que pasa si mi pedido se dana?" - Politica de proteccion
 
-**Archivo: `src/components/dashboard/shopper/ShopperPackagePriorityActions.tsx`**
-- No requiere cambios, ya maneja el flujo secuencial correctamente con sus propias queries
+**Archivo: `src/App.tsx`**
+- Importar y renderizar `<SupportBubble />` dentro del layout principal, fuera de las rutas, para que aparezca en todas las paginas
+- Colocarlo despues de `</Routes>` y antes del cierre de `PlatformFeesProvider`
+
+### Detalles de diseno
+- Burbuja: circulo de 56px, color primario (azul Favoron), sombra elevada
+- Panel: ancho ~320px, maximo 400px de alto con scroll, bordes redondeados, sombra
+- En mobile: el panel ocupa casi todo el ancho con margen lateral de 16px
+- El boton de WhatsApp usa color verde (`bg-green-500`) con icono de `MessageCircle`
+
