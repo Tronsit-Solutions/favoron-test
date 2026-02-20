@@ -1,24 +1,29 @@
 
-
-## Corregir error de calificacion duplicada
+## Corregir flujo de feedback: no marcar como completado hasta calificar a Favoron
 
 ### Problema
-El error "duplicate key value violates unique constraint traveler_ratings_package_id_key" indica que el usuario ya califico este paquete pero el boton sigue apareciendo. Hay una restriccion UNIQUE en `package_id` en la tabla `traveler_ratings`, lo cual es correcto, pero falta:
+Despues de calificar al viajero, el boton amarillo "Calificar viajero" desaparece porque `needsFeedback` se vuelve `false` al encontrar un `existingRating`. Esto hace que el usuario pierda acceso al flujo de calificacion de Favoron si cierra el modal sin completarlo.
 
-1. Verificar si ya existe una calificacion antes de mostrar el boton
-2. Manejar el error gracefully si ocurre de todas formas
+El flag `feedback_completed` en la base de datos no se marca prematuramente (solo se marca al enviar la resena de plataforma o al dar "Omitir"). Sin embargo, el boton desaparece visualmente del card, lo cual impide re-abrir el flujo.
+
+### Solucion
+Cambiar la logica de `needsFeedback` para que sea `true` mientras falte CUALQUIERA de las dos calificaciones (viajero O plataforma), y ajustar el boton para reflejar el paso actual.
 
 ### Cambios tecnicos
 
 **Archivo: `src/components/dashboard/CollapsiblePackageCard.tsx`**
-- Modificar la variable `needsFeedback` para que tambien consulte si ya existe un `traveler_rating` para ese paquete
-- Usar una query con `useQuery` para verificar si existe rating: `SELECT id FROM traveler_ratings WHERE package_id = pkg.id`
-- Si ya existe rating, `needsFeedback` sera `false` y el boton no se mostrara
 
-**Archivo: `src/components/dashboard/TravelerRatingModal.tsx`**
-- Agregar manejo del error de duplicado: si el error contiene "duplicate key" o "unique constraint", mostrar un toast informativo diciendo "Ya calificaste a este viajero" en vez del mensaje de error generico
-- Despues del error de duplicado, cerrar el modal y llamar `onSuccess()` para que el flujo continue al review de plataforma
+1. Agregar una query para verificar si ya existe `platform_review` para el paquete (similar a la de `existingRating`)
+2. Cambiar `needsFeedback` a:
+   ```
+   const needsFeedback = pkg.status === 'completed' 
+     && pkg.feedback_completed !== true 
+     && (!existingRating || !existingPlatformReview);
+   ```
+3. Cambiar el texto y comportamiento del boton amarillo:
+   - Si NO existe `existingRating`: mostrar "Calificar viajero" (abre TravelerRatingModal)
+   - Si existe `existingRating` pero NO existe `existingPlatformReview`: mostrar "Calificar Favoron" (abre PlatformReviewModal directamente)
+4. Aplicar esto tanto en la version mobile como desktop del boton
 
 **Archivo: `src/components/dashboard/shopper/ShopperPackagePriorityActions.tsx`**
-- Aplicar la misma logica de verificacion para no mostrar el boton de calificar si ya existe rating
-
+- No requiere cambios, ya maneja el flujo secuencial correctamente con sus propias queries
