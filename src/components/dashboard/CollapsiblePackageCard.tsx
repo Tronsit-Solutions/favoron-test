@@ -33,6 +33,7 @@ import { useFavoronCompanyInfo } from "@/hooks/useFavoronCompanyInfo";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Package as PackageType, UserType, DocumentType } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
@@ -109,7 +110,20 @@ const CollapsiblePackageCard = ({
   const [showTravelerRatingFromPreview, setShowTravelerRatingFromPreview] = React.useState(false);
   const [showPlatformReviewFromPreview, setShowPlatformReviewFromPreview] = React.useState(false);
 
-  const needsFeedback = pkg.status === 'completed' && pkg.feedback_completed !== true;
+  const { data: existingRating } = useQuery({
+    queryKey: ['traveler-rating', pkg.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('traveler_ratings')
+        .select('id')
+        .eq('package_id', pkg.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: pkg.status === 'completed' && pkg.feedback_completed !== true
+  });
+
+  const needsFeedback = pkg.status === 'completed' && pkg.feedback_completed !== true && !existingRating;
   const {
     profile
   } = useAuth();

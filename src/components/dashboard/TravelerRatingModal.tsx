@@ -77,7 +77,15 @@ const TravelerRatingModal = ({ open, onOpenChange, pkg, onSuccess }: TravelerRat
       onSuccess?.();
     } catch (err: any) {
       console.error('Error submitting rating:', err);
-      toast({ title: "Error", description: err.message || "No se pudo enviar la calificación.", variant: "destructive" });
+      const isDuplicate = err.message?.includes('duplicate key') || err.message?.includes('unique constraint') || err.code === '23505';
+      if (isDuplicate) {
+        toast({ title: "Ya calificaste", description: "Ya calificaste a este viajero anteriormente." });
+        queryClient.invalidateQueries({ queryKey: ['traveler-rating', pkg.id] });
+        onOpenChange(false);
+        onSuccess?.();
+      } else {
+        toast({ title: "Error", description: err.message || "No se pudo enviar la calificación.", variant: "destructive" });
+      }
     } finally {
       setIsSaving(false);
     }
