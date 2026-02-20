@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw, MapPin, DollarSign, Ban, Phone, Clock, XCircle, Send } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, MoreHorizontal, Trash2, Box, Activity, FileText, MessageCircle, CreditCard, Package, Truck, RefreshCw, MapPin, DollarSign, Ban, Phone, Clock, XCircle, Send, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -41,6 +41,7 @@ import { PackageCancellationModal } from "@/components/dashboard/PackageCancella
 import { ProductStatusModal } from "@/components/ProductStatusModal";
 import { Badge } from "@/components/ui/badge";
 import { TripChangeAlertBadge } from "@/components/dashboard/TripChangeAlertBadge";
+import TravelerRatingModal from "@/components/dashboard/TravelerRatingModal";
 interface CollapsiblePackageCardProps {
   pkg: PackageType;
   onQuote: (pkg: PackageType, userType: UserType) => void;
@@ -104,6 +105,9 @@ const CollapsiblePackageCard = ({
   const [showProductStatusModal, setShowProductStatusModal] = React.useState(false);
   const [showCancellationModal, setShowCancellationModal] = React.useState(false);
   const [isResubmitting, setIsResubmitting] = React.useState(false);
+  const [showTravelerRatingFromPreview, setShowTravelerRatingFromPreview] = React.useState(false);
+
+  const needsFeedback = pkg.status === 'completed' && pkg.feedback_completed !== true;
   const {
     profile
   } = useAuth();
@@ -591,6 +595,17 @@ const CollapsiblePackageCard = ({
                         </Button>
                       )
                     ) : null}
+                  
+                  {/* Calificar viajero button - mobile */}
+                  {needsFeedback && (
+                    <Button size="sm" variant="success" onClick={e => {
+                      e.stopPropagation();
+                      setShowTravelerRatingFromPreview(true);
+                    }} className="text-xs font-medium w-full">
+                      <Star className="h-3 w-3 mr-1" />
+                      Calificar viajero
+                    </Button>
+                  )}
                 </div>
                 )}
               </div> :
@@ -833,6 +848,17 @@ const CollapsiblePackageCard = ({
                       </Button>
                     ) : null}
                   
+                  {/* Calificar viajero button - desktop */}
+                  {needsFeedback && (
+                    <Button size="sm" variant="success" onClick={e => {
+                      e.stopPropagation();
+                      setShowTravelerRatingFromPreview(true);
+                    }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
+                      <Star className="h-3 w-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">Calificar viajero</span>
+                    </Button>
+                  )}
+
                   {/* Show upload tracking button for purchased items without tracking */}
    
                   {/* Badge showing admin notes if any */}
@@ -1102,6 +1128,15 @@ const CollapsiblePackageCard = ({
           products={productsArray}
           packageId={pkg.id}
           itemDescription={pkg.item_description}
+        />
+      )}
+
+      {/* Traveler Rating Modal from preview */}
+      {showTravelerRatingFromPreview && (
+        <TravelerRatingModal
+          open={showTravelerRatingFromPreview}
+          onOpenChange={setShowTravelerRatingFromPreview}
+          pkg={pkg}
         />
       )}
 
