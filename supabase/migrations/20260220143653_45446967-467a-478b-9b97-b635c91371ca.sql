@@ -1,0 +1,1 @@
+UPDATE packages SET feedback_completed = true WHERE status = 'archived_by_shopper' AND feedback_completed = false;
