@@ -617,8 +617,10 @@ const Dashboard = ({ user }: DashboardProps) => {
             </div>
 
             {userPackages.filter(pkg => {
-              // Excluir paquetes completados, archivados y cancelados del dashboard activo
-              if (pkg.status === 'completed' || pkg.status === 'archived_by_shopper' || pkg.status === 'cancelled') return false;
+              // Excluir paquetes archivados y cancelados del dashboard activo
+               if (pkg.status === 'archived_by_shopper' || pkg.status === 'cancelled') return false;
+               // Ocultar completados solo si ya dieron feedback o lo omitieron
+               if (pkg.status === 'completed' && (pkg as any).feedback_completed) return false;
               
               // Excluir paquetes que pertenecen a viajes completados y pagados
               if (pkg.matched_trip_id) {
@@ -634,8 +636,10 @@ const Dashboard = ({ user }: DashboardProps) => {
             ) : (
               <div className="grid gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-hidden px-0">
                  {userPackages.filter(pkg => {
-                   // Excluir paquetes completados, archivados y cancelados del dashboard activo
-                   if (pkg.status === 'completed' || pkg.status === 'archived_by_shopper' || pkg.status === 'cancelled') return false;
+                   // Excluir paquetes archivados y cancelados del dashboard activo
+                    if (pkg.status === 'archived_by_shopper' || pkg.status === 'cancelled') return false;
+                    // Ocultar completados solo si ya dieron feedback o lo omitieron
+                    if (pkg.status === 'completed' && (pkg as any).feedback_completed) return false;
                    
                    // Excluir paquetes que pertenecen a viajes completados y pagados
                    if (pkg.matched_trip_id) {
