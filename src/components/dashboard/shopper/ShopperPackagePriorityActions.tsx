@@ -40,6 +40,7 @@ const ShopperPackagePriorityActions = ({
   const [isSaving, setIsSaving] = useState(false);
   const [showTravelerRating, setShowTravelerRating] = useState(false);
   const [showPlatformReview, setShowPlatformReview] = useState(false);
+  const [skippedTravelerRating, setSkippedTravelerRating] = useState(false);
 
   // Rating queries for completed packages
   const { data: travelerRating } = useQuery({
@@ -320,7 +321,7 @@ const ShopperPackagePriorityActions = ({
           button: null
         };
       case 'completed':
-        if (!travelerRating) {
+        if (!travelerRating && !skippedTravelerRating) {
           return {
             icon: Package2,
             title: "🎉 ¡Solicitud completada!",
@@ -328,17 +329,29 @@ const ShopperPackagePriorityActions = ({
             button: {
               text: "⭐ Calificar viajero",
               onClick: () => setShowTravelerRating(true)
+            },
+            skipButton: {
+              text: "Omitir",
+              onClick: () => setSkippedTravelerRating(true)
             }
           };
         }
         if (!platformReview) {
           return {
             icon: Package2,
-            title: "✅ Completado — ¡Gracias por calificar!",
+            title: travelerRating ? "✅ Completado — ¡Gracias por calificar!" : "🎉 ¡Solicitud completada!",
             description: "¿Nos cuentas cómo fue tu experiencia con Favorón?",
             button: {
               text: "💬 Calificar experiencia",
               onClick: () => setShowPlatformReview(true)
+            },
+            skipButton: {
+              text: "Omitir",
+              onClick: async () => {
+                await supabase.from('packages').update({ feedback_completed: true } as any).eq('id', pkg.id);
+                toast({ title: "Feedback omitido", description: "Puedes calificar más adelante desde tu historial." });
+                onRefresh?.();
+              }
             }
           };
         }
@@ -407,13 +420,22 @@ const ShopperPackagePriorityActions = ({
               )}
             </p>
             {config.button && (
-              <Button 
-                size="sm"
-                onClick={(e) => { e.stopPropagation(); config.button!.onClick(); }}
-                className="mt-3"
-              >
-                {config.button.text}
-              </Button>
+              <div className="flex items-center gap-3 mt-3">
+                <Button 
+                  size="sm"
+                  onClick={(e) => { e.stopPropagation(); config.button!.onClick(); }}
+                >
+                  {config.button.text}
+                </Button>
+                {(config as any).skipButton && (
+                  <button
+                    className="text-xs text-muted-foreground hover:text-foreground underline transition-colors"
+                    onClick={(e) => { e.stopPropagation(); (config as any).skipButton.onClick(); }}
+                  >
+                    {(config as any).skipButton.text}
+                  </button>
+                )}
+              </div>
             )}
             {/* Only show re-quote options for early states, not advanced processing states */}
             {(isQuoteExpired || pkg.status === 'quote_expired') && !advancedStates.includes(pkg.status) && (

@@ -582,6 +582,7 @@ export type Database = {
           delivery_deadline: string
           delivery_method: string | null
           estimated_price: number | null
+          feedback_completed: boolean
           id: string
           incident_flag: boolean | null
           incident_history: Json
@@ -628,6 +629,7 @@ export type Database = {
           delivery_deadline: string
           delivery_method?: string | null
           estimated_price?: number | null
+          feedback_completed?: boolean
           id?: string
           incident_flag?: boolean | null
           incident_history?: Json
@@ -674,6 +676,7 @@ export type Database = {
           delivery_deadline?: string
           delivery_method?: string | null
           estimated_price?: number | null
+          feedback_completed?: boolean
           id?: string
           incident_flag?: boolean | null
           incident_history?: Json

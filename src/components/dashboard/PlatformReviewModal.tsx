@@ -54,8 +54,12 @@ const PlatformReviewModal = ({ open, onOpenChange, packageId }: PlatformReviewMo
 
       if (error) throw error;
 
+      // Marcar feedback como completado
+      await supabase.from('packages').update({ feedback_completed: true } as any).eq('id', packageId);
+
       toast({ title: "¡Gracias!", description: "Tu opinión sobre Favorón fue enviada." });
       queryClient.invalidateQueries({ queryKey: ['platform-review', packageId] });
+      queryClient.invalidateQueries({ queryKey: ['packages'] });
       onOpenChange(false);
     } catch (err: any) {
       console.error('Error submitting review:', err);
