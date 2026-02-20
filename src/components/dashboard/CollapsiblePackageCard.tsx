@@ -123,7 +123,21 @@ const CollapsiblePackageCard = ({
     enabled: pkg.status === 'completed' && pkg.feedback_completed !== true
   });
 
-  const needsFeedback = pkg.status === 'completed' && pkg.feedback_completed !== true && !existingRating;
+  const { data: existingPlatformReview } = useQuery({
+    queryKey: ['platform-review', pkg.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('platform_reviews')
+        .select('id')
+        .eq('package_id', pkg.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: pkg.status === 'completed' && pkg.feedback_completed !== true
+  });
+
+  const needsFeedback = pkg.status === 'completed' && pkg.feedback_completed !== true && (!existingRating || !existingPlatformReview);
+  const feedbackStep = !existingRating ? 'traveler' : 'platform';
   const {
     profile
   } = useAuth();
@@ -612,14 +626,18 @@ const CollapsiblePackageCard = ({
                       )
                     ) : null}
                   
-                  {/* Calificar viajero button - mobile */}
+                  {/* Calificar button - mobile */}
                   {needsFeedback && (
                     <Button size="sm" variant="outline" onClick={e => {
                       e.stopPropagation();
-                      setShowTravelerRatingFromPreview(true);
+                      if (feedbackStep === 'traveler') {
+                        setShowTravelerRatingFromPreview(true);
+                      } else {
+                        setShowPlatformReviewFromPreview(true);
+                      }
                     }} className="text-xs font-medium w-full bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500">
                       <Star className="h-3 w-3 mr-1" />
-                      Calificar viajero
+                      {feedbackStep === 'traveler' ? 'Calificar viajero' : 'Calificar Favorón'}
                     </Button>
                   )}
                 </div>
@@ -864,14 +882,18 @@ const CollapsiblePackageCard = ({
                       </Button>
                     ) : null}
                   
-                  {/* Calificar viajero button - desktop */}
+                  {/* Calificar button - desktop */}
                   {needsFeedback && (
                     <Button size="sm" variant="outline" onClick={e => {
                       e.stopPropagation();
-                      setShowTravelerRatingFromPreview(true);
+                      if (feedbackStep === 'traveler') {
+                        setShowTravelerRatingFromPreview(true);
+                      } else {
+                        setShowPlatformReviewFromPreview(true);
+                      }
                     }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500">
                       <Star className="h-3 w-3 mr-1 flex-shrink-0" />
-                      <span className="truncate">Calificar viajero</span>
+                      <span className="truncate">{feedbackStep === 'traveler' ? 'Calificar viajero' : 'Calificar Favorón'}</span>
                     </Button>
                   )}
 
