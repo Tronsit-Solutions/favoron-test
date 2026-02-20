@@ -598,10 +598,10 @@ const CollapsiblePackageCard = ({
                   
                   {/* Calificar viajero button - mobile */}
                   {needsFeedback && (
-                    <Button size="sm" variant="success" onClick={e => {
+                    <Button size="sm" variant="outline" onClick={e => {
                       e.stopPropagation();
                       setShowTravelerRatingFromPreview(true);
-                    }} className="text-xs font-medium w-full">
+                    }} className="text-xs font-medium w-full bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500">
                       <Star className="h-3 w-3 mr-1" />
                       Calificar viajero
                     </Button>
@@ -850,10 +850,10 @@ const CollapsiblePackageCard = ({
                   
                   {/* Calificar viajero button - desktop */}
                   {needsFeedback && (
-                    <Button size="sm" variant="success" onClick={e => {
+                    <Button size="sm" variant="outline" onClick={e => {
                       e.stopPropagation();
                       setShowTravelerRatingFromPreview(true);
-                    }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
+                    }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500">
                       <Star className="h-3 w-3 mr-1 flex-shrink-0" />
                       <span className="truncate">Calificar viajero</span>
                     </Button>
