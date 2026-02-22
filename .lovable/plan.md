@@ -1,36 +1,34 @@
 
 
-## Burbuja flotante de Soporte (FAQ + WhatsApp)
+## Fix: Tip de compensacion muestra Q90 en vez de Q75 (no excluye productos cancelados)
 
-### Descripcion
-Crear un componente flotante fijo en la esquina inferior derecha de la pantalla con un icono de soporte. Al hacer clic, se expande un pequeno panel con preguntas frecuentes (FAQ) y un boton para redirigir a WhatsApp.
+### Problema
+En el tab de pagos a viajeros ("Detalle de Compensaciones"), cada paquete muestra el tip usando `quote.price` directamente, que es el valor original sin descontar productos cancelados. En el caso del pedido de Makeup (106aac44), `quote.price = Q90` pero el producto "Makeup Amarillo" (Q15) fue cancelado, por lo que deberia mostrar Q75.
 
-### Cambios tecnicos
+El mismo error afecta:
+1. El tip por paquete individual en la lista (linea 358)
+2. El total de compensaciones (linea 239)
+3. La comparacion de mismatch entre monto pagado y compensacion total (linea 240)
 
-**Nuevo archivo: `src/components/SupportBubble.tsx`**
-- Boton circular flotante con `position: fixed`, `bottom-6 right-6`, `z-50`
-- Icono de `Headphones` o `MessageCircle` de lucide-react
-- Al hacer clic, abre un panel pequeno encima del boton con:
-  - Titulo "Soporte"
-  - Lista de 4-5 preguntas frecuentes colapsables (usando Collapsible o Accordion de shadcn)
-  - Boton verde "Escribenos por WhatsApp" que redirige a `https://wa.me/50230616015` con un mensaje predeterminado
-- Al hacer clic fuera o en el boton de cerrar, el panel se cierra
-- Animacion suave de entrada/salida
+### Solucion
+Reemplazar `parseFloat(pkg.quote?.price || 0)` con `getActiveTipFromPackage(pkg)` en ambos lugares. Esta funcion ya existe, ya esta importada en el archivo, y ya se usa correctamente en la seccion expandida de detalle por producto (linea 831). Solo falta usarla en la seccion de resumen colapsada.
 
-**Preguntas frecuentes sugeridas** (editables despues):
-1. "Como funciona Favoron?" - Explicacion breve del servicio
-2. "Cuanto cuesta el servicio?" - Informacion sobre comisiones
-3. "Cuanto tarda mi pedido?" - Tiempos estimados
-4. "Como me registro como viajero?" - Pasos para viajeros
-5. "Que pasa si mi pedido se dana?" - Politica de proteccion
+### Detalles tecnicos
 
-**Archivo: `src/App.tsx`**
-- Importar y renderizar `<SupportBubble />` dentro del layout principal, fuera de las rutas, para que aparezca en todas las paginas
-- Colocarlo despues de `</Routes>` y antes del cierre de `PlatformFeesProvider`
+**Archivo: `src/components/admin/AdminTravelerPaymentsTab.tsx`**
 
-### Detalles de diseno
-- Burbuja: circulo de 56px, color primario (azul Favoron), sombra elevada
-- Panel: ancho ~320px, maximo 400px de alto con scroll, bordes redondeados, sombra
-- En mobile: el panel ocupa casi todo el ancho con margen lateral de 16px
-- El boton de WhatsApp usa color verde (`bg-green-500`) con icono de `MessageCircle`
+- **Linea 239**: Cambiar el calculo de `totalCompensation`:
+  - De: `packages.reduce((sum, pkg) => sum + parseFloat(pkg.quote?.price || 0), 0)`
+  - A: `packages.reduce((sum, pkg) => sum + getActiveTipFromPackage(pkg), 0)`
+
+- **Linea 358**: Cambiar el display por paquete:
+  - De: `Q{parseFloat(pkg.quote?.price || 0).toFixed(2)}`
+  - A: `Q{getActiveTipFromPackage(pkg).toFixed(2)}`
+
+Ambos cambios usan la funcion `getActiveTipFromPackage` que ya esta importada en linea 18 del mismo archivo y que correctamente suma solo los `adminAssignedTip` de productos no cancelados.
+
+### Resultado esperado
+- El pedido de Makeup mostrara Q75.00 en vez de Q90.00
+- El total de compensaciones se reducira de Q520 a Q505 (que coincide con el monto real del acumulador)
+- El indicador de "mismatch" entre monto pagado y compensacion total sera mas preciso
 
