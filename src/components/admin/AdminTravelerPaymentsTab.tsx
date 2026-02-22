@@ -136,6 +136,19 @@ const OrderDetailModal = ({ order, isOpen, onClose, updatePaymentOrder, toast, o
             </div>
           </div>
 
+          {order.trips && (
+            <div>
+              <Label className="text-sm font-medium">Información del Viaje</Label>
+              <div className="bg-muted/30 rounded p-3 mt-1">
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div><span className="font-medium">Origen:</span> {order.trips.from_city}</div>
+                  <div><span className="font-medium">Destino:</span> {order.trips.to_city}</div>
+                  <div><span className="font-medium">Fecha llegada:</span> {new Date(order.trips.arrival_date).toLocaleDateString('es-GT')}</div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div>
             <Label className="text-sm font-medium">Información bancaria</Label>
             <div className="bg-muted/30 rounded p-3 mt-1">
