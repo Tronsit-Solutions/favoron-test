@@ -236,7 +236,7 @@ const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOr
     : (normalizedHistorical.length >= fallbackTripPackages.length && normalizedHistorical.length > 0
       ? normalizedHistorical
       : (fallbackTripPackages.length > 0 ? fallbackTripPackages : normalizedHistorical));
-  const totalCompensation = packages.reduce((sum: number, pkg: any) => sum + parseFloat(pkg.quote?.price || 0), 0);
+  const totalCompensation = packages.reduce((sum: number, pkg: any) => sum + getActiveTipFromPackage(pkg), 0);
   const amountMismatch = totalCompensation > 0 && Math.abs(order.amount - totalCompensation) > 0.01;
 
   const handleSaveNotes = async () => {
@@ -355,7 +355,7 @@ const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOr
                         </div>
                       </div>
                       <div className="text-sm font-semibold text-green-600">
-                        Q{parseFloat(pkg.quote?.price || 0).toFixed(2)}
+                        Q{getActiveTipFromPackage(pkg).toFixed(2)}
                       </div>
                     </div>
                   ))}
