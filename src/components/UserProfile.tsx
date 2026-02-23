@@ -15,6 +15,7 @@ import TripHistory from "./profile/TripHistory";
 import PackageHistory from "./profile/PackageHistory";
 import { EmailNotificationSettings } from "./profile/EmailNotificationSettings";
 import { WhatsAppNotificationSettings } from "./profile/WhatsAppNotificationSettings";
+import ReferralSection from "./profile/ReferralSection";
 
 interface UserProfileProps {
   user: any;
@@ -340,6 +341,9 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
         onUpdate={(value) => onUpdateUser({ ...user, whatsapp_notifications: value })}
         onPreferencesUpdate={(preferences) => onUpdateUser({ ...user, whatsapp_notification_preferences: preferences })}
       />
+
+      {/* Referral Program */}
+      <ReferralSection />
 
       {/* Banking Information */}
       <Card>
