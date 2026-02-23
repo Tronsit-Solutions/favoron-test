@@ -27,6 +27,7 @@ const lazyWithRetry = <T extends ComponentType<any>>(
 const PlatformDescriptionSection = lazyWithRetry(() => import("@/components/PlatformDescriptionSection"));
 const HowItWorksSection = lazyWithRetry(() => import("@/components/HowItWorksSection"));
 const BenefitsSection = lazyWithRetry(() => import("@/components/BenefitsSection"));
+const FAQSection = lazyWithRetry(() => import("@/components/FAQSection"));
 const CTASection = lazyWithRetry(() => import("@/components/CTASection"));
 
 const Index = () => {
@@ -70,6 +71,10 @@ const Index = () => {
         
         <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
           <BenefitsSection />
+        </Suspense>
+        
+        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
+          <FAQSection />
         </Suspense>
         
         <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
