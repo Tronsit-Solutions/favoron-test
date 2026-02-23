@@ -1,30 +1,31 @@
 
 
-## Agregar informacion del viaje al modal de orden de pago
+## Traducir estado "deadline_expired" al espanol en el dashboard
 
-### Cambio
-Agregar una seccion con origen, destino y fecha de llegada del viaje en el modal "Detalles de la orden de pago" dentro de `AdminTravelerPaymentsTab.tsx`.
+### Problema
+Los paquetes con estado `deadline_expired` muestran el texto en ingles ("deadline_expired") tanto en el badge de estado como en la descripcion, porque este estado no esta incluido en los mapeos de traduccion.
 
-### Detalles tecnicos
+### Cambios
 
-**Archivo: `src/components/admin/AdminTravelerPaymentsTab.tsx`**
+**Archivo: `src/hooks/useStatusHelpers.tsx`**
 
-Despues del bloque de "Viajero / Monto" (linea 137) y antes de "Informacion bancaria" (linea 139), insertar una nueva seccion:
+1. Agregar `deadline_expired` al objeto `statusConfig` (entre `cancelled` y el cierre del objeto, linea ~106):
+   - Label: "Fecha limite vencida"
+   - Variant: "warning"
 
-```
-{order.trips && (
-  <div>
-    <Label className="text-sm font-medium">Informacion del Viaje</Label>
-    <div className="bg-muted/30 rounded p-3 mt-1">
-      <div className="grid grid-cols-3 gap-2 text-sm">
-        <div><span className="font-medium">Origen:</span> {order.trips.from_city}</div>
-        <div><span className="font-medium">Destino:</span> {order.trips.to_city}</div>
-        <div><span className="font-medium">Fecha llegada:</span> {new Date(order.trips.arrival_date).toLocaleDateString('es-GT')}</div>
-      </div>
-    </div>
-  </div>
-)}
-```
+2. Agregar `deadline_expired` al objeto `colorMap` en `getStatusColor` (linea ~145):
+   - Color: `hsl(var(--warning))`
 
-Los datos del viaje (`from_city`, `to_city`, `arrival_date`) ya estan disponibles en `order.trips` gracias al query de `usePaymentOrders` que hace join con la tabla `trips`. No se necesitan cambios en queries ni hooks.
+**Archivo: `src/components/dashboard/CollapsiblePackageCard.tsx`**
+
+3. Agregar un case `deadline_expired` en la funcion de mensaje de estado (antes del `default` en linea ~217):
+   - Mensaje: "Fecha limite vencida - Reprograma tu fecha de entrega"
+
+**Archivo: `src/utils/statusHelpers.ts`** (getStatusBadge)
+
+4. Agregar `deadline_expired` al `statusConfig` del archivo de utilidades:
+   - Label: "Fecha limite vencida"
+   - Variant: "warning"
+
+Estos son los 3 lugares donde se mapean estados a texto visible. El estado `deadline_expired` ya existe en `MatchStatusBadge.tsx` (admin) correctamente traducido, solo falta en el dashboard del shopper.
 
