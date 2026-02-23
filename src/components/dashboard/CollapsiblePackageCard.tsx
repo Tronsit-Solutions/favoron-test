@@ -214,6 +214,8 @@ const CollapsiblePackageCard = ({
         return 'Cotización expirada - Solicita nueva cotización';
       case 'rejected':
         return 'Solicitud rechazada - Revisa el motivo y haz ajustes';
+      case 'deadline_expired':
+        return 'Fecha límite vencida - Reprograma tu fecha de entrega';
       default:
         return `Estado: ${pkg.status}`;
     }
