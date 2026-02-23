@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { WhatsAppTestButton } from './WhatsAppTestButton';
+
 import { formatDateUTC } from "@/lib/formatters";
 
 // Helper function to check if delivery is overdue
@@ -250,7 +250,7 @@ const LastMileTab = ({ trips, packages, getStatusBadge }: LastMileTabProps) => {
                 Viajes con paquetes asignados listos para procesamiento en oficina
               </CardDescription>
             </div>
-            <WhatsAppTestButton />
+            
           </div>
         </CardHeader>
         <CardContent>

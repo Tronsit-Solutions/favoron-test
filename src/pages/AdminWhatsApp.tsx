@@ -37,6 +37,7 @@ import { useWhatsAppLogs, WhatsAppLog } from '@/hooks/useWhatsAppLogs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { WhatsAppTestButton } from '@/components/admin/WhatsAppTestButton';
 
 const TEMPLATE_OPTIONS = [
   { value: 'all', label: 'Todos los templates' },
@@ -415,10 +416,13 @@ const AdminWhatsApp = () => {
                 </p>
               </div>
             </div>
-            <Button onClick={refresh} variant="outline" size="sm" disabled={loading}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Actualizar
-            </Button>
+            <div className="flex items-start gap-3">
+              <WhatsAppTestButton />
+              <Button onClick={refresh} variant="outline" size="sm" disabled={loading}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Actualizar
+              </Button>
+            </div>
           </div>
 
           {/* Testing Mode Toggle */}
