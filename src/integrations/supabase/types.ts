@@ -987,6 +987,7 @@ export type Database = {
           last_name: string | null
           phone_number: string | null
           prime_expires_at: string | null
+          referral_code: string | null
           referrer_name: string | null
           traveler_avg_rating: number | null
           traveler_ontime_rate: number | null
@@ -1020,6 +1021,7 @@ export type Database = {
           last_name?: string | null
           phone_number?: string | null
           prime_expires_at?: string | null
+          referral_code?: string | null
           referrer_name?: string | null
           traveler_avg_rating?: number | null
           traveler_ontime_rate?: number | null
@@ -1053,6 +1055,7 @@ export type Database = {
           last_name?: string | null
           phone_number?: string | null
           prime_expires_at?: string | null
+          referral_code?: string | null
           referrer_name?: string | null
           traveler_avg_rating?: number | null
           traveler_ontime_rate?: number | null
@@ -1065,6 +1068,51 @@ export type Database = {
           whatsapp_notifications?: boolean | null
         }
         Relationships: []
+      }
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+          reward_amount: number
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+          reward_amount?: number
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          reward_amount?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       refund_orders: {
         Row: {

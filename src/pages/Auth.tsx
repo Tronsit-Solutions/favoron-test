@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { registerReferral } from '@/hooks/useReferrals';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -46,6 +47,16 @@ const Auth = () => {
   const location = useLocation();
   const networkStatus = useNetworkStatus();
   const [authError, setAuthError] = useState<{ title: string; message: string; details: string } | null>(null);
+
+  useEffect(() => {
+    // Capture referral code from URL
+    const searchParams = new URLSearchParams(window.location.search);
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      localStorage.setItem('pending_referral_code', refCode);
+      console.log('📎 Referral code captured:', refCode);
+    }
+  }, []);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -286,7 +297,14 @@ const Auth = () => {
       // Track registration in Meta Pixel
       MetaPixel.trackCompleteRegistration(data?.user?.id);
 
-      // Welcome WhatsApp notification disabled - only welcome email is sent
+      // Register referral if pending
+      if (data?.user?.id) {
+        const pendingRefCode = localStorage.getItem('pending_referral_code');
+        if (pendingRefCode) {
+          await registerReferral(data.user.id, pendingRefCode);
+          localStorage.removeItem('pending_referral_code');
+        }
+      }
 
       // Cambiar a pestaña de iniciar sesión después de 1 segundo
       setTimeout(() => {
