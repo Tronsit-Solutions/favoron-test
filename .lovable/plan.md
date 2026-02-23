@@ -1,24 +1,50 @@
 
 
-## Convertir el boton flotante de soporte en una pestana lateral minimalista
+## Agregar seccion de Preguntas Frecuentes al Landing Page
 
-### Problema
-El boton circular flotante de soporte en la esquina inferior derecha bloquea clicks en botones como "Hacer Match" y otros elementos de la interfaz.
+### Que se agrega
+Una nueva seccion de FAQ con accordion, ubicada entre la seccion de "Por que elegir Favoron" (BenefitsSection) y la seccion azul de CTA. Usara las mismas preguntas que ya existen en el SupportBubble, mas algunas adicionales relevantes.
 
-### Solucion
-Reemplazar el boton circular por una pestana vertical pequena pegada al borde derecho de la pantalla. Al hacer click se expande el panel de FAQ/WhatsApp. Cuando esta cerrada, solo se ve una pestanita delgada que no interfiere con el contenido.
+### Cambios
 
-### Detalles tecnicos
+**Nuevo archivo: `src/components/FAQSection.tsx`**
 
-**Archivo: `src/components/SupportBubble.tsx`**
+- Seccion con titulo "Preguntas Frecuentes" usando el mismo estilo visual del landing (gradientes, tipografia)
+- Accordion con las preguntas del SupportBubble mas preguntas adicionales:
+  1. Como funciona Favoron?
+  2. Cuanto cuesta el servicio?
+  3. Cuanto tarda mi pedido?
+  4. Como me registro como viajero?
+  5. Que pasa si mi pedido se dana?
+  6. Es seguro usar Favoron?
+  7. Que productos puedo enviar?
+- Usa los componentes existentes de Radix UI Accordion (`@/components/ui/accordion`)
+- Fondo consistente con las demas secciones (gradiente claro, blur decorativo)
+- Responsive: una columna en movil, contenido centrado con max-w
 
-Reemplazar el boton flotante circular por una pestana lateral:
+**Archivo modificado: `src/pages/Index.tsx`**
 
-- **Estado cerrado**: Una pestana vertical delgada (~40px de ancho) pegada al borde derecho de la pantalla, a media altura, con el icono de audifonos rotado 90 grados y el texto "Soporte" vertical. Usa `right-0` en vez de `right-6` para que quede pegada al borde.
-- **Estado abierto**: El panel de FAQ se despliega desde la derecha (mismo contenido actual: FAQ accordion + boton WhatsApp).
-- La pestana usa `rounded-l-lg` (solo esquinas redondeadas del lado izquierdo) para verse como una "oreja" pegada al borde.
-- Mover el z-index a `z-40` para reducir conflictos con otros elementos.
-- El panel abierto se posiciona justo a la izquierda de la pestana.
+- Importar FAQSection (lazy con retry, igual que las demas secciones)
+- Colocarlo entre BenefitsSection y CTASection, envuelto en Suspense
 
-Visualmente seria algo asi: una pestanita de ~40x100px en el borde derecho, centrada verticalmente, que al hacer click abre el panel de soporte hacia la izquierda.
+### Estructura visual
+
+```text
+... BenefitsSection ...
++------------------------------------------+
+|                                          |
+|       Preguntas Frecuentes               |
+|   Resuelve tus dudas antes de empezar    |
+|                                          |
+|  [v] Como funciona Favoron?              |
+|  [>] Cuanto cuesta el servicio?          |
+|  [>] Cuanto tarda mi pedido?             |
+|  [>] Como me registro como viajero?      |
+|  [>] Que pasa si mi pedido se dana?      |
+|  [>] Es seguro usar Favoron?             |
+|  [>] Que productos puedo enviar?         |
+|                                          |
++------------------------------------------+
+... CTASection (seccion azul) ...
+```
 
