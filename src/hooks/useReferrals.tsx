@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 interface Referral {
   id: string;
   referred_id: string;
+  referred_name: string;
   status: string;
   reward_amount: number;
   completed_at: string | null;
@@ -33,11 +34,8 @@ export const useReferrals = (): ReferralData => {
 
     const fetchReferrals = async () => {
       try {
-        const { data, error } = await supabase
-          .from('referrals')
-          .select('id, referred_id, status, reward_amount, completed_at, created_at')
-          .eq('referrer_id', user.id)
-          .order('created_at', { ascending: false });
+      const { data, error } = await supabase
+          .rpc('get_my_referrals');
 
         if (error) throw error;
         setReferrals((data as Referral[]) || []);
