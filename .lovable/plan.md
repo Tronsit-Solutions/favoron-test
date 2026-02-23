@@ -1,89 +1,62 @@
 
 
-## Fix: Referral no se registra por restriccion de RLS
+## Mostrar nombre del usuario referido en la lista de pendientes
 
-### Problema
-La funcion `registerReferral` hace un SELECT a la tabla `profiles` buscando el `referral_code` del referidor. Pero las politicas RLS de `profiles` solo permiten que un usuario vea **su propio perfil** (`auth.uid() = id`). Entonces cuando luxi se registra e intenta buscar el perfil del admin por su codigo `9GYTT8`, el query devuelve `null` y el referral no se crea.
+### Problema actual
+La lista de referidos solo muestra la fecha y el estado ("Pendiente"), pero no muestra el nombre del usuario referido. Esto es porque:
+1. El hook `useReferrals` solo consulta la tabla `referrals` sin hacer JOIN con `profiles`
+2. RLS impide que un usuario vea perfiles de otros usuarios
 
 ### Solucion
-Crear una funcion RPC en la base de datos (`register_referral`) que se ejecuta con `SECURITY DEFINER` (permisos elevados), de modo que puede buscar el referral_code en profiles sin restricciones de RLS. Esta funcion:
-
-1. Busca el referrer por `referral_code` en `profiles`
-2. Valida que no sea auto-referido
-3. Inserta el registro en `referrals`
-4. Retorna si fue exitoso o no
+Crear una funcion RPC `get_my_referrals` con SECURITY DEFINER que devuelva los referidos junto con el nombre del usuario referido, y actualizar el componente para mostrar esa informacion.
 
 ### Cambios
 
-**Migracion SQL** - Crear funcion RPC:
+| Archivo | Cambio |
+|---------|--------|
+| Migracion SQL | Crear funcion `get_my_referrals` que retorna referidos con nombre |
+| `src/hooks/useReferrals.tsx` | Usar la nueva RPC y agregar `referred_name` al tipo `Referral` |
+| `src/components/profile/ReferralSection.tsx` | Mostrar el nombre del referido en cada fila de la lista |
+
+### Detalle tecnico
+
+**Migracion SQL** - Nueva funcion RPC:
 
 ```text
-CREATE OR REPLACE FUNCTION public.register_referral(
-  p_referred_id uuid,
-  p_referral_code text
-) RETURNS boolean
-LANGUAGE plpgsql
+CREATE OR REPLACE FUNCTION public.get_my_referrals()
+RETURNS TABLE (
+  id uuid,
+  referred_id uuid,
+  referred_name text,
+  status text,
+  reward_amount numeric,
+  completed_at timestamptz,
+  created_at timestamptz
+)
+LANGUAGE sql
+STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-DECLARE
-  v_referrer_id uuid;
-BEGIN
-  -- Find referrer by code
-  SELECT id INTO v_referrer_id
-  FROM profiles
-  WHERE referral_code = p_referral_code;
-
-  IF v_referrer_id IS NULL THEN
-    RETURN false;
-  END IF;
-
-  -- No self-referral
-  IF v_referrer_id = p_referred_id THEN
-    RETURN false;
-  END IF;
-
-  -- Insert referral (ignore duplicates)
-  INSERT INTO referrals (referrer_id, referred_id, status)
-  VALUES (v_referrer_id, p_referred_id, 'pending')
-  ON CONFLICT (referred_id) DO NOTHING;
-
-  RETURN true;
-END;
+  SELECT
+    r.id,
+    r.referred_id,
+    COALESCE(p.first_name || ' ' || p.last_name, 'Usuario') AS referred_name,
+    r.status,
+    r.reward_amount,
+    r.completed_at,
+    r.created_at
+  FROM referrals r
+  LEFT JOIN profiles p ON p.id = r.referred_id
+  WHERE r.referrer_id = auth.uid()
+  ORDER BY r.created_at DESC;
 $$;
 ```
 
-**`src/hooks/useReferrals.tsx`** - Cambiar `registerReferral` para usar la funcion RPC en lugar de queries directas:
+**`src/hooks/useReferrals.tsx`**:
+- Agregar `referred_name: string` a la interfaz `Referral`
+- Cambiar el `fetchReferrals` para usar `supabase.rpc('get_my_referrals')` en vez del query directo
 
-```typescript
-export const registerReferral = async (referredUserId: string, referralCode: string) => {
-  try {
-    const { data, error } = await supabase.rpc('register_referral', {
-      p_referred_id: referredUserId,
-      p_referral_code: referralCode,
-    });
-
-    if (error) throw error;
-    return { success: !!data };
-  } catch (err) {
-    console.error('Error registering referral:', err);
-    return { success: false };
-  }
-};
-```
-
-### Despues del fix
-Se puede registrar manualmente el referral de luxi ejecutando:
-
-```text
-SELECT register_referral(
-  'e47d3c41-4425-4e99-9e23-9713b2685476',
-  '9GYTT8'
-);
-```
-
-| Archivo | Cambio |
-|---------|--------|
-| Migracion SQL | Crear funcion `register_referral` con SECURITY DEFINER |
-| src/hooks/useReferrals.tsx | Usar `supabase.rpc('register_referral')` en vez de queries directas |
+**`src/components/profile/ReferralSection.tsx`**:
+- En cada fila de referido, mostrar `ref.referred_name` junto a la fecha, para que el usuario vea quien se registro con su codigo
 
