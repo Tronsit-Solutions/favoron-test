@@ -33,14 +33,14 @@ const WHATSAPP_URL = "https://wa.me/50230616015?text=Hola%2C%20necesito%20ayuda%
 const SupportBubble: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
-  const bubbleRef = useRef<HTMLButtonElement>(null);
+  const tabRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
       if (
         panelRef.current && !panelRef.current.contains(e.target as Node) &&
-        bubbleRef.current && !bubbleRef.current.contains(e.target as Node)
+        tabRef.current && !tabRef.current.contains(e.target as Node)
       ) {
         setIsOpen(false);
       }
@@ -50,12 +50,34 @@ const SupportBubble: React.FC = () => {
   }, [isOpen]);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <>
+      {/* Side tab */}
+      <button
+        ref={tabRef}
+        onClick={() => setIsOpen((v) => !v)}
+        className={cn(
+          "fixed right-0 top-1/2 -translate-y-1/2 z-40",
+          "flex flex-col items-center justify-center gap-1",
+          "w-8 h-24 rounded-l-lg",
+          "bg-primary text-primary-foreground shadow-md",
+          "hover:w-10 transition-all duration-200",
+          "cursor-pointer"
+        )}
+        aria-label="Abrir soporte"
+      >
+        <Headphones className="h-4 w-4" />
+        <span className="text-[10px] font-medium writing-vertical-lr" style={{ writingMode: "vertical-lr" }}>
+          Soporte
+        </span>
+      </button>
+
       {/* Panel */}
       <div
         ref={panelRef}
         className={cn(
-          "w-[320px] max-sm:w-[calc(100vw-32px)] max-sm:right-0 bg-card border border-border rounded-2xl shadow-xl transition-all duration-200 origin-bottom-right",
+          "fixed right-10 top-1/2 -translate-y-1/2 z-40",
+          "w-[320px] max-sm:w-[calc(100vw-48px)] bg-card border border-border rounded-2xl shadow-xl",
+          "transition-all duration-200 origin-right",
           isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none"
         )}
       >
@@ -106,20 +128,7 @@ const SupportBubble: React.FC = () => {
           </Button>
         </div>
       </div>
-
-      {/* Floating bubble */}
-      <button
-        ref={bubbleRef}
-        onClick={() => setIsOpen((v) => !v)}
-        className={cn(
-          "h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-105",
-          isOpen && "rotate-0"
-        )}
-        aria-label="Abrir soporte"
-      >
-        {isOpen ? <X className="h-6 w-6" /> : <Headphones className="h-6 w-6" />}
-      </button>
-    </div>
+    </>
   );
 };
 
