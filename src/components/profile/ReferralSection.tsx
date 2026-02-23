@@ -102,9 +102,12 @@ const ReferralSection = () => {
                     ) : (
                       <Clock className="h-4 w-4 text-muted-foreground" />
                     )}
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(ref.created_at).toLocaleDateString('es-GT')}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">{ref.referred_name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(ref.created_at).toLocaleDateString('es-GT')}
+                      </span>
+                    </div>
                   </div>
                   <Badge variant={ref.status === 'completed' ? 'default' : 'secondary'}>
                     {ref.status === 'completed' ? `+Q${ref.reward_amount}` : 'Pendiente'}

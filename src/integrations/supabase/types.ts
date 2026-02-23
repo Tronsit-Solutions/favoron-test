@@ -1888,6 +1888,18 @@ export type Database = {
           user_count: number
         }[]
       }
+      get_my_referrals: {
+        Args: never
+        Returns: {
+          completed_at: string
+          created_at: string
+          id: string
+          referred_id: string
+          referred_name: string
+          reward_amount: number
+          status: string
+        }[]
+      }
       get_next_label_number: { Args: never; Returns: number }
       get_operations_packages: {
         Args: { p_statuses: string[] }
