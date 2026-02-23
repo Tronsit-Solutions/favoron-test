@@ -70,43 +70,13 @@ export const useReferrals = (): ReferralData => {
 
 export const registerReferral = async (referredUserId: string, referralCode: string) => {
   try {
-    // Find the referrer by their referral code
-    const { data: referrerProfile, error: findError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('referral_code', referralCode)
-      .maybeSingle();
+    const { data, error } = await supabase.rpc('register_referral', {
+      p_referred_id: referredUserId,
+      p_referral_code: referralCode,
+    });
 
-    if (findError || !referrerProfile) {
-      console.log('Referral code not found:', referralCode);
-      return { success: false };
-    }
-
-    // Don't allow self-referral
-    if (referrerProfile.id === referredUserId) {
-      console.log('Self-referral attempted');
-      return { success: false };
-    }
-
-    const { error: insertError } = await supabase
-      .from('referrals')
-      .insert({
-        referrer_id: referrerProfile.id,
-        referred_id: referredUserId,
-        status: 'pending',
-      });
-
-    if (insertError) {
-      // Unique constraint violation means user was already referred
-      if (insertError.code === '23505') {
-        console.log('User already referred');
-        return { success: false };
-      }
-      throw insertError;
-    }
-
-    console.log('✅ Referral registered successfully');
-    return { success: true };
+    if (error) throw error;
+    return { success: !!data };
   } catch (err) {
     console.error('Error registering referral:', err);
     return { success: false };

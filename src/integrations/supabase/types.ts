@@ -1990,6 +1990,10 @@ export type Database = {
         Returns: string
       }
       refresh_platform_stats: { Args: never; Returns: undefined }
+      register_referral: {
+        Args: { p_referral_code: string; p_referred_id: string }
+        Returns: boolean
+      }
       search_operations_packages: {
         Args: { search_term: string }
         Returns: {
