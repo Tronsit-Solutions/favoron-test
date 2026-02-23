@@ -1,31 +1,24 @@
 
 
-## Traducir estado "deadline_expired" al espanol en el dashboard
+## Convertir el boton flotante de soporte en una pestana lateral minimalista
 
 ### Problema
-Los paquetes con estado `deadline_expired` muestran el texto en ingles ("deadline_expired") tanto en el badge de estado como en la descripcion, porque este estado no esta incluido en los mapeos de traduccion.
+El boton circular flotante de soporte en la esquina inferior derecha bloquea clicks en botones como "Hacer Match" y otros elementos de la interfaz.
 
-### Cambios
+### Solucion
+Reemplazar el boton circular por una pestana vertical pequena pegada al borde derecho de la pantalla. Al hacer click se expande el panel de FAQ/WhatsApp. Cuando esta cerrada, solo se ve una pestanita delgada que no interfiere con el contenido.
 
-**Archivo: `src/hooks/useStatusHelpers.tsx`**
+### Detalles tecnicos
 
-1. Agregar `deadline_expired` al objeto `statusConfig` (entre `cancelled` y el cierre del objeto, linea ~106):
-   - Label: "Fecha limite vencida"
-   - Variant: "warning"
+**Archivo: `src/components/SupportBubble.tsx`**
 
-2. Agregar `deadline_expired` al objeto `colorMap` en `getStatusColor` (linea ~145):
-   - Color: `hsl(var(--warning))`
+Reemplazar el boton flotante circular por una pestana lateral:
 
-**Archivo: `src/components/dashboard/CollapsiblePackageCard.tsx`**
+- **Estado cerrado**: Una pestana vertical delgada (~40px de ancho) pegada al borde derecho de la pantalla, a media altura, con el icono de audifonos rotado 90 grados y el texto "Soporte" vertical. Usa `right-0` en vez de `right-6` para que quede pegada al borde.
+- **Estado abierto**: El panel de FAQ se despliega desde la derecha (mismo contenido actual: FAQ accordion + boton WhatsApp).
+- La pestana usa `rounded-l-lg` (solo esquinas redondeadas del lado izquierdo) para verse como una "oreja" pegada al borde.
+- Mover el z-index a `z-40` para reducir conflictos con otros elementos.
+- El panel abierto se posiciona justo a la izquierda de la pestana.
 
-3. Agregar un case `deadline_expired` en la funcion de mensaje de estado (antes del `default` en linea ~217):
-   - Mensaje: "Fecha limite vencida - Reprograma tu fecha de entrega"
-
-**Archivo: `src/utils/statusHelpers.ts`** (getStatusBadge)
-
-4. Agregar `deadline_expired` al `statusConfig` del archivo de utilidades:
-   - Label: "Fecha limite vencida"
-   - Variant: "warning"
-
-Estos son los 3 lugares donde se mapean estados a texto visible. El estado `deadline_expired` ya existe en `MatchStatusBadge.tsx` (admin) correctamente traducido, solo falta en el dashboard del shopper.
+Visualmente seria algo asi: una pestanita de ~40x100px en el borde derecho, centrada verticalmente, que al hacer click abre el panel de soporte hacia la izquierda.
 
