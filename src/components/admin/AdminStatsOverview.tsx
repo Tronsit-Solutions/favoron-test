@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Package, Plane, CheckCircle, Zap } from "lucide-react";
-import { WhatsAppTestButton } from "./WhatsAppTestButton";
+
 
 interface AdminStatsOverviewProps {
   packages: any[];
@@ -69,10 +69,6 @@ const AdminStatsOverview = ({ packages, trips }: AdminStatsOverviewProps) => {
           </div>
         </CardContent>
       </Card>
-    </div>
-    
-    <div className="mt-4 flex justify-end">
-      <WhatsAppTestButton />
     </div>
     </>
   );
