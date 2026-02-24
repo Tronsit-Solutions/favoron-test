@@ -103,6 +103,7 @@ export const CACTable = ({ data, mode = 'shopper' }: CACTableProps) => {
             <TableHead className="text-right">Inversión</TableHead>
             <TableHead className="text-right">CAC</TableHead>
             <TableHead className="text-right">LTV</TableHead>
+            <TableHead className="text-right">CAC/Pedido</TableHead>
             <TableHead className="text-center">LTV/CAC</TableHead>
           </TableRow>
         </TableHeader>
@@ -122,6 +123,9 @@ export const CACTable = ({ data, mode = 'shopper' }: CACTableProps) => {
                 {channel.shopperCAC > 0 ? formatCurrency(channel.shopperCAC) : "-"}
               </TableCell>
               <TableCell className="text-right">{formatCurrency(channel.avgLTV)}</TableCell>
+              <TableCell className="text-right">
+                {channel.cacPerPaidOrder > 0 ? formatCurrency(channel.cacPerPaidOrder) : "-"}
+              </TableCell>
               <TableCell className="text-center">
                 <div className="flex flex-col items-center gap-1">
                   <span className="text-sm font-medium">{formatRatio(channel.ltvCacRatio)}</span>
@@ -132,7 +136,7 @@ export const CACTable = ({ data, mode = 'shopper' }: CACTableProps) => {
           ))}
           {data.length === 0 && (
             <TableRow>
-              <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
                 No hay datos disponibles
               </TableCell>
             </TableRow>
