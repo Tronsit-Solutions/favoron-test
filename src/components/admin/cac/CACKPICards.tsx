@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, UserCheck, DollarSign, TrendingUp, Target, Percent } from "lucide-react";
+import { Users, UserCheck, DollarSign, TrendingUp, Target, Percent, BarChart3 } from "lucide-react";
 import { GlobalKPIs } from "@/hooks/useCACAnalytics";
 
 interface CACKPICardsProps {
@@ -63,10 +63,18 @@ export const CACKPICards = ({ kpis }: CACKPICardsProps) => {
       color: "text-orange-500",
       bgColor: "bg-orange-500/10",
     },
+    {
+      title: "ARPU",
+      value: kpis.totalActiveUsers > 0 ? formatCurrency(kpis.totalRevenue / kpis.totalActiveUsers) : "Q0.00",
+      description: "Revenue / Usuarios activos",
+      icon: BarChart3,
+      color: "text-teal-500",
+      bgColor: "bg-teal-500/10",
+    },
   ];
 
   return (
-    <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+    <div className="grid gap-4 grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
       {cards.map((card) => (
         <Card key={card.title}>
           <CardContent className="p-4">
