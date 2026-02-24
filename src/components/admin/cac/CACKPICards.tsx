@@ -102,18 +102,18 @@ export const ShopperKPICards = ({ kpis }: ShopperKPICardsProps) => {
   ];
 
   return (
-    <div className="grid gap-4 grid-cols-2 md:grid-cols-5 lg:grid-cols-10">
+    <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
       {cards.map((card) => (
         <Card key={card.title}>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className={`p-1.5 rounded-lg ${card.bgColor}`}>
+          <CardContent className="p-4 min-w-0">
+            <div className="flex items-center gap-2 mb-2 min-w-0">
+              <div className={`p-1.5 rounded-lg shrink-0 ${card.bgColor}`}>
                 <card.icon className={`h-4 w-4 ${card.color}`} />
               </div>
-              <span className="text-xs font-medium text-muted-foreground">{card.title}</span>
+              <span className="text-xs font-medium text-muted-foreground truncate">{card.title}</span>
             </div>
-            <div className="text-xl font-bold">{card.value}</div>
-            <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
+            <div className="text-xl font-bold truncate">{card.value}</div>
+            <p className="text-xs text-muted-foreground mt-1 truncate">{card.description}</p>
           </CardContent>
         </Card>
       ))}
