@@ -1,23 +1,31 @@
 
 
-## Sincronizar FAQs del Soporte con las del Landing Page
+## Agregar funcionalidad de editar inversiones de marketing
 
 ### Problema
-El componente `SupportBubble` tiene 5 preguntas frecuentes con respuestas resumidas, mientras que el `FAQSection` del landing tiene 7 preguntas con respuestas mas completas. Deben ser las mismas.
-
-### Solucion
-Actualizar el array `faqs` en `src/components/SupportBubble.tsx` para que use exactamente las mismas 7 preguntas y respuestas que estan en `src/components/FAQSection.tsx`.
+Actualmente solo se puede agregar y eliminar inversiones. No hay forma de editar una inversion existente (cambiar monto, canal, mes o notas).
 
 ### Cambios
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/SupportBubble.tsx` | Reemplazar el array `faqs` con las 7 preguntas y respuestas del FAQSection |
+| `src/hooks/useCACAnalytics.tsx` | Agregar mutation `updateInvestment` que haga UPDATE en `marketing_investments` |
+| `src/components/admin/cac/InvestmentForm.tsx` | Agregar boton de editar (icono lapiz) en cada fila, reutilizar el dialog existente en modo edicion |
+| `src/components/admin/cac/CACAnalysisTab.tsx` | Pasar `onUpdateInvestment` y el estado de loading al `InvestmentForm` |
 
-### Detalle
-Se agregan las 2 preguntas faltantes:
-- "Es seguro usar Favoron?"
-- "Que productos puedo enviar?"
+### Detalle tecnico
 
-Y se actualizan las respuestas de las 5 existentes para que coincidan exactamente con las del landing page (versiones mas completas).
+**`src/hooks/useCACAnalytics.tsx`**:
+- Nueva mutation `updateInvestment` similar a `addInvestment` pero usando `.update()` con `.eq('id', id)`
+- Exportar en el return del hook
+
+**`src/components/admin/cac/InvestmentForm.tsx`**:
+- Agregar prop `onUpdateInvestment(id, data)`
+- Agregar estado `editingInvestment` para saber si el dialog esta en modo crear o editar
+- Agregar icono de lapiz (Pencil) en cada fila junto al boton de eliminar
+- Al hacer click en editar, abrir el mismo dialog pre-llenado con los datos existentes
+- Al guardar, llamar `onUpdateInvestment` en vez de `onAddInvestment` si estamos editando
+
+**`src/components/admin/cac/CACAnalysisTab.tsx`**:
+- Conectar `updateInvestment` del hook con el nuevo prop del formulario
 
