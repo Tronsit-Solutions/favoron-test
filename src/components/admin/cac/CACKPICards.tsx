@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, UserCheck, DollarSign, TrendingUp, Target, Percent, BarChart3, Package, Plane, Truck, ShoppingCart } from "lucide-react";
+import { Users, UserCheck, DollarSign, TrendingUp, Target, Percent, BarChart3, Package, Plane, Truck, ShoppingCart, AlertTriangle, TrendingDown } from "lucide-react";
 import { ShopperKPIs, TravelerKPIs } from "@/hooks/useCACAnalytics";
 
 interface ShopperKPICardsProps {
@@ -83,10 +83,26 @@ export const ShopperKPICards = ({ kpis }: ShopperKPICardsProps) => {
       color: "text-indigo-500",
       bgColor: "bg-indigo-500/10",
     },
+    {
+      title: "Costo Incidencias",
+      value: formatCurrency(kpis.totalIncidentCosts),
+      description: "Pérdidas por incidencias",
+      icon: AlertTriangle,
+      color: "text-red-500",
+      bgColor: "bg-red-500/10",
+    },
+    {
+      title: "LTV Neto",
+      value: formatCurrency(kpis.netLTV),
+      description: "LTV después de incidencias",
+      icon: TrendingDown,
+      color: kpis.netLTV > 0 ? "text-green-500" : "text-red-500",
+      bgColor: kpis.netLTV > 0 ? "bg-green-500/10" : "bg-red-500/10",
+    },
   ];
 
   return (
-    <div className="grid gap-4 grid-cols-2 md:grid-cols-4 lg:grid-cols-8">
+    <div className="grid gap-4 grid-cols-2 md:grid-cols-5 lg:grid-cols-10">
       {cards.map((card) => (
         <Card key={card.title}>
           <CardContent className="p-4">

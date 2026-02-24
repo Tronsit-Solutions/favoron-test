@@ -1,11 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, ShoppingBag, Plane } from "lucide-react";
+import { Download, Loader2, ShoppingBag, Plane, AlertTriangle } from "lucide-react";
 import { useCACAnalytics } from "@/hooks/useCACAnalytics";
 import { ShopperKPICards, TravelerKPICards } from "./CACKPICards";
 import { CACTable } from "./CACTable";
 import { CACMonthlyTable } from "./CACMonthlyTable";
 import { InvestmentForm } from "./InvestmentForm";
+import { IncidentCostForm } from "./IncidentCostForm";
 import { FunnelChart } from "./FunnelChart";
 import { useToast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
@@ -19,10 +20,14 @@ export const CACAnalysisTab = () => {
     travelerKPIs,
     monthlyData,
     investments,
+    incidentCosts,
     isLoading,
     addInvestment,
     deleteInvestment,
     updateInvestment,
+    addIncidentCost,
+    updateIncidentCost,
+    deleteIncidentCost,
   } = useCACAnalytics();
 
   const handleExportExcel = () => {
@@ -43,6 +48,9 @@ export const CACAnalysisTab = () => {
         { Métrica: "ARPU (Q)", Valor: shopperKPIs.shopperARPU.toFixed(2) },
         { Métrica: "Pedidos Pagados", Valor: shopperKPIs.totalPaidPackages },
         { Métrica: "CAC/Pedido (Q)", Valor: shopperKPIs.cacPerPaidOrder.toFixed(2) },
+        { Métrica: "Costo Incidencias (Q)", Valor: shopperKPIs.totalIncidentCosts.toFixed(2) },
+        { Métrica: "LTV Neto (Q)", Valor: shopperKPIs.netLTV.toFixed(2) },
+        { Métrica: "LTV/CAC Neto", Valor: shopperKPIs.netLtvCacRatio === Infinity ? "∞" : shopperKPIs.netLtvCacRatio.toFixed(2) },
       ]);
       XLSX.utils.book_append_sheet(wb, shopperSheet, "KPIs Shoppers");
 
@@ -95,6 +103,18 @@ export const CACAnalysisTab = () => {
       );
       XLSX.utils.book_append_sheet(wb, monthlySheet, "Análisis Mensual");
 
+      // Incident Costs Sheet
+      if (incidentCosts.length > 0) {
+        const incidentSheet = XLSX.utils.json_to_sheet(
+          incidentCosts.map((ic) => ({
+            Mes: ic.month,
+            "Monto (Q)": Number(ic.amount).toFixed(2),
+            Descripción: ic.description || "-",
+          }))
+        );
+        XLSX.utils.book_append_sheet(wb, incidentSheet, "Costos Incidencias");
+      }
+
       const date = new Date().toISOString().split("T")[0];
       XLSX.writeFile(wb, `analisis-cac-${date}.xlsx`);
       toast({ title: "Excel exportado", description: "El archivo se ha descargado correctamente" });
@@ -140,7 +160,7 @@ export const CACAnalysisTab = () => {
       </div>
 
       {/* Investment Management + Funnel */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Gestión de Inversiones</CardTitle>
@@ -155,6 +175,26 @@ export const CACAnalysisTab = () => {
               onUpdateInvestment={handleUpdateInvestment}
               onDeleteInvestment={handleDeleteInvestment}
               isLoading={addInvestment.isPending || deleteInvestment.isPending || updateInvestment.isPending}
+            />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-red-500" />
+              <CardTitle className="text-base">Costos de Incidencias</CardTitle>
+            </div>
+            <CardDescription>
+              Registra gastos por paquetes perdidos, compensaciones, etc.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <IncidentCostForm
+              incidentCosts={incidentCosts}
+              onAdd={async (data) => { await addIncidentCost.mutateAsync(data); }}
+              onUpdate={async (data) => { await updateIncidentCost.mutateAsync(data); }}
+              onDelete={async (id) => { await deleteIncidentCost.mutateAsync(id); }}
+              isLoading={addIncidentCost.isPending || deleteIncidentCost.isPending || updateIncidentCost.isPending}
             />
           </CardContent>
         </Card>
@@ -229,6 +269,7 @@ export const CACAnalysisTab = () => {
                 <li><strong>Monetizado:</strong> Ha pagado al menos 1 paquete</li>
                 <li><strong>CAC:</strong> Inversión shoppers / Monetizados</li>
                 <li><strong>LTV:</strong> Revenue promedio por monetizado</li>
+                <li><strong>LTV Neto:</strong> (Revenue - Costos Incidencias) / Monetizados</li>
               </ul>
             </div>
             <div>

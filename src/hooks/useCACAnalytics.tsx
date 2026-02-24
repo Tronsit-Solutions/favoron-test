@@ -42,6 +42,14 @@ export interface MarketingInvestment {
   created_at: string;
 }
 
+export interface IncidentCost {
+  id: string;
+  month: string;
+  amount: number;
+  description: string | null;
+  created_at: string;
+}
+
 export interface ShopperKPIs {
   totalShoppers: number;
   activeShoppers: number;
@@ -57,6 +65,10 @@ export interface ShopperKPIs {
   shopperARPU: number;
   totalPaidPackages: number;
   cacPerPaidOrder: number;
+  totalIncidentCosts: number;
+  netRevenue: number;
+  netLTV: number;
+  netLtvCacRatio: number;
 }
 
 export interface TravelerKPIs {
@@ -186,6 +198,19 @@ export const useCACAnalytics = (selectedMonth?: string) => {
     staleTime: 2 * 60 * 1000,
   });
 
+  const { data: incidentCostsData, isLoading: incidentCostsLoading } = useQuery({
+    queryKey: ['incident-costs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('incident_costs')
+        .select('*')
+        .order('month', { ascending: false });
+      if (error) throw error;
+      return data as IncidentCost[];
+    },
+    staleTime: 2 * 60 * 1000,
+  });
+
   const addInvestment = useMutation({
     mutationFn: async (investment: { channel: string; month: string; investment: number; notes?: string; target_audience?: string }) => {
       const { data, error } = await supabase
@@ -231,6 +256,41 @@ export const useCACAnalytics = (selectedMonth?: string) => {
       return data;
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['marketing-investments'] }); },
+  });
+
+  const addIncidentCost = useMutation({
+    mutationFn: async (data: { month: string; amount: number; description?: string }) => {
+      const { data: result, error } = await supabase
+        .from('incident_costs')
+        .insert({ month: data.month, amount: data.amount, description: data.description || null } as any)
+        .select()
+        .single();
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['incident-costs'] }); },
+  });
+
+  const updateIncidentCost = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; month: string; amount: number; description?: string }) => {
+      const { data: result, error } = await supabase
+        .from('incident_costs')
+        .update({ month: data.month, amount: data.amount, description: data.description || null } as any)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['incident-costs'] }); },
+  });
+
+  const deleteIncidentCost = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('incident_costs').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['incident-costs'] }); },
   });
 
   const { channelData, globalKPIs, shopperKPIs, travelerKPIs, monthlyData } = useMemo(() => {
@@ -451,6 +511,10 @@ export const useCACAnalytics = (selectedMonth?: string) => {
       ? globalKPIs.globalLTV / globalKPIs.globalCAC
       : globalKPIs.globalLTV > 0 ? Infinity : 0;
 
+    const totalIncidentCosts = (incidentCostsData || []).reduce((sum, ic) => sum + Number(ic.amount), 0);
+    const netRevenue = totals.revenue - totalIncidentCosts;
+    const netLTV = totals.monetizedUsers > 0 ? netRevenue / totals.monetizedUsers : 0;
+
     const shopperKPIs: ShopperKPIs = {
       totalShoppers: totals.totalUsers,
       activeShoppers: totals.activeUsers,
@@ -469,6 +533,10 @@ export const useCACAnalytics = (selectedMonth?: string) => {
       totalPaidPackages,
       cacPerPaidOrder: totalPaidPackages > 0 && totalShopperInvestment > 0
         ? totalShopperInvestment / totalPaidPackages : 0,
+      totalIncidentCosts,
+      netRevenue,
+      netLTV,
+      netLtvCacRatio: shopperCAC > 0 ? netLTV / shopperCAC : (netLTV > 0 ? Infinity : 0),
     };
 
     const totalTravelersCount = travelerUserIds.size;
@@ -534,7 +602,7 @@ export const useCACAnalytics = (selectedMonth?: string) => {
       .sort((a, b) => b.month.localeCompare(a.month));
 
     return { channelData: result, globalKPIs, shopperKPIs, travelerKPIs, monthlyData };
-  }, [usersData, packagesData, tripsData, investmentsData, selectedMonth]);
+  }, [usersData, packagesData, tripsData, investmentsData, incidentCostsData, selectedMonth]);
 
   return {
     channelData,
@@ -543,10 +611,14 @@ export const useCACAnalytics = (selectedMonth?: string) => {
     travelerKPIs: travelerKPIs || getEmptyTravelerKPIs(),
     monthlyData,
     investments: investmentsData || [],
-    isLoading: usersLoading || packagesLoading || tripsLoading || investmentsLoading,
+    incidentCosts: incidentCostsData || [],
+    isLoading: usersLoading || packagesLoading || tripsLoading || investmentsLoading || incidentCostsLoading,
     addInvestment,
     deleteInvestment,
     updateInvestment,
+    addIncidentCost,
+    updateIncidentCost,
+    deleteIncidentCost,
   };
 };
 
@@ -565,6 +637,7 @@ function getEmptyShopperKPIs(): ShopperKPIs {
     shopperActivationRate: 0, shopperMonetizationRate: 0, shopperConversionRate: 0,
     shopperInvestment: 0, shopperRevenue: 0, shopperCAC: 0, shopperLTV: 0,
     shopperLtvCacRatio: 0, shopperARPU: 0, totalPaidPackages: 0, cacPerPaidOrder: 0,
+    totalIncidentCosts: 0, netRevenue: 0, netLTV: 0, netLtvCacRatio: 0,
   };
 }
 

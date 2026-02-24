@@ -413,6 +413,33 @@ export type Database = {
         }
         Relationships: []
       }
+      incident_costs: {
+        Row: {
+          amount: number
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          month: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          month: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          month?: string
+        }
+        Relationships: []
+      }
       label_counter: {
         Row: {
           created_at: string | null
