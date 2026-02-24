@@ -160,7 +160,7 @@ export const CACAnalysisTab = () => {
       </div>
 
       {/* Investment Management + Funnel */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Gestión de Inversiones</CardTitle>
@@ -198,7 +198,6 @@ export const CACAnalysisTab = () => {
             />
           </CardContent>
         </Card>
-        <FunnelChart data={channelData} mode="shopper" />
       </div>
 
       {/* ═══════ Unit Economics: Shoppers ═══════ */}
