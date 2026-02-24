@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, ShoppingBag, Plane } from "lucide-react";
 import { useCACAnalytics } from "@/hooks/useCACAnalytics";
-import { CACKPICards } from "./CACKPICards";
+import { ShopperKPICards, TravelerKPICards } from "./CACKPICards";
 import { CACTable } from "./CACTable";
 import { CACMonthlyTable } from "./CACMonthlyTable";
 import { InvestmentForm } from "./InvestmentForm";
@@ -15,6 +15,8 @@ export const CACAnalysisTab = () => {
   const {
     channelData,
     globalKPIs,
+    shopperKPIs,
+    travelerKPIs,
     monthlyData,
     investments,
     isLoading,
@@ -27,37 +29,49 @@ export const CACAnalysisTab = () => {
     try {
       const wb = XLSX.utils.book_new();
 
-      // KPIs Sheet
-      const kpisSheet = XLSX.utils.json_to_sheet([
-        { Métrica: "Usuarios Totales", Valor: globalKPIs.totalUsers },
-        { Métrica: "Usuarios Activos", Valor: globalKPIs.totalActiveUsers },
-        { Métrica: "Usuarios Monetizados", Valor: globalKPIs.totalMonetizedUsers },
-        { Métrica: "Tasa de Activación (%)", Valor: globalKPIs.globalActivationRate.toFixed(2) },
-        { Métrica: "Tasa de Monetización (%)", Valor: globalKPIs.globalMonetizationRate.toFixed(2) },
-        { Métrica: "Tasa de Conversión (%)", Valor: globalKPIs.globalConversionRate.toFixed(2) },
-        { Métrica: "Inversión Total (Q)", Valor: globalKPIs.totalInvestment.toFixed(2) },
-        { Métrica: "Revenue Total (Q)", Valor: globalKPIs.totalRevenue.toFixed(2) },
-        { Métrica: "CAC Global (Q)", Valor: globalKPIs.globalCAC.toFixed(2) },
-        { Métrica: "LTV Promedio (Q)", Valor: globalKPIs.globalLTV.toFixed(2) },
-        { Métrica: "Ratio LTV/CAC", Valor: globalKPIs.ltvCacRatio === Infinity ? "∞" : globalKPIs.ltvCacRatio.toFixed(2) },
+      // Shopper KPIs Sheet
+      const shopperSheet = XLSX.utils.json_to_sheet([
+        { Métrica: "Shoppers Totales", Valor: shopperKPIs.totalShoppers },
+        { Métrica: "Shoppers Activos", Valor: shopperKPIs.activeShoppers },
+        { Métrica: "Shoppers Monetizados", Valor: shopperKPIs.monetizedShoppers },
+        { Métrica: "Tasa de Activación (%)", Valor: shopperKPIs.shopperActivationRate.toFixed(2) },
+        { Métrica: "Tasa de Conversión (%)", Valor: shopperKPIs.shopperConversionRate.toFixed(2) },
+        { Métrica: "Inversión Shoppers (Q)", Valor: shopperKPIs.shopperInvestment.toFixed(2) },
+        { Métrica: "CAC Shoppers (Q)", Valor: shopperKPIs.shopperCAC.toFixed(2) },
+        { Métrica: "LTV (Q)", Valor: shopperKPIs.shopperLTV.toFixed(2) },
+        { Métrica: "LTV/CAC", Valor: shopperKPIs.shopperLtvCacRatio === Infinity ? "∞" : shopperKPIs.shopperLtvCacRatio.toFixed(2) },
+        { Métrica: "ARPU (Q)", Valor: shopperKPIs.shopperARPU.toFixed(2) },
       ]);
-      XLSX.utils.book_append_sheet(wb, kpisSheet, "KPIs Globales");
+      XLSX.utils.book_append_sheet(wb, shopperSheet, "KPIs Shoppers");
+
+      // Traveler KPIs Sheet
+      const travelerSheet = XLSX.utils.json_to_sheet([
+        { Métrica: "Viajeros Totales", Valor: travelerKPIs.totalTravelers },
+        { Métrica: "Viajeros Activos", Valor: travelerKPIs.activeTravelers },
+        { Métrica: "Viajeros Productivos", Valor: travelerKPIs.productiveTravelers },
+        { Métrica: "Inversión Viajeros (Q)", Valor: travelerKPIs.travelerInvestment.toFixed(2) },
+        { Métrica: "CAC Viajeros (Q)", Valor: travelerKPIs.travelerCAC.toFixed(2) },
+        { Métrica: "Pkgs/Viajero", Valor: travelerKPIs.avgPackagesPerTraveler.toFixed(2) },
+        { Métrica: "Costo/Paquete (Q)", Valor: travelerKPIs.costPerDeliveredPackage.toFixed(2) },
+        { Métrica: "Propinas (Q)", Valor: travelerKPIs.totalTipsDistributed.toFixed(2) },
+      ]);
+      XLSX.utils.book_append_sheet(wb, travelerSheet, "KPIs Viajeros");
 
       // Channel Data Sheet
       const channelSheet = XLSX.utils.json_to_sheet(
         channelData.map((ch) => ({
           Canal: ch.channelLabel,
           Registrados: ch.totalUsers,
-          Activos: ch.activeUsers,
+          "Shoppers Activos": ch.activeUsers,
           Monetizados: ch.monetizedUsers,
-          "Activación (%)": ch.activationRate.toFixed(2),
-          "Monetización (%)": ch.monetizationRate.toFixed(2),
-          "Conversión (%)": ch.overallConversionRate.toFixed(2),
-          "Inversión (Q)": ch.totalInvestment.toFixed(2),
-          "Revenue (Q)": ch.totalRevenue.toFixed(2),
-          "CAC (Q)": ch.cacPerMonetized.toFixed(2),
+          "CAC Shopper (Q)": ch.shopperCAC.toFixed(2),
           "LTV (Q)": ch.avgLTV.toFixed(2),
           "LTV/CAC": ch.ltvCacRatio === Infinity ? "∞" : ch.ltvCacRatio.toFixed(2),
+          "Viajeros": ch.travelerUsers,
+          "Viajeros Activos": ch.activeTravelers,
+          "Viajeros Productivos": ch.productiveTravelers,
+          "CAC Viajero (Q)": ch.travelerCAC.toFixed(2),
+          "Pkgs Entregados": ch.packagesDelivered,
         }))
       );
       XLSX.utils.book_append_sheet(wb, channelSheet, "Análisis por Canal");
@@ -69,7 +83,6 @@ export const CACAnalysisTab = () => {
           "Nuevos Usuarios": m.newUsers,
           Activos: m.activeUsers,
           Monetizados: m.monetizedUsers,
-          "Tasa Conversión (%)": m.newUsers > 0 ? ((m.monetizedUsers / m.newUsers) * 100).toFixed(2) : "0",
           "Inversión (Q)": m.investment.toFixed(2),
           "CAC (Q)": m.cac.toFixed(2),
           "LTV (Q)": m.ltv.toFixed(2),
@@ -78,32 +91,11 @@ export const CACAnalysisTab = () => {
       );
       XLSX.utils.book_append_sheet(wb, monthlySheet, "Análisis Mensual");
 
-      // Investments Sheet
-      const investmentsSheet = XLSX.utils.json_to_sheet(
-        investments.map((inv) => ({
-          Canal: inv.channel,
-          Mes: inv.month,
-          "Inversión (Q)": inv.investment,
-          Notas: inv.notes || "",
-          "Fecha Registro": new Date(inv.created_at).toLocaleDateString(),
-        }))
-      );
-      XLSX.utils.book_append_sheet(wb, investmentsSheet, "Inversiones");
-
-      // Download
       const date = new Date().toISOString().split("T")[0];
       XLSX.writeFile(wb, `analisis-cac-${date}.xlsx`);
-
-      toast({
-        title: "Excel exportado",
-        description: "El archivo se ha descargado correctamente",
-      });
+      toast({ title: "Excel exportado", description: "El archivo se ha descargado correctamente" });
     } catch (error) {
-      toast({
-        title: "Error al exportar",
-        description: "No se pudo generar el archivo Excel",
-        variant: "destructive",
-      });
+      toast({ title: "Error al exportar", description: "No se pudo generar el archivo Excel", variant: "destructive" });
     }
   };
 
@@ -134,7 +126,7 @@ export const CACAnalysisTab = () => {
         <div>
           <h2 className="text-xl font-semibold">Análisis de CAC</h2>
           <p className="text-sm text-muted-foreground">
-            Métricas de adquisición, activación y monetización de usuarios
+            Métricas de adquisición segmentadas por tipo de usuario
           </p>
         </div>
         <Button onClick={handleExportExcel} variant="outline" className="gap-2">
@@ -143,12 +135,8 @@ export const CACAnalysisTab = () => {
         </Button>
       </div>
 
-      {/* KPI Cards */}
-      <CACKPICards kpis={globalKPIs} />
-
-      {/* Two column layout */}
+      {/* Investment Management + Funnel */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Investment Form */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Gestión de Inversiones</CardTitle>
@@ -166,23 +154,51 @@ export const CACAnalysisTab = () => {
             />
           </CardContent>
         </Card>
-
-        {/* Funnel Chart */}
-        <FunnelChart data={channelData} />
+        <FunnelChart data={channelData} mode="shopper" />
       </div>
 
-      {/* Full Width Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Métricas Detalladas por Canal</CardTitle>
-          <CardDescription>
-            Usuarios registrados, activos y monetizados con cálculos de CAC y LTV
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CACTable data={channelData} />
-        </CardContent>
-      </Card>
+      {/* ═══════ Unit Economics: Shoppers ═══════ */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <ShoppingBag className="h-5 w-5 text-blue-500" />
+          <h3 className="text-lg font-semibold">Unit Economics: Shoppers</h3>
+        </div>
+        <ShopperKPICards kpis={shopperKPIs} />
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Métricas por Canal — Shoppers</CardTitle>
+            <CardDescription>
+              Registrados → Activos (crearon paquete) → Monetizados (pagaron)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CACTable data={channelData} mode="shopper" />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ═══════ Unit Economics: Viajeros ═══════ */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Plane className="h-5 w-5 text-orange-500" />
+          <h3 className="text-lg font-semibold">Unit Economics: Viajeros</h3>
+        </div>
+        <TravelerKPICards kpis={travelerKPIs} />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Métricas por Canal — Viajeros</CardTitle>
+              <CardDescription>
+                Con trip → Activos (trip aprobado) → Productivos (entregaron paquetes)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CACTable data={channelData} mode="traveler" />
+            </CardContent>
+          </Card>
+          <FunnelChart data={channelData} mode="traveler" />
+        </div>
+      </div>
 
       {/* Monthly CAC Table */}
       <Card>
@@ -197,28 +213,28 @@ export const CACAnalysisTab = () => {
         </CardContent>
       </Card>
 
-      {/* Info Card */}
+      {/* Definitions */}
       <Card className="bg-muted/50">
         <CardContent className="p-4">
           <h4 className="font-medium mb-2">📊 Definiciones</h4>
-          <div className="grid gap-2 text-sm text-muted-foreground md:grid-cols-3">
+          <div className="grid gap-2 text-sm text-muted-foreground md:grid-cols-2">
             <div>
-              <strong>Registrado:</strong> Usuario con perfil en la plataforma
+              <strong className="text-blue-600">Shoppers:</strong>
+              <ul className="ml-4 mt-1 space-y-1 list-disc">
+                <li><strong>Activo:</strong> Ha creado al menos 1 paquete</li>
+                <li><strong>Monetizado:</strong> Ha pagado al menos 1 paquete</li>
+                <li><strong>CAC:</strong> Inversión shoppers / Monetizados</li>
+                <li><strong>LTV:</strong> Revenue promedio por monetizado</li>
+              </ul>
             </div>
             <div>
-              <strong>Activo:</strong> Ha creado al menos 1 paquete
-            </div>
-            <div>
-              <strong>Monetizado:</strong> Ha pagado al menos 1 paquete
-            </div>
-            <div>
-              <strong>CAC:</strong> Inversión / Usuarios monetizados
-            </div>
-            <div>
-              <strong>LTV:</strong> Revenue promedio por usuario monetizado
-            </div>
-            <div>
-              <strong>LTV/CAC ≥ 3:</strong> Ratio saludable para el negocio
+              <strong className="text-orange-600">Viajeros:</strong>
+              <ul className="ml-4 mt-1 space-y-1 list-disc">
+                <li><strong>Activo:</strong> Con trip aprobado</li>
+                <li><strong>Productivo:</strong> Entregó al menos 1 paquete</li>
+                <li><strong>CAC:</strong> Inversión viajeros / Productivos</li>
+                <li><strong>Costo/Pkg:</strong> Inversión viajeros / Paquetes entregados</li>
+              </ul>
             </div>
           </div>
         </CardContent>
