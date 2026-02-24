@@ -27,8 +27,8 @@ import { useToast } from "@/hooks/use-toast";
 
 interface InvestmentFormProps {
   investments: MarketingInvestment[];
-  onAddInvestment: (data: { channel: string; month: string; investment: number; notes?: string }) => Promise<void>;
-  onUpdateInvestment: (data: { id: string; channel: string; month: string; investment: number; notes?: string }) => Promise<void>;
+  onAddInvestment: (data: { channel: string; month: string; investment: number; notes?: string; target_audience?: string }) => Promise<void>;
+  onUpdateInvestment: (data: { id: string; channel: string; month: string; investment: number; notes?: string; target_audience?: string }) => Promise<void>;
   onDeleteInvestment: (id: string) => Promise<void>;
   isLoading: boolean;
 }
@@ -39,6 +39,12 @@ const CHANNELS = [
   { value: "reels", label: "Reels" },
   { value: "friend_referral", label: "Referidos" },
   { value: "other", label: "Otro" },
+];
+
+const AUDIENCES = [
+  { value: "shoppers", label: "Shoppers" },
+  { value: "travelers", label: "Viajeros" },
+  { value: "both", label: "Ambos" },
 ];
 
 // Generate last 12 months
@@ -68,6 +74,7 @@ export const InvestmentForm = ({
   const [month, setMonth] = useState(format(new Date(), "yyyy-MM"));
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
+  const [targetAudience, setTargetAudience] = useState("both");
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -102,6 +109,7 @@ export const InvestmentForm = ({
           month,
           investment: investmentValue,
           notes: notes || undefined,
+          target_audience: targetAudience,
         });
         toast({
           title: "Inversión actualizada",
@@ -113,6 +121,7 @@ export const InvestmentForm = ({
           month,
           investment: investmentValue,
           notes: notes || undefined,
+          target_audience: targetAudience,
         });
         toast({
           title: "Inversión registrada",
@@ -138,6 +147,7 @@ export const InvestmentForm = ({
     setMonth(format(new Date(), "yyyy-MM"));
     setAmount("");
     setNotes("");
+    setTargetAudience("both");
   };
 
   const handleEdit = (inv: MarketingInvestment) => {
@@ -146,6 +156,7 @@ export const InvestmentForm = ({
     setMonth(inv.month);
     setAmount(inv.investment.toString());
     setNotes(inv.notes || "");
+    setTargetAudience(inv.target_audience || "both");
     setOpen(true);
   };
 
@@ -167,6 +178,18 @@ export const InvestmentForm = ({
 
   const getChannelLabel = (value: string) => {
     return CHANNELS.find(c => c.value === value)?.label || value;
+  };
+
+  const getAudienceLabel = (value: string) => {
+    return AUDIENCES.find(a => a.value === value)?.label || value;
+  };
+
+  const getAudienceBadgeClass = (value: string) => {
+    switch (value) {
+      case 'shoppers': return 'bg-blue-500/10 text-blue-700';
+      case 'travelers': return 'bg-orange-500/10 text-orange-700';
+      default: return 'bg-muted text-muted-foreground';
+    }
   };
 
   const formatMonth = (monthStr: string) => {
@@ -245,6 +268,21 @@ export const InvestmentForm = ({
                   onChange={(e) => setNotes(e.target.value)}
                 />
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor="target_audience">Audiencia</Label>
+                <Select value={targetAudience} onValueChange={setTargetAudience}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona audiencia" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AUDIENCES.map((a) => (
+                      <SelectItem key={a.value} value={a.value}>
+                        {a.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={resetForm}>
@@ -264,6 +302,7 @@ export const InvestmentForm = ({
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="text-left p-3 font-medium">Canal</th>
+                <th className="text-left p-3 font-medium">Audiencia</th>
                 <th className="text-left p-3 font-medium">Mes</th>
                 <th className="text-right p-3 font-medium">Inversión</th>
                 <th className="text-left p-3 font-medium">Notas</th>
@@ -274,6 +313,11 @@ export const InvestmentForm = ({
               {investments.slice(0, 10).map((inv) => (
                 <tr key={inv.id} className="border-b last:border-0">
                   <td className="p-3">{getChannelLabel(inv.channel)}</td>
+                  <td className="p-3">
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getAudienceBadgeClass(inv.target_audience || 'both')}`}>
+                      {getAudienceLabel(inv.target_audience || 'both')}
+                    </span>
+                  </td>
                   <td className="p-3 capitalize">{formatMonth(inv.month)}</td>
                   <td className="p-3 text-right font-medium">Q{inv.investment.toFixed(2)}</td>
                   <td className="p-3 text-muted-foreground truncate max-w-[200px]">

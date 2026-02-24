@@ -107,11 +107,11 @@ export const CACAnalysisTab = () => {
     }
   };
 
-  const handleAddInvestment = async (data: { channel: string; month: string; investment: number; notes?: string }) => {
+  const handleAddInvestment = async (data: { channel: string; month: string; investment: number; notes?: string; target_audience?: string }) => {
     await addInvestment.mutateAsync(data);
   };
 
-  const handleUpdateInvestment = async (data: { id: string; channel: string; month: string; investment: number; notes?: string }) => {
+  const handleUpdateInvestment = async (data: { id: string; channel: string; month: string; investment: number; notes?: string; target_audience?: string }) => {
     await updateInvestment.mutateAsync(data);
   };
 

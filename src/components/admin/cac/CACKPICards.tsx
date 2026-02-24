@@ -18,10 +18,18 @@ export const CACKPICards = ({ kpis }: CACKPICardsProps) => {
     {
       title: "CAC Global",
       value: kpis.totalInvestment > 0 ? formatCurrency(kpis.globalCAC) : "Sin inversión",
-      description: "Costo por usuario monetizado",
+      description: "Inversión total / Monetizados",
       icon: DollarSign,
       color: "text-red-500",
       bgColor: "bg-red-500/10",
+    },
+    {
+      title: "CAC Shoppers",
+      value: kpis.shopperInvestment > 0 ? formatCurrency(kpis.shopperCAC) : "Sin inversión",
+      description: "Inversión shoppers / Monetizados",
+      icon: DollarSign,
+      color: "text-pink-500",
+      bgColor: "bg-pink-500/10",
     },
     {
       title: "LTV Promedio",
@@ -74,7 +82,7 @@ export const CACKPICards = ({ kpis }: CACKPICardsProps) => {
   ];
 
   return (
-    <div className="grid gap-4 grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
+    <div className="grid gap-4 grid-cols-2 md:grid-cols-4 lg:grid-cols-8">
       {cards.map((card) => (
         <Card key={card.title}>
           <CardContent className="p-4">
