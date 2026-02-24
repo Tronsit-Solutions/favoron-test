@@ -1,9 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Headphones, X, MessageCircle } from "lucide-react";
+import { Headphones, X, MessageCircle, AlertTriangle, ArrowLeft, Send, ImagePlus, Loader2 } from "lucide-react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 const faqs = [
   {
@@ -38,8 +42,17 @@ const faqs = [
 
 const WHATSAPP_URL = "https://wa.me/50230616015?text=Hola%2C%20necesito%20ayuda%20con%20Favoron";
 
+const EDGE_URL = "https://dfhoduirmqbarjnspbdh.supabase.co/functions/v1/log-client-error";
+
+type View = "menu" | "bug-report" | "customer-service";
+
 const SupportBubble: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [view, setView] = useState<View>("menu");
+  const [description, setDescription] = useState("");
+  const [section, setSection] = useState("");
+  const [screenshot, setScreenshot] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const tabRef = useRef<HTMLButtonElement>(null);
 
@@ -56,6 +69,84 @@ const SupportBubble: React.FC = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
+
+  // Reset view when closing
+  useEffect(() => {
+    if (!isOpen) {
+      setView("menu");
+      setDescription("");
+      setSection("");
+      setScreenshot(null);
+    }
+  }, [isOpen]);
+
+  const handleSubmitBug = async () => {
+    if (!description.trim()) return;
+    setSubmitting(true);
+
+    try {
+      const payload: Record<string, any> = {
+        route: window.location.pathname,
+        url: window.location.href,
+        message: description.trim(),
+        name: "UserReport",
+        type: "user_report",
+        severity: "warning",
+        context: {
+          section: section.trim() || undefined,
+          has_screenshot: !!screenshot,
+          screenshot_name: screenshot?.name || undefined,
+        },
+        browser: {
+          ua: navigator.userAgent,
+          platform: navigator.platform,
+          language: navigator.language,
+          viewport: { width: window.innerWidth, height: window.innerHeight },
+          time: new Date().toISOString(),
+        },
+      };
+
+      // Try to get auth token
+      try {
+        const raw = localStorage.getItem("sb-dfhoduirmqbarjnspbdh-auth-token");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const token = parsed?.currentSession?.access_token || parsed?.access_token;
+          if (token) {
+            await fetch(EDGE_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+              body: JSON.stringify(payload),
+              keepalive: true,
+            });
+          } else {
+            await fetch(EDGE_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+              keepalive: true,
+            });
+          }
+        } else {
+          await fetch(EDGE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            keepalive: true,
+          });
+        }
+      } catch {
+        // Silently fail on send
+      }
+
+      toast({ title: "Reporte enviado", description: "Gracias por reportar este error. Lo revisaremos pronto." });
+      setIsOpen(false);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const headerTitle = view === "menu" ? "Soporte" : view === "bug-report" ? "Reportar un error" : "Servicio al cliente";
 
   return (
     <>
@@ -92,8 +183,13 @@ const SupportBubble: React.FC = () => {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <div className="flex items-center gap-2">
+            {view !== "menu" && (
+              <button onClick={() => setView("menu")} className="p-1 rounded-full hover:bg-muted transition-colors" aria-label="Volver">
+                <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+              </button>
+            )}
             <Headphones className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-foreground">Soporte</span>
+            <span className="font-semibold text-foreground">{headerTitle}</span>
           </div>
           <button
             onClick={() => setIsOpen(false)}
@@ -104,37 +200,121 @@ const SupportBubble: React.FC = () => {
           </button>
         </div>
 
-        {/* FAQ */}
-        <ScrollArea className="max-h-[300px]">
-          <div className="p-4">
-            <p className="text-xs text-muted-foreground mb-3">Preguntas frecuentes</p>
-            <Accordion type="single" collapsible className="space-y-0">
-              {faqs.map((faq, i) => (
-                <AccordionItem key={i} value={`faq-${i}`} className="border-b-0 border-t border-border first:border-t-0">
-                  <AccordionTrigger className="text-sm py-3 hover:no-underline text-left">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground text-xs leading-relaxed">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+        {/* Menu view */}
+        {view === "menu" && (
+          <div className="p-4 space-y-3">
+            <p className="text-xs text-muted-foreground mb-1">¿En qué podemos ayudarte?</p>
+            <button
+              onClick={() => setView("bug-report")}
+              className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left"
+            >
+              <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-destructive/10 text-destructive shrink-0">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">Reportar un error</p>
+                <p className="text-xs text-muted-foreground">Algo no funciona como debería</p>
+              </div>
+            </button>
+            <button
+              onClick={() => setView("customer-service")}
+              className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left"
+            >
+              <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary/10 text-primary shrink-0">
+                <MessageCircle className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">Servicio al cliente</p>
+                <p className="text-xs text-muted-foreground">Preguntas frecuentes y WhatsApp</p>
+              </div>
+            </button>
           </div>
-        </ScrollArea>
+        )}
 
-        {/* WhatsApp CTA */}
-        <div className="p-4 border-t border-border">
-          <Button
-            asChild
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
-          >
-            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
-              <MessageCircle className="h-4 w-4" />
-              Escríbenos por WhatsApp
-            </a>
-          </Button>
-        </div>
+        {/* Bug report view */}
+        {view === "bug-report" && (
+          <div className="p-4 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="bug-desc" className="text-xs">Descripción del error *</Label>
+              <Textarea
+                id="bug-desc"
+                placeholder="Describe qué pasó y qué esperabas que ocurriera..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="min-h-[80px] text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bug-section" className="text-xs">Página / sección (opcional)</Label>
+              <Input
+                id="bug-section"
+                placeholder="Ej: Dashboard, Cotización..."
+                value={section}
+                onChange={(e) => setSection(e.target.value)}
+                className="text-sm"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bug-screenshot" className="text-xs">Captura de pantalla (opcional)</Label>
+              <label
+                htmlFor="bug-screenshot"
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-md border border-dashed border-border cursor-pointer text-xs text-muted-foreground hover:bg-muted/50 transition-colors",
+                  screenshot && "border-primary/50 text-foreground"
+                )}
+              >
+                <ImagePlus className="h-4 w-4 shrink-0" />
+                <span className="truncate">{screenshot ? screenshot.name : "Adjuntar imagen"}</span>
+              </label>
+              <input
+                id="bug-screenshot"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
+              />
+            </div>
+            <Button
+              onClick={handleSubmitBug}
+              disabled={!description.trim() || submitting}
+              className="w-full"
+            >
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              Enviar reporte
+            </Button>
+          </div>
+        )}
+
+        {/* Customer service view */}
+        {view === "customer-service" && (
+          <>
+            <ScrollArea className="max-h-[300px]">
+              <div className="p-4">
+                <p className="text-xs text-muted-foreground mb-3">Preguntas frecuentes</p>
+                <Accordion type="single" collapsible className="space-y-0">
+                  {faqs.map((faq, i) => (
+                    <AccordionItem key={i} value={`faq-${i}`} className="border-b-0 border-t border-border first:border-t-0">
+                      <AccordionTrigger className="text-sm py-3 hover:no-underline text-left">
+                        {faq.question}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-xs leading-relaxed">
+                        {faq.answer}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </div>
+            </ScrollArea>
+            <div className="p-4 border-t border-border">
+              <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white">
+                <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
+                  <MessageCircle className="h-4 w-4" />
+                  Escríbenos por WhatsApp
+                </a>
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </>
   );
