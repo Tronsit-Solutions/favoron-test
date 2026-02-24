@@ -1,35 +1,47 @@
 
 
-## Corregir useTravelerTipsReport y platform_stats_snapshot
+## Agregar menu inicial al SupportBubble con dos opciones
 
-### Problema
-El hook `useTravelerTipsReport.tsx` usa `quote.serviceFee` (ingreso de Favoron) para calcular los tips distribuidos a viajeros, cuando deberia usar `quote.price` (la propina real del viajero). Esto infla el total de ~Q37K a ~Q92K. Ademas, `platform_stats_snapshot` tiene un valor hardcoded de Q85,000 desactualizado.
+### Concepto
+Al abrir el panel de soporte, en lugar de mostrar directamente las FAQs, se presenta una pantalla inicial con dos botones/tarjetas:
 
-### Cambios
+1. **Reportar un error** - Abre un formulario de reporte de bug
+2. **Servicio al cliente** - Muestra las FAQs + boton de WhatsApp (vista actual)
 
-**1. `src/hooks/useTravelerTipsReport.tsx` (lineas 54-70)**
+### Cambios en `src/components/SupportBubble.tsx`
 
-Cambiar la lectura de `quote.serviceFee` a `quote.price`:
+**Nuevo estado de navegacion interna:**
+- `view`: `'menu' | 'bug-report' | 'customer-service'` (inicia en `'menu'`)
+- Al cerrar el panel, se resetea a `'menu'`
 
-```typescript
-// ANTES (incorrecto):
-const serviceFee = quote?.serviceFee;
-if (serviceFee !== null && serviceFee !== undefined) {
-  const tipAmount = parseFloat(String(serviceFee)) || 0;
+**Vista "menu" (nueva pantalla inicial):**
+- Dos tarjetas/botones con iconos:
+  - Bug (icono `AlertTriangle`) -> cambia a vista `'bug-report'`
+  - Servicio al cliente (icono `MessageCircle`) -> cambia a vista `'customer-service'`
 
-// DESPUES (correcto):
-const price = quote?.price;
-if (price !== null && price !== undefined) {
-  const tipAmount = parseFloat(String(price)) || 0;
-```
+**Vista "bug-report" (nuevo formulario):**
+- Boton de "volver" al menu
+- Campos del formulario:
+  - Descripcion del error (textarea, requerido)
+  - Pagina/seccion donde ocurrio (texto, opcional)
+  - Captura de pantalla (file upload opcional)
+- Al enviar, usa `window.favoronLogError()` (del clientErrorLogger existente) para registrar el error con tipo `'user-report'` y contexto adicional (ruta actual, descripcion, etc.)
+- Tambien invoca la edge function `log-client-error` con `type: 'user_report'` y `severity: 'warning'`
+- Muestra confirmacion con toast de "Reporte enviado"
 
-Tambien debe considerar `adminAssignedTip` de productos no cancelados (consistente con la logica de `getActiveTipFromPackage`), pero como primera correccion el cambio de `serviceFee` -> `price` ya resuelve la discrepancia principal.
+**Vista "customer-service":**
+- Boton de "volver" al menu
+- Contenido actual: FAQs + boton WhatsApp (sin cambios)
 
-**2. Actualizar `platform_stats_snapshot`**
+### Flujo de reporte de error
 
-Ejecutar un UPDATE para corregir el valor de `total_tips_distributed` de Q85,000 al valor real (~Q37,070). El valor exacto se calculara al momento de la implementacion consultando la suma de `quote.price` de paquetes completados.
+El formulario reutiliza la infraestructura existente de `clientErrorLogger.ts`:
+- Llama a `sendLog()` con los datos del formulario
+- Se registra en la tabla `client_errors` con `type = 'user_report'`
+- Los admins pueden ver estos reportes en la pestana de Seguridad/Errores existente
 
-### Resultado esperado
-- Las metricas de "Total Tips" en la tarjeta de Viajeros mostraran ~Q37K en lugar de ~Q92K
-- El snapshot publico reflejara el valor correcto
+### Archivos a modificar
+- `src/components/SupportBubble.tsx` - Agregar estado de navegacion, vista menu, formulario de bug report, y reorganizar la vista de servicio al cliente
+
+No se requieren nuevas dependencias ni cambios en base de datos, ya que se reutiliza la tabla `client_errors` existente.
 
