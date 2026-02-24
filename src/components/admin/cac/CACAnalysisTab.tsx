@@ -41,6 +41,8 @@ export const CACAnalysisTab = () => {
         { Métrica: "LTV (Q)", Valor: shopperKPIs.shopperLTV.toFixed(2) },
         { Métrica: "LTV/CAC", Valor: shopperKPIs.shopperLtvCacRatio === Infinity ? "∞" : shopperKPIs.shopperLtvCacRatio.toFixed(2) },
         { Métrica: "ARPU (Q)", Valor: shopperKPIs.shopperARPU.toFixed(2) },
+        { Métrica: "Pedidos Pagados", Valor: shopperKPIs.totalPaidPackages },
+        { Métrica: "CAC/Pedido (Q)", Valor: shopperKPIs.cacPerPaidOrder.toFixed(2) },
       ]);
       XLSX.utils.book_append_sheet(wb, shopperSheet, "KPIs Shoppers");
 
@@ -67,6 +69,8 @@ export const CACAnalysisTab = () => {
           "CAC Shopper (Q)": ch.shopperCAC.toFixed(2),
           "LTV (Q)": ch.avgLTV.toFixed(2),
           "LTV/CAC": ch.ltvCacRatio === Infinity ? "∞" : ch.ltvCacRatio.toFixed(2),
+          "Pedidos Pagados": ch.paidPackages,
+          "CAC/Pedido (Q)": ch.cacPerPaidOrder > 0 ? ch.cacPerPaidOrder.toFixed(2) : "-",
           "Viajeros": ch.travelerUsers,
           "Viajeros Activos": ch.activeTravelers,
           "Viajeros Productivos": ch.productiveTravelers,

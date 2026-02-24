@@ -19,6 +19,8 @@ export interface CACChannelData {
   cacPerMonetized: number;
   avgLTV: number;
   ltvCacRatio: number;
+  paidPackages: number;
+  cacPerPaidOrder: number;
   // Traveler metrics
   travelerUsers: number;
   activeTravelers: number;
@@ -53,6 +55,8 @@ export interface ShopperKPIs {
   shopperLTV: number;
   shopperLtvCacRatio: number;
   shopperARPU: number;
+  totalPaidPackages: number;
+  cacPerPaidOrder: number;
 }
 
 export interface TravelerKPIs {
@@ -259,6 +263,8 @@ export const useCACAnalytics = (selectedMonth?: string) => {
     const productiveTravelerIds = new Set<string>();
     let totalPackagesDelivered = 0;
     let totalTips = 0;
+    let totalPaidPackages = 0;
+    const paidPackagesByUser = new Map<string, number>();
 
     const travelerPackageCount = new Map<string, number>();
 
@@ -267,6 +273,8 @@ export const useCACAnalytics = (selectedMonth?: string) => {
 
       if (PAID_STATUSES.includes(pkg.status)) {
         monetizedUserIds.add(pkg.user_id);
+        totalPaidPackages++;
+        paidPackagesByUser.set(pkg.user_id, (paidPackagesByUser.get(pkg.user_id) || 0) + 1);
         if (pkg.quote) {
           const quote = pkg.quote as any;
           const serviceFee = parseFloat(quote.serviceFee || 0);
@@ -333,14 +341,15 @@ export const useCACAnalytics = (selectedMonth?: string) => {
       activeTravelers: Set<string>;
       productiveTravelers: Set<string>;
       packagesDelivered: number;
+      paidPackages: number;
     }>();
 
     const ensureChannel = (channel: string) => {
       if (!channelMap.has(channel)) {
         channelMap.set(channel, {
           users: new Set(), activeUsers: new Set(), monetizedUsers: new Set(),
-          revenue: 0, travelerUsers: new Set(), activeTravelers: new Set(),
-          productiveTravelers: new Set(), packagesDelivered: 0,
+      revenue: 0, travelerUsers: new Set(), activeTravelers: new Set(),
+      productiveTravelers: new Set(), packagesDelivered: 0, paidPackages: 0,
         });
       }
       return channelMap.get(channel)!;
@@ -355,6 +364,7 @@ export const useCACAnalytics = (selectedMonth?: string) => {
       if (monetizedUserIds.has(user.id)) {
         data.monetizedUsers.add(user.id);
         data.revenue += userRevenue.get(user.id) || 0;
+        data.paidPackages += paidPackagesByUser.get(user.id) || 0;
       }
       if (travelerUserIds.has(user.id)) data.travelerUsers.add(user.id);
       if (activeTravelerIds.has(user.id)) data.activeTravelers.add(user.id);
@@ -387,6 +397,8 @@ export const useCACAnalytics = (selectedMonth?: string) => {
         const activeTravelers = data.activeTravelers.size;
         const productiveTravelers = data.productiveTravelers.size;
         const travelerCAC = productiveTravelers > 0 && chTravelerInv > 0 ? chTravelerInv / productiveTravelers : 0;
+        const paidPackages = data.paidPackages;
+        const cacPerPaidOrder = paidPackages > 0 && chShopperInv > 0 ? chShopperInv / paidPackages : 0;
 
         return {
           channel,
@@ -396,6 +408,7 @@ export const useCACAnalytics = (selectedMonth?: string) => {
           totalInvestment, totalRevenue,
           cacPerRegistration, cacPerActive, cacPerMonetized,
           avgLTV, ltvCacRatio,
+          paidPackages, cacPerPaidOrder,
           travelerUsers, activeTravelers, productiveTravelers,
           travelerInvestment: chTravelerInv, travelerCAC,
           packagesDelivered: data.packagesDelivered,
@@ -453,6 +466,9 @@ export const useCACAnalytics = (selectedMonth?: string) => {
         ? (totals.monetizedUsers > 0 ? totals.revenue / totals.monetizedUsers : 0) / shopperCAC
         : (totals.revenue > 0 ? Infinity : 0),
       shopperARPU: totals.activeUsers > 0 ? totals.revenue / totals.activeUsers : 0,
+      totalPaidPackages,
+      cacPerPaidOrder: totalPaidPackages > 0 && totalShopperInvestment > 0
+        ? totalShopperInvestment / totalPaidPackages : 0,
     };
 
     const totalTravelersCount = travelerUserIds.size;
@@ -548,7 +564,7 @@ function getEmptyShopperKPIs(): ShopperKPIs {
     totalShoppers: 0, activeShoppers: 0, monetizedShoppers: 0,
     shopperActivationRate: 0, shopperMonetizationRate: 0, shopperConversionRate: 0,
     shopperInvestment: 0, shopperRevenue: 0, shopperCAC: 0, shopperLTV: 0,
-    shopperLtvCacRatio: 0, shopperARPU: 0,
+    shopperLtvCacRatio: 0, shopperARPU: 0, totalPaidPackages: 0, cacPerPaidOrder: 0,
   };
 }
 
