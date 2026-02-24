@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Headphones, X, MessageCircle, AlertTriangle, ArrowLeft, Send, ImagePlus, Loader2 } from "lucide-react";
+import { Headphones, X, MessageCircle, AlertTriangle, ArrowLeft, Send, ImagePlus, Loader2, Bot } from "lucide-react";
+import ChatbotView from "@/components/support/ChatbotView";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -44,7 +45,7 @@ const WHATSAPP_URL = "https://wa.me/50230616015?text=Hola%2C%20necesito%20ayuda%
 
 const EDGE_URL = "https://dfhoduirmqbarjnspbdh.supabase.co/functions/v1/log-client-error";
 
-type View = "menu" | "bug-report" | "customer-service";
+type View = "menu" | "bug-report" | "customer-service" | "chatbot";
 
 const SupportBubble: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -146,7 +147,7 @@ const SupportBubble: React.FC = () => {
     }
   };
 
-  const headerTitle = view === "menu" ? "Soporte" : view === "bug-report" ? "Reportar un error" : "Servicio al cliente";
+  const headerTitle = view === "menu" ? "Soporte" : view === "bug-report" ? "Reportar un error" : view === "chatbot" ? "Asistente virtual" : "Servicio al cliente";
 
   return (
     <>
@@ -204,6 +205,18 @@ const SupportBubble: React.FC = () => {
         {view === "menu" && (
           <div className="p-4 space-y-3">
             <p className="text-xs text-muted-foreground mb-1">¿En qué podemos ayudarte?</p>
+            <button
+              onClick={() => setView("chatbot")}
+              className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left"
+            >
+              <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-accent/50 text-accent-foreground shrink-0">
+                <Bot className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">Asistente virtual</p>
+                <p className="text-xs text-muted-foreground">Te guío paso a paso</p>
+              </div>
+            </button>
             <button
               onClick={() => setView("bug-report")}
               className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left"
@@ -284,6 +297,9 @@ const SupportBubble: React.FC = () => {
             </Button>
           </div>
         )}
+
+        {/* Chatbot view */}
+        {view === "chatbot" && <ChatbotView />}
 
         {/* Customer service view */}
         {view === "customer-service" && (
