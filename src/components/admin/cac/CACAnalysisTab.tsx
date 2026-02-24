@@ -227,20 +227,17 @@ export const CACAnalysisTab = () => {
           <h3 className="text-lg font-semibold">Unit Economics: Viajeros</h3>
         </div>
         <TravelerKPICards kpis={travelerKPIs} />
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Métricas por Canal — Viajeros</CardTitle>
-              <CardDescription>
-                Con trip → Activos (trip aprobado) → Productivos (entregaron paquetes)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CACTable data={channelData} mode="traveler" />
-            </CardContent>
-          </Card>
-          <FunnelChart data={channelData} mode="traveler" />
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Métricas por Canal — Viajeros</CardTitle>
+            <CardDescription>
+              Con trip → Activos (trip aprobado) → Productivos (entregaron paquetes)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CACTable data={channelData} mode="traveler" />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Monthly CAC Table */}
