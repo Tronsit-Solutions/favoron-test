@@ -5,24 +5,29 @@ import { useMemo } from "react";
 export interface CACChannelData {
   channel: string;
   channelLabel: string;
-  // Usuarios
+  // Shopper metrics
   totalUsers: number;
   activeUsers: number;
   monetizedUsers: number;
-  // Tasas
   activationRate: number;
   monetizationRate: number;
   overallConversionRate: number;
-  // Financieros
   totalInvestment: number;
   totalRevenue: number;
-  // CAC
   cacPerRegistration: number;
   cacPerActive: number;
   cacPerMonetized: number;
-  // LTV
   avgLTV: number;
   ltvCacRatio: number;
+  // Traveler metrics
+  travelerUsers: number;
+  activeTravelers: number;
+  productiveTravelers: number;
+  travelerInvestment: number;
+  travelerCAC: number;
+  packagesDelivered: number;
+  shopperInvestment: number;
+  shopperCAC: number;
 }
 
 export interface MarketingInvestment {
@@ -33,6 +38,35 @@ export interface MarketingInvestment {
   notes: string | null;
   target_audience: 'shoppers' | 'travelers' | 'both';
   created_at: string;
+}
+
+export interface ShopperKPIs {
+  totalShoppers: number;
+  activeShoppers: number;
+  monetizedShoppers: number;
+  shopperActivationRate: number;
+  shopperMonetizationRate: number;
+  shopperConversionRate: number;
+  shopperInvestment: number;
+  shopperRevenue: number;
+  shopperCAC: number;
+  shopperLTV: number;
+  shopperLtvCacRatio: number;
+  shopperARPU: number;
+}
+
+export interface TravelerKPIs {
+  totalTravelers: number;
+  activeTravelers: number;
+  productiveTravelers: number;
+  travelerActivationRate: number;
+  travelerProductivityRate: number;
+  travelerInvestment: number;
+  travelerCAC: number;
+  avgPackagesPerTraveler: number;
+  totalPackagesDelivered: number;
+  costPerDeliveredPackage: number;
+  totalTipsDistributed: number;
 }
 
 export interface GlobalKPIs {
@@ -72,7 +106,6 @@ const CHANNEL_LABELS: Record<string, string> = {
   null: "Sin respuesta",
 };
 
-// Normaliza canales históricos de IG/FB al canal unificado Meta
 const normalizeChannel = (source: string | null): string => {
   if (source === 'instagram_ads' || source === 'facebook_ads' || source === 'instagram_facebook_ads') {
     return 'instagram_facebook_ads';
@@ -90,10 +123,11 @@ const PAID_STATUSES = [
   'completed'
 ];
 
+const DELIVERED_STATUSES = ['delivered_to_office', 'completed'];
+
 export const useCACAnalytics = (selectedMonth?: string) => {
   const queryClient = useQueryClient();
 
-  // Fetch all users with acquisition source
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['cac-users'],
     queryFn: async () => {
@@ -102,30 +136,39 @@ export const useCACAnalytics = (selectedMonth?: string) => {
         .select('id, acquisition_source, created_at')
         .order('created_at', { ascending: true })
         .limit(10000);
-      
       if (error) throw error;
       return data;
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch all packages to determine active and monetized users
   const { data: packagesData, isLoading: packagesLoading } = useQuery({
     queryKey: ['cac-packages'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('packages')
-        .select('id, user_id, status, quote, created_at')
+        .select('id, user_id, status, quote, created_at, matched_trip_id, admin_assigned_tip')
         .order('created_at', { ascending: true })
         .limit(20000);
-      
       if (error) throw error;
       return data;
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch marketing investments
+  const { data: tripsData, isLoading: tripsLoading } = useQuery({
+    queryKey: ['cac-trips'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('trips')
+        .select('id, user_id, status')
+        .limit(10000);
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   const { data: investmentsData, isLoading: investmentsLoading } = useQuery({
     queryKey: ['marketing-investments'],
     queryFn: async () => {
@@ -133,14 +176,12 @@ export const useCACAnalytics = (selectedMonth?: string) => {
         .from('marketing_investments')
         .select('*')
         .order('month', { ascending: false });
-      
       if (error) throw error;
       return data as MarketingInvestment[];
     },
     staleTime: 2 * 60 * 1000,
   });
 
-  // Add investment mutation
   const addInvestment = useMutation({
     mutationFn: async (investment: { channel: string; month: string; investment: number; notes?: string; target_audience?: string }) => {
       const { data, error } = await supabase
@@ -154,31 +195,20 @@ export const useCACAnalytics = (selectedMonth?: string) => {
         } as any, { onConflict: 'channel,month' })
         .select()
         .single();
-      
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['marketing-investments'] });
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['marketing-investments'] }); },
   });
 
-  // Delete investment mutation
   const deleteInvestment = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('marketing_investments')
-        .delete()
-        .eq('id', id);
-      
+      const { error } = await supabase.from('marketing_investments').delete().eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['marketing-investments'] });
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['marketing-investments'] }); },
   });
 
-  // Update investment mutation
   const updateInvestment = useMutation({
     mutationFn: async ({ id, ...investment }: { id: string; channel: string; month: string; investment: number; notes?: string; target_audience?: string }) => {
       const { data, error } = await supabase
@@ -193,35 +223,50 @@ export const useCACAnalytics = (selectedMonth?: string) => {
         .eq('id', id)
         .select()
         .single();
-      
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['marketing-investments'] });
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['marketing-investments'] }); },
   });
 
-  // Process data to calculate CAC metrics
-  const { channelData, globalKPIs, monthlyData } = useMemo(() => {
-    if (!usersData || !packagesData) {
-      return { channelData: [], globalKPIs: getEmptyGlobalKPIs(), monthlyData: [] };
+  const { channelData, globalKPIs, shopperKPIs, travelerKPIs, monthlyData } = useMemo(() => {
+    if (!usersData || !packagesData || !tripsData) {
+      return {
+        channelData: [],
+        globalKPIs: getEmptyGlobalKPIs(),
+        shopperKPIs: getEmptyShopperKPIs(),
+        travelerKPIs: getEmptyTravelerKPIs(),
+        monthlyData: [],
+      };
     }
 
-    // Create sets for active and monetized users
+    const travelerUserIds = new Set<string>();
+    const tripIdToUserId = new Map<string, string>();
+    const approvedTripStatuses = ['approved', 'in_progress', 'completed'];
+    const activeTravelerIds = new Set<string>();
+
+    tripsData.forEach(trip => {
+      travelerUserIds.add(trip.user_id);
+      tripIdToUserId.set(trip.id, trip.user_id);
+      if (approvedTripStatuses.includes(trip.status)) {
+        activeTravelerIds.add(trip.user_id);
+      }
+    });
+
     const activeUserIds = new Set<string>();
     const monetizedUserIds = new Set<string>();
     const userRevenue = new Map<string, number>();
+    const productiveTravelerIds = new Set<string>();
+    let totalPackagesDelivered = 0;
+    let totalTips = 0;
+
+    const travelerPackageCount = new Map<string, number>();
 
     packagesData.forEach(pkg => {
-      // Any user with a package is active
       activeUserIds.add(pkg.user_id);
 
-      // Users with paid packages are monetized
       if (PAID_STATUSES.includes(pkg.status)) {
         monetizedUserIds.add(pkg.user_id);
-        
-        // Calculate revenue from service fees
         if (pkg.quote) {
           const quote = pkg.quote as any;
           const serviceFee = parseFloat(quote.serviceFee || 0);
@@ -229,103 +274,137 @@ export const useCACAnalytics = (selectedMonth?: string) => {
           userRevenue.set(pkg.user_id, current + serviceFee);
         }
       }
+
+      if (pkg.matched_trip_id && DELIVERED_STATUSES.includes(pkg.status)) {
+        const travelerId = tripIdToUserId.get(pkg.matched_trip_id);
+        if (travelerId) {
+          productiveTravelerIds.add(travelerId);
+          totalPackagesDelivered++;
+          const count = travelerPackageCount.get(travelerId) || 0;
+          travelerPackageCount.set(travelerId, count + 1);
+        }
+      }
+
+      if (pkg.admin_assigned_tip && pkg.admin_assigned_tip > 0) {
+        totalTips += Number(pkg.admin_assigned_tip);
+      }
     });
 
-    // Group data by channel
+    const userChannelMap = new Map<string, string>();
+    usersData.forEach(user => {
+      userChannelMap.set(user.id, normalizeChannel(user.acquisition_source));
+    });
+
+    const shopperInvByChannel = new Map<string, number>();
+    const travelerInvByChannel = new Map<string, number>();
+    const totalInvByChannel = new Map<string, number>();
+    let totalShopperInvestment = 0;
+    let totalTravelerInvestment = 0;
+
+    if (investmentsData) {
+      investmentsData.forEach(inv => {
+        if (selectedMonth && inv.month !== selectedMonth) return;
+        const audience = (inv as any).target_audience || 'both';
+        const ch = inv.channel;
+        const totalCurrent = totalInvByChannel.get(ch) || 0;
+        totalInvByChannel.set(ch, totalCurrent + inv.investment);
+
+        if (audience === 'shoppers') {
+          shopperInvByChannel.set(ch, (shopperInvByChannel.get(ch) || 0) + inv.investment);
+          totalShopperInvestment += inv.investment;
+        } else if (audience === 'travelers') {
+          travelerInvByChannel.set(ch, (travelerInvByChannel.get(ch) || 0) + inv.investment);
+          totalTravelerInvestment += inv.investment;
+        } else {
+          shopperInvByChannel.set(ch, (shopperInvByChannel.get(ch) || 0) + inv.investment * 0.5);
+          travelerInvByChannel.set(ch, (travelerInvByChannel.get(ch) || 0) + inv.investment * 0.5);
+          totalShopperInvestment += inv.investment * 0.5;
+          totalTravelerInvestment += inv.investment * 0.5;
+        }
+      });
+    }
+
     const channelMap = new Map<string, {
       users: Set<string>;
       activeUsers: Set<string>;
       monetizedUsers: Set<string>;
       revenue: number;
+      travelerUsers: Set<string>;
+      activeTravelers: Set<string>;
+      productiveTravelers: Set<string>;
+      packagesDelivered: number;
     }>();
 
-    // Initialize channels and count users
-    usersData.forEach(user => {
-      const channel = normalizeChannel(user.acquisition_source);
-      
+    const ensureChannel = (channel: string) => {
       if (!channelMap.has(channel)) {
         channelMap.set(channel, {
-          users: new Set(),
-          activeUsers: new Set(),
-          monetizedUsers: new Set(),
-          revenue: 0,
+          users: new Set(), activeUsers: new Set(), monetizedUsers: new Set(),
+          revenue: 0, travelerUsers: new Set(), activeTravelers: new Set(),
+          productiveTravelers: new Set(), packagesDelivered: 0,
         });
       }
-      
-      const data = channelMap.get(channel)!;
+      return channelMap.get(channel)!;
+    };
+
+    usersData.forEach(user => {
+      const channel = normalizeChannel(user.acquisition_source);
+      const data = ensureChannel(channel);
       data.users.add(user.id);
-      
-      if (activeUserIds.has(user.id)) {
-        data.activeUsers.add(user.id);
-      }
-      
+
+      if (activeUserIds.has(user.id)) data.activeUsers.add(user.id);
       if (monetizedUserIds.has(user.id)) {
         data.monetizedUsers.add(user.id);
         data.revenue += userRevenue.get(user.id) || 0;
       }
+      if (travelerUserIds.has(user.id)) data.travelerUsers.add(user.id);
+      if (activeTravelerIds.has(user.id)) data.activeTravelers.add(user.id);
+      if (productiveTravelerIds.has(user.id)) {
+        data.productiveTravelers.add(user.id);
+        data.packagesDelivered += travelerPackageCount.get(user.id) || 0;
+      }
     });
 
-    // Get investments by channel (sum all months or filter by selected month)
-    const investmentsByChannel = new Map<string, number>();
-    let totalShopperInvestment = 0;
-    if (investmentsData) {
-      investmentsData.forEach(inv => {
-        if (!selectedMonth || inv.month === selectedMonth) {
-          const current = investmentsByChannel.get(inv.channel) || 0;
-          investmentsByChannel.set(inv.channel, current + inv.investment);
-          
-          // Calculate shopper-attributed investment
-          const audience = (inv as any).target_audience || 'both';
-          if (audience === 'shoppers') {
-            totalShopperInvestment += inv.investment;
-          } else if (audience === 'both') {
-            totalShopperInvestment += inv.investment * 0.5;
-          }
-        }
-      });
-    }
-
-    // Build channel data array
     const result: CACChannelData[] = Array.from(channelMap.entries())
       .map(([channel, data]) => {
         const totalUsers = data.users.size;
         const activeUsers = data.activeUsers.size;
         const monetizedUsers = data.monetizedUsers.size;
-        const totalInvestment = investmentsByChannel.get(channel) || 0;
+        const totalInvestment = totalInvByChannel.get(channel) || 0;
         const totalRevenue = data.revenue;
+        const chShopperInv = shopperInvByChannel.get(channel) || 0;
+        const chTravelerInv = travelerInvByChannel.get(channel) || 0;
 
         const activationRate = totalUsers > 0 ? (activeUsers / totalUsers) * 100 : 0;
         const monetizationRate = activeUsers > 0 ? (monetizedUsers / activeUsers) * 100 : 0;
         const overallConversionRate = totalUsers > 0 ? (monetizedUsers / totalUsers) * 100 : 0;
-
         const cacPerRegistration = totalUsers > 0 && totalInvestment > 0 ? totalInvestment / totalUsers : 0;
         const cacPerActive = activeUsers > 0 && totalInvestment > 0 ? totalInvestment / activeUsers : 0;
-        const cacPerMonetized = monetizedUsers > 0 && totalInvestment > 0 ? totalInvestment / monetizedUsers : 0;
-
+        const cacPerMonetized = monetizedUsers > 0 && chShopperInv > 0 ? chShopperInv / monetizedUsers : 0;
         const avgLTV = monetizedUsers > 0 ? totalRevenue / monetizedUsers : 0;
         const ltvCacRatio = cacPerMonetized > 0 ? avgLTV / cacPerMonetized : avgLTV > 0 ? Infinity : 0;
+
+        const travelerUsers = data.travelerUsers.size;
+        const activeTravelers = data.activeTravelers.size;
+        const productiveTravelers = data.productiveTravelers.size;
+        const travelerCAC = productiveTravelers > 0 && chTravelerInv > 0 ? chTravelerInv / productiveTravelers : 0;
 
         return {
           channel,
           channelLabel: CHANNEL_LABELS[channel] || channel,
-          totalUsers,
-          activeUsers,
-          monetizedUsers,
-          activationRate,
-          monetizationRate,
-          overallConversionRate,
-          totalInvestment,
-          totalRevenue,
-          cacPerRegistration,
-          cacPerActive,
-          cacPerMonetized,
-          avgLTV,
-          ltvCacRatio,
+          totalUsers, activeUsers, monetizedUsers,
+          activationRate, monetizationRate, overallConversionRate,
+          totalInvestment, totalRevenue,
+          cacPerRegistration, cacPerActive, cacPerMonetized,
+          avgLTV, ltvCacRatio,
+          travelerUsers, activeTravelers, productiveTravelers,
+          travelerInvestment: chTravelerInv, travelerCAC,
+          packagesDelivered: data.packagesDelivered,
+          shopperInvestment: chShopperInv,
+          shopperCAC: cacPerMonetized,
         };
       })
       .sort((a, b) => b.totalUsers - a.totalUsers);
 
-    // Calculate global KPIs
     const totals = result.reduce(
       (acc, ch) => ({
         totalUsers: acc.totalUsers + ch.totalUsers,
@@ -337,7 +416,7 @@ export const useCACAnalytics = (selectedMonth?: string) => {
       { totalUsers: 0, activeUsers: 0, monetizedUsers: 0, investment: 0, revenue: 0 }
     );
 
-    const shopperCAC = totals.monetizedUsers > 0 && totalShopperInvestment > 0 
+    const shopperCAC = totals.monetizedUsers > 0 && totalShopperInvestment > 0
       ? totalShopperInvestment / totals.monetizedUsers : 0;
 
     const globalKPIs: GlobalKPIs = {
@@ -355,47 +434,67 @@ export const useCACAnalytics = (selectedMonth?: string) => {
       shopperInvestment: totalShopperInvestment,
       shopperCAC,
     };
-
-    globalKPIs.ltvCacRatio = globalKPIs.globalCAC > 0 
-      ? globalKPIs.globalLTV / globalKPIs.globalCAC 
+    globalKPIs.ltvCacRatio = globalKPIs.globalCAC > 0
+      ? globalKPIs.globalLTV / globalKPIs.globalCAC
       : globalKPIs.globalLTV > 0 ? Infinity : 0;
 
-    // Calculate monthly data
+    const shopperKPIs: ShopperKPIs = {
+      totalShoppers: totals.totalUsers,
+      activeShoppers: totals.activeUsers,
+      monetizedShoppers: totals.monetizedUsers,
+      shopperActivationRate: totals.totalUsers > 0 ? (totals.activeUsers / totals.totalUsers) * 100 : 0,
+      shopperMonetizationRate: totals.activeUsers > 0 ? (totals.monetizedUsers / totals.activeUsers) * 100 : 0,
+      shopperConversionRate: totals.totalUsers > 0 ? (totals.monetizedUsers / totals.totalUsers) * 100 : 0,
+      shopperInvestment: totalShopperInvestment,
+      shopperRevenue: totals.revenue,
+      shopperCAC,
+      shopperLTV: totals.monetizedUsers > 0 ? totals.revenue / totals.monetizedUsers : 0,
+      shopperLtvCacRatio: shopperCAC > 0
+        ? (totals.monetizedUsers > 0 ? totals.revenue / totals.monetizedUsers : 0) / shopperCAC
+        : (totals.revenue > 0 ? Infinity : 0),
+      shopperARPU: totals.activeUsers > 0 ? totals.revenue / totals.activeUsers : 0,
+    };
+
+    const totalTravelersCount = travelerUserIds.size;
+    const activeTravelersCount = activeTravelerIds.size;
+    const productiveTravelersCount = productiveTravelerIds.size;
+    const travelerCAC = productiveTravelersCount > 0 && totalTravelerInvestment > 0
+      ? totalTravelerInvestment / productiveTravelersCount : 0;
+
+    const travelerKPIs: TravelerKPIs = {
+      totalTravelers: totalTravelersCount,
+      activeTravelers: activeTravelersCount,
+      productiveTravelers: productiveTravelersCount,
+      travelerActivationRate: totalTravelersCount > 0 ? (activeTravelersCount / totalTravelersCount) * 100 : 0,
+      travelerProductivityRate: activeTravelersCount > 0 ? (productiveTravelersCount / activeTravelersCount) * 100 : 0,
+      travelerInvestment: totalTravelerInvestment,
+      travelerCAC,
+      avgPackagesPerTraveler: productiveTravelersCount > 0 ? totalPackagesDelivered / productiveTravelersCount : 0,
+      totalPackagesDelivered,
+      costPerDeliveredPackage: totalPackagesDelivered > 0 && totalTravelerInvestment > 0
+        ? totalTravelerInvestment / totalPackagesDelivered : 0,
+      totalTipsDistributed: totalTips,
+    };
+
     const monthlyMap = new Map<string, {
-      newUsers: Set<string>;
-      activeUsers: Set<string>;
-      monetizedUsers: Set<string>;
-      revenue: number;
+      newUsers: Set<string>; activeUsers: Set<string>; monetizedUsers: Set<string>; revenue: number;
     }>();
 
-    // Group users by registration month
     usersData.forEach(user => {
       if (!user.created_at) return;
-      const month = user.created_at.substring(0, 7); // YYYY-MM
-      
+      const month = user.created_at.substring(0, 7);
       if (!monthlyMap.has(month)) {
-        monthlyMap.set(month, {
-          newUsers: new Set(),
-          activeUsers: new Set(),
-          monetizedUsers: new Set(),
-          revenue: 0,
-        });
+        monthlyMap.set(month, { newUsers: new Set(), activeUsers: new Set(), monetizedUsers: new Set(), revenue: 0 });
       }
-      
       const data = monthlyMap.get(month)!;
       data.newUsers.add(user.id);
-      
-      if (activeUserIds.has(user.id)) {
-        data.activeUsers.add(user.id);
-      }
-      
+      if (activeUserIds.has(user.id)) data.activeUsers.add(user.id);
       if (monetizedUserIds.has(user.id)) {
         data.monetizedUsers.add(user.id);
         data.revenue += userRevenue.get(user.id) || 0;
       }
     });
 
-    // Get investments by month (sum all channels)
     const investmentsByMonth = new Map<string, number>();
     if (investmentsData) {
       investmentsData.forEach(inv => {
@@ -404,7 +503,6 @@ export const useCACAnalytics = (selectedMonth?: string) => {
       });
     }
 
-    // Build monthly data array
     const monthlyData: MonthlyCAC[] = Array.from(monthlyMap.entries())
       .map(([month, data]) => {
         const newUsers = data.newUsers.size;
@@ -412,34 +510,24 @@ export const useCACAnalytics = (selectedMonth?: string) => {
         const monetizedUsers = data.monetizedUsers.size;
         const investment = investmentsByMonth.get(month) || 0;
         const revenue = data.revenue;
-        
         const cac = monetizedUsers > 0 && investment > 0 ? investment / monetizedUsers : 0;
         const ltv = monetizedUsers > 0 ? revenue / monetizedUsers : 0;
         const ltvCacRatio = cac > 0 ? ltv / cac : ltv > 0 ? Infinity : 0;
-
-        return {
-          month,
-          newUsers,
-          activeUsers,
-          monetizedUsers,
-          investment,
-          revenue,
-          cac,
-          ltv,
-          ltvCacRatio,
-        };
+        return { month, newUsers, activeUsers, monetizedUsers, investment, revenue, cac, ltv, ltvCacRatio };
       })
-      .sort((a, b) => b.month.localeCompare(a.month)); // Most recent first
+      .sort((a, b) => b.month.localeCompare(a.month));
 
-    return { channelData: result, globalKPIs, monthlyData };
-  }, [usersData, packagesData, investmentsData, selectedMonth]);
+    return { channelData: result, globalKPIs, shopperKPIs, travelerKPIs, monthlyData };
+  }, [usersData, packagesData, tripsData, investmentsData, selectedMonth]);
 
   return {
     channelData,
     globalKPIs,
+    shopperKPIs: shopperKPIs || getEmptyShopperKPIs(),
+    travelerKPIs: travelerKPIs || getEmptyTravelerKPIs(),
     monthlyData,
     investments: investmentsData || [],
-    isLoading: usersLoading || packagesLoading || investmentsLoading,
+    isLoading: usersLoading || packagesLoading || tripsLoading || investmentsLoading,
     addInvestment,
     deleteInvestment,
     updateInvestment,
@@ -448,18 +536,27 @@ export const useCACAnalytics = (selectedMonth?: string) => {
 
 function getEmptyGlobalKPIs(): GlobalKPIs {
   return {
-    totalUsers: 0,
-    totalActiveUsers: 0,
-    totalMonetizedUsers: 0,
-    globalActivationRate: 0,
-    globalMonetizationRate: 0,
-    globalConversionRate: 0,
-    totalInvestment: 0,
-    totalRevenue: 0,
-    globalCAC: 0,
-    globalLTV: 0,
-    ltvCacRatio: 0,
-    shopperInvestment: 0,
-    shopperCAC: 0,
+    totalUsers: 0, totalActiveUsers: 0, totalMonetizedUsers: 0,
+    globalActivationRate: 0, globalMonetizationRate: 0, globalConversionRate: 0,
+    totalInvestment: 0, totalRevenue: 0, globalCAC: 0, globalLTV: 0, ltvCacRatio: 0,
+    shopperInvestment: 0, shopperCAC: 0,
+  };
+}
+
+function getEmptyShopperKPIs(): ShopperKPIs {
+  return {
+    totalShoppers: 0, activeShoppers: 0, monetizedShoppers: 0,
+    shopperActivationRate: 0, shopperMonetizationRate: 0, shopperConversionRate: 0,
+    shopperInvestment: 0, shopperRevenue: 0, shopperCAC: 0, shopperLTV: 0,
+    shopperLtvCacRatio: 0, shopperARPU: 0,
+  };
+}
+
+function getEmptyTravelerKPIs(): TravelerKPIs {
+  return {
+    totalTravelers: 0, activeTravelers: 0, productiveTravelers: 0,
+    travelerActivationRate: 0, travelerProductivityRate: 0,
+    travelerInvestment: 0, travelerCAC: 0, avgPackagesPerTraveler: 0,
+    totalPackagesDelivered: 0, costPerDeliveredPackage: 0, totalTipsDistributed: 0,
   };
 }
