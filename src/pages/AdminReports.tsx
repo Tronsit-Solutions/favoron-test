@@ -36,8 +36,12 @@ const AdminReports = () => {
           </div>
 
           {/* Tabs */}
-          <Tabs defaultValue="timeline" className="space-y-6">
+          <Tabs defaultValue="cac" className="space-y-6">
             <TabsList className="grid w-full max-w-3xl grid-cols-5">
+              <TabsTrigger value="cac" className="gap-2">
+                <Calculator className="h-4 w-4" />
+                <span className="hidden sm:inline">Unit Economics</span>
+              </TabsTrigger>
               <TabsTrigger value="timeline" className="gap-2">
                 <Clock className="h-4 w-4" />
                 <span className="hidden sm:inline">Timeline</span>
@@ -50,15 +54,15 @@ const AdminReports = () => {
                 <Users className="h-4 w-4" />
                 <span className="hidden sm:inline">Actividad</span>
               </TabsTrigger>
-              <TabsTrigger value="cac" className="gap-2">
-                <Calculator className="h-4 w-4" />
-                <span className="hidden sm:inline">CAC</span>
-              </TabsTrigger>
               <TabsTrigger value="monthly" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline">Mensuales</span>
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="cac">
+              <CACAnalysisTab />
+            </TabsContent>
 
             <TabsContent value="timeline">
               <ActivityTimelineTab />
@@ -70,10 +74,6 @@ const AdminReports = () => {
 
             <TabsContent value="activity">
               <UserActivityTab />
-            </TabsContent>
-
-            <TabsContent value="cac">
-              <CACAnalysisTab />
             </TabsContent>
 
             <TabsContent value="monthly">
