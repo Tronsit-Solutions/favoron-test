@@ -53,10 +53,10 @@ export const useTravelerTipsReport = (): TravelerTipsReport => {
 
       packagesData?.forEach(pkg => {
         const quote = pkg.quote as Record<string, unknown> | null;
-        const serviceFee = quote?.serviceFee;
+        const price = quote?.price;
         
-        if (serviceFee !== null && serviceFee !== undefined) {
-          const tipAmount = parseFloat(String(serviceFee)) || 0;
+        if (price !== null && price !== undefined) {
+          const tipAmount = parseFloat(String(price)) || 0;
           if (tipAmount > 0) {
             totalTips += tipAmount;
             validPackagesCount++;
