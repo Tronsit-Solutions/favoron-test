@@ -174,6 +174,29 @@ export const useCACAnalytics = (selectedMonth?: string) => {
     },
   });
 
+  // Update investment mutation
+  const updateInvestment = useMutation({
+    mutationFn: async ({ id, ...investment }: { id: string; channel: string; month: string; investment: number; notes?: string }) => {
+      const { data, error } = await supabase
+        .from('marketing_investments')
+        .update({
+          channel: investment.channel,
+          month: investment.month,
+          investment: investment.investment,
+          notes: investment.notes || null,
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['marketing-investments'] });
+    },
+  });
+
   // Process data to calculate CAC metrics
   const { channelData, globalKPIs, monthlyData } = useMemo(() => {
     if (!usersData || !packagesData) {
@@ -400,6 +423,7 @@ export const useCACAnalytics = (selectedMonth?: string) => {
     isLoading: usersLoading || packagesLoading || investmentsLoading,
     addInvestment,
     deleteInvestment,
+    updateInvestment,
   };
 };
 

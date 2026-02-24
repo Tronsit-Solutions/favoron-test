@@ -20,6 +20,7 @@ export const CACAnalysisTab = () => {
     isLoading,
     addInvestment,
     deleteInvestment,
+    updateInvestment,
   } = useCACAnalytics();
 
   const handleExportExcel = () => {
@@ -110,6 +111,10 @@ export const CACAnalysisTab = () => {
     await addInvestment.mutateAsync(data);
   };
 
+  const handleUpdateInvestment = async (data: { id: string; channel: string; month: string; investment: number; notes?: string }) => {
+    await updateInvestment.mutateAsync(data);
+  };
+
   const handleDeleteInvestment = async (id: string) => {
     await deleteInvestment.mutateAsync(id);
   };
@@ -155,8 +160,9 @@ export const CACAnalysisTab = () => {
             <InvestmentForm
               investments={investments}
               onAddInvestment={handleAddInvestment}
+              onUpdateInvestment={handleUpdateInvestment}
               onDeleteInvestment={handleDeleteInvestment}
-              isLoading={addInvestment.isPending || deleteInvestment.isPending}
+              isLoading={addInvestment.isPending || deleteInvestment.isPending || updateInvestment.isPending}
             />
           </CardContent>
         </Card>
