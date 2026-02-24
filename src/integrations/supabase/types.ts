@@ -443,6 +443,7 @@ export type Database = {
           investment: number
           month: string
           notes: string | null
+          target_audience: string
           updated_at: string | null
         }
         Insert: {
@@ -453,6 +454,7 @@ export type Database = {
           investment?: number
           month: string
           notes?: string | null
+          target_audience?: string
           updated_at?: string | null
         }
         Update: {
@@ -463,6 +465,7 @@ export type Database = {
           investment?: number
           month?: string
           notes?: string | null
+          target_audience?: string
           updated_at?: string | null
         }
         Relationships: [

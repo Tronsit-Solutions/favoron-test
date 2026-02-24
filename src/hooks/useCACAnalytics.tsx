@@ -31,6 +31,7 @@ export interface MarketingInvestment {
   month: string;
   investment: number;
   notes: string | null;
+  target_audience: 'shoppers' | 'travelers' | 'both';
   created_at: string;
 }
 
@@ -46,6 +47,8 @@ export interface GlobalKPIs {
   globalCAC: number;
   globalLTV: number;
   ltvCacRatio: number;
+  shopperInvestment: number;
+  shopperCAC: number;
 }
 
 export interface MonthlyCAC {
@@ -139,7 +142,7 @@ export const useCACAnalytics = (selectedMonth?: string) => {
 
   // Add investment mutation
   const addInvestment = useMutation({
-    mutationFn: async (investment: { channel: string; month: string; investment: number; notes?: string }) => {
+    mutationFn: async (investment: { channel: string; month: string; investment: number; notes?: string; target_audience?: string }) => {
       const { data, error } = await supabase
         .from('marketing_investments')
         .upsert({
@@ -147,7 +150,8 @@ export const useCACAnalytics = (selectedMonth?: string) => {
           month: investment.month,
           investment: investment.investment,
           notes: investment.notes || null,
-        }, { onConflict: 'channel,month' })
+          target_audience: investment.target_audience || 'both',
+        } as any, { onConflict: 'channel,month' })
         .select()
         .single();
       
@@ -176,7 +180,7 @@ export const useCACAnalytics = (selectedMonth?: string) => {
 
   // Update investment mutation
   const updateInvestment = useMutation({
-    mutationFn: async ({ id, ...investment }: { id: string; channel: string; month: string; investment: number; notes?: string }) => {
+    mutationFn: async ({ id, ...investment }: { id: string; channel: string; month: string; investment: number; notes?: string; target_audience?: string }) => {
       const { data, error } = await supabase
         .from('marketing_investments')
         .update({
@@ -184,7 +188,8 @@ export const useCACAnalytics = (selectedMonth?: string) => {
           month: investment.month,
           investment: investment.investment,
           notes: investment.notes || null,
-        })
+          target_audience: investment.target_audience || 'both',
+        } as any)
         .eq('id', id)
         .select()
         .single();
@@ -262,11 +267,20 @@ export const useCACAnalytics = (selectedMonth?: string) => {
 
     // Get investments by channel (sum all months or filter by selected month)
     const investmentsByChannel = new Map<string, number>();
+    let totalShopperInvestment = 0;
     if (investmentsData) {
       investmentsData.forEach(inv => {
         if (!selectedMonth || inv.month === selectedMonth) {
           const current = investmentsByChannel.get(inv.channel) || 0;
           investmentsByChannel.set(inv.channel, current + inv.investment);
+          
+          // Calculate shopper-attributed investment
+          const audience = (inv as any).target_audience || 'both';
+          if (audience === 'shoppers') {
+            totalShopperInvestment += inv.investment;
+          } else if (audience === 'both') {
+            totalShopperInvestment += inv.investment * 0.5;
+          }
         }
       });
     }
@@ -323,6 +337,9 @@ export const useCACAnalytics = (selectedMonth?: string) => {
       { totalUsers: 0, activeUsers: 0, monetizedUsers: 0, investment: 0, revenue: 0 }
     );
 
+    const shopperCAC = totals.monetizedUsers > 0 && totalShopperInvestment > 0 
+      ? totalShopperInvestment / totals.monetizedUsers : 0;
+
     const globalKPIs: GlobalKPIs = {
       totalUsers: totals.totalUsers,
       totalActiveUsers: totals.activeUsers,
@@ -335,6 +352,8 @@ export const useCACAnalytics = (selectedMonth?: string) => {
       globalCAC: totals.monetizedUsers > 0 && totals.investment > 0 ? totals.investment / totals.monetizedUsers : 0,
       globalLTV: totals.monetizedUsers > 0 ? totals.revenue / totals.monetizedUsers : 0,
       ltvCacRatio: 0,
+      shopperInvestment: totalShopperInvestment,
+      shopperCAC,
     };
 
     globalKPIs.ltvCacRatio = globalKPIs.globalCAC > 0 
@@ -440,5 +459,7 @@ function getEmptyGlobalKPIs(): GlobalKPIs {
     globalCAC: 0,
     globalLTV: 0,
     ltvCacRatio: 0,
+    shopperInvestment: 0,
+    shopperCAC: 0,
   };
 }
