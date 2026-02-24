@@ -1,47 +1,27 @@
 
 
-## Agregar menu inicial al SupportBubble con dos opciones
+## Mostrar nombre del pedido en el buscador de operaciones
 
-### Concepto
-Al abrir el panel de soporte, en lugar de mostrar directamente las FAQs, se presenta una pantalla inicial con dos botones/tarjetas:
+### Problema
+El buscador ya tiene una funcion `getProductNames()` que intenta mostrar el nombre de los productos, pero busca los campos `name` y `description` dentro de `products_data`, cuando el campo real se llama `itemDescription`. Por eso aparecen vacios.
 
-1. **Reportar un error** - Abre un formulario de reporte de bug
-2. **Servicio al cliente** - Muestra las FAQs + boton de WhatsApp (vista actual)
+### Cambio
 
-### Cambios en `src/components/SupportBubble.tsx`
+**Archivo: `src/components/operations/OperationsSearchTab.tsx`**
 
-**Nuevo estado de navegacion interna:**
-- `view`: `'menu' | 'bug-report' | 'customer-service'` (inicia en `'menu'`)
-- Al cerrar el panel, se resetea a `'menu'`
+Corregir la funcion `getProductNames` (linea ~122) para leer el campo correcto:
 
-**Vista "menu" (nueva pantalla inicial):**
-- Dos tarjetas/botones con iconos:
-  - Bug (icono `AlertTriangle`) -> cambia a vista `'bug-report'`
-  - Servicio al cliente (icono `MessageCircle`) -> cambia a vista `'customer-service'`
+```
+// Antes (incorrecto):
+.map((p: any) => p.name || p.description)
 
-**Vista "bug-report" (nuevo formulario):**
-- Boton de "volver" al menu
-- Campos del formulario:
-  - Descripcion del error (textarea, requerido)
-  - Pagina/seccion donde ocurrio (texto, opcional)
-  - Captura de pantalla (file upload opcional)
-- Al enviar, usa `window.favoronLogError()` (del clientErrorLogger existente) para registrar el error con tipo `'user-report'` y contexto adicional (ruta actual, descripcion, etc.)
-- Tambien invoca la edge function `log-client-error` con `type: 'user_report'` y `severity: 'warning'`
-- Muestra confirmacion con toast de "Reporte enviado"
+// Despues (correcto):
+.map((p: any) => p.itemDescription || p.name || p.description)
+```
 
-**Vista "customer-service":**
-- Boton de "volver" al menu
-- Contenido actual: FAQs + boton WhatsApp (sin cambios)
+Esto hara que cada tarjeta de paquete muestre el nombre del producto (ej: "Mouse Mover USB, Tabletas de cloruro de sodio") debajo de los badges de etiqueta y estado, tal como ya esta maquetado pero sin datos.
 
-### Flujo de reporte de error
-
-El formulario reutiliza la infraestructura existente de `clientErrorLogger.ts`:
-- Llama a `sendLog()` con los datos del formulario
-- Se registra en la tabla `client_errors` con `type = 'user_report'`
-- Los admins pueden ver estos reportes en la pestana de Seguridad/Errores existente
-
-### Archivos a modificar
-- `src/components/SupportBubble.tsx` - Agregar estado de navegacion, vista menu, formulario de bug report, y reorganizar la vista de servicio al cliente
-
-No se requieren nuevas dependencias ni cambios en base de datos, ya que se reutiliza la tabla `client_errors` existente.
+### Resultado
+- Los nombres de productos apareceran en cada resultado de busqueda
+- Se mantiene el fallback a `item_description` para paquetes sin `products_data`
 
