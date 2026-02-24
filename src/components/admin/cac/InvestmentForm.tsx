@@ -21,13 +21,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { MarketingInvestment } from "@/hooks/useCACAnalytics";
 import { useToast } from "@/hooks/use-toast";
 
 interface InvestmentFormProps {
   investments: MarketingInvestment[];
   onAddInvestment: (data: { channel: string; month: string; investment: number; notes?: string }) => Promise<void>;
+  onUpdateInvestment: (data: { id: string; channel: string; month: string; investment: number; notes?: string }) => Promise<void>;
   onDeleteInvestment: (id: string) => Promise<void>;
   isLoading: boolean;
 }
@@ -57,10 +58,12 @@ const getMonthOptions = () => {
 export const InvestmentForm = ({
   investments,
   onAddInvestment,
+  onUpdateInvestment,
   onDeleteInvestment,
   isLoading,
 }: InvestmentFormProps) => {
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [channel, setChannel] = useState("");
   const [month, setMonth] = useState(format(new Date(), "yyyy-MM"));
   const [amount, setAmount] = useState("");
@@ -92,20 +95,31 @@ export const InvestmentForm = ({
 
     setSubmitting(true);
     try {
-      await onAddInvestment({
-        channel,
-        month,
-        investment: investmentValue,
-        notes: notes || undefined,
-      });
-      toast({
-        title: "Inversión registrada",
-        description: "Los datos se han guardado correctamente",
-      });
-      setOpen(false);
-      setChannel("");
-      setAmount("");
-      setNotes("");
+      if (editingId) {
+        await onUpdateInvestment({
+          id: editingId,
+          channel,
+          month,
+          investment: investmentValue,
+          notes: notes || undefined,
+        });
+        toast({
+          title: "Inversión actualizada",
+          description: "Los datos se han actualizado correctamente",
+        });
+      } else {
+        await onAddInvestment({
+          channel,
+          month,
+          investment: investmentValue,
+          notes: notes || undefined,
+        });
+        toast({
+          title: "Inversión registrada",
+          description: "Los datos se han guardado correctamente",
+        });
+      }
+      resetForm();
     } catch (error) {
       toast({
         title: "Error",
@@ -115,6 +129,24 @@ export const InvestmentForm = ({
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const resetForm = () => {
+    setOpen(false);
+    setEditingId(null);
+    setChannel("");
+    setMonth(format(new Date(), "yyyy-MM"));
+    setAmount("");
+    setNotes("");
+  };
+
+  const handleEdit = (inv: MarketingInvestment) => {
+    setEditingId(inv.id);
+    setChannel(inv.channel);
+    setMonth(inv.month);
+    setAmount(inv.investment.toString());
+    setNotes(inv.notes || "");
+    setOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -147,7 +179,7 @@ export const InvestmentForm = ({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Inversiones en Marketing</h3>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); else setOpen(true); }}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
@@ -156,9 +188,9 @@ export const InvestmentForm = ({
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Registrar Inversión</DialogTitle>
+              <DialogTitle>{editingId ? "Editar Inversión" : "Registrar Inversión"}</DialogTitle>
               <DialogDescription>
-                Agrega la inversión mensual por canal para calcular el CAC
+                {editingId ? "Modifica los datos de la inversión" : "Agrega la inversión mensual por canal para calcular el CAC"}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -215,11 +247,11 @@ export const InvestmentForm = ({
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)}>
+              <Button variant="outline" onClick={resetForm}>
                 Cancelar
               </Button>
               <Button onClick={handleSubmit} disabled={submitting}>
-                {submitting ? "Guardando..." : "Guardar"}
+                {submitting ? "Guardando..." : editingId ? "Actualizar" : "Guardar"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -248,14 +280,24 @@ export const InvestmentForm = ({
                     {inv.notes || "-"}
                   </td>
                   <td className="p-3">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(inv.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleEdit(inv)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(inv.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
