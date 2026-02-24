@@ -121,7 +121,7 @@ const OperationsSearchTab = () => {
   const getProductNames = (item: SearchResult) => {
     if (item.products_data && Array.isArray(item.products_data)) {
       return (item.products_data as any[])
-        .map((p: any) => p.name || p.description)
+        .map((p: any) => p.itemDescription || p.name || p.description)
         .filter(Boolean)
         .join(', ');
     }
