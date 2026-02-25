@@ -144,6 +144,18 @@ const DELIVERED_STATUSES = ['delivered_to_office', 'completed'];
 export const useCACAnalytics = (selectedMonth?: string) => {
   const queryClient = useQueryClient();
 
+  const { data: exactUserCount } = useQuery({
+    queryKey: ['cac-exact-user-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+      if (error) throw error;
+      return count ?? 0;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['cac-users'],
     queryFn: async () => {
@@ -515,13 +527,15 @@ export const useCACAnalytics = (selectedMonth?: string) => {
     const netRevenue = totals.revenue - totalIncidentCosts;
     const netLTV = totals.monetizedUsers > 0 ? netRevenue / totals.monetizedUsers : 0;
 
+    const realTotalShoppers = exactUserCount ?? totals.totalUsers;
+
     const shopperKPIs: ShopperKPIs = {
-      totalShoppers: totals.totalUsers,
+      totalShoppers: realTotalShoppers,
       activeShoppers: totals.activeUsers,
       monetizedShoppers: totals.monetizedUsers,
-      shopperActivationRate: totals.totalUsers > 0 ? (totals.activeUsers / totals.totalUsers) * 100 : 0,
+      shopperActivationRate: realTotalShoppers > 0 ? (totals.activeUsers / realTotalShoppers) * 100 : 0,
       shopperMonetizationRate: totals.activeUsers > 0 ? (totals.monetizedUsers / totals.activeUsers) * 100 : 0,
-      shopperConversionRate: totals.totalUsers > 0 ? (totals.monetizedUsers / totals.totalUsers) * 100 : 0,
+      shopperConversionRate: realTotalShoppers > 0 ? (totals.monetizedUsers / realTotalShoppers) * 100 : 0,
       shopperInvestment: totalShopperInvestment,
       shopperRevenue: totals.revenue,
       shopperCAC,
@@ -602,7 +616,7 @@ export const useCACAnalytics = (selectedMonth?: string) => {
       .sort((a, b) => b.month.localeCompare(a.month));
 
     return { channelData: result, globalKPIs, shopperKPIs, travelerKPIs, monthlyData };
-  }, [usersData, packagesData, tripsData, investmentsData, incidentCostsData, selectedMonth]);
+  }, [usersData, packagesData, tripsData, investmentsData, incidentCostsData, selectedMonth, exactUserCount]);
 
   return {
     channelData,
