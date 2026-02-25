@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -5,16 +6,32 @@ import { Copy, Share2, Users, Gift, CheckCircle, Clock } from "lucide-react";
 import { useReferrals } from "@/hooks/useReferrals";
 import { useToast } from "@/hooks/use-toast";
 import { APP_URL } from "@/lib/constants";
+import { supabase } from "@/integrations/supabase/client";
 
 const ReferralSection = () => {
   const { referralCode, referrals, balance, pendingCount, completedCount, loading } = useReferrals();
   const { toast } = useToast();
+  const [discountAmount, setDiscountAmount] = useState(15);
+
+  useEffect(() => {
+    const fetchDiscount = async () => {
+      const { data } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'referred_user_discount')
+        .single();
+      if (data?.value && typeof data.value === 'object' && 'amount' in (data.value as Record<string, unknown>)) {
+        setDiscountAmount(Number((data.value as Record<string, unknown>).amount) || 15);
+      }
+    };
+    fetchDiscount();
+  }, []);
 
   if (loading || !referralCode) return null;
 
   const referralLink = `${APP_URL}/auth?ref=${referralCode}`;
 
-  const shareMessage = `¡Únete a Favorón con mi link de referido! Tú recibes un descuento en tu primer pedido y yo también gano. 🎁 ${referralLink}`;
+  const shareMessage = `¡Únete a Favorón con mi link de referido y recibe un descuento de Q${discountAmount} en tu primer pedido! 🎁 ${referralLink}`;
 
   const handleCopy = async () => {
     try {
