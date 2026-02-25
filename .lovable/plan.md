@@ -1,34 +1,39 @@
 
 
-## Fix: Total Shoppers truncado a 1000 por límite de Supabase
+## Agregar banner de referidos en la pestaña Home del Dashboard
 
-### Problema
-En `src/hooks/useCACAnalytics.tsx` línea 150-154, la query `supabase.from('profiles').select(...).limit(10000)` retorna máximo 1000 filas por el límite servidor `PGRST_MAX_ROWS`. Todos los cálculos de "totalShoppers" se basan en contar esos resultados truncados.
-
-### Solución
-Agregar una query separada con `count: 'exact', head: true` para obtener el conteo real de perfiles, y usar ese valor como `totalShoppers` en los KPIs. El resto de cálculos (activeShoppers, monetizedShoppers) dependen de cruzar con packages/trips, que también pueden estar truncados, pero esos ya usan `.limit(20000)` y tienen menos registros. El problema principal visible es el denominador "/ 1000".
+### Ubicacion
+En el `TabsContent value="overview"` del Dashboard (linea 592-600), despues de `AvailableTripsCard` y antes de cerrar el tab. Es lo primero que el usuario ve al entrar al dashboard.
 
 ### Cambios
 
-**`src/hooks/useCACAnalytics.tsx`**
-- Agregar una query nueva con `head: true` para obtener el conteo exacto de perfiles:
-  ```ts
-  const { data: exactUserCount } = useQuery({
-    queryKey: ['cac-exact-user-count'],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-      if (error) throw error;
-      return count ?? 0;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-  ```
-- En el `useMemo`, cambiar `totalShoppers: totals.totalUsers` (línea 519) por `totalShoppers: exactUserCount ?? totals.totalUsers`
-- Agregar `exactUserCount` a las dependencias del `useMemo`
-- Actualizar los cálculos de tasas que usan `totals.totalUsers` como denominador para usar el conteo exacto cuando esté disponible (shopperConversionRate, shopperActivationRate)
+**1. Nuevo: `src/components/dashboard/ReferralBanner.tsx`**
+- Componente tipo card/banner promocional para el programa de referidos
+- Usa el hook `useReferrals` para obtener el codigo del usuario y stats
+- Fetch del descuento desde `app_settings` key `referred_user_discount` (igual que ReferralSection)
+- Muestra:
+  - Titulo con icono Gift: "Invita amigos y gana recompensas"
+  - Subtitulo: "Comparte tu codigo y ambos ganan: Q30 para ti, Q15 de descuento para tu amigo"
+  - Codigo de referido con boton copiar
+  - Botones: "Copiar mensaje" y "Compartir por WhatsApp"
+  - Mini stats: referidos totales y completados (si hay)
+- Estilo: Card con fondo gradiente sutil (primary/10), visualmente diferente a las otras cards
+- Reutiliza la misma logica de shareMessage de `ReferralSection`
 
-### Resultado
-"Shoppers Activos" mostrará el número real (ej: "463 / 1247") en vez del truncado "463 / 1000".
+**2. Editar: `src/components/Dashboard.tsx`**
+- Importar `ReferralBanner` 
+- Agregarlo dentro de `TabsContent value="overview"` despues de `AvailableTripsCard`:
+  ```tsx
+  <TabsContent value="overview" className="space-y-6">
+    <QuickActions ... />
+    <AvailableTripsCard ... />
+    <ReferralBanner />
+  </TabsContent>
+  ```
+
+### Detalle visual
+- Card con borde y fondo `bg-gradient-to-r from-primary/5 to-purple-50`
+- Layout responsive: en mobile todo apilado, en desktop el codigo y botones al lado del texto
+- Botones compactos de copiar y WhatsApp
+- Si el usuario ya tiene referidos completados, muestra un mini badge "X referidos completados"
 
