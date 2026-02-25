@@ -148,7 +148,7 @@ const AdminTravelersTab = () => {
         <Card>
           <CardContent className="p-4 text-center">
             <Clock className="h-5 w-5 mx-auto mb-1 text-green-500" />
-            <p className="text-2xl font-bold">{(avgOntime * 100).toFixed(0)}%</p>
+            <p className="text-2xl font-bold">{avgOntime.toFixed(0)}%</p>
             <p className="text-sm text-muted-foreground">Puntualidad Promedio</p>
           </CardContent>
         </Card>
@@ -220,7 +220,7 @@ const AdminTravelersTab = () => {
                     <TableCell>
                       {t.traveler_ontime_rate != null ? (
                         <span className="text-sm font-medium">
-                          {(Number(t.traveler_ontime_rate) * 100).toFixed(0)}%
+                          {Number(t.traveler_ontime_rate).toFixed(0)}%
                         </span>
                       ) : (
                         <span className="text-sm text-muted-foreground">—</span>
