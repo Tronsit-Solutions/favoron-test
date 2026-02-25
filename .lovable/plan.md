@@ -1,40 +1,46 @@
 
 
-## Agregar Reviews de Viajeros y Plataforma a la página de Encuestas
+## Agregar pestaña "Viajeros" al Control de Usuarios
 
-### Cambio
-Agregar dos secciones nuevas en `AdminSurveys.tsx` con pestañas (Tabs) para separar: Encuesta de Adquisición, Reviews de Viajeros, y Reviews de Plataforma.
+### Concepto
+Agregar una pestaña dentro de la página de Control de Usuarios (UserManagement) que muestre exclusivamente usuarios que han registrado al menos un viaje. Cada viajero mostrará su rating promedio, total de ratings, tasa de puntualidad, y el admin podrá ver/dejar comentarios.
 
 ### Estructura
 
-La página actual solo muestra la encuesta de adquisición. Se reorganizará con Tabs:
+La vista actual de UserManagement es una sola tabla. Se convertirá en un layout con Tabs:
 
 ```text
-[Adquisición] [Reviews Viajeros] [Reviews Plataforma]
+[Todos los Usuarios] [Viajeros]
 ```
 
-### Cambios en archivos
+### Archivos a modificar/crear
 
-**1. `src/pages/AdminSurveys.tsx`**
-- Importar `Tabs, TabsList, TabsTrigger, TabsContent`
-- Importar dos nuevos componentes: `AdminTravelerRatingsTab` y `AdminPlatformReviewsTab`
-- Mover el contenido actual de encuesta de adquisición dentro de `TabsContent value="acquisition"`
-- Agregar tabs para los dos nuevos componentes
-- El header y botones se mantienen arriba de los tabs
+**1. Nuevo: `src/components/admin/AdminTravelersTab.tsx`**
+- Query a `trips` para obtener IDs únicos de usuarios que han creado al menos un viaje
+- Query a `profiles` para obtener datos de esos usuarios (nombre, avatar, email, phone)
+- Mostrar columnas: Foto, Nombre, Email, Rating Promedio (estrellas via StarRating), Total Ratings, Tasa Puntualidad, Total Viajes, Acciones
+- Los campos `traveler_avg_rating`, `traveler_total_ratings`, `traveler_ontime_rate` ya existen en la tabla `profiles`
+- KPI cards arriba: Total Viajeros, Rating Promedio Global, % Puntualidad Promedio
+- Botón "Ver Ratings" que abre un modal con los ratings individuales del viajero (query a `traveler_ratings` filtrado por `traveler_id`)
+- Campo de notas admin (usando `admin_notes` o un campo inline)
+- Búsqueda por nombre/email
+- Paginación similar a la existente
 
-**2. Nuevo: `src/components/admin/AdminTravelerRatingsTab.tsx`**
-- Query a `traveler_ratings` con join a `profiles` (para nombres de shopper y traveler) via dos queries separadas
-- Tabla con columnas: Shopper, Viajero, Rating (estrellas), Condición del Producto, Entregó a Tiempo, Comentario, Fecha
-- KPI cards arriba: Total ratings, Rating promedio, % entrega a tiempo
-- Badge de colores para condición (good/fair/bad)
+**2. Editar: `src/components/admin/UserManagement.tsx`**
+- Envolver el contenido actual en `Tabs` con dos pestañas: "Todos los Usuarios" y "Viajeros"
+- Importar `AdminTravelersTab`
+- El contenido actual va dentro de `TabsContent value="all"`
+- El nuevo componente va dentro de `TabsContent value="travelers"`
 
-**3. Nuevo: `src/components/admin/AdminPlatformReviewsTab.tsx`**
-- Query a `platform_reviews` con join a profiles para nombre del shopper
-- Tabla con columnas: Shopper, Rating, Volvería a usar, Recomendaría, Proceso claro, Comunicación, Reseña, Consentimiento, Fecha
-- KPI cards: Total reviews, Rating promedio, % recomendaría, % volvería a usar
+**3. Nuevo: `src/components/admin/TravelerRatingsDetailModal.tsx`**
+- Modal que muestra todos los ratings de un viajero específico
+- Lista de ratings con: Shopper, Paquete, Rating, Condición, Puntualidad, Comentario, Fecha
+- Reutiliza `StarRating` (readonly)
 
 ### Detalle técnico
-- Las queries usan `supabase.from('traveler_ratings').select('*')` y luego batch-fetch de profiles por IDs (ya que no hay FK directo expuesto al SDK)
-- RLS ya permite a admins ver todos los ratings y reviews
-- Se reutilizan componentes existentes: `Card`, `Table`, `Badge`, `StarRating` (solo display), `Skeleton`
+- Query principal: `SELECT DISTINCT user_id FROM trips` para identificar viajeros, luego batch fetch de profiles
+- Los campos de rating (`traveler_avg_rating`, `traveler_total_ratings`, `traveler_ontime_rate`) ya están en `profiles`, se leen directamente
+- Para el detalle de ratings: `supabase.from('traveler_ratings').select('*').eq('traveler_id', id)`
+- RLS ya permite a admins ver todas las tablas necesarias
+- No se necesitan cambios de schema/migraciones
 
