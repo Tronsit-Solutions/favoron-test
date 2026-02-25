@@ -1,16 +1,22 @@
 
 
-## Cambio: "Copiar link" copia un mensaje completo, no solo la URL
+## Cambio: Mensaje de referido con monto dinámico desde app_settings
 
-Actualmente el botón "Copiar link" copia únicamente la URL. Se debe copiar un mensaje amigable similar al de WhatsApp.
+### Problema
+El mensaje actual dice "recibes un descuento" sin especificar el monto, y agrega "yo también gano" que no se quiere.
 
-### Cambio en `src/components/profile/ReferralSection.tsx`
+### Solución
+1. Fetch el valor de `referred_user_discount` desde `app_settings` en `ReferralSection`
+2. Actualizar el `shareMessage` a: `¡Únete a Favorón con mi link de referido y recibe un descuento de Q{monto} en tu primer pedido! 🎁 {link}`
 
-Modificar `handleCopy` para que copie el mismo texto promocional que ya se usa en WhatsApp:
+### Cambios en `src/components/profile/ReferralSection.tsx`
+- Agregar `useState` + `useEffect` para cargar el monto de `app_settings` key `referred_user_discount`
+- Importar `supabase`
+- Cambiar `shareMessage` para usar el monto dinámico y quitar "yo también gano"
+- Default a Q15 si no se puede cargar
 
+### Detalle del mensaje resultante
 ```
-¡Únete a Favorón con mi link de referido! Tú recibes un descuento en tu primer pedido y yo también gano. 🎁 {referralLink}
+¡Únete a Favorón con mi link de referido y recibe un descuento de Q15 en tu primer pedido! 🎁 https://favoron.app/auth?ref=9GYTT8
 ```
-
-Así ambos botones (Copiar link y WhatsApp) comparten el mismo mensaje. Solo cambia la línea que pasa `referralLink` a `navigator.clipboard.writeText(...)` por el mensaje completo.
 
