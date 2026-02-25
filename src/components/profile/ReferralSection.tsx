@@ -14,18 +14,19 @@ const ReferralSection = () => {
 
   const referralLink = `${APP_URL}/auth?ref=${referralCode}`;
 
+  const shareMessage = `¡Únete a Favorón con mi link de referido! Tú recibes un descuento en tu primer pedido y yo también gano. 🎁 ${referralLink}`;
+
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(referralLink);
-      toast({ title: "¡Link copiado!", description: "Compártelo con tus amigos" });
+      await navigator.clipboard.writeText(shareMessage);
+      toast({ title: "¡Mensaje copiado!", description: "Compártelo con tus amigos" });
     } catch {
       toast({ title: "Error", description: "No se pudo copiar", variant: "destructive" });
     }
   };
 
   const handleWhatsAppShare = () => {
-    const text = `¡Únete a Favorón con mi link de referido! Tú recibes un descuento en tu primer pedido y yo también gano. 🎁 ${referralLink}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(`https://wa.me/?text=${encodeURIComponent(shareMessage)}`, '_blank');
   };
 
   return (
