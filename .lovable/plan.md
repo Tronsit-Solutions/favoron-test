@@ -1,51 +1,40 @@
 
 
-## Fix: Orden de pago del viaje a083cd4b
+## Problem
 
-### Estado actual de los paquetes
+The WhatsApp share button uses `https://wa.me/?text=...` which redirects to `api.whatsapp.com/send/` — this page gets blocked on desktop browsers (`ERR_BLOCKED_BY_RESPONSE`). Additionally, the 🎁 emoji in the message is corrupting the URL encoding (visible as `�` in the screenshot).
 
-| Paquete | Estado | Tip | Incidente | En pago? |
-|---------|--------|-----|-----------|----------|
-| Banda Whoop 5.0 | completed | Q140 | No | Sí |
-| Control + Ruedas | completed | Q75 | No | Sí |
-| Hub USB C | ready_for_pickup | Q25 | No | Sí |
-| Fragrances (3 prod) | completed | Q108 | **Sí** | **No** |
-| Vinyl | archived_by_shopper | Q45 | No | No (archivado) |
-| Reloj whoop | cancelled | Q120 | No | No (cancelado) |
+## Root Cause
 
-### Problema
-El paquete de fragancias (1bbf137e) tiene `incident_flag: true` aunque su status es `completed`. Esto hace que el sistema lo excluya del cálculo de pago al viajero. El acumulador actual suma Q240 (140+75+25) pero debería ser **Q348** (240+108).
+Two files construct the WhatsApp share URL the same way:
+- `src/components/dashboard/ReferralBanner.tsx` (line 42)
+- `src/components/profile/ReferralSection.tsx` (line 48)
 
-### Correcciones necesarias
-
-**1. Quitar incident_flag del paquete de fragancias**
-```sql
-UPDATE packages SET incident_flag = false 
-WHERE id = '1bbf137e-e393-455d-872a-2e3495942e9b';
+Both use:
+```js
+window.open(`https://wa.me/?text=${encodeURIComponent(shareMessage)}`, '_blank');
 ```
 
-**2. Recalcular el acumulador del viaje**
-```sql
-UPDATE trip_payment_accumulator 
-SET accumulated_amount = 348,
-    delivered_packages_count = 4,
-    total_packages_count = 4,
-    updated_at = now()
-WHERE trip_id = 'a083cd4b-ecd5-4d35-af6e-58be4852c975';
+Issues:
+1. `wa.me` without a phone number redirects to `api.whatsapp.com` which blocks the response on desktop
+2. The emoji 🎁 in `shareMessage` causes encoding corruption
+
+## Fix
+
+1. **Switch to `https://web.whatsapp.com/send?text=...`** — works reliably on desktop browsers
+2. **Remove the emoji** from the share message to avoid encoding issues, or replace with a text alternative
+
+Changes in both `ReferralBanner.tsx` (line 42) and `ReferralSection.tsx` (line 48):
+```js
+const handleWhatsAppShare = () => {
+  const text = encodeURIComponent(shareMessage);
+  const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+  const url = isMobile
+    ? `https://api.whatsapp.com/send?text=${text}`
+    : `https://web.whatsapp.com/send?text=${text}`;
+  window.open(url, '_blank');
+};
 ```
 
-**3. Actualizar el monto de la orden de pago pendiente**
-```sql
-UPDATE payment_orders 
-SET amount = 348
-WHERE trip_id = 'a083cd4b-ecd5-4d35-af6e-58be4852c975' 
-AND status = 'pending';
-```
-
-**4. Actualizar el snapshot histórico de la orden de pago** para incluir el paquete de fragancias en el desglose (esto se haría regenerando el snapshot via la Edge Function `recalculate-trip-accumulator` o manualmente en el JSON).
-
-### Resumen
-- Monto actual: **Q240** (3 paquetes)
-- Monto correcto: **Q348** (4 paquetes, incluyendo fragancias Q108)
-- Paquetes excluidos correctamente: Vinyl (archivado), Reloj (cancelado)
+Also remove or replace the 🎁 emoji in `shareMessage` to avoid URL corruption — change to a simple text like "→" or remove it entirely.
 
