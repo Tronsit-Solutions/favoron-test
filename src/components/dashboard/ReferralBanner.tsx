@@ -30,7 +30,7 @@ const ReferralBanner = () => {
   if (loading || !referralCode) return null;
 
   const referralLink = `${APP_URL}/auth?ref=${referralCode}`;
-  const shareMessage = `¡Únete a Favorón con mi link de referido y recibe un descuento de Q${discountAmount} en tu primer pedido! 🎁 ${referralLink}`;
+  const shareMessage = `¡Únete a Favorón con mi link de referido y recibe un descuento de Q${discountAmount} en tu primer pedido! ${referralLink}`;
 
   const handleCopy = async () => {
     try {
@@ -42,7 +42,12 @@ const ReferralBanner = () => {
   };
 
   const handleWhatsAppShare = () => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(shareMessage)}`, '_blank');
+    const text = encodeURIComponent(shareMessage);
+    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+    const url = isMobile
+      ? `https://api.whatsapp.com/send?text=${text}`
+      : `https://web.whatsapp.com/send?text=${text}`;
+    window.open(url, '_blank');
   };
 
   return (
