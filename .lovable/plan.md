@@ -1,22 +1,19 @@
 
 
-## Problem
+## Plan
 
-When editing a package (solicitud) in the admin matching tab, the delivery deadline date picker calendar opens but clicks on dates don't register. The calendar is rendered inside a Dialog + ScrollArea, and the Popover portal gets blocked by the Dialog's overlay z-index.
+Remove the WhatsApp share button from the referral banner and rename the remaining copy button to "Copiar link".
 
-## Root Cause
+### Changes
 
-In `src/components/dashboard/EditPackageModal.tsx` (line 406), the `PopoverContent` doesn't have an explicit z-index. Since it's inside a Dialog (z-50), the popover content needs to be rendered above it.
+**`src/components/dashboard/ReferralBanner.tsx`**
+- Remove the `handleWhatsAppShare` function
+- Remove the `Share2` icon import
+- Remove the 2-column grid with both buttons
+- Keep a single "Copiar link" button
+- Remove unused imports
 
-## Fix
-
-**File: `src/components/dashboard/EditPackageModal.tsx`** (line 406)
-
-Change the PopoverContent to include a z-index that renders above the Dialog:
-
-```tsx
-<PopoverContent className="w-auto p-0 z-[60]" align="start">
-```
-
-This ensures the calendar popover appears above the Dialog overlay and accepts pointer events correctly. The calendar already has `pointer-events-auto` (line 412), so no other changes are needed.
+**`src/components/profile/ReferralSection.tsx`**
+- Same changes: remove WhatsApp button, keep only "Copiar link"
+- Remove `handleWhatsAppShare` and `Share2` import
 
