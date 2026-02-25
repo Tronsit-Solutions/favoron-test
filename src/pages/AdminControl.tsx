@@ -17,6 +17,9 @@ const AdminControl = () => {
   const [rewardAmount, setRewardAmount] = useState<number>(30);
   const [rewardLoading, setRewardLoading] = useState(false);
   const [rewardSaving, setRewardSaving] = useState(false);
+  const [referredDiscount, setReferredDiscount] = useState<number>(15);
+  const [referredDiscountLoading, setReferredDiscountLoading] = useState(false);
+  const [referredDiscountSaving, setReferredDiscountSaving] = useState(false);
 
   useEffect(() => {
     const loadReward = async () => {
@@ -37,6 +40,25 @@ const AdminControl = () => {
       }
     };
     loadReward();
+
+    const loadReferredDiscount = async () => {
+      setReferredDiscountLoading(true);
+      try {
+        const { data } = await supabase
+          .from('app_settings')
+          .select('value')
+          .eq('key', 'referred_user_discount')
+          .maybeSingle();
+        if (data?.value && typeof data.value === 'object' && 'amount' in (data.value as any)) {
+          setReferredDiscount((data.value as any).amount);
+        }
+      } catch (err) {
+        console.error('Error loading referred discount:', err);
+      } finally {
+        setReferredDiscountLoading(false);
+      }
+    };
+    loadReferredDiscount();
   }, []);
 
   const handleSaveReward = async () => {
@@ -52,6 +74,22 @@ const AdminControl = () => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setRewardSaving(false);
+    }
+  };
+
+  const handleSaveReferredDiscount = async () => {
+    setReferredDiscountSaving(true);
+    try {
+      const { error } = await supabase
+        .from('app_settings')
+        .update({ value: { amount: referredDiscount, enabled: true }, updated_by: user?.id, updated_at: new Date().toISOString() })
+        .eq('key', 'referred_user_discount');
+      if (error) throw error;
+      toast({ title: "✅ Guardado", description: `Descuento de referido actualizado a Q${referredDiscount}` });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setReferredDiscountSaving(false);
     }
   };
 
@@ -390,7 +428,32 @@ const AdminControl = () => {
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Este monto se asigna cuando un referido completa su primer pedido o viaje
+                    Este monto se asigna al referidor cuando el referido completa su primer pedido o viaje
+                  </p>
+                </div>
+                <div className="space-y-2 pt-3 border-t border-green-200">
+                  <Label htmlFor="referred-discount" className="text-sm">Descuento para usuario referido (GTQ)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="referred-discount"
+                      type="number"
+                      min={0}
+                      value={referredDiscount}
+                      onChange={(e) => setReferredDiscount(Number(e.target.value))}
+                      disabled={referredDiscountLoading}
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="outline"
+                      className="border-green-300 text-green-700 hover:bg-green-100"
+                      onClick={handleSaveReferredDiscount}
+                      disabled={referredDiscountSaving || referredDiscountLoading}
+                    >
+                      {referredDiscountSaving ? "Guardando..." : "Guardar"}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Descuento automático en el primer pedido del nuevo usuario referido
                   </p>
                 </div>
               </CardContent>

@@ -24,7 +24,7 @@ const ReferralSection = () => {
   };
 
   const handleWhatsAppShare = () => {
-    const text = `¡Únete a Favorón! Usa mi link de referido y ambos ganamos: ${referralLink}`;
+    const text = `¡Únete a Favorón con mi link de referido! Tú recibes un descuento en tu primer pedido y yo también gano. 🎁 ${referralLink}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -36,7 +36,7 @@ const ReferralSection = () => {
           Programa de Referidos
         </CardTitle>
         <CardDescription className="text-sm">
-          Invita amigos y gana recompensas cuando completen su primer pedido o viaje
+          Invita amigos: ambos ganan cuando completen su primer pedido o viaje
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 pt-0">

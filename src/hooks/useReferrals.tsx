@@ -66,6 +66,36 @@ export const useReferrals = (): ReferralData => {
   };
 };
 
+export const useReferredReward = () => {
+  const { user } = useAuth();
+  const [reward, setReward] = useState<{ amount: number; used: boolean; referrerName: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    const fetch = async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_my_referred_reward');
+        if (error) throw error;
+        if (data && data.length > 0) {
+          setReward({
+            amount: data[0].reward_amount,
+            used: data[0].reward_used,
+            referrerName: data[0].referrer_name,
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching referred reward:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
+  }, [user]);
+
+  return { reward, loading };
+};
+
 export const registerReferral = async (referredUserId: string, referralCode: string) => {
   try {
     const { data, error } = await supabase.rpc('register_referral', {
