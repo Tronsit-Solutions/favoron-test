@@ -28,6 +28,7 @@ import ProtectedEmptyState from "./dashboard/ProtectedEmptyState";
 import { TripSelector } from "./dashboard/TripSelector";
 
 import AvailableTripsCard from "./AvailableTripsCard";
+import ReferralBanner from "./dashboard/ReferralBanner";
 import AvailableTripsModal from "./AvailableTripsModal";
 import { useDashboardState } from "@/hooks/useDashboardState";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
@@ -597,6 +598,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             <AvailableTripsCard 
               onViewTrips={() => setShowAvailableTripsModal(true)}
             />
+            <ReferralBanner />
           </TabsContent>
 
           <TabsContent value="packages" className="space-y-4 sm:space-y-6 min-w-0 w-full max-w-full overflow-x-hidden px-0 sm:px-2">
