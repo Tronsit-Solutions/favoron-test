@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Gift, Copy, Share2, CheckCircle } from "lucide-react";
+import { Gift, Copy, CheckCircle } from "lucide-react";
 import { useReferrals } from "@/hooks/useReferrals";
 import { useToast } from "@/hooks/use-toast";
 import { APP_URL } from "@/lib/constants";
@@ -41,14 +41,7 @@ const ReferralBanner = () => {
     }
   };
 
-  const handleWhatsAppShare = () => {
-    const text = encodeURIComponent(shareMessage);
-    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
-    const url = isMobile
-      ? `https://api.whatsapp.com/send?text=${text}`
-      : `https://web.whatsapp.com/send?text=${text}`;
-    window.open(url, '_blank');
-  };
+
 
   return (
     <Card className="border bg-gradient-to-r from-primary/5 to-purple-50 dark:from-primary/10 dark:to-purple-950/20">
@@ -81,16 +74,10 @@ const ReferralBanner = () => {
                 <Copy className="h-4 w-4" />
               </Button>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" onClick={handleCopy} className="text-xs">
-                <Copy className="h-3 w-3 mr-1" />
-                Copiar
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleWhatsAppShare} className="text-xs">
-                <Share2 className="h-3 w-3 mr-1" />
-                WhatsApp
-              </Button>
-            </div>
+            <Button variant="outline" size="sm" onClick={handleCopy} className="text-xs w-full">
+              <Copy className="h-3 w-3 mr-1" />
+              Copiar link
+            </Button>
           </div>
         </div>
       </CardContent>
