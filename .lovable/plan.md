@@ -1,17 +1,34 @@
 
 
-## Fix: Puntualidad se muestra multiplicada por 100 dos veces
+## Fix: Total Shoppers truncado a 1000 por límite de Supabase
 
 ### Problema
-El trigger SQL `update_traveler_rating_stats` guarda `traveler_ontime_rate` ya como porcentaje (e.g., `100.0` = 100%). Pero el frontend en `AdminTravelersTab.tsx` lo multiplica por 100 otra vez, resultando en "10000%" y "5000%".
+En `src/hooks/useCACAnalytics.tsx` línea 150-154, la query `supabase.from('profiles').select(...).limit(10000)` retorna máximo 1000 filas por el límite servidor `PGRST_MAX_ROWS`. Todos los cálculos de "totalShoppers" se basan en contar esos resultados truncados.
 
-Lo mismo pasa en `UserDetailModal.tsx` pero ahí NO multiplica por 100 (muestra `100%` correcto), así que solo hay inconsistencia en `AdminTravelersTab.tsx`.
+### Solución
+Agregar una query separada con `count: 'exact', head: true` para obtener el conteo real de perfiles, y usar ese valor como `totalShoppers` en los KPIs. El resto de cálculos (activeShoppers, monetizedShoppers) dependen de cruzar con packages/trips, que también pueden estar truncados, pero esos ya usan `.limit(20000)` y tienen menos registros. El problema principal visible es el denominador "/ 1000".
 
 ### Cambios
 
-**`src/components/admin/AdminTravelersTab.tsx`**
-- Línea 135 (KPI card): cambiar `{(avgOntime * 100).toFixed(0)}%` → `{avgOntime.toFixed(0)}%`
-- Línea 223 (tabla por fila): cambiar `{(Number(t.traveler_ontime_rate) * 100).toFixed(0)}%` → `{Number(t.traveler_ontime_rate).toFixed(0)}%`
+**`src/hooks/useCACAnalytics.tsx`**
+- Agregar una query nueva con `head: true` para obtener el conteo exacto de perfiles:
+  ```ts
+  const { data: exactUserCount } = useQuery({
+    queryKey: ['cac-exact-user-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+      if (error) throw error;
+      return count ?? 0;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  ```
+- En el `useMemo`, cambiar `totalShoppers: totals.totalUsers` (línea 519) por `totalShoppers: exactUserCount ?? totals.totalUsers`
+- Agregar `exactUserCount` a las dependencias del `useMemo`
+- Actualizar los cálculos de tasas que usan `totals.totalUsers` como denominador para usar el conteo exacto cuando esté disponible (shopperConversionRate, shopperActivationRate)
 
-Son dos cambios de una línea cada uno. No se requieren migraciones ni cambios de schema.
+### Resultado
+"Shoppers Activos" mostrará el número real (ej: "463 / 1247") en vez del truncado "463 / 1000".
 
