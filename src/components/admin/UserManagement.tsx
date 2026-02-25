@@ -20,13 +20,15 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserStatusBadge from "./UserStatusBadge";
 import UserDetailModal from "./UserDetailModal";
+import AdminTravelersTab from "./AdminTravelersTab";
 import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
 import { useUserManagement } from "@/hooks/useUserManagement";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Search, Users, Eye, Filter, User as UserIcon } from "lucide-react";
+import { Search, Users, Eye, Filter, User as UserIcon, Plane } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -308,6 +310,19 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
           </div>
         </div>
 
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList>
+          <TabsTrigger value="all" className="flex items-center gap-1.5">
+            <Users className="h-4 w-4" />
+            Todos los Usuarios
+          </TabsTrigger>
+          <TabsTrigger value="travelers" className="flex items-center gap-1.5">
+            <Plane className="h-4 w-4" />
+            Viajeros
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all" className="space-y-6 mt-4">
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
@@ -567,6 +582,12 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
         title={`Foto de ${selectedAvatarName}`}
         filename={`avatar-${selectedAvatarName.toLowerCase().replace(/\s+/g, '-')}.jpg`}
       />
+        </TabsContent>
+
+        <TabsContent value="travelers" className="mt-4">
+          <AdminTravelersTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
