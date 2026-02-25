@@ -1,61 +1,40 @@
 
 
-## Crear viaje falso + paquete completado para testear rating
+## Agregar Reviews de Viajeros y Plataforma a la página de Encuestas
 
-Usaré otro usuario como viajero (Glenda Diaz, `773bfe46...`) y te asignaré como shopper. Insertaré primero un viaje aprobado falso y luego un paquete `completed` con `feedback_completed = false` para que te aparezca el botón de calificar.
+### Cambio
+Agregar dos secciones nuevas en `AdminSurveys.tsx` con pestañas (Tabs) para separar: Encuesta de Adquisición, Reviews de Viajeros, y Reviews de Plataforma.
 
-### Datos a insertar
+### Estructura
 
-**1. Trip falso** (viajero: Glenda Diaz)
-- Ruta: Miami → Guatemala City
-- Status: `approved`
-- Fechas futuras genéricas
+La página actual solo muestra la encuesta de adquisición. Se reorganizará con Tabs:
 
-**2. Package completado** (shopper: tú, admin)
-- Asignado al trip falso
-- Status: `completed`
-- `feedback_completed: false`
-- Producto: "AirPods Pro 2 - TEST RATING"
-
-### SQL a ejecutar (vía insert tool)
-
-```sql
--- 1. Trip falso
-INSERT INTO trips (
-  user_id, from_city, to_city, from_country, to_country,
-  status, arrival_date, first_day_packages, last_day_packages,
-  delivery_date, delivery_method, package_receiving_address
-) VALUES (
-  '773bfe46-c746-4bba-a1e5-8694b5da4217',
-  'Miami', 'Guatemala City', 'Estados Unidos', 'Guatemala',
-  'approved',
-  now() + interval '10 days',
-  now() + interval '1 day',
-  now() + interval '8 days',
-  now() + interval '12 days',
-  'oficina',
-  '{"address": "Test Address", "city": "Miami"}'
-) RETURNING id;
-
--- 2. Package completado (usando el trip_id del paso anterior)
-INSERT INTO packages (
-  user_id, item_description, estimated_price, delivery_deadline,
-  matched_trip_id, status, purchase_origin, package_destination,
-  delivery_method, feedback_completed, quote, products_data,
-  additional_notes
-) VALUES (
-  '5e3c944e-9130-4ea7-8165-b8ec9d5abf6f',
-  'AirPods Pro 2 - TEST RATING', 249,
-  now() + interval '30 days',
-  '<trip_id_del_paso_1>',
-  'completed', 'Estados Unidos', 'Guatemala',
-  'pickup', false,
-  '{"service_fee": 100, "delivery_fee": 25, "total": 374}',
-  '[{"itemDescription": "AirPods Pro 2", "estimatedPrice": "249", "quantity": "1", "requestType": "online"}]',
-  'Paquete falso para testear rating de viajero'
-);
+```text
+[Adquisición] [Reviews Viajeros] [Reviews Plataforma]
 ```
 
-### Resultado esperado
-Al abrir tu dashboard en la pestaña "Mis Pedidos", verás el paquete completado con el botón amarillo "Calificar viajero" que abre el flujo secuencial de rating (viajero → plataforma).
+### Cambios en archivos
+
+**1. `src/pages/AdminSurveys.tsx`**
+- Importar `Tabs, TabsList, TabsTrigger, TabsContent`
+- Importar dos nuevos componentes: `AdminTravelerRatingsTab` y `AdminPlatformReviewsTab`
+- Mover el contenido actual de encuesta de adquisición dentro de `TabsContent value="acquisition"`
+- Agregar tabs para los dos nuevos componentes
+- El header y botones se mantienen arriba de los tabs
+
+**2. Nuevo: `src/components/admin/AdminTravelerRatingsTab.tsx`**
+- Query a `traveler_ratings` con join a `profiles` (para nombres de shopper y traveler) via dos queries separadas
+- Tabla con columnas: Shopper, Viajero, Rating (estrellas), Condición del Producto, Entregó a Tiempo, Comentario, Fecha
+- KPI cards arriba: Total ratings, Rating promedio, % entrega a tiempo
+- Badge de colores para condición (good/fair/bad)
+
+**3. Nuevo: `src/components/admin/AdminPlatformReviewsTab.tsx`**
+- Query a `platform_reviews` con join a profiles para nombre del shopper
+- Tabla con columnas: Shopper, Rating, Volvería a usar, Recomendaría, Proceso claro, Comunicación, Reseña, Consentimiento, Fecha
+- KPI cards: Total reviews, Rating promedio, % recomendaría, % volvería a usar
+
+### Detalle técnico
+- Las queries usan `supabase.from('traveler_ratings').select('*')` y luego batch-fetch de profiles por IDs (ya que no hay FK directo expuesto al SDK)
+- RLS ya permite a admins ver todos los ratings y reviews
+- Se reutilizan componentes existentes: `Card`, `Table`, `Badge`, `StarRating` (solo display), `Skeleton`
 
