@@ -1105,6 +1105,8 @@ export type Database = {
           created_at: string
           id: string
           referred_id: string
+          referred_reward_amount: number | null
+          referred_reward_used: boolean | null
           referrer_id: string
           reward_amount: number
           status: string
@@ -1114,6 +1116,8 @@ export type Database = {
           created_at?: string
           id?: string
           referred_id: string
+          referred_reward_amount?: number | null
+          referred_reward_used?: boolean | null
           referrer_id: string
           reward_amount?: number
           status?: string
@@ -1123,6 +1127,8 @@ export type Database = {
           created_at?: string
           id?: string
           referred_id?: string
+          referred_reward_amount?: number | null
+          referred_reward_used?: boolean | null
           referrer_id?: string
           reward_amount?: number
           status?: string
@@ -1928,6 +1934,14 @@ export type Database = {
           referred_name: string
           reward_amount: number
           status: string
+        }[]
+      }
+      get_my_referred_reward: {
+        Args: never
+        Returns: {
+          referrer_name: string
+          reward_amount: number
+          reward_used: boolean
         }[]
       }
       get_next_label_number: { Args: never; Returns: number }
