@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, ShoppingBag, Plane, AlertTriangle } from "lucide-react";
+import { Download, Loader2, ShoppingBag, Plane, AlertTriangle, BarChart3 } from "lucide-react";
 import { useCACAnalytics } from "@/hooks/useCACAnalytics";
-import { ShopperKPICards, TravelerKPICards } from "./CACKPICards";
+import { ShopperKPICards, TravelerKPICards, GeneralKPICards } from "./CACKPICards";
 import { CACTable } from "./CACTable";
 import { CACMonthlyTable } from "./CACMonthlyTable";
 import { InvestmentForm } from "./InvestmentForm";
@@ -196,6 +196,26 @@ export const CACAnalysisTab = () => {
               onDelete={async (id) => { await deleteIncidentCost.mutateAsync(id); }}
               isLoading={addIncidentCost.isPending || deleteIncidentCost.isPending || updateIncidentCost.isPending}
             />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ═══════ Unit Economics: General ═══════ */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-emerald-600" />
+          <h3 className="text-lg font-semibold">Unit Economics: General</h3>
+        </div>
+        <GeneralKPICards kpis={globalKPIs} totalIncidentCosts={shopperKPIs.totalIncidentCosts} />
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Métricas por Canal — General</CardTitle>
+            <CardDescription>
+              Inversión combinada (shoppers + viajeros) por canal
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CACTable data={channelData} mode="general" />
           </CardContent>
         </Card>
       </div>
