@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, Gift, HelpCircle, Bell, Wallet, ArrowLeft, Landmark, FileText, Shield, Sparkles } from "lucide-react";
+import { Package, Gift, HelpCircle, Bell, ArrowLeft, Landmark, FileText, Shield, Sparkles } from "lucide-react";
 import TermsAndConditionsModal from "./TermsAndConditionsModal";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useReferrals } from "@/hooks/useReferrals";
 import ProfileHeader from "./profile/ProfileHeader";
 import UserLevelCard from "./profile/UserLevelCard";
 
@@ -35,7 +34,6 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrimeModal, setShowPrimeModal] = useState(false);
   const { toast } = useToast();
-  const { balance, loading: referralsLoading } = useReferrals();
 
   const [formData, setFormData] = useState({
     bankAccountHolder: user.bank_account_holder || user.bankAccountHolder || '',
@@ -321,18 +319,6 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
       {/* Level & Stats */}
       <UserLevelCard userLevel={userLevel} />
 
-      {/* Referral Balance Card */}
-      <Card className="border-none bg-muted/50">
-        <CardContent className="flex items-center gap-3 py-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-            <Wallet className="h-5 w-5 text-primary" />
-          </div>
-          <div className="flex-1">
-            <p className="text-xs text-muted-foreground">Saldo de referidos</p>
-            <p className="text-xl font-bold">Q{referralsLoading ? '...' : balance.toFixed(2)}</p>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Navigation Grid */}
       <div className="grid grid-cols-2 gap-3">
