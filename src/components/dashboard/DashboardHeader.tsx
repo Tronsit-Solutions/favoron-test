@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Users, Home, FileText, Shield, Sparkles, Settings, Eye, UserCog, Package, MessageCircle } from "lucide-react";
+import { LogOut, User, Users, Home, Sparkles, Settings, Eye, UserCog, Package, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -45,13 +45,6 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
     }
   };
 
-  const handleTermsClick = () => {
-    navigate('/terminos-y-condiciones');
-  };
-
-  const handleRegulationClick = () => {
-    navigate('/regulacion-aduanera');
-  };
 
   const handlePrimeClick = () => {
     if (onShowPrime) {
@@ -204,14 +197,6 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
                   Control Admin
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem onClick={handleTermsClick}>
-                <FileText className="h-4 w-4 mr-2" />
-                Términos y Condiciones
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleRegulationClick}>
-                <Shield className="h-4 w-4 mr-2" />
-                Regulación Aduanera
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
