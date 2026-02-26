@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useReferrals } from "@/hooks/useReferrals";
 import ProfileHeader from "./profile/ProfileHeader";
 import UserLevelCard from "./profile/UserLevelCard";
-import UserStats from "./profile/UserStats";
+
 import PersonalInfoDisplay from "./profile/PersonalInfoDisplay";
 import BankingInfoForm from "./profile/BankingInfoForm";
 import BankingInfoDisplay from "./profile/BankingInfoDisplay";
@@ -369,7 +369,7 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
         />
       </div>
 
-      <UserStats stats={stats} />
+      
 
       <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
     </div>
