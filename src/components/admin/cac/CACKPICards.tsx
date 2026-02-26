@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, UserCheck, DollarSign, TrendingUp, Target, Percent, BarChart3, Package, Plane, Truck, ShoppingCart, AlertTriangle, TrendingDown } from "lucide-react";
-import { ShopperKPIs, TravelerKPIs } from "@/hooks/useCACAnalytics";
+import { Users, UserCheck, DollarSign, TrendingUp, Target, Percent, BarChart3, Package, Plane, Truck, ShoppingCart, AlertTriangle, TrendingDown, Repeat, UserMinus, Hash } from "lucide-react";
+import { ShopperKPIs, TravelerKPIs, RecurrenceKPIs } from "@/hooks/useCACAnalytics";
 
 interface ShopperKPICardsProps {
   kpis: ShopperKPIs;
@@ -294,6 +294,82 @@ export const TravelerKPICards = ({ kpis }: TravelerKPICardsProps) => {
             </div>
             <div className="text-xl font-bold">{card.value}</div>
             <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
+interface RecurrenceKPICardsProps {
+  kpis: RecurrenceKPIs;
+}
+
+export const RecurrenceKPICards = ({ kpis }: RecurrenceKPICardsProps) => {
+  const cards = [
+    {
+      title: "Shoppers Recurrentes",
+      value: `${kpis.repeatShoppers} (${formatPercent(kpis.shopperRepeatRate)})`,
+      description: `De ${kpis.monetizedShoppers} monetizados`,
+      icon: Repeat,
+      color: "text-amber-600",
+      bgColor: "bg-amber-500/10",
+    },
+    {
+      title: "Shoppers 1 Vez",
+      value: kpis.oneTimerShoppers.toString(),
+      description: "Solo 1 pedido pagado",
+      icon: UserMinus,
+      color: "text-amber-500",
+      bgColor: "bg-amber-500/10",
+    },
+    {
+      title: "Pedidos / Recurrente",
+      value: kpis.avgOrdersPerRepeatShopper.toFixed(1),
+      description: "Promedio de pedidos pagados",
+      icon: Hash,
+      color: "text-amber-700",
+      bgColor: "bg-amber-500/10",
+    },
+    {
+      title: "Viajeros Recurrentes",
+      value: `${kpis.repeatTravelers} (${formatPercent(kpis.travelerRepeatRate)})`,
+      description: `De ${kpis.totalActiveTravelers} activos`,
+      icon: Repeat,
+      color: "text-orange-600",
+      bgColor: "bg-orange-500/10",
+    },
+    {
+      title: "Viajeros 1 Vez",
+      value: kpis.oneTimeTravelers.toString(),
+      description: "Solo 1 trip aprobado",
+      icon: UserMinus,
+      color: "text-orange-500",
+      bgColor: "bg-orange-500/10",
+    },
+    {
+      title: "Trips / Recurrente",
+      value: kpis.avgTripsPerRepeatTraveler.toFixed(1),
+      description: "Promedio de trips aprobados",
+      icon: Hash,
+      color: "text-orange-700",
+      bgColor: "bg-orange-500/10",
+    },
+  ];
+
+  return (
+    <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      {cards.map((card) => (
+        <Card key={card.title}>
+          <CardContent className="p-4 min-w-0">
+            <div className="flex items-center gap-2 mb-2 min-w-0">
+              <div className={`p-1.5 rounded-lg shrink-0 ${card.bgColor}`}>
+                <card.icon className={`h-4 w-4 ${card.color}`} />
+              </div>
+              <span className="text-xs font-medium text-muted-foreground truncate">{card.title}</span>
+            </div>
+            <div className="text-xl font-bold truncate">{card.value}</div>
+            <p className="text-xs text-muted-foreground mt-1 truncate">{card.description}</p>
           </CardContent>
         </Card>
       ))}
