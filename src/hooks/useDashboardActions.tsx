@@ -87,7 +87,44 @@ export const useDashboardActions = (
       // Create the package and get the result
       const newPackage = await createPackage(dbPackageData);
       console.log('✅ Package created successfully:', newPackage);
-      
+
+      // Send confirmation email (non-blocking)
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const productsList = products.map((p: any) => 
+            `<li><strong>${p.itemDescription || 'Producto'}</strong> — Cantidad: ${p.quantity || 1}${p.estimatedPrice ? `, ~$${p.estimatedPrice}` : ''}</li>`
+          ).join('');
+          const deadlineDate = dbPackageData.delivery_deadline 
+            ? new Date(dbPackageData.delivery_deadline).toLocaleDateString('es-GT', { day: 'numeric', month: 'long', year: 'numeric' }) 
+            : 'No especificada';
+          const deliveryMethodLabel = dbPackageData.delivery_method === 'delivery' ? 'Entrega a domicilio' : 'Recogida en oficina';
+
+          const emailMessage = `
+            <p>¡Tu solicitud de paquete fue enviada exitosamente! Aquí tienes un resumen:</p>
+            <ul>${productsList}</ul>
+            <p><strong>Origen:</strong> ${dbPackageData.purchase_origin}</p>
+            <p><strong>Destino:</strong> ${dbPackageData.package_destination}${dbPackageData.package_destination_country ? `, ${dbPackageData.package_destination_country}` : ''}</p>
+            <p><strong>Fecha límite de entrega:</strong> ${deadlineDate}</p>
+            <p><strong>Método de entrega:</strong> ${deliveryMethodLabel}</p>
+            <p>Nuestro equipo revisará tu solicitud y te enviaremos una cotización pronto.</p>
+          `;
+
+          supabase.functions.invoke('send-notification-email', {
+            body: {
+              user_id: user.id,
+              title: 'Tu solicitud de paquete fue enviada',
+              message: emailMessage,
+              type: 'package',
+              priority: 'normal',
+              action_url: 'https://favoron.app/dashboard'
+            }
+          }).catch(err => console.warn('📧 Email confirmation failed (non-critical):', err));
+        }
+      } catch (emailErr) {
+        console.warn('📧 Could not send package confirmation email:', emailErr);
+      }
+
       // Force refresh of packages to show the new one immediately
       if (refreshPackages) {
         console.log('🔄 Force refreshing packages to show new package');
@@ -186,6 +223,42 @@ export const useDashboardActions = (
       console.log('📊 Transformed data for database:', dbTripData);
 
       await createTrip(dbTripData);
+
+      // Send confirmation email (non-blocking)
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const arrivalDateStr = new Date(dbTripData.arrival_date).toLocaleDateString('es-GT', { day: 'numeric', month: 'long', year: 'numeric' });
+          const firstDayStr = new Date(dbTripData.first_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'long', year: 'numeric' });
+          const lastDayStr = new Date(dbTripData.last_day_packages).toLocaleDateString('es-GT', { day: 'numeric', month: 'long', year: 'numeric' });
+          const deliveryMethodLabel = dbTripData.delivery_method === 'mensajero' ? 'Mensajero' : dbTripData.delivery_method === 'delivery' ? 'Entrega a domicilio' : 'Oficina';
+
+          const emailMessage = `
+            <p>¡Tu viaje fue registrado exitosamente! Aquí tienes un resumen:</p>
+            <p><strong>Origen:</strong> ${dbTripData.from_city}${dbTripData.from_country ? `, ${dbTripData.from_country}` : ''}</p>
+            <p><strong>Destino:</strong> ${dbTripData.to_city}${dbTripData.to_country ? `, ${dbTripData.to_country}` : ''}</p>
+            <p><strong>Fecha de llegada:</strong> ${arrivalDateStr}</p>
+            <p><strong>Ventana de recepción:</strong> ${firstDayStr} — ${lastDayStr}</p>
+            <p><strong>Método de entrega:</strong> ${deliveryMethodLabel}</p>
+            ${dbTripData.available_space ? `<p><strong>Espacio disponible:</strong> ${dbTripData.available_space} lb</p>` : ''}
+            <p>Nuestro equipo revisará tu viaje y te asignaremos paquetes pronto.</p>
+          `;
+
+          supabase.functions.invoke('send-notification-email', {
+            body: {
+              user_id: user.id,
+              title: 'Tu viaje fue registrado',
+              message: emailMessage,
+              type: 'trip',
+              priority: 'normal',
+              action_url: 'https://favoron.app/dashboard'
+            }
+          }).catch(err => console.warn('📧 Email confirmation failed (non-critical):', err));
+        }
+      } catch (emailErr) {
+        console.warn('📧 Could not send trip confirmation email:', emailErr);
+      }
+
       setShowTripForm(false);
       toast({
         title: "¡Viaje registrado!",
