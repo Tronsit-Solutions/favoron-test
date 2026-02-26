@@ -1,14 +1,15 @@
 
 
-## Plan: Make reward amount dynamic in ReferralBanner
+## Plan: Add Prime navigation card to profile
 
-**File: `src/components/dashboard/ReferralBanner.tsx`**
+**File: `src/components/UserProfile.tsx`**
 
-The discount amount (Q15) is already fetched dynamically, but the reward amount (Q30) on line 57 is hardcoded.
-
-- Add state `rewardAmount` with default 30
-- Fetch `referral_reward_amount` from `app_settings` alongside the existing discount fetch
-- Replace hardcoded `Q30` on line 57 with `Q{rewardAmount}`
-
-Single file change, ~10 lines added.
+1. Import `Sparkles` from `lucide-react` and `PrimeModal` from `@/components/PrimeModal`
+2. Add state `showPrimeModal` (boolean, default false)
+3. Add a `ProfileNavigationCard` in the navigation grid (after Regulación Aduanera) with:
+   - icon: `Sparkles`
+   - title: "Favorón Prime"
+   - description: "Beneficios exclusivos"
+   - onClick: opens PrimeModal
+4. Render `<PrimeModal>` at the bottom, controlled by `showPrimeModal` state, passing the current user
 
