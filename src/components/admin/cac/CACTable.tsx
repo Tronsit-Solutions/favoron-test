@@ -6,7 +6,7 @@ import { CACChannelData } from "@/hooks/useCACAnalytics";
 
 interface CACTableProps {
   data: CACChannelData[];
-  mode?: 'shopper' | 'traveler';
+  mode?: 'shopper' | 'traveler' | 'general';
 }
 
 const formatCurrency = (value: number) => `Q${value.toFixed(2)}`;
@@ -33,6 +33,68 @@ export const CACTable = ({ data, mode = 'shopper' }: CACTableProps) => {
     }
     return <Badge variant="outline">Sin datos</Badge>;
   };
+
+  if (mode === 'general') {
+    return (
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Canal</TableHead>
+              <TableHead className="text-right">Registrados</TableHead>
+              <TableHead className="text-right">Activos</TableHead>
+              <TableHead className="text-right">Monetizados</TableHead>
+              <TableHead className="text-right">% Conversión</TableHead>
+              <TableHead className="text-right">Inversión Total</TableHead>
+              <TableHead className="text-right">CAC</TableHead>
+              <TableHead className="text-right">LTV</TableHead>
+              <TableHead className="text-center">LTV/CAC</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map((channel) => {
+              const generalCAC = channel.monetizedUsers > 0 && channel.totalInvestment > 0
+                ? channel.totalInvestment / channel.monetizedUsers : 0;
+              const generalLtvCac = generalCAC > 0 ? channel.avgLTV / generalCAC : channel.avgLTV > 0 ? Infinity : 0;
+
+              return (
+                <TableRow key={channel.channel}>
+                  <TableCell className="font-medium">{channel.channelLabel}</TableCell>
+                  <TableCell className="text-right">{channel.totalUsers}</TableCell>
+                  <TableCell className="text-right">{channel.activeUsers}</TableCell>
+                  <TableCell className="text-right">{channel.monetizedUsers}</TableCell>
+                  <TableCell className="text-right">{formatPercent(channel.overallConversionRate)}</TableCell>
+                  <TableCell className="text-right">
+                    {channel.totalInvestment > 0 ? formatCurrency(channel.totalInvestment) : "-"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {generalCAC > 0 ? formatCurrency(generalCAC) : "-"}
+                  </TableCell>
+                  <TableCell className="text-right">{formatCurrency(channel.avgLTV)}</TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-sm font-medium">{formatRatio(generalLtvCac)}</span>
+                      {getRatioBadge(generalLtvCac)}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            {data.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                  No hay datos disponibles
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  }
+
+
+
 
   if (mode === 'traveler') {
     return (
