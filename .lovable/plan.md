@@ -1,25 +1,26 @@
 
 
-## Plan: Add General CAC Analysis Section
+## Plan: Add Recurrence/Retention Metrics for Monetized Users
 
-The hook already computes `globalKPIs` with combined metrics (total investment, total revenue, global CAC, global LTV, LTV/CAC ratio) but the UI never displays them. We need to add a new "General" section at the top of the CAC tab.
+Add a new "Recurrencia" section to the CAC Analysis tab showing how many shoppers and travelers repeat.
 
-### Changes
+### 1. `src/hooks/useCACAnalytics.tsx` — Compute recurrence metrics
 
-**1. `src/components/admin/cac/CACKPICards.tsx`** — Add new `GeneralKPICards` component
+Inside the existing `useMemo`, using data already fetched:
 
-- Accept `GlobalKPIs` + `totalIncidentCosts` as props
-- Display 8 cards: CAC General (total investment / total monetized), LTV, LTV/CAC, LTV Neto, Tasa Conversión, Usuarios Activos/Total, Monetizados, Inversión Total
-- Use a green/neutral color scheme to differentiate from the blue (shoppers) and orange (travelers) sections
+- **Shopper recurrence**: From `paidPackagesByUser` (already exists), count users with 1 paid package vs 2+ paid packages. Calculate repeat rate = users with 2+ / total monetized.
+- **Traveler recurrence**: Count trips per user from `tripsData` (approved+ statuses). Users with 2+ approved trips = repeat travelers. Calculate repeat rate.
+- Export new `RecurrenceKPIs` interface with: `monetizedShoppers`, `oneTimerShoppers`, `repeatShoppers`, `shopperRepeatRate`, `avgOrdersPerRepeatShopper`, `totalTravelers`, `oneTimeTravelers`, `repeatTravelers`, `travelerRepeatRate`, `avgTripsPerRepeatTraveler`.
+- Return `recurrenceKPIs` from the hook.
 
-**2. `src/components/admin/cac/CACAnalysisTab.tsx`** — Add General section before Shoppers
+### 2. `src/components/admin/cac/CACKPICards.tsx` — New `RecurrenceKPICards` component
 
-- Import `GeneralKPICards` and render it with a header icon (e.g., `BarChart3`) titled "Unit Economics: General"
-- Pass `globalKPIs` and `shopperKPIs.totalIncidentCosts` to the new component
-- Also add a general CACTable with `mode="general"` showing per-channel combined data (total investment, total CAC = investment/monetized, LTV, LTV/CAC)
+- 6 KPI cards in a grid: Shoppers que Repiten (count + %), Shoppers 1 Vez, Pedidos/Shopper Recurrente, Viajeros que Repiten (count + %), Viajeros 1 Vez, Trips/Viajero Recurrente.
+- Use distinct color scheme (amber/warm tones).
 
-**3. `src/components/admin/cac/CACTable.tsx`** — Add `mode="general"` support
+### 3. `src/components/admin/cac/CACAnalysisTab.tsx` — Add Recurrence section
 
-- When mode is "general", show columns: Canal, Registrados, Activos, Monetizados, Inversión Total, CAC (total inv / monetized), LTV, LTV/CAC
-- This uses the existing `totalInvestment` field on `CACChannelData` (which is already the combined shopper+traveler investment)
+- Add a new "Recurrencia de Usuarios Monetizados" section after the General section (before Shoppers), with a `Repeat` icon header.
+- Render `RecurrenceKPICards` with the new data.
+- Include the recurrence data in the Excel export as a new sheet.
 
