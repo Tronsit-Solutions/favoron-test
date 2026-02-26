@@ -12,19 +12,22 @@ const ReferralBanner = () => {
   const { referralCode, referrals, completedCount, loading } = useReferrals();
   const { toast } = useToast();
   const [discountAmount, setDiscountAmount] = useState(15);
+  const [rewardAmount, setRewardAmount] = useState(30);
 
   useEffect(() => {
-    const fetchDiscount = async () => {
-      const { data } = await supabase
-        .from('app_settings')
-        .select('value')
-        .eq('key', 'referred_user_discount')
-        .single();
-      if (data?.value && typeof data.value === 'object' && 'amount' in (data.value as Record<string, unknown>)) {
-        setDiscountAmount(Number((data.value as Record<string, unknown>).amount) || 15);
+    const fetchSettings = async () => {
+      const [discountRes, rewardRes] = await Promise.all([
+        supabase.from('app_settings').select('value').eq('key', 'referred_user_discount').single(),
+        supabase.from('app_settings').select('value').eq('key', 'referral_reward_amount').single(),
+      ]);
+      if (discountRes.data?.value && typeof discountRes.data.value === 'object' && 'amount' in (discountRes.data.value as Record<string, unknown>)) {
+        setDiscountAmount(Number((discountRes.data.value as Record<string, unknown>).amount) || 15);
+      }
+      if (rewardRes.data?.value) {
+        setRewardAmount(Number(rewardRes.data.value) || 30);
       }
     };
-    fetchDiscount();
+    fetchSettings();
   }, []);
 
   if (loading || !referralCode) return null;
@@ -54,7 +57,7 @@ const ReferralBanner = () => {
               <h3 className="font-semibold text-base">Invita amigos y gana recompensas</h3>
             </div>
             <p className="text-sm text-muted-foreground">
-              Comparte tu código y ambos ganan: <strong>Q30</strong> para ti, <strong>Q{discountAmount}</strong> de descuento para tu amigo
+              Comparte tu código y ambos ganan: <strong>Q{rewardAmount}</strong> para ti, <strong>Q{discountAmount}</strong> de descuento para tu amigo
             </p>
             {completedCount > 0 && (
               <Badge variant="secondary" className="text-xs">
