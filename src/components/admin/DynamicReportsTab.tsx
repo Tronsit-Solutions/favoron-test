@@ -10,6 +10,7 @@ import { UserGrowthChart } from "./charts/UserGrowthChart";
 import { PackagesChart } from "./charts/PackagesChart";
 import { TripsChart } from "./charts/TripsChart";
 import { AvgPackageValueChart } from "./charts/AvgPackageValueChart";
+import { GMVChart } from "./charts/GMVChart";
 import { AcquisitionChart } from "./charts/AcquisitionChart";
 import { AcquisitionSurveyTable } from "./charts/AcquisitionSurveyTable";
 import { KPICards } from "./charts/KPICards";
@@ -215,6 +216,7 @@ export const DynamicReportsTab = () => {
             <UserGrowthChart data={monthlyData} />
             <PackagesChart data={monthlyData} />
             <TripsChart data={monthlyData} />
+            <GMVChart data={monthlyData} />
             <AvgPackageValueChart data={monthlyData} overallAvg={kpis.avgPackageValue} />
           </div>
 
