@@ -1,17 +1,16 @@
 
 
-## Plan: Fix GMV & Service Fee RPC to use correct JSON keys
+## Plan: Simplify Packages Chart to Bar Chart
 
-### Problem
-The `get_monthly_package_stats` RPC reads `quote->>'total'`, `quote->>'service_fee'`, and `quote->>'delivery_fee'` from the JSON. However, most packages use **camelCase** keys: `totalPrice`, `serviceFee`, `deliveryFee`. Only a few recent packages use the snake_case keys. This is why all months before Feb 2026 show $0 GMV and Q0 service fee.
+The "Evolución de Solicitudes" chart uses a **stacked AreaChart** with `stackId="1"`, which visually stacks the values on top of each other — making it look like accumulated data instead of monthly counts per status.
 
-### Fix: Update the SQL RPC (1 migration)
+### Fix: Convert to grouped BarChart
 
-Update `get_monthly_package_stats` to try both key conventions with COALESCE:
+Replace the stacked `AreaChart` with a grouped `BarChart` so each month shows individual bars for Completados, En Proceso, and Cancelados side by side.
 
-- **GMV**: `COALESCE((quote->>'totalPrice')::numeric, (quote->>'total')::numeric, 0)`
-- **Service Fee**: `COALESCE((quote->>'serviceFee')::numeric, (quote->>'service_fee')::numeric, 0)`
-- **Delivery Fee**: `COALESCE((quote->>'deliveryFee')::numeric, (quote->>'delivery_fee')::numeric, 0)`
-
-No frontend changes needed. The charts will automatically show correct values for all months once the RPC returns proper data.
+### Changes in `src/components/admin/charts/PackagesChart.tsx`:
+- Replace `AreaChart` + `Area` imports with `BarChart` + `Bar`
+- Remove gradient `<defs>` (not needed for bars)
+- Use 3 `<Bar>` components without `stackId` so they render side by side
+- Add `radius={[4,4,0,0]}` for rounded tops
 
