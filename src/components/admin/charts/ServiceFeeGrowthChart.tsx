@@ -1,8 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { TrendingUp, TrendingDown, Wallet } from "lucide-react";
-import { useMemo } from "react";
 
 interface ServiceFeeGrowthChartProps {
   data: Array<{
@@ -16,22 +15,10 @@ const chartConfig = {
     label: "Service Fee Mensual",
     color: "hsl(var(--chart-3))",
   },
-  accumulatedRevenue: {
-    label: "Acumulado",
-    color: "hsl(var(--chart-4))",
-  },
 };
 
 export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
-  const chartData = useMemo(() => {
-    let accumulated = 0;
-    return data.map(d => {
-      accumulated += d.favoronRevenue;
-      return { ...d, accumulatedRevenue: accumulated };
-    });
-  }, [data]);
-
-  const totalRevenue = chartData[chartData.length - 1]?.accumulatedRevenue || 0;
+  const totalRevenue = data.reduce((sum, d) => sum + d.favoronRevenue, 0);
   const lastMonth = data[data.length - 1]?.favoronRevenue || 0;
   const prevMonth = data[data.length - 2]?.favoronRevenue || 0;
   const momGrowth = prevMonth > 0 ? ((lastMonth - prevMonth) / prevMonth) * 100 : 0;
@@ -62,7 +49,7 @@ export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
               <Wallet className="h-5 w-5 text-primary" />
               Crecimiento de Ingresos
             </CardTitle>
-            <CardDescription>Service fee mensual y acumulado</CardDescription>
+            <CardDescription>Service fee mensual (GTQ)</CardDescription>
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold">Q{totalRevenue.toLocaleString('es-GT', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
@@ -76,7 +63,7 @@ export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
                 dataKey="monthLabel"
@@ -84,14 +71,6 @@ export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
                 className="text-muted-foreground"
               />
               <YAxis
-                yAxisId="left"
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `Q${(value / 1000).toFixed(0)}k`}
-                className="text-muted-foreground"
-              />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
                 tick={{ fontSize: 12 }}
                 tickFormatter={(value) => `Q${(value / 1000).toFixed(0)}k`}
                 className="text-muted-foreground"
@@ -99,34 +78,20 @@ export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
               <ChartTooltip
                 content={
                   <ChartTooltipContent
-                    formatter={(value, name) => (
+                    formatter={(value) => (
                       <span className="font-medium">Q{Number(value).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     )}
                   />
                 }
               />
               <Bar
-                yAxisId="left"
                 dataKey="favoronRevenue"
                 fill="hsl(var(--chart-3))"
                 radius={[4, 4, 0, 0]}
                 name="Service Fee Mensual"
                 opacity={0.8}
               />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="accumulatedRevenue"
-                stroke="hsl(var(--chart-4))"
-                strokeWidth={3}
-                dot={{ fill: "hsl(var(--chart-4))", strokeWidth: 2, r: 3 }}
-                activeDot={{ r: 5, fill: "hsl(var(--chart-4))" }}
-                name="Ingresos Acumulados"
-              />
-              <Legend
-                formatter={(value) => <span className="text-sm">{value}</span>}
-              />
-            </ComposedChart>
+            </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
