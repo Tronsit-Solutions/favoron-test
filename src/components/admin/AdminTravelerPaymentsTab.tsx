@@ -294,6 +294,9 @@ const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOr
           </div>
         </TableCell>
         <TableCell className="py-3">
+          <span className="font-mono text-xs text-muted-foreground">{order.trip_id?.slice(0, 8)}</span>
+        </TableCell>
+        <TableCell className="py-3">
           <div className="text-right">
             <div className={`font-bold text-lg flex items-center justify-end gap-1 ${amountMismatch ? 'text-red-600' : 'text-green-600'}`}>
               {amountMismatch && <AlertCircle className="h-4 w-4" />}
@@ -350,7 +353,7 @@ const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOr
       </TableRow>
       {isExpanded && (
         <TableRow className="bg-muted/20">
-          <TableCell colSpan={5} className="py-3">
+          <TableCell colSpan={6} className="py-3">
             <div className="space-y-3">
               {/* Invoice Details */}
               <div className="bg-white border rounded-lg p-3">
@@ -668,6 +671,7 @@ const AdminTravelerPaymentsTab = () => {
                     <TableRow className="text-xs">
                       <TableHead className="w-8"></TableHead>
                       <TableHead>Viajero</TableHead>
+                      <TableHead>Trip</TableHead>
                       <TableHead className="text-right">Monto</TableHead>
                       <TableHead>Información Bancaria</TableHead>
                       <TableHead className="text-center">Acciones</TableHead>
@@ -711,6 +715,7 @@ const AdminTravelerPaymentsTab = () => {
                     <TableRow className="text-xs">
                       <TableHead className="w-8"></TableHead>
                       <TableHead>Viajero</TableHead>
+                      <TableHead>Trip</TableHead>
                       <TableHead className="text-right">Monto</TableHead>
                       <TableHead>Información Bancaria</TableHead>
                       <TableHead className="text-center">Acciones</TableHead>
