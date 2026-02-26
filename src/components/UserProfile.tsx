@@ -188,6 +188,9 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
     <div className="space-y-4 md:space-y-6 mobile-container">
       <ProfileHeader user={user} userLevel={userLevel} onUpdateUser={onUpdateUser} />
 
+      {/* Level & Stats */}
+      <UserLevelCard userLevel={userLevel} />
+
       {/* Referral Balance Card */}
       <Card className="border-none bg-muted/50">
         <CardContent className="flex items-center gap-3 py-4">
@@ -283,8 +286,6 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
         )}
       </Card>
 
-      {/* Level & Stats at bottom */}
-      <UserLevelCard userLevel={userLevel} />
       <UserStats stats={stats} />
     </div>
   );
