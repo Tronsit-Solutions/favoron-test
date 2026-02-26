@@ -85,6 +85,19 @@ export interface TravelerKPIs {
   totalTipsDistributed: number;
 }
 
+export interface RecurrenceKPIs {
+  monetizedShoppers: number;
+  oneTimerShoppers: number;
+  repeatShoppers: number;
+  shopperRepeatRate: number;
+  avgOrdersPerRepeatShopper: number;
+  totalActiveTravelers: number;
+  oneTimeTravelers: number;
+  repeatTravelers: number;
+  travelerRepeatRate: number;
+  avgTripsPerRepeatTraveler: number;
+}
+
 export interface GlobalKPIs {
   totalUsers: number;
   totalActiveUsers: number;
@@ -305,7 +318,7 @@ export const useCACAnalytics = (selectedMonth?: string) => {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['incident-costs'] }); },
   });
 
-  const { channelData, globalKPIs, shopperKPIs, travelerKPIs, monthlyData } = useMemo(() => {
+  const { channelData, globalKPIs, shopperKPIs, travelerKPIs, monthlyData, recurrenceKPIs } = useMemo(() => {
     if (!usersData || !packagesData || !tripsData) {
       return {
         channelData: [],
@@ -313,6 +326,7 @@ export const useCACAnalytics = (selectedMonth?: string) => {
         shopperKPIs: getEmptyShopperKPIs(),
         travelerKPIs: getEmptyTravelerKPIs(),
         monthlyData: [],
+        recurrenceKPIs: getEmptyRecurrenceKPIs(),
       };
     }
 
@@ -365,7 +379,7 @@ export const useCACAnalytics = (selectedMonth?: string) => {
         }
       }
 
-      if (pkg.admin_assigned_tip && pkg.admin_assigned_tip > 0) {
+      if (pkg.admin_assigned_tip && pkg.admin_assigned_tip > 0 && DELIVERED_STATUSES.includes(pkg.status)) {
         totalTips += Number(pkg.admin_assigned_tip);
       }
     });
@@ -615,7 +629,37 @@ export const useCACAnalytics = (selectedMonth?: string) => {
       })
       .sort((a, b) => b.month.localeCompare(a.month));
 
-    return { channelData: result, globalKPIs, shopperKPIs, travelerKPIs, monthlyData };
+    // Recurrence KPIs
+    const repeatShopperCount = Array.from(paidPackagesByUser.values()).filter(c => c >= 2).length;
+    const oneTimerShopperCount = monetizedUserIds.size - repeatShopperCount;
+    const totalOrdersFromRepeat = Array.from(paidPackagesByUser.entries())
+      .filter(([, c]) => c >= 2).reduce((sum, [, c]) => sum + c, 0);
+
+    const tripsByUser = new Map<string, number>();
+    tripsData.forEach(trip => {
+      if (approvedTripStatuses.includes(trip.status)) {
+        tripsByUser.set(trip.user_id, (tripsByUser.get(trip.user_id) || 0) + 1);
+      }
+    });
+    const repeatTravelerCount = Array.from(tripsByUser.values()).filter(c => c >= 2).length;
+    const oneTimeTravelerCount = activeTravelerIds.size - repeatTravelerCount;
+    const totalTripsFromRepeat = Array.from(tripsByUser.entries())
+      .filter(([, c]) => c >= 2).reduce((sum, [, c]) => sum + c, 0);
+
+    const recurrenceKPIs: RecurrenceKPIs = {
+      monetizedShoppers: monetizedUserIds.size,
+      oneTimerShoppers: oneTimerShopperCount,
+      repeatShoppers: repeatShopperCount,
+      shopperRepeatRate: monetizedUserIds.size > 0 ? (repeatShopperCount / monetizedUserIds.size) * 100 : 0,
+      avgOrdersPerRepeatShopper: repeatShopperCount > 0 ? totalOrdersFromRepeat / repeatShopperCount : 0,
+      totalActiveTravelers: activeTravelerIds.size,
+      oneTimeTravelers: oneTimeTravelerCount,
+      repeatTravelers: repeatTravelerCount,
+      travelerRepeatRate: activeTravelerIds.size > 0 ? (repeatTravelerCount / activeTravelerIds.size) * 100 : 0,
+      avgTripsPerRepeatTraveler: repeatTravelerCount > 0 ? totalTripsFromRepeat / repeatTravelerCount : 0,
+    };
+
+    return { channelData: result, globalKPIs, shopperKPIs, travelerKPIs, monthlyData, recurrenceKPIs };
   }, [usersData, packagesData, tripsData, investmentsData, incidentCostsData, selectedMonth, exactUserCount]);
 
   return {
@@ -623,6 +667,7 @@ export const useCACAnalytics = (selectedMonth?: string) => {
     globalKPIs,
     shopperKPIs: shopperKPIs || getEmptyShopperKPIs(),
     travelerKPIs: travelerKPIs || getEmptyTravelerKPIs(),
+    recurrenceKPIs: recurrenceKPIs || getEmptyRecurrenceKPIs(),
     monthlyData,
     investments: investmentsData || [],
     incidentCosts: incidentCostsData || [],
@@ -661,5 +706,14 @@ function getEmptyTravelerKPIs(): TravelerKPIs {
     travelerActivationRate: 0, travelerProductivityRate: 0,
     travelerInvestment: 0, travelerCAC: 0, avgPackagesPerTraveler: 0,
     totalPackagesDelivered: 0, costPerDeliveredPackage: 0, totalTipsDistributed: 0,
+  };
+}
+
+function getEmptyRecurrenceKPIs(): RecurrenceKPIs {
+  return {
+    monetizedShoppers: 0, oneTimerShoppers: 0, repeatShoppers: 0,
+    shopperRepeatRate: 0, avgOrdersPerRepeatShopper: 0,
+    totalActiveTravelers: 0, oneTimeTravelers: 0, repeatTravelers: 0,
+    travelerRepeatRate: 0, avgTripsPerRepeatTraveler: 0,
   };
 }

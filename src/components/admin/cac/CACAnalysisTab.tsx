@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, ShoppingBag, Plane, AlertTriangle, BarChart3 } from "lucide-react";
+import { Download, Loader2, ShoppingBag, Plane, AlertTriangle, BarChart3, Repeat } from "lucide-react";
 import { useCACAnalytics } from "@/hooks/useCACAnalytics";
-import { ShopperKPICards, TravelerKPICards, GeneralKPICards } from "./CACKPICards";
+import { ShopperKPICards, TravelerKPICards, GeneralKPICards, RecurrenceKPICards } from "./CACKPICards";
 import { CACTable } from "./CACTable";
 import { CACMonthlyTable } from "./CACMonthlyTable";
 import { InvestmentForm } from "./InvestmentForm";
@@ -18,6 +18,7 @@ export const CACAnalysisTab = () => {
     globalKPIs,
     shopperKPIs,
     travelerKPIs,
+    recurrenceKPIs,
     monthlyData,
     investments,
     incidentCosts,
@@ -114,6 +115,21 @@ export const CACAnalysisTab = () => {
         );
         XLSX.utils.book_append_sheet(wb, incidentSheet, "Costos Incidencias");
       }
+
+      // Recurrence Sheet
+      const recurrenceSheet = XLSX.utils.json_to_sheet([
+        { Métrica: "Shoppers Monetizados", Valor: recurrenceKPIs.monetizedShoppers },
+        { Métrica: "Shoppers Recurrentes (2+ pedidos)", Valor: recurrenceKPIs.repeatShoppers },
+        { Métrica: "Shoppers 1 Vez", Valor: recurrenceKPIs.oneTimerShoppers },
+        { Métrica: "Tasa Recurrencia Shoppers (%)", Valor: recurrenceKPIs.shopperRepeatRate.toFixed(2) },
+        { Métrica: "Pedidos/Shopper Recurrente", Valor: recurrenceKPIs.avgOrdersPerRepeatShopper.toFixed(2) },
+        { Métrica: "Viajeros Activos", Valor: recurrenceKPIs.totalActiveTravelers },
+        { Métrica: "Viajeros Recurrentes (2+ trips)", Valor: recurrenceKPIs.repeatTravelers },
+        { Métrica: "Viajeros 1 Vez", Valor: recurrenceKPIs.oneTimeTravelers },
+        { Métrica: "Tasa Recurrencia Viajeros (%)", Valor: recurrenceKPIs.travelerRepeatRate.toFixed(2) },
+        { Métrica: "Trips/Viajero Recurrente", Valor: recurrenceKPIs.avgTripsPerRepeatTraveler.toFixed(2) },
+      ]);
+      XLSX.utils.book_append_sheet(wb, recurrenceSheet, "Recurrencia");
 
       const date = new Date().toISOString().split("T")[0];
       XLSX.writeFile(wb, `analisis-cac-${date}.xlsx`);
@@ -218,6 +234,15 @@ export const CACAnalysisTab = () => {
             <CACTable data={channelData} mode="general" />
           </CardContent>
         </Card>
+      </div>
+
+      {/* ═══════ Recurrencia ═══════ */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Repeat className="h-5 w-5 text-amber-600" />
+          <h3 className="text-lg font-semibold">Recurrencia de Usuarios</h3>
+        </div>
+        <RecurrenceKPICards kpis={recurrenceKPIs} />
       </div>
 
       {/* ═══════ Unit Economics: Shoppers ═══════ */}
