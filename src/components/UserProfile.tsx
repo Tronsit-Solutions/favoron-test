@@ -17,6 +17,7 @@ import ReferralSection from "./profile/ReferralSection";
 import ProfileNavigationCard from "./profile/ProfileNavigationCard";
 import ProfileHistorySection from "./profile/ProfileHistorySection";
 import ProfileNotificationsSection from "./profile/ProfileNotificationsSection";
+import ProfileHelpSection from "./profile/ProfileHelpSection";
 
 interface UserProfileProps {
   user: any;
@@ -142,6 +143,14 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
     return (
       <div className="space-y-4 mobile-container">
         <ProfileNotificationsSection user={user} onUpdateUser={onUpdateUser} onBack={() => setActiveSection(null)} />
+      </div>
+    );
+  }
+
+  if (activeSection === "help") {
+    return (
+      <div className="space-y-4 mobile-container">
+        <ProfileHelpSection onBack={() => setActiveSection(null)} />
       </div>
     );
   }
@@ -351,19 +360,19 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
         />
         <ProfileNavigationCard
           icon={Landmark}
-          title="Bancaria"
+          title="Info. Bancaria"
           description="Pagos y cobros"
           onClick={() => toggleSection("banking")}
         />
         <ProfileNavigationCard
           icon={FileText}
-          title="Términos"
+          title="Términos y Condiciones"
           description="Términos y condiciones"
           onClick={() => setShowTermsModal(true)}
         />
         <ProfileNavigationCard
           icon={Shield}
-          title="Aduanera"
+          title="Regulación Aduanera"
           description="Regulación aduanera"
           onClick={() => toggleSection("customs")}
         />
