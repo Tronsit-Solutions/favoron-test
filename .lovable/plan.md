@@ -1,26 +1,18 @@
 
 
-## Plan: Add Recurrence/Retention Metrics for Monetized Users
+## Plan: Add GMV Evolution Chart to Dashboard
 
-Add a new "Recurrencia" section to the CAC Analysis tab showing how many shoppers and travelers repeat.
+### 1. Create `src/components/admin/charts/GMVChart.tsx`
 
-### 1. `src/hooks/useCACAnalytics.tsx` — Compute recurrence metrics
+- New chart component similar to `AvgPackageValueChart` style
+- Area/Bar chart showing monthly GMV evolution with accumulated GMV line
+- Props: `data` (monthlyData array with `monthLabel`, `gmv`, `favoronRevenue`, `travelerTips`)
+- Show total GMV in header, MoM growth indicator
+- Use `ComposedChart` with Bar for monthly GMV and Line for accumulated GMV
+- Format values as `Q` currency
 
-Inside the existing `useMemo`, using data already fetched:
+### 2. Update `src/components/admin/DynamicReportsTab.tsx`
 
-- **Shopper recurrence**: From `paidPackagesByUser` (already exists), count users with 1 paid package vs 2+ paid packages. Calculate repeat rate = users with 2+ / total monetized.
-- **Traveler recurrence**: Count trips per user from `tripsData` (approved+ statuses). Users with 2+ approved trips = repeat travelers. Calculate repeat rate.
-- Export new `RecurrenceKPIs` interface with: `monetizedShoppers`, `oneTimerShoppers`, `repeatShoppers`, `shopperRepeatRate`, `avgOrdersPerRepeatShopper`, `totalTravelers`, `oneTimeTravelers`, `repeatTravelers`, `travelerRepeatRate`, `avgTripsPerRepeatTraveler`.
-- Return `recurrenceKPIs` from the hook.
-
-### 2. `src/components/admin/cac/CACKPICards.tsx` — New `RecurrenceKPICards` component
-
-- 6 KPI cards in a grid: Shoppers que Repiten (count + %), Shoppers 1 Vez, Pedidos/Shopper Recurrente, Viajeros que Repiten (count + %), Viajeros 1 Vez, Trips/Viajero Recurrente.
-- Use distinct color scheme (amber/warm tones).
-
-### 3. `src/components/admin/cac/CACAnalysisTab.tsx` — Add Recurrence section
-
-- Add a new "Recurrencia de Usuarios Monetizados" section after the General section (before Shoppers), with a `Repeat` icon header.
-- Render `RecurrenceKPICards` with the new data.
-- Include the recurrence data in the Excel export as a new sheet.
+- Import `GMVChart`
+- Add it to the charts grid (after TripsChart, before AvgPackageValueChart), making the grid have 3 charts in the second row
 
