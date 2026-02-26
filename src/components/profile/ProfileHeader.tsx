@@ -19,7 +19,7 @@ const ProfileHeader = ({ user, userLevel, onUpdateUser, onCardClick }: ProfileHe
 
   return (
     <>
-      <Card className={onCardClick ? "cursor-pointer hover:bg-accent/50 transition-colors" : ""} onClick={onCardClick}>
+      <Card className={onCardClick ? "cursor-pointer transition-colors" : ""} onClick={onCardClick}>
         <CardHeader className="p-4 md:p-6">
           <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">

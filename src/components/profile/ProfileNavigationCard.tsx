@@ -23,7 +23,7 @@ const ProfileNavigationCard = ({
       onClick={onClick}
       className={cn(
         "flex flex-col items-start gap-2 rounded-xl border bg-card p-4 text-left transition-all",
-        "hover:bg-accent/50 hover:shadow-sm active:scale-[0.98]",
+        "active:scale-[0.98]",
         isActive && "ring-2 ring-primary/30 bg-accent/30"
       )}
     >
