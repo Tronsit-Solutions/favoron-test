@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, Gift, HelpCircle, Bell, ChevronDown, ChevronUp, Wallet, ArrowLeft } from "lucide-react";
+import { Package, Gift, HelpCircle, Bell, ChevronDown, ChevronUp, Wallet, ArrowLeft, Landmark } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useReferrals } from "@/hooks/useReferrals";
 import ProfileHeader from "./profile/ProfileHeader";
@@ -22,12 +22,10 @@ interface UserProfileProps {
   onUpdateUser: (userData: any) => void;
 }
 
-type ActiveSection = null | "history" | "referrals" | "help" | "notifications";
+type ActiveSection = null | "history" | "referrals" | "help" | "notifications" | "personal" | "banking";
 
 const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) => {
   const [activeSection, setActiveSection] = useState<ActiveSection>(null);
-  const [personalOpen, setPersonalOpen] = useState(false);
-  const [bankingOpen, setBankingOpen] = useState(false);
   const [isBankingEditing, setIsBankingEditing] = useState(false);
   const { toast } = useToast();
   const { balance, loading: referralsLoading } = useReferrals();
@@ -156,7 +154,7 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
     );
   }
 
-  if (activeSection === "help") {
+  if (activeSection === "personal") {
     return (
       <div className="space-y-4 mobile-container">
         <Button variant="ghost" size="sm" onClick={() => setActiveSection(null)} className="gap-1.5 -ml-2">
@@ -165,18 +163,47 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
         </Button>
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Centro de Ayuda</CardTitle>
-            <CardDescription>¿Necesitas ayuda? Contáctanos por cualquiera de estos medios.</CardDescription>
+            <CardTitle className="text-lg">Información Personal</CardTitle>
+            <CardDescription>Tu información registrada</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Usa el botón de soporte en la esquina inferior derecha para chatear con nosotros, o escríbenos por WhatsApp.
-            </p>
-            <Button variant="outline" size="sm" asChild>
-              <a href="https://wa.me/50258985933" target="_blank" rel="noopener noreferrer">
-                WhatsApp: +502 5898 5933
-              </a>
-            </Button>
+          <CardContent>
+            <PersonalInfoDisplay user={user} />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (activeSection === "banking") {
+    return (
+      <div className="space-y-4 mobile-container">
+        <Button variant="ghost" size="sm" onClick={() => setActiveSection(null)} className="gap-1.5 -ml-2">
+          <ArrowLeft className="h-4 w-4" />
+          Volver al perfil
+        </Button>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Información Bancaria</CardTitle>
+            <CardDescription>Para recibir pagos por Favorones</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!isBankingEditing && (
+              <div className="flex justify-end">
+                <Button variant="outline" size="sm" onClick={() => setIsBankingEditing(true)}>
+                  Editar
+                </Button>
+              </div>
+            )}
+            {isBankingEditing ? (
+              <div className="space-y-4">
+                <BankingInfoForm onSave={handleBankingSave} />
+                <Button variant="outline" onClick={handleBankingCancel} className="w-full" size="sm">
+                  Cancelar
+                </Button>
+              </div>
+            ) : (
+              <BankingInfoDisplay />
+            )}
           </CardContent>
         </Card>
       </div>
@@ -186,7 +213,7 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
   // Main profile view
   return (
     <div className="space-y-4 md:space-y-6 mobile-container">
-      <ProfileHeader user={user} userLevel={userLevel} onUpdateUser={onUpdateUser} />
+      <ProfileHeader user={user} userLevel={userLevel} onUpdateUser={onUpdateUser} onCardClick={() => setActiveSection("personal")} />
 
       {/* Level & Stats */}
       <UserLevelCard userLevel={userLevel} />
@@ -204,7 +231,7 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
         </CardContent>
       </Card>
 
-      {/* 2x2 Navigation Grid */}
+      {/* Navigation Grid */}
       <div className="grid grid-cols-2 gap-3">
         <ProfileNavigationCard
           icon={Package}
@@ -230,61 +257,13 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
           description="Email y WhatsApp"
           onClick={() => toggleSection("notifications")}
         />
+        <ProfileNavigationCard
+          icon={Landmark}
+          title="Bancaria"
+          description="Pagos y cobros"
+          onClick={() => toggleSection("banking")}
+        />
       </div>
-
-      {/* Collapsible Personal Info */}
-      <Card>
-        <button
-          onClick={() => setPersonalOpen(!personalOpen)}
-          className="flex w-full items-center justify-between p-4 md:p-6 text-left"
-        >
-          <div>
-            <h3 className="text-lg font-semibold">Información Personal</h3>
-            <p className="text-sm text-muted-foreground">Tu información registrada</p>
-          </div>
-          {personalOpen ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
-        </button>
-        {personalOpen && (
-          <CardContent className="pt-0 space-y-4">
-            <PersonalInfoDisplay user={user} />
-          </CardContent>
-        )}
-      </Card>
-
-      {/* Collapsible Banking Info */}
-      <Card>
-        <button
-          onClick={() => setBankingOpen(!bankingOpen)}
-          className="flex w-full items-center justify-between p-4 md:p-6 text-left"
-        >
-          <div>
-            <h3 className="text-lg font-semibold">Información Bancaria</h3>
-            <p className="text-sm text-muted-foreground">Para recibir pagos por Favorones</p>
-          </div>
-          {bankingOpen ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
-        </button>
-        {bankingOpen && (
-          <CardContent className="pt-0 space-y-4">
-            {!isBankingEditing && (
-              <div className="flex justify-end">
-                <Button variant="outline" size="sm" onClick={() => setIsBankingEditing(true)}>
-                  Editar
-                </Button>
-              </div>
-            )}
-            {isBankingEditing ? (
-              <div className="space-y-4">
-                <BankingInfoForm onSave={handleBankingSave} />
-                <Button variant="outline" onClick={handleBankingCancel} className="w-full" size="sm">
-                  Cancelar
-                </Button>
-              </div>
-            ) : (
-              <BankingInfoDisplay />
-            )}
-          </CardContent>
-        )}
-      </Card>
 
       <UserStats stats={stats} />
     </div>

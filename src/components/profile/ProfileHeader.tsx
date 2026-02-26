@@ -11,14 +11,15 @@ interface ProfileHeaderProps {
   user: any;
   userLevel: any;
   onUpdateUser: (userData: any) => void;
+  onCardClick?: () => void;
 }
 
-const ProfileHeader = ({ user, userLevel, onUpdateUser }: ProfileHeaderProps) => {
+const ProfileHeader = ({ user, userLevel, onUpdateUser, onCardClick }: ProfileHeaderProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <>
-      <Card>
+      <Card className={onCardClick ? "cursor-pointer hover:bg-accent/50 transition-colors" : ""} onClick={onCardClick}>
         <CardHeader className="p-4 md:p-6">
           <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
@@ -61,7 +62,7 @@ const ProfileHeader = ({ user, userLevel, onUpdateUser }: ProfileHeaderProps) =>
             </div>
             <Button
               variant="outline"
-              onClick={() => setIsModalOpen(true)}
+              onClick={(e) => { e.stopPropagation(); setIsModalOpen(true); }}
               className="w-full sm:w-auto"
               size="sm"
             >
