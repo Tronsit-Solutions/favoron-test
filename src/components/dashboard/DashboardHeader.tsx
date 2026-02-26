@@ -138,29 +138,6 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
                 <User className="h-4 w-4 mr-2" />
                 Mi Perfil
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={handlePrimeClick}
-                className={`${isPrimeUser ? 'bg-purple-100 text-purple-800 hover:bg-purple-200' : 'bg-purple-50 text-purple-700 hover:bg-purple-100'}`}
-              >
-                <div className="relative">
-                  <Sparkles className={`h-4 w-4 mr-2 ${isPrimeUser ? 'text-purple-600' : 'text-purple-500'}`} />
-                  {isPrimeUser && (
-                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                  )}
-                </div>
-                <div className="flex items-center justify-between w-full">
-                  <span>Favorón Prime</span>
-                  {isPrimeUser ? (
-                    <span className="text-xs bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full font-medium">
-                      Activo
-                    </span>
-                  ) : (
-                    <span className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded-full font-medium">
-                      Upgrade
-                    </span>
-                  )}
-                </div>
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               {user.role === 'admin' && onViewModeChange && (
                 <>
