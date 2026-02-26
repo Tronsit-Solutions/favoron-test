@@ -1,18 +1,20 @@
 
 
-## Plan: Add GMV Evolution Chart to Dashboard
+## Plan: Fix GMV & Service Fee Charts
 
-### 1. Create `src/components/admin/charts/GMVChart.tsx`
+### Changes needed:
 
-- New chart component similar to `AvgPackageValueChart` style
-- Area/Bar chart showing monthly GMV evolution with accumulated GMV line
-- Props: `data` (monthlyData array with `monthLabel`, `gmv`, `favoronRevenue`, `travelerTips`)
-- Show total GMV in header, MoM growth indicator
-- Use `ComposedChart` with Bar for monthly GMV and Line for accumulated GMV
-- Format values as `Q` currency
+### 1. Update Supabase RPC `get_monthly_package_stats`
+The current RPC only counts GMV/service_fee for `completed` and `delivered_to_office`. Need to expand to all paid-onwards statuses: `pending_purchase`, `payment_pending_approval`, `paid`, `payment_confirmed`, `shipped`, `in_transit`, `received_by_traveler`, `pending_office_confirmation`, `delivered_to_office`, `ready_for_pickup`, `ready_for_delivery`, `completed`.
 
-### 2. Update `src/components/admin/DynamicReportsTab.tsx`
+### 2. Simplify `GMVChart.tsx`
+- Remove accumulated GMV line, right Y-axis, `ComposedChart` → simple `BarChart`
+- Change currency from Q (Quetzales) to $ (USD)
+- Remove `accumulatedGmv` computation
+- Header shows total as sum of monthly values in USD
 
-- Import `GMVChart`
-- Add it to the charts grid (after TripsChart, before AvgPackageValueChart), making the grid have 3 charts in the second row
+### 3. Simplify `ServiceFeeGrowthChart.tsx`
+- Remove accumulated revenue line, right Y-axis, `ComposedChart` → simple `BarChart`
+- Keep Q currency (service fees are in Quetzales)
+- Remove `accumulatedRevenue` computation
 
