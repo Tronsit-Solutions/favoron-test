@@ -189,6 +189,8 @@ export const useDashboardState = (user: any) => {
     loadApprovedPayments: async () => {}
   };
 
+  const recentMutationsRef = regularPackagesData.recentMutationsRef;
+
   const {
     trips,
     loading: tripsLoading,
@@ -343,6 +345,8 @@ export const useDashboardState = (user: any) => {
     urlPackageId,
     urlOpenChat,
     urlTripId,
-    clearUrlNavigation
+    clearUrlNavigation,
+    // Mutation tracker for realtime
+    recentMutationsRef
   };
 };

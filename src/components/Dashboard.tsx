@@ -157,7 +157,8 @@ const Dashboard = ({ user }: DashboardProps) => {
     urlPackageId,
     urlOpenChat,
     urlTripId,
-    clearUrlNavigation
+    clearUrlNavigation,
+    recentMutationsRef
   } = useDashboardState({
     ...(profile || user),
     role: userRole?.role || 'user'
@@ -299,7 +300,8 @@ const Dashboard = ({ user }: DashboardProps) => {
       refreshTrips();
     },
     userRole: isAdmin ? 'admin' : (assignedPackages.length > 0 ? 'traveler' : 'shopper'),
-    packages
+    packages,
+    recentMutationsRef
   });
 
   const handleUpdateUser = async (userData: any) => {
