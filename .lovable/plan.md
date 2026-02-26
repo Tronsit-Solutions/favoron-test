@@ -1,16 +1,16 @@
 
 
-## Plan: Simplify Packages Chart to Bar Chart
+## Plan: Clarify Recurrence KPI Card Descriptions
 
-The "Evolución de Solicitudes" chart uses a **stacked AreaChart** with `stackId="1"`, which visually stacks the values on top of each other — making it look like accumulated data instead of monthly counts per status.
+The user finds three cards confusing because the descriptions are truncated and the metrics aren't self-explanatory.
 
-### Fix: Convert to grouped BarChart
+### Changes in `src/components/admin/cac/CACKPICards.tsx` (RecurrenceKPICards):
 
-Replace the stacked `AreaChart` with a grouped `BarChart` so each month shows individual bars for Completados, En Proceso, and Cancelados side by side.
+1. **"Pedidos / Recurrente"** → Change title to **"Pedidos Promedio"** and description to `"Promedio por shopper que repitió"` — clarifies this is the average number of paid orders among shoppers who bought more than once.
 
-### Changes in `src/components/admin/charts/PackagesChart.tsx`:
-- Replace `AreaChart` + `Area` imports with `BarChart` + `Bar`
-- Remove gradient `<defs>` (not needed for bars)
-- Use 3 `<Bar>` components without `stackId` so they render side by side
-- Add `radius={[4,4,0,0]}` for rounded tops
+2. **"Viajeros Recurrentes"** → Change description from `"De {n} activos"` to `"Viajeros con 2+ trips aprobados"` — clarifies what "recurrente" means for travelers.
+
+3. **"Trips / Recurrente"** → Change title to **"Trips Promedio"** and description to `"Promedio por viajero que repitió"` — clarifies this is the average trips among travelers who did more than one.
+
+These are label-only changes in the `cards` array of `RecurrenceKPICards`. No logic changes needed.
 
