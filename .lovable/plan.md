@@ -1,25 +1,17 @@
 
 
-## Plan: Reorganize Personal Info and Banking Info
+## Plan: Add Terms & Conditions and Customs Regulation cards to profile
 
 ### Changes
 
-**1. `src/components/UserProfile.tsx`**
-- Add `"personal"` and `"banking"` to `ActiveSection` type
-- Make the ProfileHeader card clickable → sets `activeSection` to `"personal"`
-- Replace the collapsible "Información Personal" card with showing PersonalInfoDisplay as a full-page section (like history, referrals, etc.) with back button
-- Replace the collapsible "Información Bancaria" card with a `ProfileNavigationCard` in the grid (add `Landmark` icon, "Bancaria" title, "Pagos y cobros" description)
-- Add full-page banking section view (like the others) with back button + BankingInfoDisplay/BankingInfoForm
-- Grid becomes 2x3 (or 3 rows of 2): Historial, Referidos, Ayuda, Notificaciones, Bancaria
-- Remove `personalOpen`, `bankingOpen` state variables (no longer collapsible)
+**File: `src/components/UserProfile.tsx`**
+1. Import `FileText` and `Shield` icons from lucide-react
+2. Import `TermsAndConditionsModal` and add state for it
+3. Add `"customs"` to `ActiveSection` type
+4. Add two new `ProfileNavigationCard` items to the grid:
+   - **Términos y Condiciones** (FileText icon) — opens `TermsAndConditionsModal` on click
+   - **Regulación Aduanera** (Shield icon) — navigates to customs section view
+5. Add customs section full-page view with back button, embedding content from `CustomsRegulation` page (or linking to `/customs-regulation`)
 
-**2. `src/components/profile/ProfileHeader.tsx`**
-- Accept optional `onCardClick` prop
-- Make the Card itself clickable (wrap with onClick or add cursor-pointer + click handler)
-- Keep "Editar Perfil" button with stopPropagation so it still opens the edit modal
-
-### Result
-- Clicking the profile header card → navigates to personal info full-page view
-- Banking info appears as a navigation card in the grid alongside the others
-- Both sections use the same back-button pattern as history, referrals, etc.
+**Customs section view**: Show a card with the key customs regulation info (similar to the existing `/customs-regulation` page content) with a back button.
 
