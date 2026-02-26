@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCachedData } from '@/hooks/useCachedData';
@@ -13,6 +13,9 @@ export const useOptimizedPackagesData = (userId?: string, rates?: { standard: nu
   const { toast } = useToast();
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Track recent local mutations so realtime can skip redundant overwrites
+  const recentMutationsRef = useRef<Record<string, number>>({});
 
   // Memoized query for basic package data
   const fetchBasicPackages = useCallback(async () => {
@@ -307,6 +310,9 @@ export const useOptimizedPackagesData = (userId?: string, rates?: { standard: nu
       if (error) throw error;
       if (!data) throw new Error('Package not found or permission denied');
 
+      // Mark this package as recently mutated locally (skip realtime for 2s)
+      recentMutationsRef.current[id] = Date.now();
+
       // Actualización optimista
       setPackages(prev => prev.map(pkg => (pkg.id === id ? { ...pkg, ...data } : pkg)));
 
@@ -368,6 +374,7 @@ export const useOptimizedPackagesData = (userId?: string, rates?: { standard: nu
     deletePackage,
     refreshPackages: refreshCache,
     setPackages,
-    invalidateCache
+    invalidateCache,
+    recentMutationsRef
   };
 };

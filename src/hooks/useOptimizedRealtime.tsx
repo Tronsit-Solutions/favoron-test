@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, MutableRefObject } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,28 +10,37 @@ interface UseOptimizedRealtimeProps {
   onTripUpdate?: () => void;
   userRole?: 'admin' | 'traveler' | 'shopper';
   packages?: Package[];
+  recentMutationsRef?: MutableRefObject<Record<string, number>>;
 }
+
+// Safe merge: apply realtime payload but preserve joined relations
+const mergePackagePayload = (existing: any, payloadNew: any): any => ({
+  ...existing,
+  ...payloadNew,
+  // Realtime never includes joined data — preserve what we already have
+  profiles: (existing as any).profiles,
+  trips: (existing as any).trips,
+});
 
 export const useOptimizedRealtime = ({ 
   onPackageUpdate, 
   onTripUpdate, 
   userRole,
-  packages = []
+  packages = [],
+  recentMutationsRef
 }: UseOptimizedRealtimeProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { shouldPreventRefresh } = useModalProtection();
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
-  const isPageVisibleRef = useRef(true);
   const updateQueueRef = useRef<Array<{ type: 'package' | 'trip', payload?: any }>>([]);
 
-  // Visibility tracking disabled to prevent auto-refresh on tab changes
-  // isPageVisibleRef always remains true to prevent tab-based auto-refreshes
+  // Keep a fresh ref to packages so closures always see latest
+  const packagesRef = useRef(packages);
+  packagesRef.current = packages;
 
   // Optimized notification handler
   const handleNotification = useCallback((payload: any) => {
-    // Show notifications regardless of tab visibility to prevent auto-refresh behavior
-
     const { eventType, new: newRecord, old: oldRecord } = payload;
     
     if (eventType === 'INSERT' && newRecord?.user_id !== user?.id) {
@@ -42,7 +51,6 @@ export const useOptimizedRealtime = ({
         });
       }
     } else if (eventType === 'UPDATE' && newRecord?.user_id !== user?.id) {
-      // Check for document uploads
       const documentUploaded = (
         (newRecord.purchase_confirmation && !oldRecord?.purchase_confirmation) ||
         (newRecord.tracking_info && !oldRecord?.tracking_info) ||
@@ -63,21 +71,36 @@ export const useOptimizedRealtime = ({
     }
   }, [toast, user?.id, userRole]);
 
+  // Check if a package was recently mutated locally (within 2s)
+  const wasRecentlyMutatedLocally = useCallback((packageId: string): boolean => {
+    if (!recentMutationsRef?.current) return false;
+    const mutatedAt = recentMutationsRef.current[packageId];
+    if (!mutatedAt) return false;
+    const elapsed = Date.now() - mutatedAt;
+    if (elapsed < 2000) return true;
+    // Clean up expired entry
+    delete recentMutationsRef.current[packageId];
+    return false;
+  }, [recentMutationsRef]);
+
   // Process queued updates when modals are closed
   const processUpdateQueue = useCallback(() => {
     if (updateQueueRef.current.length === 0) return;
     
     const queuedUpdates = [...updateQueueRef.current];
     updateQueueRef.current = [];
+    const currentPackages = packagesRef.current;
     
     queuedUpdates.forEach(({ type, payload }) => {
       if (type === 'package' && onPackageUpdate && payload?.new) {
-        console.log('🔄 Processing queued package update:', payload.new.id);
-        const updatedPackages = [...packages];
-        const existingIndex = packages.findIndex(pkg => pkg.id === payload.new.id);
+        // Skip if recently mutated locally
+        if (wasRecentlyMutatedLocally(payload.new.id)) return;
+
+        const updatedPackages = [...currentPackages];
+        const existingIndex = currentPackages.findIndex(pkg => pkg.id === payload.new.id);
         
         if (existingIndex >= 0) {
-          updatedPackages[existingIndex] = { ...updatedPackages[existingIndex], ...payload.new };
+          updatedPackages[existingIndex] = mergePackagePayload(updatedPackages[existingIndex], payload.new);
         } else {
           updatedPackages.unshift(payload.new);
         }
@@ -86,7 +109,7 @@ export const useOptimizedRealtime = ({
         onTripUpdate();
       }
     });
-  }, [onPackageUpdate, onTripUpdate, packages]);
+  }, [onPackageUpdate, onTripUpdate, wasRecentlyMutatedLocally]);
 
   // Debounced callback execution with modal protection
   const debouncedCallback = useCallback((updateType: 'package' | 'trip', payload?: any) => {
@@ -94,55 +117,50 @@ export const useOptimizedRealtime = ({
       clearTimeout(debounceTimeoutRef.current);
     }
 
-    // Check if this is a critical update that should bypass modal protection
     const isCriticalUpdate = payload?.new && (
-      // Payment receipt uploaded
       (payload.new.payment_receipt && !payload.old?.payment_receipt) ||
-      // Status changed to payment_pending_approval (payment uploaded)
       (payload.new.status === 'payment_pending_approval' && payload.old?.status === 'payment_pending') ||
-      // Other critical status changes
       (payload.new.status !== payload.old?.status && ['in_transit', 'delivered'].includes(payload.new.status))
     );
 
     debounceTimeoutRef.current = setTimeout(() => {
-      // If modals are open but this isn't a critical update, queue it
       if (shouldPreventRefresh() && !isCriticalUpdate) {
-        console.log('🔄 Queueing non-critical update due to open modals');
         updateQueueRef.current.push({ type: updateType, payload });
         return;
       }
 
       if (updateType === 'package' && onPackageUpdate) {
-        // Instead of refetching all data, update the specific package
         if (payload?.new) {
-          console.log('🔄 Real-time package update received:', payload.new.id, 'Critical:', isCriticalUpdate);
-          const updatedPackages = [...packages];
-          const existingIndex = packages.findIndex(pkg => pkg.id === payload.new.id);
+          // Skip if this user just mutated this package locally
+          if (wasRecentlyMutatedLocally(payload.new.id)) {
+            console.log('⏭️ Skipping realtime overwrite for recently mutated package:', payload.new.id);
+            return;
+          }
+
+          const currentPackages = packagesRef.current;
+          const updatedPackages = [...currentPackages];
+          const existingIndex = currentPackages.findIndex(pkg => pkg.id === payload.new.id);
           
           if (existingIndex >= 0) {
-            // Update existing package
-            updatedPackages[existingIndex] = { ...updatedPackages[existingIndex], ...payload.new };
+            updatedPackages[existingIndex] = mergePackagePayload(updatedPackages[existingIndex], payload.new);
           } else {
-            // Add new package at the beginning (most recent first)
             updatedPackages.unshift(payload.new);
           }
-          console.log('✅ Updating packages list with new data');
           onPackageUpdate(updatedPackages);
         }
       } else if (updateType === 'trip' && onTripUpdate) {
         onTripUpdate();
       }
-    }, isCriticalUpdate ? 100 : 150); // Faster updates for critical changes
-  }, [onPackageUpdate, onTripUpdate, packages, shouldPreventRefresh]);
+    }, isCriticalUpdate ? 100 : 150);
+  }, [onPackageUpdate, onTripUpdate, shouldPreventRefresh, wasRecentlyMutatedLocally]);
 
-  // Expose function to process queued updates
+  // Process queued updates periodically
   useEffect(() => {
     const interval = setInterval(() => {
       if (!shouldPreventRefresh()) {
         processUpdateQueue();
       }
     }, 1000);
-
     return () => clearInterval(interval);
   }, [processUpdateQueue, shouldPreventRefresh]);
 
@@ -153,11 +171,7 @@ export const useOptimizedRealtime = ({
       .channel('optimized-realtime')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'packages'
-        },
+        { event: '*', schema: 'public', table: 'packages' },
         (payload) => {
           handleNotification(payload);
           debouncedCallback('package', payload);
@@ -165,11 +179,7 @@ export const useOptimizedRealtime = ({
       )
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'trips'
-        },
+        { event: '*', schema: 'public', table: 'trips' },
         (payload) => {
           debouncedCallback('trip', payload);
         }
