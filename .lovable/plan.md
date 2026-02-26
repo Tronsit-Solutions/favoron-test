@@ -1,13 +1,10 @@
 
 
-## Plan: Remove hover highlight from profile cards
+## Plan: Remove Terms & Regulation from dashboard dropdown menu
 
-### Changes
+**File: `src/components/dashboard/DashboardHeader.tsx`**
+- Remove lines 207-214: the two `DropdownMenuItem` entries for "Términos y Condiciones" and "Regulación Aduanera"
+- Clean up unused imports (`FileText`, `Shield`) and handler functions (`handleTermsClick`, `handleRegulationClick`) if they become unused
 
-**1. `src/components/profile/ProfileHeader.tsx` (line 22)**
-- Remove `hover:bg-accent/50` from the Card className so there's no orange/accent background on hover.
-
-**2. `src/components/profile/ProfileNavigationCard.tsx` (line 27)**
-- Remove `hover:bg-accent/50 hover:shadow-sm` from the button className so the navigation cards don't highlight on hover either.
-- Keep `active:scale-[0.98]` for press feedback.
+These items are already accessible from the user profile, so removing them from the dropdown declutters the menu.
 
