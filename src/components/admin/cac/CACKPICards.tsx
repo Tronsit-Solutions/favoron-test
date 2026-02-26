@@ -324,9 +324,9 @@ export const RecurrenceKPICards = ({ kpis }: RecurrenceKPICardsProps) => {
       bgColor: "bg-amber-500/10",
     },
     {
-      title: "Pedidos / Recurrente",
+      title: "Pedidos Promedio",
       value: kpis.avgOrdersPerRepeatShopper.toFixed(1),
-      description: "Promedio de pedidos pagados",
+      description: "Promedio por shopper que repitió",
       icon: Hash,
       color: "text-amber-700",
       bgColor: "bg-amber-500/10",
@@ -334,7 +334,7 @@ export const RecurrenceKPICards = ({ kpis }: RecurrenceKPICardsProps) => {
     {
       title: "Viajeros Recurrentes",
       value: `${kpis.repeatTravelers} (${formatPercent(kpis.travelerRepeatRate)})`,
-      description: `De ${kpis.totalActiveTravelers} activos`,
+      description: "Viajeros con 2+ trips aprobados",
       icon: Repeat,
       color: "text-orange-600",
       bgColor: "bg-orange-500/10",
@@ -348,9 +348,9 @@ export const RecurrenceKPICards = ({ kpis }: RecurrenceKPICardsProps) => {
       bgColor: "bg-orange-500/10",
     },
     {
-      title: "Trips / Recurrente",
+      title: "Trips Promedio",
       value: kpis.avgTripsPerRepeatTraveler.toFixed(1),
-      description: "Promedio de trips aprobados",
+      description: "Promedio por viajero que repitió",
       icon: Hash,
       color: "text-orange-700",
       bgColor: "bg-orange-500/10",
