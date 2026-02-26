@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, Gift, HelpCircle, Bell, Wallet, ArrowLeft, Landmark, FileText, Shield } from "lucide-react";
+import { Package, Gift, HelpCircle, Bell, Wallet, ArrowLeft, Landmark, FileText, Shield, Sparkles } from "lucide-react";
 import TermsAndConditionsModal from "./TermsAndConditionsModal";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertTriangle } from "lucide-react";
@@ -18,6 +18,7 @@ import ProfileNavigationCard from "./profile/ProfileNavigationCard";
 import ProfileHistorySection from "./profile/ProfileHistorySection";
 import ProfileNotificationsSection from "./profile/ProfileNotificationsSection";
 import ProfileHelpSection from "./profile/ProfileHelpSection";
+import PrimeModal from "./PrimeModal";
 
 interface UserProfileProps {
   user: any;
@@ -32,6 +33,7 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
   const [activeSection, setActiveSection] = useState<ActiveSection>(null);
   const [isBankingEditing, setIsBankingEditing] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrimeModal, setShowPrimeModal] = useState(false);
   const { toast } = useToast();
   const { balance, loading: referralsLoading } = useReferrals();
 
@@ -376,11 +378,18 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
           description="Regulación aduanera"
           onClick={() => toggleSection("customs")}
         />
+        <ProfileNavigationCard
+          icon={Sparkles}
+          title="Favorón Prime"
+          description="Beneficios exclusivos"
+          onClick={() => setShowPrimeModal(true)}
+        />
       </div>
 
       
 
       <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
+      <PrimeModal isOpen={showPrimeModal} onClose={() => setShowPrimeModal(false)} user={user} />
     </div>
   );
 };
