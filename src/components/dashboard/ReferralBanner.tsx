@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Gift, Copy, CheckCircle } from "lucide-react";
@@ -47,36 +46,46 @@ const ReferralBanner = () => {
 
 
   return (
-    <Card className="border bg-gradient-to-r from-primary/5 to-purple-50 dark:from-primary/10 dark:to-purple-950/20">
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          {/* Text section */}
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center gap-2">
-              <Gift className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-base">Invita amigos y gana recompensas</h3>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Comparte tu código y ambos ganan: <strong>Q{rewardAmount}</strong> para ti, <strong>Q{discountAmount}</strong> de descuento para tu amigo
-            </p>
-            {completedCount > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                {completedCount} referido{completedCount > 1 ? 's' : ''} completado{completedCount > 1 ? 's' : ''}
-              </Badge>
-            )}
+    <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600 h-full shadow-lg">
+      {/* Decorative handshake image */}
+      <img
+        src="/images/handshake.jpg"
+        alt=""
+        className="absolute right-0 top-0 h-full w-1/3 object-cover opacity-15 hidden sm:block"
+      />
+      <div className="relative z-10 p-4 sm:p-6 flex flex-col justify-between h-full gap-3">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Gift className="h-5 w-5 text-white" />
+            <h3 className="font-bold text-base text-white">Invita amigos y gana recompensas</h3>
           </div>
-
-          {/* Action */}
-          <div className="sm:min-w-[160px]">
-            <Button variant="outline" size="sm" onClick={handleCopy} className="text-xs w-full">
-              <Copy className="h-3 w-3 mr-1" />
-              Copiar link
-            </Button>
-          </div>
+          <p className="text-sm text-white/90">
+            Comparte tu código y ambos ganan:{" "}
+            <span className="inline-block bg-yellow-300 text-yellow-900 font-bold px-2 py-0.5 rounded-full text-xs">Q{rewardAmount}</span>{" "}
+            para ti,{" "}
+            <span className="inline-block bg-white/90 text-purple-700 font-bold px-2 py-0.5 rounded-full text-xs">Q{discountAmount}</span>{" "}
+            de descuento para tu amigo
+          </p>
+          {completedCount > 0 && (
+            <Badge className="bg-white/20 text-white border-white/30 text-xs backdrop-blur-sm">
+              <CheckCircle className="h-3 w-3 mr-1" />
+              {completedCount} referido{completedCount > 1 ? 's' : ''} completado{completedCount > 1 ? 's' : ''}
+            </Badge>
+          )}
         </div>
-      </CardContent>
-    </Card>
+
+        <div>
+          <Button
+            size="sm"
+            onClick={handleCopy}
+            className="bg-white text-purple-700 hover:bg-white/90 text-xs font-semibold w-full sm:w-auto shadow-md"
+          >
+            <Copy className="h-3 w-3 mr-1" />
+            Copiar link de referido
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
 
