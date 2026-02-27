@@ -67,16 +67,8 @@ const ReferralBanner = () => {
             )}
           </div>
 
-          {/* Code + Actions */}
-          <div className="flex flex-col gap-2 sm:min-w-[220px]">
-            <div className="flex items-center gap-2">
-              <code className="flex-1 rounded-md bg-muted px-3 py-2 text-sm font-mono text-center">
-                {referralCode}
-              </code>
-              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={handleCopy}>
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
+          {/* Action */}
+          <div className="sm:min-w-[160px]">
             <Button variant="outline" size="sm" onClick={handleCopy} className="text-xs w-full">
               <Copy className="h-3 w-3 mr-1" />
               Copiar link
