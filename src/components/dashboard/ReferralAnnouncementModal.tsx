@@ -100,7 +100,7 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">
                 <span className="text-sm font-semibold text-white">
-                  {currentSlide === 0 ? "Programa de Referidos" : "Comparte y gana"}
+                  {currentSlide === 0 ? "¡Nuevo!" : "Comparte y gana"}
                 </span>
               </div>
             </div>
@@ -121,11 +121,10 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
               /* Slide 1 - Intro */
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold text-foreground tracking-tight">
-                  Gana Q{rewardAmount} por cada amigo
+                  Programa de Referidos
                 </h2>
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  Invita a tus amigos a usar Favoron. Cada vez que uno complete su primer envío, 
-                  tú recibes <span className="font-semibold text-foreground">Q{rewardAmount}</span> de recompensa.
+                  Ahora puedes ganar recompensas invitando a tus amigos a usar Favoron. ¡Es fácil y rápido!
                 </p>
               </div>
             ) : (
