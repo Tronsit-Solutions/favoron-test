@@ -41,7 +41,7 @@ const QuickActions = ({ onShowPackageForm, onShowTripForm }: QuickActionsProps) 
             </CardTitle>
           </div>
           <CardDescription className="text-sm">
-            ¿Viajas a Guatemala? Ayuda a otros y gana dinero
+            ¿Viajas? Ayuda a otros y gana dinero
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
