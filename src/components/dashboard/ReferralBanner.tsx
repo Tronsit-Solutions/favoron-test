@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Gift, Copy, CheckCircle } from "lucide-react";
+import { Gift, Copy, CheckCircle, Handshake } from "lucide-react";
 import { useReferrals } from "@/hooks/useReferrals";
 import { useToast } from "@/hooks/use-toast";
 import { APP_URL } from "@/lib/constants";
@@ -46,38 +46,38 @@ const ReferralBanner = () => {
   };
 
   return (
-    <div className="rounded-2xl border border-border bg-card h-full shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-      {/* Top accent bar */}
-      <div className="h-1.5 bg-gradient-to-r from-rose-500 to-pink-600" />
+    <div className="rounded-2xl bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 h-full shadow-sm hover:shadow-md transition-shadow overflow-hidden relative">
+      {/* Decorative handshake */}
+      <Handshake className="absolute bottom-2 right-3 h-20 w-20 text-white/10" strokeWidth={1.5} />
       
-      <div className="p-4 sm:p-5 flex flex-col justify-between h-[calc(100%-6px)] gap-3">
+      <div className="p-4 sm:p-5 flex flex-col justify-between h-full gap-3 relative z-10">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center flex-shrink-0">
-              <Gift className="h-5 w-5 text-rose-500" />
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+              <Gift className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-foreground leading-tight">
-                Invita amigos, gana Q{rewardAmount}
+              <h3 className="font-bold text-base text-white leading-tight">
+                Invita amigos, gana <span className="bg-white/20 rounded-full px-2 py-0.5">Q{rewardAmount}</span>
               </h3>
               {completedCount > 0 && (
-                <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                  <CheckCircle className="h-3 w-3 text-emerald-500" />
+                <span className="text-xs text-white/80 flex items-center gap-1 mt-0.5">
+                  <CheckCircle className="h-3 w-3 text-white" />
                   {completedCount} referido{completedCount > 1 ? 's' : ''}
                 </span>
               )}
             </div>
           </div>
           
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Tu amigo recibe <span className="font-semibold text-foreground">Q{discountAmount}</span> de descuento y tú ganas <span className="font-semibold text-foreground">Q{rewardAmount}</span>.
+          <p className="text-sm text-white/80 leading-relaxed">
+            Tu amigo recibe <span className="font-semibold bg-white/20 rounded-full px-2 py-0.5 text-white">Q{discountAmount}</span> de descuento y tú ganas <span className="font-semibold bg-white/20 rounded-full px-2 py-0.5 text-white">Q{rewardAmount}</span>.
           </p>
         </div>
 
         <Button
           size="sm"
           onClick={handleCopy}
-          className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white text-xs font-semibold w-full sm:w-auto rounded-xl shadow-sm"
+          className="bg-white text-pink-600 hover:bg-white/90 text-xs font-semibold w-full sm:w-auto rounded-xl shadow-sm"
         >
           {copied ? (
             <>
