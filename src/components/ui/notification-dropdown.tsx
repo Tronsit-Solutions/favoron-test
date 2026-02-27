@@ -26,7 +26,7 @@ const getNotificationIcon = (type: Notification['type']) => {
     case 'payment':
       return <CreditCard className="h-4 w-4 text-green-500" />;
     case 'approval':
-      return <AlertCircle className="h-4 w-4 text-orange-500" />;
+      return <CheckCircle className="h-4 w-4 text-green-500" />;
     case 'quote':
       return <Clock className="h-4 w-4 text-purple-500" />;
     case 'trip':
