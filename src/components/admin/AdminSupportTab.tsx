@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, AlertTriangle, Eye, Package, User, Phone, Mail, Hash, Loader2, RefreshCcw, Settings, Database, CheckCircle } from "lucide-react";
+import { Search, AlertTriangle, Eye, Package, User, Phone, Mail, Hash, Loader2, RefreshCcw, Settings, Database, CheckCircle, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -59,6 +59,7 @@ const AdminSupportTab = ({
   const [errorSearch, setErrorSearch] = useState("");
   const [routeFilter, setRouteFilter] = useState("");
   const [severity, setSeverity] = useState<string>("");
+  const [errorsSubTab, setErrorsSubTab] = useState("user_reports");
   
   const { user } = useAuth();
 
@@ -128,6 +129,9 @@ const AdminSupportTab = ({
     const matchesSeverity = severity ? (e.severity || '').toLowerCase() === severity.toLowerCase() : true;
     return matchesSearch && matchesRoute && matchesSeverity;
   });
+
+  const userReports = filteredErrors.filter(e => e.type === 'user_report');
+  const systemErrors = filteredErrors.filter(e => e.type !== 'user_report');
 
   // Search function
   const performSearch = async () => {
@@ -777,83 +781,174 @@ const AdminSupportTab = ({
                 </Button>
               </div>
 
-              <div className="text-sm text-muted-foreground">
-                Mostrando {filteredErrors.length} de {errors.length} registros
-              </div>
+              <Tabs value={errorsSubTab} onValueChange={setErrorsSubTab}>
+                <TabsList>
+                  <TabsTrigger value="user_reports" className="gap-1.5">
+                    <MessageSquare className="h-4 w-4" />
+                    Reportes de Usuarios
+                    {userReports.length > 0 && (
+                      <Badge variant="destructive" className="ml-1 text-xs px-1.5 py-0">{userReports.length}</Badge>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger value="system_errors" className="gap-1.5">
+                    <AlertTriangle className="h-4 w-4" />
+                    Errores del Sistema
+                    {systemErrors.length > 0 && (
+                      <Badge variant="secondary" className="ml-1 text-xs px-1.5 py-0">{systemErrors.length}</Badge>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
 
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[160px]">Fecha</TableHead>
-                      <TableHead>Mensaje</TableHead>
-                      <TableHead>Ruta</TableHead>
-                      <TableHead>Severidad</TableHead>
-                      <TableHead>Usuario</TableHead>
-                      <TableHead>Navegador</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {errorsLoading ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                          <Loader2 className="h-4 w-4 inline mr-2 animate-spin" /> Cargando...
-                        </TableCell>
-                      </TableRow>
-                    ) : filteredErrors.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                          No hay errores que coincidan con tu búsqueda.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredErrors.map((e) => {
-                        const ua = typeof e.browser === 'object' && e.browser?.userAgent ? String(e.browser.userAgent) : '';
-                        const shortMsg = e.message?.slice(0, 120) || '';
-                        return (
-                          <TableRow key={e.id}>
-                            <TableCell className="align-top whitespace-nowrap">{formatDate(e.created_at)}</TableCell>
-                            <TableCell className="align-top">
-                              <div className="font-medium">{shortMsg}{e.message && e.message.length > 120 ? '…' : ''}</div>
-                              {e.stack && (
-                                <pre className="mt-1 text-xs max-h-28 overflow-auto whitespace-pre-wrap text-muted-foreground">
-                                  {e.stack}
-                                </pre>
-                              )}
-                            </TableCell>
-                            <TableCell className="align-top">
-                              <div>{e.route || '-'}</div>
-                              <div className="text-xs text-muted-foreground truncate max-w-[240px]">{e.url || ''}</div>
-                            </TableCell>
-                            <TableCell className="align-top">
-                              <Badge variant={severityColor(e.severity)}>{e.severity || 'info'}</Badge>
-                            </TableCell>
-                            <TableCell className="align-top text-xs">
-                              {e.user_id ? (
-                                <div>
-                                  {e.profiles?.first_name && e.profiles?.last_name ? (
-                                    <div className="font-medium">
-                                      {e.profiles.first_name} {e.profiles.last_name}
-                                    </div>
-                                  ) : null}
-                                  <span className="font-mono text-muted-foreground">
-                                    {e.user_id.slice(0,8)}…
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="text-muted-foreground">anónimo</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="align-top text-xs">
-                              {ua ? ua.slice(0,80) + (ua.length > 80 ? '…' : '') : '-'}
+                <TabsContent value="user_reports">
+                  <div className="text-sm text-muted-foreground mb-2">
+                    Mostrando {userReports.length} reportes de usuarios
+                  </div>
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[160px]">Fecha</TableHead>
+                          <TableHead>Mensaje del usuario</TableHead>
+                          <TableHead>Sección</TableHead>
+                          <TableHead>Ruta</TableHead>
+                          <TableHead>Usuario</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {errorsLoading ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                              <Loader2 className="h-4 w-4 inline mr-2 animate-spin" /> Cargando...
                             </TableCell>
                           </TableRow>
-                        );
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                        ) : userReports.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                              No hay reportes de usuarios.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          userReports.map((e) => {
+                            const ctx = typeof e.context === 'object' && e.context ? e.context as any : {};
+                            return (
+                              <TableRow key={e.id}>
+                                <TableCell className="align-top whitespace-nowrap">{formatDate(e.created_at)}</TableCell>
+                                <TableCell className="align-top">
+                                  <div className="font-medium text-foreground">{e.message}</div>
+                                  {ctx.hasScreenshot && (
+                                    <Badge variant="outline" className="mt-1 text-xs">📷 Con screenshot</Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell className="align-top">
+                                  <Badge variant="secondary">{ctx.section || 'General'}</Badge>
+                                </TableCell>
+                                <TableCell className="align-top">
+                                  <div>{e.route || '-'}</div>
+                                </TableCell>
+                                <TableCell className="align-top text-xs">
+                                  {e.user_id ? (
+                                    <div>
+                                      {e.profiles?.first_name && e.profiles?.last_name ? (
+                                        <div className="font-medium">
+                                          {e.profiles.first_name} {e.profiles.last_name}
+                                        </div>
+                                      ) : null}
+                                      <span className="font-mono text-muted-foreground">
+                                        {e.user_id.slice(0,8)}…
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-muted-foreground">anónimo</span>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="system_errors">
+                  <div className="text-sm text-muted-foreground mb-2">
+                    Mostrando {systemErrors.length} errores del sistema
+                  </div>
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[160px]">Fecha</TableHead>
+                          <TableHead>Mensaje</TableHead>
+                          <TableHead>Ruta</TableHead>
+                          <TableHead>Severidad</TableHead>
+                          <TableHead>Usuario</TableHead>
+                          <TableHead>Navegador</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {errorsLoading ? (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                              <Loader2 className="h-4 w-4 inline mr-2 animate-spin" /> Cargando...
+                            </TableCell>
+                          </TableRow>
+                        ) : systemErrors.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                              No hay errores del sistema.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          systemErrors.map((e) => {
+                            const ua = typeof e.browser === 'object' && e.browser?.userAgent ? String(e.browser.userAgent) : '';
+                            const shortMsg = e.message?.slice(0, 120) || '';
+                            return (
+                              <TableRow key={e.id}>
+                                <TableCell className="align-top whitespace-nowrap">{formatDate(e.created_at)}</TableCell>
+                                <TableCell className="align-top">
+                                  <div className="font-medium">{shortMsg}{e.message && e.message.length > 120 ? '…' : ''}</div>
+                                  {e.stack && (
+                                    <pre className="mt-1 text-xs max-h-28 overflow-auto whitespace-pre-wrap text-muted-foreground">
+                                      {e.stack}
+                                    </pre>
+                                  )}
+                                </TableCell>
+                                <TableCell className="align-top">
+                                  <div>{e.route || '-'}</div>
+                                  <div className="text-xs text-muted-foreground truncate max-w-[240px]">{e.url || ''}</div>
+                                </TableCell>
+                                <TableCell className="align-top">
+                                  <Badge variant={severityColor(e.severity)}>{e.severity || 'info'}</Badge>
+                                </TableCell>
+                                <TableCell className="align-top text-xs">
+                                  {e.user_id ? (
+                                    <div>
+                                      {e.profiles?.first_name && e.profiles?.last_name ? (
+                                        <div className="font-medium">
+                                          {e.profiles.first_name} {e.profiles.last_name}
+                                        </div>
+                                      ) : null}
+                                      <span className="font-mono text-muted-foreground">
+                                        {e.user_id.slice(0,8)}…
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-muted-foreground">anónimo</span>
+                                  )}
+                                </TableCell>
+                                <TableCell className="align-top text-xs">
+                                  {ua ? ua.slice(0,80) + (ua.length > 80 ? '…' : '') : '-'}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </TabsContent>
