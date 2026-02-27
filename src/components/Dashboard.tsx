@@ -597,10 +597,12 @@ const Dashboard = ({ user }: DashboardProps) => {
               onShowPackageForm={() => navigateToForm('package')}
               onShowTripForm={() => navigateToForm('trip')}
             />
-            <AvailableTripsCard 
-              onViewTrips={() => setShowAvailableTripsModal(true)}
-            />
-            <ReferralBanner />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <AvailableTripsCard 
+                onViewTrips={() => setShowAvailableTripsModal(true)}
+              />
+              <ReferralBanner />
+            </div>
           </TabsContent>
 
           <TabsContent value="packages" className="space-y-4 sm:space-y-6 min-w-0 w-full max-w-full overflow-x-hidden px-0 sm:px-2">
