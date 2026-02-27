@@ -6,6 +6,7 @@ import { useSwipeable } from "react-swipeable";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 interface ReferralAnnouncementModalProps {
@@ -20,6 +21,7 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
   const [copied, setCopied] = useState(false);
   const { profile } = useAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const referralCode = (profile as any)?.referral_code;
   const referralLink = referralCode
@@ -138,22 +140,34 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="p-0 gap-0 max-w-sm overflow-hidden rounded-2xl border-0 [&>button]:hidden">
-        <div {...swipeHandlers} className="select-none">
+      <DialogContent className={cn(
+        "p-0 gap-0 overflow-hidden border-0 [&>button]:hidden",
+        isMobile
+          ? "fixed inset-0 w-full h-full max-w-none max-h-none rounded-none translate-x-0 translate-y-0 left-0 top-0"
+          : "max-w-sm rounded-2xl"
+      )}>
+        <div {...swipeHandlers} className={cn("select-none", isMobile && "flex flex-col h-full")}>
           {/* Top gradient section */}
           <div
             className={cn(
-              "bg-gradient-to-br flex flex-col items-center justify-center py-10 px-6 min-h-[220px] transition-all duration-500",
-              slide.gradient
+              "bg-gradient-to-br flex flex-col items-center justify-center px-6 transition-all duration-500",
+              slide.gradient,
+              isMobile ? "flex-1 min-h-[55vh] py-14" : "py-10 min-h-[220px]"
             )}
           >
-            {slide.icon && <div className="mb-3 animate-in fade-in zoom-in duration-500">{slide.icon}</div>}
-            {slide.custom && <div className="w-full animate-in fade-in slide-in-from-right-4 duration-500">{slide.custom}</div>}
+            {slide.icon && (
+              <div className="mb-3 animate-in fade-in zoom-in duration-500">
+                {isMobile
+                  ? <slide.icon.type className="h-24 w-24 text-white" />
+                  : slide.icon}
+              </div>
+            )}
+            {slide.custom && <div className={cn("w-full animate-in fade-in slide-in-from-right-4 duration-500", isMobile && "px-4")}>{slide.custom}</div>}
           </div>
 
           {/* Bottom white section */}
-          <div className="bg-background p-6 text-center space-y-4">
-            <h2 className="text-xl font-bold text-foreground">{slide.title}</h2>
+          <div className={cn("bg-background text-center space-y-4", isMobile ? "p-8 mt-auto" : "p-6")}>
+            <h2 className={cn("font-bold text-foreground", isMobile ? "text-2xl" : "text-xl")}>{slide.title}</h2>
             {slide.description && (
               <p className="text-sm text-muted-foreground leading-relaxed">{slide.description}</p>
             )}
