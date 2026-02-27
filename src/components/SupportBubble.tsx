@@ -41,7 +41,7 @@ const faqs = [
   },
 ];
 
-const WHATSAPP_URL = "https://wa.me/50230616015?text=Hola%2C%20necesito%20ayuda%20con%20Favoron";
+const WHATSAPP_URL = "https://wa.me/message/CPETP3K4EKYXL1";
 
 const EDGE_URL = "https://dfhoduirmqbarjnspbdh.supabase.co/functions/v1/log-client-error";
 

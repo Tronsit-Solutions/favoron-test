@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { chatbotFlows, ROOT_NODE_ID, type ChatbotNode } from "@/lib/chatbotFlows";
 
-const WHATSAPP_URL = "https://wa.me/50230616015?text=Hola%2C%20necesito%20ayuda%20con%20Favoron";
+const WHATSAPP_URL = "https://wa.me/message/CPETP3K4EKYXL1";
 
 interface ChatMessage {
   from: "bot" | "user";
