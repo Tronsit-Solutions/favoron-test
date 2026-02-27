@@ -541,9 +541,6 @@ const Dashboard = ({ user }: DashboardProps) => {
                 </span>
               )}
             </h2>
-            <p className="text-muted-foreground text-sm sm:text-base">
-              Gestiona tus Favorones y viajes desde aquí
-            </p>
           </div>
         )}
 
