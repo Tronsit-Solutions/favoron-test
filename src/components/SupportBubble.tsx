@@ -186,10 +186,11 @@ const SupportBubble: React.FC = () => {
           "fixed z-50 bg-card border border-border shadow-xl",
           "transition-all duration-200",
           // Desktop: floating panel
-          "sm:right-10 sm:top-1/2 sm:-translate-y-1/2 sm:w-[320px] sm:rounded-2xl sm:origin-right",
+          "sm:right-10 sm:top-1/2 sm:-translate-y-1/2 sm:w-[320px] sm:h-[480px] sm:max-h-[70vh] sm:rounded-2xl sm:origin-right",
           // Mobile: bottom sheet
           "max-sm:inset-x-0 max-sm:bottom-0 max-sm:w-full max-sm:max-h-[85vh] max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:origin-bottom",
-          isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none"
+          isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none",
+          "flex flex-col"
         )}
       >
         {/* Header */}
@@ -314,8 +315,8 @@ const SupportBubble: React.FC = () => {
 
         {/* Customer service view */}
         {view === "customer-service" && (
-          <>
-            <ScrollArea className="max-h-[300px] max-sm:max-h-[calc(85vh-57px-72px)]">
+          <div className="flex flex-col flex-1 min-h-0">
+            <ScrollArea className="flex-1">
               <div className="p-4">
                 <p className="text-xs text-muted-foreground mb-3">Preguntas frecuentes</p>
                 <Accordion type="single" collapsible className="space-y-0">
@@ -332,7 +333,7 @@ const SupportBubble: React.FC = () => {
                 </Accordion>
               </div>
             </ScrollArea>
-            <div className="p-4 border-t border-border">
+            <div className="p-4 border-t border-border shrink-0">
               <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white">
                 <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
                   <MessageCircle className="h-4 w-4" />
@@ -340,7 +341,7 @@ const SupportBubble: React.FC = () => {
                 </a>
               </Button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </>
