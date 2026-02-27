@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Gift, Copy, CheckCircle, X, ArrowRight, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { APP_URL } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -28,7 +29,10 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
 
   const referralCode = (profile as any)?.referral_code;
   const referralLink = referralCode
-    ? `${window.location.origin}/?ref=${referralCode}`
+    ? `${APP_URL}/?ref=${referralCode}`
+    : "";
+  const shareMessage = referralLink
+    ? `¡Únete a Favorón con mi link de referido y recibe un descuento de Q${discountAmount} en tu primer pedido! ${referralLink}`
     : "";
 
   useEffect(() => {
@@ -65,7 +69,7 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
   const handleCopy = async () => {
     if (!referralLink) return;
     try {
-      await navigator.clipboard.writeText(referralLink);
+      await navigator.clipboard.writeText(shareMessage);
       setCopied(true);
       toast({ title: "¡Link copiado!", description: "Compártelo con tus amigos" });
       setTimeout(() => setCopied(false), 2000);
