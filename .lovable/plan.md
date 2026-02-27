@@ -1,43 +1,18 @@
 
 
-## Problem Analysis
+## Problem
+The support panel on mobile is positioned with `right-10 top-1/2 -translate-y-1/2` and `w-[calc(100vw-48px)]`, which causes it to float awkwardly — partially overlapping content, not fully visible, and hard to interact with on small screens.
 
-The core issue: When a user (shopper or admin) makes a change (upload document, change status, etc.), the **optimistic update** in `updatePackage` (line 311 of `useOptimizedPackagesData.tsx`) works correctly. However, **milliseconds later**, the Supabase realtime subscription fires in `useOptimizedRealtime.tsx` and overwrites the local state with `payload.new` — which is **raw table data without joined relations** (`profiles`, `trips`). This causes the UI to break or show incomplete data until a hard refresh re-fetches everything with joins.
+## Solution
+On mobile (`max-sm`), make the panel full-screen or near-full-screen as a bottom sheet style, properly contained and scrollable.
 
-Additionally, the `useOptimizedRealtime` handler uses a stale `packages` closure reference, so incremental merges can lose data.
+### Changes in `src/components/SupportBubble.tsx`
 
-## Solution: Fix realtime handler to preserve joined data + skip self-mutations
+1. **Panel positioning on mobile**: Change from centered floating panel to a bottom-anchored, full-width overlay on small screens:
+   - Mobile: `fixed inset-x-0 bottom-0 w-full max-h-[85vh] rounded-t-2xl rounded-b-none`
+   - Desktop: keep current `right-10 top-1/2 -translate-y-1/2 w-[320px] rounded-2xl`
 
-### Changes in `src/hooks/useOptimizedRealtime.tsx`
+2. **Add backdrop overlay on mobile** when panel is open (semi-transparent background) for better focus.
 
-1. **Skip own mutations**: Track a "last mutation timestamp" via a ref. When `updatePackage` fires, set a flag. When realtime fires within ~2 seconds for the same package ID from the same user, skip the realtime overwrite — the optimistic update already has better data.
-
-2. **Preserve joined relations on merge**: When merging `payload.new` into an existing package, explicitly preserve `profiles` and `trips` keys from the existing object, since realtime payloads never include joined data.
-
-Current problematic merge (line 124):
-```typescript
-updatedPackages[existingIndex] = { ...updatedPackages[existingIndex], ...payload.new };
-```
-
-Fixed merge:
-```typescript
-const existing = updatedPackages[existingIndex];
-updatedPackages[existingIndex] = { 
-  ...existing, 
-  ...payload.new,
-  // Preserve joined relations that realtime payloads don't include
-  profiles: existing.profiles,
-  trips: existing.trips
-};
-```
-
-3. **Apply the same fix in `processUpdateQueue`** (line 80) which has the same merge pattern.
-
-### Changes in `src/hooks/useOptimizedPackagesData.tsx`
-
-4. **Export a mutation tracker ref** so `useOptimizedRealtime` can check if a package was just mutated locally. Add a `recentMutationsRef` that stores `{ [packageId]: timestamp }` and is set in `updatePackage`. This lets the realtime handler skip redundant updates for packages the user just modified.
-
-### Files to modify
-- `src/hooks/useOptimizedRealtime.tsx` — Preserve joined data on merge, skip own recent mutations
-- `src/hooks/useOptimizedPackagesData.tsx` — Track recent local mutations via a ref, expose it
+3. **Ensure inner content scrolls** within the constrained mobile height via `overflow-y-auto` on content areas.
 
