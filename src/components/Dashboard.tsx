@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+
 import { Star } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -367,33 +367,18 @@ const Dashboard = ({ user }: DashboardProps) => {
     setShowAcquisitionSurvey(true);
   }
 
-  // Preview mode via query param
-  const [searchParams] = useSearchParams();
-  const isPreviewReferralModal = searchParams.get('preview_referral_modal') === 'true';
-
-  // Show referral announcement once (after survey is done or not needed)
+  // Show referral announcement every time (after survey is done or not needed)
   useEffect(() => {
     if (!currentUser.id) return;
-    // Preview mode: open immediately, skip localStorage check
-    if (isPreviewReferralModal) {
-      setShowReferralAnnouncement(true);
-      return;
-    }
-    const seen = localStorage.getItem(`referral_announcement_seen_${currentUser.id}`);
-    if (seen) return;
     if (showAcquisitionSurvey || !isProfileComplete) return;
     const timer = setTimeout(() => {
       setShowReferralAnnouncement(true);
     }, 2000);
     return () => clearTimeout(timer);
-  }, [currentUser.id, showAcquisitionSurvey, isProfileComplete, isPreviewReferralModal]);
+  }, [currentUser.id, showAcquisitionSurvey, isProfileComplete]);
 
   const handleReferralAnnouncementClose = () => {
     setShowReferralAnnouncement(false);
-    // Don't mark as seen in preview mode
-    if (currentUser.id && !isPreviewReferralModal) {
-      localStorage.setItem(`referral_announcement_seen_${currentUser.id}`, 'true');
-    }
   };
 
   // Phone number banner component
