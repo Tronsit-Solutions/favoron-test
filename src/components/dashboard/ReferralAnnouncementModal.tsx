@@ -184,13 +184,14 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
               </Button>
             ) : null}
 
-            {/* Dismiss */}
-            <button
-              onClick={handleClose}
-              className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-1 cursor-pointer"
-            >
-              Ahora no
-            </button>
+            {currentSlide === 1 && (
+              <button
+                onClick={handleClose}
+                className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-1 cursor-pointer"
+              >
+                Ahora no
+              </button>
+            )}
           </div>
         </div>
       </DialogContent>
