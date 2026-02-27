@@ -103,12 +103,15 @@ const ChatbotView: React.FC = () => {
           {/* Terminal: WhatsApp + restart */}
           {isTerminal && (
             <div className="space-y-2 pt-1">
-              <Button asChild size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white text-xs h-8">
-                <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
-                  <MessageCircle className="h-3.5 w-3.5" />
-                  Hablar con una persona
-                </a>
-              </Button>
+              <a
+                href="https://wa.me/50230616015"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full rounded-md bg-green-600 hover:bg-green-700 text-white text-xs h-8 px-3 font-medium transition-colors"
+              >
+                <MessageCircle className="h-3.5 w-3.5" />
+                +502 3061-6015
+              </a>
               <button
                 onClick={handleReset}
                 className="flex items-center justify-center gap-1 w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1"

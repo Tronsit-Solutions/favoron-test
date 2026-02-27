@@ -334,12 +334,15 @@ const SupportBubble: React.FC = () => {
               </div>
             </ScrollArea>
             <div className="p-4 border-t border-border shrink-0">
-              <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white">
-                <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
-                  <MessageCircle className="h-4 w-4" />
-                  Escríbenos por WhatsApp
-                </a>
-              </Button>
+              <a
+                href="https://wa.me/50230616015"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full rounded-md bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 text-sm font-medium transition-colors"
+              >
+                <MessageCircle className="h-4 w-4" />
+                +502 3061-6015
+              </a>
             </div>
           </div>
         )}
