@@ -1,21 +1,16 @@
 
 
-## Plan: Fix dynamic referral amount parsing and update defaults
+## Plan: Replace WhatsApp button with clickable phone number
 
-The DB already stores the correct values (`referral_reward_amount: {"amount": 20}`, `referred_user_discount: {"amount": 20}`). The bug is that `ReferralBanner.tsx` parses `referral_reward_amount` as a plain number (`Number(rewardRes.data.value)`) instead of extracting `value.amount` from the JSON object. Also, fallback defaults are outdated.
+Replace the non-functional "Escríbenos por WhatsApp" button with the actual WhatsApp number `+502 3061-6015` displayed as a clickable link.
 
 ### Changes
 
-**`src/components/dashboard/ReferralBanner.tsx`**
-- Update defaults from `15`/`25` to `20`/`20`
-- Fix `rewardAmount` parsing: extract `.amount` from the JSON object (same pattern as `discountAmount`)
-- Update fallbacks to `20`
+**`src/components/SupportBubble.tsx`** (lines 336-342)
+- Replace green button with a link showing the number: `+502 3061-6015`
+- Link href: `https://wa.me/50230616015` (direct number format that works reliably)
+- Keep green styling and WhatsApp icon
 
-**`src/components/profile/ReferralSection.tsx`**
-- Update `discountAmount` default from `15` to `20`
-- Update fallback from `15` to `20`
-
-### Technical Detail
-
-Both `app_settings` keys store JSON objects like `{"amount": 20}`. The discount parsing already handles this correctly, but the reward parsing does not -- it tries `Number(value)` on an object, which yields `NaN`, falling back to the stale default of `25`.
+**`src/components/support/ChatbotView.tsx`** (lines 105-110)
+- Same change: replace "Hablar con una persona" button with the phone number link using `https://wa.me/50230616015`
 
