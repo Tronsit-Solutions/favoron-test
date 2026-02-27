@@ -1,22 +1,14 @@
 
 
-## Plan: Reordenar contenido de slides del modal de referidos
+## Plan: Agregar checkbox "No volver a mostrar" al modal de referidos
 
 ### Cambios en `src/components/dashboard/ReferralAnnouncementModal.tsx`
+1. Agregar estado `dontShowAgain` (boolean)
+2. En el slide 2 (antes del botón "Ahora no"), agregar un checkbox con label "No volver a mostrar"
+3. Usar los componentes `Checkbox` y `Label` existentes
+4. Al cerrar (`handleClose`), si `dontShowAgain` es true, guardar en localStorage la clave `referral_announcement_dismissed_${userId}`
 
-**Slide 1 - Intro al programa:**
-- Título: "Programa de Referidos"
-- Texto: Introducción general - "Ahora puedes ganar recompensas invitando a tus amigos a usar Favoron. ¡Es fácil y rápido!"
-- Hero badge: "¡Nuevo!" o "Programa de Referidos"
-- Icono: Gift
-- Botón: "Siguiente →"
-
-**Slide 2 - Explicación / Cómo funciona:**
-- Título: "Ambos ganan"
-- Texto: "Tu amigo recibe Q{discountAmount} de descuento en su primer envío, y tú ganas Q{rewardAmount}. ¡Comparte tu link!"
-- Hero badge: "Comparte y gana"
-- Icono: Users
-- Botón: "Copiar mi link de referido"
-
-Solo se modifica el contenido textual del slide 1; el slide 2 y toda la lógica de navegación se mantienen igual.
+### Cambios en `src/components/Dashboard.tsx`
+1. En el `useEffect` que muestra el modal, verificar si existe la clave `referral_announcement_dismissed_${userId}` en localStorage antes de mostrar el modal
+2. Si existe, no llamar `setShowReferralAnnouncement(true)`
 
