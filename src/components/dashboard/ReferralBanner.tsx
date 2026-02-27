@@ -12,7 +12,7 @@ const ReferralBanner = () => {
   const { referralCode, referrals, completedCount, loading } = useReferrals();
   const { toast } = useToast();
   const [discountAmount, setDiscountAmount] = useState(15);
-  const [rewardAmount, setRewardAmount] = useState(30);
+  const [rewardAmount, setRewardAmount] = useState(25);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -24,7 +24,7 @@ const ReferralBanner = () => {
         setDiscountAmount(Number((discountRes.data.value as Record<string, unknown>).amount) || 15);
       }
       if (rewardRes.data?.value) {
-        setRewardAmount(Number(rewardRes.data.value) || 30);
+        setRewardAmount(Number(rewardRes.data.value) || 25);
       }
     };
     fetchSettings();
