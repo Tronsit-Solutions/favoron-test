@@ -1,31 +1,25 @@
 
 
-## Plan: Slideshow de anuncio del programa de referidos (una sola vez)
+## Plan: Separar reportes de usuarios de errores automáticos
 
-### Nuevo archivo: `src/components/dashboard/ReferralAnnouncementModal.tsx`
+### Cambio en `src/components/admin/AdminSupportTab.tsx`
 
-Crear un modal tipo slideshow con 3 slides, estilo limpio similar a las imágenes de referencia:
+Split the "Errores del Cliente" tab into two sub-tabs using inner `Tabs`:
 
-- **Slide 1**: "¡Nuevo! Programa de referidos" — Ícono de regalo + texto introductorio sobre el programa
-- **Slide 2**: "Así funciona" — 3 pasos visuales: 1) Comparte tu link, 2) Tu amigo hace su primer pedido, 3) Ambos ganan (con los montos Q dinámicos de `app_settings`)
-- **Slide 3**: "¡Empieza ahora!" — CTA para copiar el link de referido + botón de cerrar
+1. **"Reportes de Usuarios"** — filters `client_errors` where `type === 'user_report'`
+   - Show with a `MessageSquare` icon and count badge
+   - Same table structure but highlight the user's message more prominently
+   - Show context info (section, screenshot status) from the `context` field
 
-**Diseño**:
-- Fondo blanco, parte superior de cada slide con gradiente colorido (similar al banner: `from-orange-400 via-pink-500 to-purple-600`) con ícono/ilustración
-- Indicadores de puntos (dots) en la parte inferior
-- Botones "Siguiente" / "Empezar" según el slide
-- Swipeable en móvil usando `react-swipeable` (ya instalado)
-- Tamaños de reward/discount dinámicos (fetch de `app_settings`)
+2. **"Errores del Sistema"** — filters `client_errors` where `type !== 'user_report'`
+   - Show with `AlertTriangle` icon and count badge
+   - Keep existing table layout (message, stack, route, severity, browser)
 
-**Control de visibilidad (solo una vez)**:
-- Al cerrar/completar el slideshow, guardar `localStorage.setItem('referral_announcement_seen_' + userId, 'true')`
-- No mostrar si ya existe esa key en localStorage
+### Implementation details
 
-### Cambios en `src/components/Dashboard.tsx`
-
-- Importar `ReferralAnnouncementModal`
-- Agregar estado `showReferralAnnouncement`
-- En un `useEffect`, verificar si `localStorage` tiene `referral_announcement_seen_{userId}` → si no, mostrar modal (con delay para no chocar con otros modales como acquisition survey o profile completion)
-- No mostrar si el survey de adquisición está activo o el perfil está incompleto
-- Renderizar el componente junto a los otros modales (líneas ~1122-1142)
+- Add a new state: `errorsSubTab` defaulting to `'user_reports'`
+- Split `filteredErrors` into two arrays: `userReports` and `systemErrors`
+- Render inner `Tabs` component inside the `errors` TabsContent
+- Both sub-tabs share the same search/filter controls and fetch logic
+- Add count badges on each sub-tab showing `userReports.length` and `systemErrors.length`
 
