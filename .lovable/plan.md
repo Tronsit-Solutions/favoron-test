@@ -2,9 +2,11 @@
 
 ### Cambio en `src/components/Dashboard.tsx`
 
-En la línea 618, el grid muestra `AvailableTripsCard` primero y `ReferralBanner` segundo. En móvil (1 columna), esto pone el Hub de Viajes arriba y Referidos abajo.
+En el `useEffect` de la línea 370, agregar una verificación del query param `preview_referral_modal`. Si está presente, abrir el modal inmediatamente sin verificar localStorage ni marcarlo como visto al cerrar.
 
-**Solución**: Invertir el orden de los componentes y usar `order` de CSS para mantener el orden actual en desktop:
+**Líneas 370-386:**
 
-- Líneas 618-623: Poner `ReferralBanner` primero en el DOM (para que en móvil aparezca arriba), y usar `md:order-2` en `ReferralBanner` y `md:order-1` en `AvailableTripsCard` para que en desktop se mantenga el layout actual (Hub izquierda, Referidos derecha).
+1. Al inicio del `useEffect`, verificar si `searchParams` contiene `preview_referral_modal=true`. Si es así, abrir el modal directamente (`setShowReferralAnnouncement(true)`) y hacer `return` (sin timer, sin chequear `seen`).
+2. En `handleReferralAnnouncementClose`, solo guardar en localStorage si el query param NO está presente, para que el preview no "queme" la visualización única.
+3. Se usará `useSearchParams` (ya disponible vía `useUrlState` o importado directamente de `react-router-dom`). Verificar si ya se importa `useSearchParams` en el componente; si no, agregarlo.
 
