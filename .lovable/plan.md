@@ -1,25 +1,20 @@
 
 
-## Plan: Separar reportes de usuarios de errores automáticos
+## Plan: Modal de referidos a pantalla completa en móvil
 
-### Cambio en `src/components/admin/AdminSupportTab.tsx`
+### Cambio en `src/components/dashboard/ReferralAnnouncementModal.tsx`
 
-Split the "Errores del Cliente" tab into two sub-tabs using inner `Tabs`:
+Hacer que en móvil el modal ocupe toda la pantalla (tipo onboarding fullscreen), manteniendo el estilo actual en desktop:
 
-1. **"Reportes de Usuarios"** — filters `client_errors` where `type === 'user_report'`
-   - Show with a `MessageSquare` icon and count badge
-   - Same table structure but highlight the user's message more prominently
-   - Show context info (section, screenshot status) from the `context` field
+1. **Importar `useIsMobile`** desde `@/hooks/use-mobile`
+2. **Cambiar `DialogContent` classes** condicionalmente:
+   - **Móvil**: `fixed inset-0 w-full h-full max-w-none max-h-none rounded-none` — pantalla completa, sin bordes redondeados
+   - **Desktop**: mantener `max-w-sm rounded-2xl` actual
+3. **Ajustar layout interno en móvil**:
+   - La sección del gradiente ocupa ~60% de la altura (`flex-1` o `min-h-[60vh]`) con el ícono centrado más grande (`h-24 w-24`)
+   - La sección blanca inferior se ancla al fondo con `mt-auto`
+   - Los botones y dots se espacian más
+4. **Agrandar elementos en móvil**: título más grande (`text-2xl`), ícono más grande, pasos del slide 2 con más padding
 
-2. **"Errores del Sistema"** — filters `client_errors` where `type !== 'user_report'`
-   - Show with `AlertTriangle` icon and count badge
-   - Keep existing table layout (message, stack, route, severity, browser)
-
-### Implementation details
-
-- Add a new state: `errorsSubTab` defaulting to `'user_reports'`
-- Split `filteredErrors` into two arrays: `userReports` and `systemErrors`
-- Render inner `Tabs` component inside the `errors` TabsContent
-- Both sub-tabs share the same search/filter controls and fetch logic
-- Add count badges on each sub-tab showing `userReports.length` and `systemErrors.length`
+Resultado: en móvil se siente como una experiencia tipo onboarding a pantalla completa; en desktop sigue siendo un modal compacto.
 
