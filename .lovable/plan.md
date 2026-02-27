@@ -1,28 +1,14 @@
 
 
-## Plan: Modal de referidos con 2 slides y colores anteriores
+## Plan: Restaurar colores del banner de referidos al estilo anterior
 
-### Cambios en `src/components/dashboard/ReferralAnnouncementModal.tsx`
+### Cambios en `src/components/dashboard/ReferralBanner.tsx`
 
-1. **Agregar estado de slide**: `currentSlide` (0 o 1) con navegación por dots y botón "Siguiente"/"Copiar link"
-
-2. **Slide 1 - Introducción**:
-   - Hero con gradiente anterior (naranja/rosa/púrpura: `from-orange-400 via-pink-500 to-purple-600`)
-   - Icono de Gift grande centrado
-   - Título: "Programa de Referidos"
-   - Subtítulo: "Gana Q{rewardAmount} por cada amigo que invites"
-   - Botón "Siguiente" y link "Ahora no"
-
-3. **Slide 2 - Acción**:
-   - Hero con gradiente complementario
-   - Explicación: "Tu amigo recibe Q{discountAmount} de descuento y tú ganas Q{rewardAmount}"
-   - Botón CTA "Copiar mi link de referido"
-   - Link "Ahora no"
-
-4. **Navegación**:
-   - Dots indicadores (2 puntos) debajo del contenido
-   - Swipe con `react-swipeable` para cambiar entre slides
-   - Mantener tamaño actual del modal (no fullscreen)
-
-5. **Colores**: Regresar al gradiente naranja/rosa/púrpura en el hero y botones CTA con ese mismo esquema de color
+1. **Fondo**: Cambiar de `bg-card` con borde a `bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600` con texto blanco
+2. **Barra de acento**: Eliminar la barra superior rosa, ya no es necesaria con el gradiente completo
+3. **Icono Gift**: Cambiar fondo de `bg-rose-50` a `bg-white/20` con icono blanco
+4. **Texto**: Cambiar colores de texto a blanco (`text-white`, `text-white/80`)
+5. **Decoración handshake**: Agregar icono `Handshake` de lucide-react con baja opacidad (`text-white/10`) posicionado en la esquina inferior derecha como decoración
+6. **Botón CTA**: Cambiar a `bg-white text-pink-600 hover:bg-white/90` para contrastar con el fondo
+7. **Badges de montos**: Resaltar Q{amount} con `bg-white/20 rounded-full px-2` para mayor visibilidad
 
