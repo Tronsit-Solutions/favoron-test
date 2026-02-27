@@ -367,10 +367,12 @@ const Dashboard = ({ user }: DashboardProps) => {
     setShowAcquisitionSurvey(true);
   }
 
-  // Show referral announcement every time (after survey is done or not needed)
+  // Show referral announcement (after survey is done or not needed), unless dismissed permanently
   useEffect(() => {
     if (!currentUser.id) return;
     if (showAcquisitionSurvey || !isProfileComplete) return;
+    const dismissed = localStorage.getItem(`referral_announcement_dismissed_${currentUser.id}`) === 'true';
+    if (dismissed) return;
     const timer = setTimeout(() => {
       setShowReferralAnnouncement(true);
     }, 2000);
