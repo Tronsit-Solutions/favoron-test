@@ -1,24 +1,20 @@
 
 
-## Plan: Layout Hub de Viajes y Referral Banner side by side
+## Plan: Redesign ReferralBanner with colorful gradient and handshake image
 
-Currently in `src/components/Dashboard.tsx` (lines 600-603), `AvailableTripsCard` and `ReferralBanner` are stacked vertically. Wrap them in a responsive grid so they sit side by side on desktop.
+### Changes in `src/components/dashboard/ReferralBanner.tsx`
 
-### Change in `src/components/Dashboard.tsx` (lines 600-603)
+- Replace the subtle `from-primary/5 to-purple-50` gradient with a vibrant warm gradient (e.g., `from-orange-400 via-pink-500 to-purple-500`) with white text
+- Add a small handshake image from Unsplash (e.g., `https://images.unsplash.com/photo-1521790797524-b2497295b8a0?w=200&h=200&fit=crop`) as a decorative element on the left/right side, with rounded corners and slight shadow
+- Make the reward amounts stand out with pill-style highlights (e.g., yellow/white badges)
+- Update the "Copiar link" button to a white/light style that contrasts with the colorful background
+- Add `h-full` so it matches the Hub de Viajes height in the grid
+- Keep the completed referrals badge but style it for the new color scheme
 
-Replace:
-```tsx
-<AvailableTripsCard onViewTrips={...} />
-<ReferralBanner />
+### Layout structure
+```
+[Handshake img] | [Title + description + badge] | [Copy button]
 ```
 
-With:
-```tsx
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  <AvailableTripsCard onViewTrips={...} />
-  <ReferralBanner />
-</div>
-```
-
-This keeps them stacked on mobile (`grid-cols-1`) and side by side on medium+ screens (`md:grid-cols-2`).
+On mobile, stack vertically with image hidden or small.
 
