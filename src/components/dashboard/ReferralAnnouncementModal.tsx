@@ -31,15 +31,15 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const { data } = await supabase
-          .from("app_settings")
-          .select("key, value")
-          .in("key", ["referral_reward_amount", "referral_discount_amount"]);
-        if (data) {
-          data.forEach((s) => {
-            if (s.key === "referral_reward_amount") setRewardAmount(Number(s.value) || 30);
-            if (s.key === "referral_discount_amount") setDiscountAmount(Number(s.value) || 15);
-          });
+        const [rewardRes, discountRes] = await Promise.all([
+          supabase.from('app_settings').select('value').eq('key', 'referral_reward_amount').single(),
+          supabase.from('app_settings').select('value').eq('key', 'referred_user_discount').single(),
+        ]);
+        if (rewardRes.data?.value && typeof rewardRes.data.value === 'object' && 'amount' in (rewardRes.data.value as Record<string, unknown>)) {
+          setRewardAmount(Number((rewardRes.data.value as Record<string, unknown>).amount) || 30);
+        }
+        if (discountRes.data?.value && typeof discountRes.data.value === 'object' && 'amount' in (discountRes.data.value as Record<string, unknown>)) {
+          setDiscountAmount(Number((discountRes.data.value as Record<string, unknown>).amount) || 15);
         }
       } catch {}
     };
