@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Gift, Share2, ShoppingBag, Trophy, Copy, CheckCircle } from "lucide-react";
-import { useSwipeable } from "react-swipeable";
+import { Gift, Copy, CheckCircle, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,7 +14,6 @@ interface ReferralAnnouncementModalProps {
 }
 
 const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModalProps) => {
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [rewardAmount, setRewardAmount] = useState(30);
   const [discountAmount, setDiscountAmount] = useState(15);
   const [copied, setCopied] = useState(false);
@@ -28,7 +26,6 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
     ? `${window.location.origin}/?ref=${referralCode}`
     : "";
 
-  // Fetch dynamic amounts from app_settings
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -47,14 +44,7 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
     if (isOpen) fetchSettings();
   }, [isOpen]);
 
-  const totalSlides = 3;
-
-  const next = useCallback(() => {
-    if (currentSlide < totalSlides - 1) setCurrentSlide((s) => s + 1);
-  }, [currentSlide]);
-
   const handleClose = useCallback(() => {
-    setCurrentSlide(0);
     onClose();
   }, [onClose]);
 
@@ -70,153 +60,79 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
     }
   };
 
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: next,
-    onSwipedRight: () => currentSlide > 0 && setCurrentSlide((s) => s - 1),
-    trackMouse: false,
-    preventScrollOnSwipe: true,
-  });
-
-  const slides = [
-    // Slide 1 — Intro
-    {
-      gradient: "from-orange-400 via-pink-500 to-purple-600",
-      icon: <Gift className="h-16 w-16 text-white" />,
-      title: "¡Nuevo! Programa de Referidos",
-      description: "Ahora puedes ganar dinero invitando a tus amigos a Favorón. ¡Comparte, ahorra y gana juntos!",
-    },
-    // Slide 2 — How it works
-    {
-      gradient: "from-violet-500 via-indigo-500 to-blue-500",
-      icon: null, // custom content
-      title: "Así funciona",
-      description: "",
-      custom: (
-        <div className="flex flex-col gap-4 w-full px-2">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-              <Share2 className="h-4 w-4 text-white" />
-            </div>
-            <div className="text-left">
-              <p className="font-semibold text-white text-sm">1. Comparte tu link</p>
-              <p className="text-white/80 text-xs">Envía tu link personalizado a tus amigos</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-              <ShoppingBag className="h-4 w-4 text-white" />
-            </div>
-            <div className="text-left">
-              <p className="font-semibold text-white text-sm">2. Tu amigo hace su primer pedido</p>
-              <p className="text-white/80 text-xs">
-                Recibe <span className="font-bold text-yellow-300">Q{discountAmount}</span> de descuento en su primer envío
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-              <Trophy className="h-4 w-4 text-white" />
-            </div>
-            <div className="text-left">
-              <p className="font-semibold text-white text-sm">3. ¡Ambos ganan!</p>
-              <p className="text-white/80 text-xs">
-                Tú recibes <span className="font-bold text-yellow-300">Q{rewardAmount}</span> de recompensa
-              </p>
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    // Slide 3 — CTA
-    {
-      gradient: "from-emerald-400 via-teal-500 to-cyan-500",
-      icon: <CheckCircle className="h-16 w-16 text-white" />,
-      title: "¡Empieza ahora!",
-      description: "Copia tu link de referido y compártelo para empezar a ganar recompensas.",
-    },
-  ];
-
-  const slide = slides[currentSlide];
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className={cn(
         "p-0 gap-0 overflow-hidden border-0 [&>button]:hidden",
         isMobile
-          ? "fixed inset-0 w-full h-full max-w-none max-h-none rounded-none translate-x-0 translate-y-0 left-0 top-0"
-          : "max-w-sm rounded-2xl"
+          ? "fixed inset-x-0 bottom-0 top-auto w-full max-w-none rounded-t-3xl rounded-b-none translate-x-0 translate-y-0 left-0"
+          : "max-w-md rounded-2xl"
       )}>
-        <div {...swipeHandlers} className={cn("select-none", isMobile && "flex flex-col h-full")}>
-          {/* Top gradient section */}
-          <div
-            className={cn(
-              "bg-gradient-to-br flex flex-col items-center justify-center px-6 transition-all duration-500",
-              slide.gradient,
-              isMobile ? "flex-1 min-h-[55vh] py-14" : "py-10 min-h-[220px]"
-            )}
-          >
-            {slide.icon && (
-              <div className="mb-3 animate-in fade-in zoom-in duration-500">
-                {isMobile
-                  ? <slide.icon.type className="h-24 w-24 text-white" />
-                  : slide.icon}
+        <div className={cn("flex flex-col", isMobile && "max-h-[85vh]")}>
+          {/* Hero illustration area */}
+          <div className="relative h-52 sm:h-56 bg-gradient-to-br from-rose-100 via-pink-50 to-orange-50 flex items-center justify-center overflow-hidden">
+            {/* Decorative circles */}
+            <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-rose-200/40" />
+            <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-orange-200/30" />
+            <div className="absolute top-8 left-8 w-16 h-16 rounded-full bg-pink-200/50" />
+            
+            {/* Gift icon */}
+            <div className="relative z-10 flex flex-col items-center gap-3">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg shadow-rose-200">
+                <Gift className="h-10 w-10 text-white" />
               </div>
-            )}
-            {slide.custom && <div className={cn("w-full animate-in fade-in slide-in-from-right-4 duration-500", isMobile && "px-4")}>{slide.custom}</div>}
+              <div className="bg-white/80 backdrop-blur-sm rounded-full px-4 py-1.5 shadow-sm">
+                <span className="text-sm font-semibold text-rose-600">Programa de Referidos</span>
+              </div>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={handleClose}
+              className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-foreground/10 hover:bg-foreground/20 backdrop-blur-sm flex items-center justify-center transition-colors cursor-pointer"
+              aria-label="Cerrar"
+            >
+              <X className="h-4 w-4 text-foreground/70" />
+            </button>
           </div>
 
-          {/* Bottom white section */}
-          <div className={cn("bg-background text-center space-y-4", isMobile ? "p-8 mt-auto" : "p-6")}>
-            <h2 className={cn("font-bold text-foreground", isMobile ? "text-2xl" : "text-xl")}>{slide.title}</h2>
-            {slide.description && (
-              <p className="text-sm text-muted-foreground leading-relaxed">{slide.description}</p>
-            )}
+          {/* Content */}
+          <div className="p-6 space-y-4 bg-background">
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-foreground tracking-tight">
+                Gana Q{rewardAmount} por cada amigo que invites
+              </h2>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Tu amigo recibe <span className="font-semibold text-foreground">Q{discountAmount} de descuento</span> en su primer envío. Comparte tu link y ambos ganan.
+              </p>
+            </div>
 
-            {/* CTA on last slide */}
-            {currentSlide === totalSlides - 1 && referralLink && (
+            {/* CTA Button */}
+            {referralLink && (
               <Button
                 onClick={handleCopy}
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold"
+                className="w-full h-12 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-semibold text-base shadow-md shadow-rose-200/50 transition-all"
+                size="lg"
               >
                 {copied ? (
                   <>
-                    <CheckCircle className="h-4 w-4 mr-1" /> ¡Copiado!
+                    <CheckCircle className="h-5 w-5 mr-2" /> ¡Link copiado!
                   </>
                 ) : (
                   <>
-                    <Copy className="h-4 w-4 mr-1" /> Copiar mi link de referido
+                    <Copy className="h-5 w-5 mr-2" /> Copiar mi link de referido
                   </>
                 )}
               </Button>
             )}
 
-            {/* Dots */}
-            <div className="flex justify-center gap-2 pt-2">
-              {slides.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentSlide(i)}
-                  className={cn(
-                    "w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer",
-                    i === currentSlide ? "bg-primary scale-110" : "bg-muted-foreground/30"
-                  )}
-                  aria-label={`Slide ${i + 1}`}
-                />
-              ))}
-            </div>
-
-            {/* Navigation button */}
-            <div className="pt-1">
-              {currentSlide < totalSlides - 1 ? (
-                <Button onClick={next} className="w-full" size="lg">
-                  Siguiente
-                </Button>
-              ) : (
-                <Button onClick={handleClose} variant="ghost" className="w-full text-muted-foreground">
-                  Cerrar
-                </Button>
-              )}
-            </div>
+            {/* Dismiss */}
+            <button
+              onClick={handleClose}
+              className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-1 cursor-pointer"
+            >
+              Ahora no
+            </button>
           </div>
         </div>
       </DialogContent>
