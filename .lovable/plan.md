@@ -1,16 +1,24 @@
 
 
-## Plan: Replace WhatsApp button with clickable phone number
+## Plan: Layout Hub de Viajes y Referral Banner side by side
 
-Replace the non-functional "Escríbenos por WhatsApp" button with the actual WhatsApp number `+502 3061-6015` displayed as a clickable link.
+Currently in `src/components/Dashboard.tsx` (lines 600-603), `AvailableTripsCard` and `ReferralBanner` are stacked vertically. Wrap them in a responsive grid so they sit side by side on desktop.
 
-### Changes
+### Change in `src/components/Dashboard.tsx` (lines 600-603)
 
-**`src/components/SupportBubble.tsx`** (lines 336-342)
-- Replace green button with a link showing the number: `+502 3061-6015`
-- Link href: `https://wa.me/50230616015` (direct number format that works reliably)
-- Keep green styling and WhatsApp icon
+Replace:
+```tsx
+<AvailableTripsCard onViewTrips={...} />
+<ReferralBanner />
+```
 
-**`src/components/support/ChatbotView.tsx`** (lines 105-110)
-- Same change: replace "Hablar con una persona" button with the phone number link using `https://wa.me/50230616015`
+With:
+```tsx
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <AvailableTripsCard onViewTrips={...} />
+  <ReferralBanner />
+</div>
+```
+
+This keeps them stacked on mobile (`grid-cols-1`) and side by side on medium+ screens (`md:grid-cols-2`).
 
