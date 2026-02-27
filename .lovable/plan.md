@@ -1,14 +1,13 @@
 
 
-## Plan: Agregar checkbox "No volver a mostrar" al modal de referidos
+## Plan: Copiar mensaje de invitación completo en el modal de referidos
 
-### Cambios en `src/components/dashboard/ReferralAnnouncementModal.tsx`
-1. Agregar estado `dontShowAgain` (boolean)
-2. En el slide 2 (antes del botón "Ahora no"), agregar un checkbox con label "No volver a mostrar"
-3. Usar los componentes `Checkbox` y `Label` existentes
-4. Al cerrar (`handleClose`), si `dontShowAgain` es true, guardar en localStorage la clave `referral_announcement_dismissed_${userId}`
+### Cambio en `src/components/dashboard/ReferralAnnouncementModal.tsx`
 
-### Cambios en `src/components/Dashboard.tsx`
-1. En el `useEffect` que muestra el modal, verificar si existe la clave `referral_announcement_dismissed_${userId}` en localStorage antes de mostrar el modal
-2. Si existe, no llamar `setShowReferralAnnouncement(true)`
+1. Importar `APP_URL` de `@/lib/constants`
+2. Cambiar `referralLink` para usar `APP_URL` en vez de `window.location.origin` (consistente con `ReferralBanner`)
+3. En `handleCopy`, copiar un `shareMessage` con texto de invitación igual al del banner:
+   ```
+   ¡Únete a Favorón con mi link de referido y recibe un descuento de Q${discountAmount} en tu primer pedido! ${referralLink}
+   ```
 
