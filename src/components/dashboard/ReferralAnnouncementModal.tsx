@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Gift, Copy, CheckCircle, X, ArrowRight, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +21,7 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
   const [discountAmount, setDiscountAmount] = useState(15);
   const [copied, setCopied] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
   const { profile } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -51,8 +54,13 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
   }, [isOpen]);
 
   const handleClose = useCallback(() => {
+    if (dontShowAgain && (profile as any)?.id) {
+      try {
+        localStorage.setItem(`referral_announcement_dismissed_${(profile as any).id}`, 'true');
+      } catch {}
+    }
     onClose();
-  }, [onClose]);
+  }, [onClose, dontShowAgain, profile]);
 
   const handleCopy = async () => {
     if (!referralLink) return;
@@ -185,12 +193,24 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
             ) : null}
 
             {currentSlide === 1 && (
-              <button
-                onClick={handleClose}
-                className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-1 cursor-pointer"
-              >
-                Ahora no
-              </button>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="dont-show-again"
+                    checked={dontShowAgain}
+                    onCheckedChange={(checked) => setDontShowAgain(checked === true)}
+                  />
+                  <Label htmlFor="dont-show-again" className="text-sm text-muted-foreground cursor-pointer">
+                    No volver a mostrar
+                  </Label>
+                </div>
+                <button
+                  onClick={handleClose}
+                  className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-1 cursor-pointer"
+                >
+                  Ahora no
+                </button>
+              </div>
             )}
           </div>
         </div>
