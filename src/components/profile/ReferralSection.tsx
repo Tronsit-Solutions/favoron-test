@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 const ReferralSection = () => {
   const { referralCode, referrals, balance, pendingCount, completedCount, loading } = useReferrals();
   const { toast } = useToast();
-  const [discountAmount, setDiscountAmount] = useState(15);
+  const [discountAmount, setDiscountAmount] = useState(20);
 
   useEffect(() => {
     const fetchDiscount = async () => {
@@ -21,7 +21,7 @@ const ReferralSection = () => {
         .eq('key', 'referred_user_discount')
         .single();
       if (data?.value && typeof data.value === 'object' && 'amount' in (data.value as Record<string, unknown>)) {
-        setDiscountAmount(Number((data.value as Record<string, unknown>).amount) || 15);
+        setDiscountAmount(Number((data.value as Record<string, unknown>).amount) || 20);
       }
     };
     fetchDiscount();

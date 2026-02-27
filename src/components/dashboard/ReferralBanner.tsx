@@ -11,8 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 const ReferralBanner = () => {
   const { referralCode, referrals, completedCount, loading } = useReferrals();
   const { toast } = useToast();
-  const [discountAmount, setDiscountAmount] = useState(15);
-  const [rewardAmount, setRewardAmount] = useState(25);
+  const [discountAmount, setDiscountAmount] = useState(20);
+  const [rewardAmount, setRewardAmount] = useState(20);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -21,10 +21,10 @@ const ReferralBanner = () => {
         supabase.from('app_settings').select('value').eq('key', 'referral_reward_amount').single(),
       ]);
       if (discountRes.data?.value && typeof discountRes.data.value === 'object' && 'amount' in (discountRes.data.value as Record<string, unknown>)) {
-        setDiscountAmount(Number((discountRes.data.value as Record<string, unknown>).amount) || 15);
+        setDiscountAmount(Number((discountRes.data.value as Record<string, unknown>).amount) || 20);
       }
-      if (rewardRes.data?.value) {
-        setRewardAmount(Number(rewardRes.data.value) || 25);
+      if (rewardRes.data?.value && typeof rewardRes.data.value === 'object' && 'amount' in (rewardRes.data.value as Record<string, unknown>)) {
+        setRewardAmount(Number((rewardRes.data.value as Record<string, unknown>).amount) || 20);
       }
     };
     fetchSettings();
