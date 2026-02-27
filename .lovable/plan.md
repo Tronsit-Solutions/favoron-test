@@ -1,20 +1,14 @@
 
 
-## Plan: Fix Support Widget Scrollability
+## Plan: Simplify Referral Banner
 
-The support panel's content area is too constrained. The `ScrollArea` in the customer service view has `max-h-[300px]` on desktop which cuts off the FAQ list.
+Remove the referral code display from the `ReferralBanner` component. Keep only the "Copiar link" button since that's the only actionable element.
 
 ### Changes
 
-**`src/components/SupportBubble.tsx`**
+**`src/components/dashboard/ReferralBanner.tsx`**
 
-1. Add a fixed max-height to the overall panel so it doesn't overflow the viewport: `sm:max-h-[70vh]`
-2. Change the customer service view's `ScrollArea` from `max-h-[300px]` to `flex-1 overflow-hidden` and wrap the whole customer-service section in a flex column layout so the WhatsApp button stays pinned at the bottom while FAQs scroll freely
-3. Increase desktop panel height or let it grow: change from no height constraint to `sm:h-[480px]` with flex layout so inner views can fill available space
-
-Specifically:
-- Panel container: add `flex flex-col` and `sm:max-h-[70vh]`
-- Customer service view: wrap in a `flex flex-col flex-1 min-h-0` container so ScrollArea takes remaining space
-- ScrollArea: remove fixed `max-h-[300px]`, use `flex-1` instead
-- Menu and bug-report views: add `flex-1` overflow handling
+- Remove the `<code>` element showing `{referralCode}` and the copy icon button next to it
+- Keep only the "Copiar link" button
+- Simplify the right-side layout to just the single button
 
