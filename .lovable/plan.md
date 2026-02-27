@@ -1,9 +1,21 @@
 
 
-## Plan: Change approval notification icon
+## Plan: Fix dynamic referral amount parsing and update defaults
 
-**`src/components/ui/notification-dropdown.tsx`**
+The DB already stores the correct values (`referral_reward_amount: {"amount": 20}`, `referred_user_discount: {"amount": 20}`). The bug is that `ReferralBanner.tsx` parses `referral_reward_amount` as a plain number (`Number(rewardRes.data.value)`) instead of extracting `value.amount` from the JSON object. Also, fallback defaults are outdated.
 
-- Line 29: Change the `approval` icon from `AlertCircle` (warning/danger look) to `CheckCircle` with a green color for approved notifications, since approvals are positive events
-- Specifically: replace `<AlertCircle className="h-4 w-4 text-orange-500" />` with `<CheckCircle className="h-4 w-4 text-green-500" />`
+### Changes
+
+**`src/components/dashboard/ReferralBanner.tsx`**
+- Update defaults from `15`/`25` to `20`/`20`
+- Fix `rewardAmount` parsing: extract `.amount` from the JSON object (same pattern as `discountAmount`)
+- Update fallbacks to `20`
+
+**`src/components/profile/ReferralSection.tsx`**
+- Update `discountAmount` default from `15` to `20`
+- Update fallback from `15` to `20`
+
+### Technical Detail
+
+Both `app_settings` keys store JSON objects like `{"amount": 20}`. The discount parsing already handles this correctly, but the reward parsing does not -- it tries `Number(value)` on an object, which yields `NaN`, falling back to the stale default of `25`.
 
