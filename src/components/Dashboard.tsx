@@ -42,6 +42,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import AcquisitionSurveyModal from "./AcquisitionSurveyModal";
 import { useAcquisitionSurvey } from "@/hooks/useAcquisitionSurvey";
+import ReferralAnnouncementModal from "./dashboard/ReferralAnnouncementModal";
 
 
 
@@ -99,7 +100,8 @@ const Dashboard = ({ user }: DashboardProps) => {
   const { needsSurvey } = useAcquisitionSurvey();
   const [showAcquisitionSurvey, setShowAcquisitionSurvey] = useState(false);
   const [surveyDismissed, setSurveyDismissed] = useState(false);
-  
+  const [showReferralAnnouncement, setShowReferralAnnouncement] = useState(false);
+
   const {
     currentUser,
     setCurrentUser,
@@ -363,6 +365,25 @@ const Dashboard = ({ user }: DashboardProps) => {
   if (!showAcquisitionSurvey && !surveyDismissed && needsSurvey()) {
     setShowAcquisitionSurvey(true);
   }
+
+  // Show referral announcement once (after survey is done or not needed)
+  useEffect(() => {
+    if (!currentUser.id) return;
+    const seen = localStorage.getItem(`referral_announcement_seen_${currentUser.id}`);
+    if (seen) return;
+    if (showAcquisitionSurvey || !isProfileComplete) return;
+    const timer = setTimeout(() => {
+      setShowReferralAnnouncement(true);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [currentUser.id, showAcquisitionSurvey, isProfileComplete]);
+
+  const handleReferralAnnouncementClose = () => {
+    setShowReferralAnnouncement(false);
+    if (currentUser.id) {
+      localStorage.setItem(`referral_announcement_seen_${currentUser.id}`, 'true');
+    }
+  };
 
   // Phone number banner component
   const PhoneNumberBannerSection = () => {
@@ -1139,6 +1160,12 @@ const Dashboard = ({ user }: DashboardProps) => {
         }}
         title="Completa tu perfil"
         description="Necesitamos tu información de contacto para que puedas usar la plataforma."
+      />
+
+      {/* Referral Announcement Slideshow - shown once */}
+      <ReferralAnnouncementModal
+        isOpen={showReferralAnnouncement}
+        onClose={handleReferralAnnouncementClose}
       />
 
     </div>
