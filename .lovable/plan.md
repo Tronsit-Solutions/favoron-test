@@ -1,20 +1,31 @@
 
 
-## Plan: Redesign ReferralBanner with colorful gradient and handshake image
+## Plan: Slideshow de anuncio del programa de referidos (una sola vez)
 
-### Changes in `src/components/dashboard/ReferralBanner.tsx`
+### Nuevo archivo: `src/components/dashboard/ReferralAnnouncementModal.tsx`
 
-- Replace the subtle `from-primary/5 to-purple-50` gradient with a vibrant warm gradient (e.g., `from-orange-400 via-pink-500 to-purple-500`) with white text
-- Add a small handshake image from Unsplash (e.g., `https://images.unsplash.com/photo-1521790797524-b2497295b8a0?w=200&h=200&fit=crop`) as a decorative element on the left/right side, with rounded corners and slight shadow
-- Make the reward amounts stand out with pill-style highlights (e.g., yellow/white badges)
-- Update the "Copiar link" button to a white/light style that contrasts with the colorful background
-- Add `h-full` so it matches the Hub de Viajes height in the grid
-- Keep the completed referrals badge but style it for the new color scheme
+Crear un modal tipo slideshow con 3 slides, estilo limpio similar a las imágenes de referencia:
 
-### Layout structure
-```
-[Handshake img] | [Title + description + badge] | [Copy button]
-```
+- **Slide 1**: "¡Nuevo! Programa de referidos" — Ícono de regalo + texto introductorio sobre el programa
+- **Slide 2**: "Así funciona" — 3 pasos visuales: 1) Comparte tu link, 2) Tu amigo hace su primer pedido, 3) Ambos ganan (con los montos Q dinámicos de `app_settings`)
+- **Slide 3**: "¡Empieza ahora!" — CTA para copiar el link de referido + botón de cerrar
 
-On mobile, stack vertically with image hidden or small.
+**Diseño**:
+- Fondo blanco, parte superior de cada slide con gradiente colorido (similar al banner: `from-orange-400 via-pink-500 to-purple-600`) con ícono/ilustración
+- Indicadores de puntos (dots) en la parte inferior
+- Botones "Siguiente" / "Empezar" según el slide
+- Swipeable en móvil usando `react-swipeable` (ya instalado)
+- Tamaños de reward/discount dinámicos (fetch de `app_settings`)
+
+**Control de visibilidad (solo una vez)**:
+- Al cerrar/completar el slideshow, guardar `localStorage.setItem('referral_announcement_seen_' + userId, 'true')`
+- No mostrar si ya existe esa key en localStorage
+
+### Cambios en `src/components/Dashboard.tsx`
+
+- Importar `ReferralAnnouncementModal`
+- Agregar estado `showReferralAnnouncement`
+- En un `useEffect`, verificar si `localStorage` tiene `referral_announcement_seen_{userId}` → si no, mostrar modal (con delay para no chocar con otros modales como acquisition survey o profile completion)
+- No mostrar si el survey de adquisición está activo o el perfil está incompleto
+- Renderizar el componente junto a los otros modales (líneas ~1122-1142)
 
