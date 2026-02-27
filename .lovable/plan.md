@@ -1,8 +1,9 @@
 
 
-## Plan: Update default referral amounts
+## Plan: Change approval notification icon
 
-**`src/components/dashboard/ReferralBanner.tsx`**
-- Change `rewardAmount` default from `30` to `25` (line 16)
-- Change fallback in the fetch from `30` to `25` (line 28)
+**`src/components/ui/notification-dropdown.tsx`**
+
+- Line 29: Change the `approval` icon from `AlertCircle` (warning/danger look) to `CheckCircle` with a green color for approved notifications, since approvals are positive events
+- Specifically: replace `<AlertCircle className="h-4 w-4 text-orange-500" />` with `<CheckCircle className="h-4 w-4 text-green-500" />`
 
