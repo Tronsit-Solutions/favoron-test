@@ -23,7 +23,7 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
   const [copied, setCopied] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [dontShowAgain, setDontShowAgain] = useState(false);
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -58,13 +58,13 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
   }, [isOpen]);
 
   const handleClose = useCallback(() => {
-    if (dontShowAgain && (profile as any)?.id) {
+    if (dontShowAgain && user?.id) {
       try {
-        localStorage.setItem(`referral_announcement_dismissed_${(profile as any).id}`, 'true');
+        localStorage.setItem(`referral_announcement_dismissed_${user.id}`, 'true');
       } catch {}
     }
     onClose();
-  }, [onClose, dontShowAgain, profile]);
+  }, [onClose, dontShowAgain, user]);
 
   const handleCopy = async () => {
     if (!referralLink) return;
