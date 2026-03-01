@@ -1,40 +1,26 @@
 
 
-## Plan: Add Referral Report to Admin Control
+## Fix: Date picker not clickable in package request form
 
-### Overview
-Create a new admin page `/admin/referrals` with a comprehensive referral report table showing who referred whom, registration dates, referral status, and reward details. Add a navigation card in AdminControl to access it.
+The calendar dates can't be clicked because the Popover renders inside a Dialog, causing z-index/pointer-events conflicts.
 
-### Current Data
-The `referrals` table has: `referrer_id`, `referred_id`, `status` (pending/completed), `reward_amount`, `referred_reward_amount`, `referred_reward_used`, `created_at`, `completed_at`. Profiles have `referral_code`. Admins already have SELECT access to both tables.
+### Changes needed in `src/components/PackageRequestForm.tsx` (lines 907-914):
 
-### Implementation
+1. Add `z-[60]` to `PopoverContent` so it renders above the Dialog overlay (z-50)
+2. Add `pointer-events-auto` to `Calendar` className so clicks register properly
 
-**1. New page: `src/pages/AdminReferrals.tsx`**
-- Protected with `RequireAdmin`
-- Back button to `/admin/control`
-- Summary KPI cards at top: total referrals, pending, completed, total rewards distributed
-- Full table with columns:
-  - Referidor (name + email + referral code)
-  - Referido (name + email)
-  - Estado (pending/completed badge)
-  - Reward referidor (Q amount)
-  - Descuento referido (Q amount, used/unused)
-  - Fecha registro (created_at)
-  - Fecha completado (completed_at)
-- Query joins `referrals` with `profiles` for both referrer and referred user info
+```tsx
+<PopoverContent className="w-auto p-0 z-[60]" align="start">
+  <Calendar
+    mode="single"
+    selected={formData.deliveryDeadline || undefined}
+    onSelect={(date) => handleInputChange('deliveryDeadline', date)}
+    disabled={(date) => date < new Date()}
+    initialFocus
+    className="pointer-events-auto"
+  />
+</PopoverContent>
+```
 
-**2. Hook: `src/hooks/useAdminReferrals.tsx`**
-- Fetches all referrals with referrer/referred profile data using two queries (referrals + profiles lookup)
-- Since we can't do JOINs via Supabase client, fetch referrals then batch-fetch profiles for all unique user IDs
-
-**3. Update `src/pages/AdminControl.tsx`**
-- Add navigation card for "Reporte de Referidos" linking to `/admin/referrals`
-
-**4. Update `src/App.tsx`**
-- Add route `/admin/referrals` → `AdminReferrals`
-
-### Files to create/modify
-- **Create**: `src/pages/AdminReferrals.tsx`, `src/hooks/useAdminReferrals.tsx`
-- **Modify**: `src/pages/AdminControl.tsx` (add nav card), `src/App.tsx` (add route)
+Single file change, 2 lines modified.
 
