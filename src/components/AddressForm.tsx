@@ -11,21 +11,27 @@ interface AddressFormProps {
   onCancel: () => void;
   initialData?: any;
   destinationCountry?: string;
+  destinationCity?: string;
 }
 
-const AddressForm = ({ onSubmit, onCancel, initialData, destinationCountry }: AddressFormProps) => {
+const AddressForm = ({ onSubmit, onCancel, initialData, destinationCountry, destinationCity }: AddressFormProps) => {
   const normalizedCountry = destinationCountry?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') || '';
   const isGuatemala = normalizedCountry === 'guatemala';
   const isSpain = normalizedCountry === 'espana' || normalizedCountry === 'españa';
-  const hasDropdown = isGuatemala || isSpain;
+  const isGuatemalaCityDept = isGuatemala && (
+    destinationCity?.toLowerCase().includes('guatemala city') ||
+    destinationCity?.toLowerCase().includes('ciudad de guatemala') ||
+    !destinationCity
+  );
+  const hasDropdown = isGuatemalaCityDept || isSpain;
 
-  const locationOptions = isGuatemala
+  const locationOptions = isGuatemalaCityDept
     ? GUATEMALA_MUNICIPALITIES.map(m => ({ value: m.value, label: m.isCapital ? `${m.label} (Q25)` : m.label }))
     : isSpain
     ? SPAIN_PROVINCES
     : [];
 
-  const locationLabel = isGuatemala ? 'Ciudad/Municipio' : isSpain ? 'Provincia' : 'Ciudad/Provincia';
+  const locationLabel = isGuatemalaCityDept ? 'Ciudad/Municipio' : isSpain ? 'Provincia' : 'Ciudad/Municipio';
 
   const [formData, setFormData] = useState({
     streetAddress: initialData?.streetAddress || '',
@@ -89,7 +95,7 @@ const AddressForm = ({ onSubmit, onCancel, initialData, destinationCountry }: Ad
                   onValueChange={(value) => handleInputChange('cityArea', value)}
                 >
                   <SelectTrigger className="pl-10">
-                    <SelectValue placeholder={`Selecciona ${isGuatemala ? 'tu municipio' : 'tu provincia'}`} />
+                    <SelectValue placeholder={`Selecciona ${isGuatemalaCityDept ? 'tu municipio' : 'tu provincia'}`} />
                   </SelectTrigger>
                   <SelectContent className="bg-white z-50">
                     {locationOptions.map((opt) => (
@@ -100,7 +106,7 @@ const AddressForm = ({ onSubmit, onCancel, initialData, destinationCountry }: Ad
                   </SelectContent>
                 </Select>
               </div>
-              {isGuatemala && (
+              {isGuatemalaCityDept && (
                 <p className="text-xs text-muted-foreground">
                   Ciudad de Guatemala: Q25 | Otros municipios: Q60
                 </p>
