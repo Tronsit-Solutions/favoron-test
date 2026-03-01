@@ -22,6 +22,7 @@ import AdminPlatformFees from "./pages/AdminPlatformFees";
 import AdminReports from "./pages/AdminReports";
 import AdminDeliveryPoints from "./pages/AdminDeliveryPoints";
 import AdminWhatsApp from "./pages/AdminWhatsApp";
+import AdminReferrals from "./pages/AdminReferrals";
 import Operations from "./pages/Operations";
 import AvisoLegal from "./pages/AvisoLegal";
 import PaymentCallback from "./pages/PaymentCallback";
@@ -88,6 +89,11 @@ const App = () => (
             <Route path="/admin/whatsapp" element={
               <RequireAuth>
                 <AdminWhatsApp />
+              </RequireAuth>
+            } />
+            <Route path="/admin/referrals" element={
+              <RequireAuth>
+                <AdminReferrals />
               </RequireAuth>
             } />
             <Route path="/operations" element={
