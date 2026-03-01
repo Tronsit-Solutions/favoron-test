@@ -1,30 +1,22 @@
 
 
-## Plan: Fix right margin asymmetry on mobile for expired quote status
+## Plan: Fix action buttons padding to match other sections
 
 ### Problem
-In mobile view, when a package has `quote_expired` status, the "Solicitar Nueva Cotización" button has `pl-5` left padding (line 580) but no matching right padding, creating a visually uneven layout compared to other statuses like `rejected` which have full-width styled containers.
+The action buttons container (line 580) lost its `pl-5` left padding when fixing the expired quote margin. Now buttons like "Subir comprobante compra" extend without matching the indentation of other card sections (description, alerts, product status) which all use `pl-5`.
 
 ### Fix
 
-**File**: `src/components/dashboard/CollapsiblePackageCard.tsx`, lines 578-593
+**File**: `src/components/dashboard/CollapsiblePackageCard.tsx`, line 580
 
-Wrap the expired quote re-quote button in a styled container (similar to the rejected state banner) instead of leaving it as a bare button inside the `pl-5` action div. This gives it a consistent card-like appearance with proper spacing on both sides.
+Restore `pl-5` to the action buttons container to match all other card content sections:
 
-Replace the bare button with a styled container:
 ```tsx
-{(pkg.status === 'quote_expired' || ...) && onRequestRequote && (
-  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-    <p className="text-xs text-amber-700 mb-2">
-      La cotización ha expirado. Solicita una nueva cotización.
-    </p>
-    <Button size="sm" variant="shopper" onClick={...} className="text-xs w-full">
-      <RefreshCw className="h-3 w-3" />
-      Solicitar Nueva Cotización
-    </Button>
-  </div>
-)}
+// Line 580: Change from
+<div className="space-y-2 w-full max-w-full">
+// To
+<div className="space-y-2 w-full max-w-full pl-5">
 ```
 
-This matches the visual pattern used by the rejected status banner and eliminates the right-margin asymmetry.
+The expired quote banner (lines 586-597) already has its own internal padding (`p-3`) so adding `pl-5` back won't cause asymmetry there — it will just indent it consistently like the cancelled/office pickup banners.
 
