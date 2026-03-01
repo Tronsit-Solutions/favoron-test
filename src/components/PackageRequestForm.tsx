@@ -904,13 +904,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0 z-[60]" align="start">
               <Calendar
                 mode="single"
                 selected={formData.deliveryDeadline || undefined}
                 onSelect={(date) => handleInputChange('deliveryDeadline', date)}
                 disabled={(date) => date < new Date()}
                 initialFocus
+                className="p-3 pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
