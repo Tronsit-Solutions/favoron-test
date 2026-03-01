@@ -677,7 +677,7 @@ const CollapsiblePackageCard = ({
                         </Badge>
                       </Button>
                     )}
-                    {pkg.quote_expires_at && pkg.status === 'quote_sent' && new Date(pkg.quote_expires_at) > new Date() && <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />}
+                    {pkg.quote_expires_at && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status) && new Date(pkg.quote_expires_at) > new Date() && <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />}
                     {needsAction && <NotificationBadge count={1} />}
                   </div>
                 </div>
