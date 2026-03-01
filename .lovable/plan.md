@@ -1,30 +1,38 @@
 
 
-## Plan: Update package ee17afda to online purchase
+## Plan: Split package 840cd3c1 into two separate orders
 
-### What needs to change
-Update the `products_data` JSON in package `ee17afda-e244-4944-87f5-e4378e887b46` to change:
-- `requestType`: from `"personal"` to `"online"`
-- `itemLink`: set to `"https://www.amazon.com/Oura-Ring-Tracking-Wearable-Fitness/dp/B0D9WVSZ56"`
-- Remove personal-order fields (`instructions`, `weight`, `productPhotos`) since it's now an online order
+### Current State
+Package `840cd3c1-7686-48a7-be39-248985922051` has 2 products:
+1. **Apple Watch Series 11 46mm** - $429, qty 1, online
+2. **Apple Watch Series 11 42mm** - $399, qty 2, online
+
+Status: `pending_approval`, user: `40c8ee4e`, no matched trip yet.
+
+### Steps
+
+1. **Create a new package** for the second product (Apple Watch 42mm) using a Supabase edge function with admin client, copying all shared fields (user_id, purchase_origin, package_destination, delivery_deadline, delivery_method, etc.) and setting its own `products_data` and `item_description`.
+
+2. **Update the original package** to keep only the first product (Apple Watch 46mm), updating `products_data`, `item_description`, and `estimated_price` accordingly.
+
+### Data for each package
+
+**Package 1 (original, updated):**
+- `item_description`: "Apple Watch Series 11"
+- `estimated_price`: 429
+- `products_data`: only the 46mm product
+
+**Package 2 (new):**
+- `item_description`: "Apple Watch Series 11 42mm"
+- `estimated_price`: 798 (399 × 2)
+- `products_data`: only the 42mm product
+- All other fields copied from original
 
 ### Implementation
-Create a temporary edge function `admin-update-package-data` to perform the UPDATE, call it with the new data, then delete the function.
+Deploy a temporary edge function `admin-split-package` that:
+1. Updates the original package with product 1 only
+2. Inserts a new package with product 2 only
+3. Returns both package IDs
 
-**New products_data:**
-```json
-[{
-  "itemDescription": "Oura ring 4",
-  "estimatedPrice": "350",
-  "itemLink": "https://www.amazon.com/Oura-Ring-Tracking-Wearable-Fitness/dp/B0D9WVSZ56",
-  "quantity": "1",
-  "requestType": "online",
-  "additionalNotes": null
-}]
-```
-
-**Steps:**
-1. Create edge function `supabase/functions/admin-update-package-data/index.ts` to accept packageId + productsData and update the row
-2. Deploy and call it with the updated data
-3. Delete the edge function after confirming success
+Then delete the edge function after success.
 
