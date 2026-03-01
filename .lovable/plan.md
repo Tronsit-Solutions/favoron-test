@@ -1,21 +1,28 @@
 
 
-## Plan: Show countdown timer on desktop for payment_pending status
+## Plan: Fix referral announcement dismissal key mismatch
 
-### Problem
-On desktop, the `QuoteCountdown` timer only appears for `quote_sent` status (line 680). The mobile layout (line 403) correctly shows it for `quote_sent`, `quote_accepted`, and `payment_pending`.
+### Root Cause
+- **Dashboard.tsx** (line 374) reads: `localStorage.getItem(\`referral_announcement_dismissed_${currentUser.id}\`)`  
+  where `currentUser.id` = `user.id` (Supabase auth UUID)
+- **ReferralAnnouncementModal.tsx** (line 63) writes: `localStorage.setItem(\`referral_announcement_dismissed_${(profile as any).id}\`, 'true')`  
+  where `profile.id` could be a different value (profile table primary key)
+
+The keys don't match, so the dismissal is never detected.
 
 ### Fix
-**File**: `src/components/dashboard/CollapsiblePackageCard.tsx`, line 680
+**File**: `src/components/dashboard/ReferralAnnouncementModal.tsx`, line 61-64
 
-Change the desktop condition from:
+Change `(profile as any)?.id` to use the auth user ID instead. The `useAuth` hook returns `user` which has the correct `.id`. Update the modal to use `user.id` for the localStorage key:
+
 ```tsx
-pkg.status === 'quote_sent'
-```
-to:
-```tsx
-['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status)
+const { profile, user } = useAuth();
+
+// In handleClose:
+if (dontShowAgain && user?.id) {
+  localStorage.setItem(`referral_announcement_dismissed_${user.id}`, 'true');
+}
 ```
 
-This makes the desktop view consistent with the mobile view, showing the countdown timer whenever payment is still pending and the quote hasn't expired.
+This ensures the same key is used for both reading and writing.
 
