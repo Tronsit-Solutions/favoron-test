@@ -577,19 +577,24 @@ const CollapsiblePackageCard = ({
 
                 {/* Action buttons - stacked vertically on mobile */}
                 {!isCancelledPackage && (
-                <div className="space-y-2 w-full max-w-full pl-5">
+                <div className="space-y-2 w-full max-w-full">
                   {/* Botón re-cotización para cotizaciones expiradas (status quote_expired O cotización expirada en quote_sent/payment_pending/quote_accepted) */}
                   {(pkg.status === 'quote_expired' || 
                     ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending' || pkg.status === 'quote_accepted') && 
                      pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date())) && 
                    onRequestRequote && (
-                    <Button size="sm" variant="shopper" onClick={e => {
-                      e.stopPropagation();
-                      onRequestRequote(pkg);
-                    }} className="text-xs w-full flex items-center gap-2">
-                      <RefreshCw className="h-3 w-3" />
-                      Solicitar Nueva Cotización
-                    </Button>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <p className="text-xs text-amber-700 mb-2">
+                        La cotización ha expirado. Solicita una nueva cotización.
+                      </p>
+                      <Button size="sm" variant="shopper" onClick={e => {
+                        e.stopPropagation();
+                        onRequestRequote(pkg);
+                      }} className="text-xs w-full flex items-center gap-2">
+                        <RefreshCw className="h-3 w-3" />
+                        Solicitar Nueva Cotización
+                      </Button>
+                    </div>
                   )}
                   
                   {/* Shopper Action Button - mobile optimized */}
