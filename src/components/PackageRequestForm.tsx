@@ -1408,6 +1408,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               onCancel={handleAddressCancel}
               initialData={addressData}
               destinationCountry={selectedCountry}
+              destinationCity={formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination}
             />
           )}
           
