@@ -32,6 +32,7 @@ interface ComboboxProps {
   className?: string
   disabled?: boolean
   allowCustomValue?: boolean
+  portalled?: boolean
 }
 
 export function Combobox({
@@ -44,6 +45,7 @@ export function Combobox({
   className,
   disabled = false,
   allowCustomValue = false,
+  portalled = true,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -78,7 +80,7 @@ export function Combobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full max-h-[60vh] p-0 z-[60] bg-popover overflow-hidden" align="start">
+      <PopoverContent className="w-full max-h-[60vh] p-0 z-[60] bg-popover overflow-hidden" align="start" portalled={portalled}>
         <Command>
           <CommandInput 
             placeholder={searchPlaceholder} 

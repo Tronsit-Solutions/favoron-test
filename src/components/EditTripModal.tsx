@@ -264,6 +264,7 @@ const EditTripModal = ({
                       searchPlaceholder="Buscar país..."
                       emptyMessage="No se encontraron países"
                       className="w-full"
+                      portalled={false}
                     />
                   )}
                 </div>
@@ -276,6 +277,7 @@ const EditTripModal = ({
                       onValueChange={value => handleInputChange('fromCity', value)}
                       placeholder="Selecciona ciudad"
                       allowCustomValue={true}
+                      portalled={false}
                     />
                   ) : (
                     <Input 
@@ -337,6 +339,7 @@ const EditTripModal = ({
                       searchPlaceholder="Buscar país..."
                       emptyMessage="No se encontraron países"
                       className="w-full"
+                      portalled={false}
                     />
                   )}
                 </div>
@@ -349,6 +352,7 @@ const EditTripModal = ({
                       onValueChange={value => handleInputChange('toCity', value)}
                       placeholder="Selecciona ciudad"
                       allowCustomValue={true}
+                      portalled={false}
                     />
                   ) : (
                     <Input 
