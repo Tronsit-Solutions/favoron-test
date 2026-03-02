@@ -1,22 +1,32 @@
 
 
-## Problem
+## Plan
 
-The city Combobox dropdown opens with `z-50`, same as the Dialog overlay. This causes the dropdown items (like "Ciudad de Guatemala") to be visually on top but not receiving pointer events — clicks fall through to the "Fecha de llegada" button underneath.
+### 1. Fix `useDashboardActions.tsx` (line 33, 1291-1299)
 
-## Fix
-
-**File: `src/components/ui/combobox.tsx` (line 81)**
-
-Change the `PopoverContent` z-index from `z-50` to `z-[60]` so it renders above the Dialog overlay and captures clicks correctly:
-
-```tsx
-// Before
-<PopoverContent className="w-full p-0 z-50 bg-popover" align="start">
-
-// After
-<PopoverContent className="w-full p-0 z-[60] bg-popover" align="start">
+**Line 33**: Destructure `fees` alongside `rates` from `usePlatformFeesContext()`:
+```ts
+const { rates, fees } = usePlatformFeesContext();
 ```
 
-This matches the existing pattern already used for date pickers inside dialogs in this project.
+**Lines 1291-1299**: Read `cityArea` from `confirmed_delivery_address` and pass `fees` to `createNormalizedQuote`:
+```ts
+const confirmedAddress = currentPackage.confirmed_delivery_address as any;
+const cityArea = confirmedAddress?.cityArea;
+
+const normalizedQuote = createNormalizedQuote(
+  currentPackage.admin_assigned_tip,
+  currentPackage.delivery_method || 'pickup',
+  shopperProfile.trust_level,
+  `Cotización generada automáticamente por admin`,
+  true,
+  cityArea || currentPackage.package_destination,
+  rates,
+  fees  // pass dynamic delivery fees
+);
+```
+
+### 2. Fix existing package quote via SQL
+
+Use the insert tool to update the specific package's quote JSON, changing `deliveryFee` from 60 to 45 and `totalPrice` accordingly (subtract 15). This requires identifying the package ID for the "Serum, Sun Serum Bloqueador, Oliovita" order first, then running an UPDATE on the `packages` table's `quote` JSONB field.
 
