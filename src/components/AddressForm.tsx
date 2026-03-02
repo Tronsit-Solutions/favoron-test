@@ -106,11 +106,6 @@ const AddressForm = ({ onSubmit, onCancel, initialData, destinationCountry, dest
                   </SelectContent>
                 </Select>
               </div>
-              {isGuatemalaCityDept && (
-                <p className="text-xs text-muted-foreground">
-                  Ciudad de Guatemala: Q25 | Otros municipios: Q60
-                </p>
-              )}
             </>
           ) : (
             <div className="relative">
