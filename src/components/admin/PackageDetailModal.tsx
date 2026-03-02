@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { inferCountryFromCity } from '@/lib/cities';
 import { normalizeProductUrl } from '@/lib/validators';
+import { normalizeConfirmations } from '@/utils/confirmationHelpers';
 
 // Country/city options (same as PackageRequestForm)
 // Online purchases: foreign stores only (no Guatemala)
@@ -808,7 +809,8 @@ const [editForm, setEditForm] = useState({
 
   // Check which documents exist
   const hasPaymentReceipt = pkg.payment_receipt && (pkg.payment_receipt.receipt_url || pkg.payment_receipt.filePath);
-  const hasPurchaseConfirmation = pkg.purchase_confirmation && (pkg.purchase_confirmation.receipt_url || pkg.purchase_confirmation.filePath || pkg.purchase_confirmation.filename);
+  const confirmations = normalizeConfirmations(pkg.purchase_confirmation);
+  const hasPurchaseConfirmation = confirmations.length > 0;
   const hasTrackingInfo = pkg.tracking_info && (pkg.tracking_info.tracking_number || pkg.tracking_info.trackingNumber);
   const hasTravelerConfirmation = pkg.traveler_confirmation && (pkg.traveler_confirmation.confirmedAt || pkg.traveler_confirmation.confirmed_at);
   
@@ -2261,12 +2263,17 @@ const [editForm, setEditForm] = useState({
                 </h4>
                 
                 {hasPurchaseConfirmation ? (
-                  <PurchaseConfirmationViewer 
-                    purchaseConfirmation={pkg.purchase_confirmation}
-                    packageId={pkg.id}
-                    className="w-full"
-                    onDelete={handleDeletePurchaseConfirmation}
-                  />
+                  <div className="space-y-2">
+                    {confirmations.map((conf, index) => (
+                      <PurchaseConfirmationViewer 
+                        key={index}
+                        purchaseConfirmation={conf}
+                        packageId={pkg.id}
+                        className="w-full"
+                        onDelete={handleDeletePurchaseConfirmation}
+                      />
+                    ))}
+                  </div>
                 ) : canUploadPurchaseConfirmation ? (
                   <div className="border-2 border-dashed border-blue-300 rounded-lg p-4">
                     <p className="text-xs text-blue-600 mb-3">

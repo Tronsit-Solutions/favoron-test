@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { MapPin, DollarSign, User, Package } from "lucide-react";
 import PurchaseConfirmationViewer from "@/components/admin/PurchaseConfirmationViewer";
+import { normalizeConfirmations } from "@/utils/confirmationHelpers";
 
 interface TravelerPackageCardProps {
   pkg: any;
@@ -139,14 +140,20 @@ const TravelerPackageCard = ({
           )}
 
           {/* Purchase confirmation */}
-          {pkg.purchase_confirmation && (
-            <div className="mb-4">
-              <PurchaseConfirmationViewer 
-                purchaseConfirmation={pkg.purchase_confirmation} 
-                packageId={pkg.id}
-              />
-            </div>
-          )}
+          {(() => {
+            const confs = normalizeConfirmations(pkg.purchase_confirmation);
+            return confs.length > 0 && (
+              <div className="mb-4 space-y-2">
+                {confs.map((conf, index) => (
+                  <PurchaseConfirmationViewer 
+                    key={index}
+                    purchaseConfirmation={conf} 
+                    packageId={pkg.id}
+                  />
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Delivery address if confirmed */}
           {pkg.confirmedDeliveryAddress && (
