@@ -113,21 +113,26 @@ export const US_STATES = [
   { value: 'Wyoming', label: 'Wyoming' },
 ];
 
-export const SPAIN_CITIES = [
+export const SPAIN_COMMUNITIES = [
+  { value: 'Andalucía', label: 'Andalucía' },
+  { value: 'Aragón', label: 'Aragón' },
+  { value: 'Asturias', label: 'Asturias' },
+  { value: 'Islas Baleares', label: 'Islas Baleares' },
+  { value: 'Canarias', label: 'Canarias' },
+  { value: 'Cantabria', label: 'Cantabria' },
+  { value: 'Castilla-La Mancha', label: 'Castilla-La Mancha' },
+  { value: 'Castilla y León', label: 'Castilla y León' },
+  { value: 'Cataluña', label: 'Cataluña' },
+  { value: 'Comunidad Valenciana', label: 'Comunidad Valenciana' },
+  { value: 'Extremadura', label: 'Extremadura' },
+  { value: 'Galicia', label: 'Galicia' },
   { value: 'Madrid', label: 'Madrid' },
-  { value: 'Barcelona', label: 'Barcelona' },
-  { value: 'Valencia', label: 'Valencia' },
-  { value: 'Sevilla', label: 'Sevilla' },
-  { value: 'Zaragoza', label: 'Zaragoza' },
-  { value: 'Málaga', label: 'Málaga' },
   { value: 'Murcia', label: 'Murcia' },
-  { value: 'Palma de Mallorca', label: 'Palma de Mallorca' },
-  { value: 'Las Palmas', label: 'Las Palmas' },
-  { value: 'Bilbao', label: 'Bilbao' },
-  { value: 'Alicante', label: 'Alicante' },
-  { value: 'Córdoba', label: 'Córdoba' },
-  { value: 'Valladolid', label: 'Valladolid' },
-  { value: 'Otra ciudad', label: 'Otra ciudad' },
+  { value: 'Navarra', label: 'Navarra' },
+  { value: 'País Vasco', label: 'País Vasco' },
+  { value: 'La Rioja', label: 'La Rioja' },
+  { value: 'Ceuta', label: 'Ceuta' },
+  { value: 'Melilla', label: 'Melilla' },
 ];
 
 export const MEXICO_CITIES = [
@@ -151,7 +156,7 @@ export const getCitiesByCountry = (countryCode: string): { value: string; label:
     case 'estados-unidos':
       return US_STATES;
     case 'espana':
-      return SPAIN_CITIES;
+      return SPAIN_COMMUNITIES;
     case 'mexico':
       return MEXICO_CITIES;
     default:
