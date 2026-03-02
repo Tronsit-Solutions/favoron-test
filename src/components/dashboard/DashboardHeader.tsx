@@ -82,10 +82,9 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
               variant="outline" 
               size="sm" 
               onClick={() => navigate('/operations')}
-              className="flex items-center gap-2 bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
+              className="flex items-center bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
             >
               <Package className="h-4 w-4" />
-              <span className="hidden sm:inline">Operaciones</span>
             </Button>
           )}
           
@@ -95,10 +94,21 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
               variant="outline" 
               size="sm" 
               onClick={() => navigate('/admin/whatsapp')}
-              className="flex items-center gap-2 bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+              className="flex items-center bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
             >
               <MessageCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">WhatsApp</span>
+            </Button>
+          )}
+          
+          {/* Botón de Control Admin */}
+          {user.role === 'admin' && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/admin/control')}
+              className="flex items-center bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+            >
+              <Settings className="h-4 w-4" />
             </Button>
           )}
           
