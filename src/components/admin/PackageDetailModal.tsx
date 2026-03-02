@@ -475,18 +475,21 @@ const [editForm, setEditForm] = useState({
   // Handle delete purchase confirmation
   const handleDeletePurchaseConfirmation = async () => {
     try {
-      // 1. Delete file from storage if exists
-      if (pkg.purchase_confirmation?.filePath) {
-        const buckets = ['purchase-confirmations', 'payment-receipts']; // Try both buckets
-        
-        for (const bucket of buckets) {
-          const { error: storageError } = await supabase.storage
-            .from(bucket)
-            .remove([pkg.purchase_confirmation.filePath]);
-          
-          if (!storageError) {
-            console.log(`File deleted from bucket: ${bucket}`);
-            break;
+      // 1. Delete all files from storage (handle both single object and array)
+      const { normalizeConfirmations } = await import('@/utils/confirmationHelpers');
+      const confirmations = normalizeConfirmations(pkg.purchase_confirmation);
+      
+      for (const confirmation of confirmations) {
+        if (confirmation.filePath) {
+          const buckets = ['purchase-confirmations', 'payment-receipts'];
+          for (const bucket of buckets) {
+            const { error: storageError } = await supabase.storage
+              .from(bucket)
+              .remove([confirmation.filePath]);
+            if (!storageError) {
+              console.log(`File deleted from bucket: ${bucket}`, confirmation.filePath);
+              break;
+            }
           }
         }
       }
@@ -500,8 +503,8 @@ const [editForm, setEditForm] = useState({
       if (dbError) throw dbError;
       
       toast({
-        title: "Comprobante eliminado",
-        description: "El comprobante de compra ha sido eliminado exitosamente",
+        title: "Comprobantes eliminados",
+        description: `Se eliminaron ${confirmations.length} comprobante(s) de compra`,
       });
       
       // 3. Refresh modal data

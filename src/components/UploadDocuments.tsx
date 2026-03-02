@@ -27,10 +27,11 @@ const UploadDocuments = ({
   };
 
   // Show sections based on individual completion status, not package status
-  const showConfirmationSection = !currentConfirmation && (currentStatus === 'pending_purchase' || currentStatus === 'paid' || currentStatus === 'in_transit');
+  // Always show confirmation section so users can add more files
+  const showConfirmationSection = (currentStatus === 'pending_purchase' || currentStatus === 'paid' || currentStatus === 'in_transit');
   const showTrackingSection = !currentTracking && (currentStatus === 'pending_purchase' || currentStatus === 'paid' || currentStatus === 'in_transit');
   
-  // If both sections are completed, don't show the component
+  // If tracking is done and we're not in a status that allows uploads, hide
   if (!showConfirmationSection && !showTrackingSection) {
     return null;
   }

@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { FileText, Truck, CreditCard, Download, Eye, Calendar, Edit, Upload } from "lucide-react";
+import { FileText, Truck, CreditCard, Eye, Edit } from "lucide-react";
 import { Package } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeConfirmations } from "@/utils/confirmationHelpers";
 
 interface UploadedDocumentsRegistryProps {
   pkg: Package;
@@ -28,83 +28,47 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
   const [modalOpen, setModalOpen] = useState(false);
   const [modalImage, setModalImage] = useState<{ url: string; title: string } | null>(null);
 
-  // Helper function to view payment receipt
   const viewPaymentReceipt = async (paymentData: DocumentData) => {
     if (paymentData.filePath) {
       try {
         const { data, error } = await supabase.storage
           .from('payment-receipts')
           .createSignedUrl(paymentData.filePath, 3600);
-
         if (error) {
-          toast({
-            title: "Error",
-            description: "No se pudo acceder al comprobante de pago",
-            variant: "destructive",
-          });
+          toast({ title: "Error", description: "No se pudo acceder al comprobante de pago", variant: "destructive" });
           return;
         }
-
-        setModalImage({
-          url: data.signedUrl,
-          title: "Comprobante de pago"
-        });
+        setModalImage({ url: data.signedUrl, title: "Comprobante de pago" });
         setModalOpen(true);
       } catch (error) {
-        console.error('Error viewing payment receipt:', error);
-        toast({
-          title: "Error",
-          description: "Ocurrió un error al cargar el archivo",
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "Ocurrió un error al cargar el archivo", variant: "destructive" });
       }
     }
   };
 
-  // Helper function to view purchase confirmation
   const viewPurchaseConfirmation = async (confirmationData: DocumentData) => {
     if (confirmationData.filePath) {
       try {
         const { data, error } = await supabase.storage
           .from('purchase-confirmations')
           .createSignedUrl(confirmationData.filePath, 3600);
-
         if (error) {
-          toast({
-            title: "Error", 
-            description: "No se pudo acceder al comprobante de compra",
-            variant: "destructive",
-          });
+          toast({ title: "Error", description: "No se pudo acceder al comprobante de compra", variant: "destructive" });
           return;
         }
-
-        setModalImage({
-          url: data.signedUrl,
-          title: "Confirmación de compra"
-        });
+        setModalImage({ url: data.signedUrl, title: "Confirmación de compra" });
         setModalOpen(true);
       } catch (error) {
-        console.error('Error viewing purchase confirmation:', error);
-        toast({
-          title: "Error",
-          description: "Ocurrió un error al cargar el archivo",
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "Ocurrió un error al cargar el archivo", variant: "destructive" });
       }
     }
   };
 
-  // Parse document data safely
   const paymentReceipt = pkg.payment_receipt as DocumentData | null;
-  const purchaseConfirmation = pkg.purchase_confirmation as DocumentData | null;
+  const confirmations = normalizeConfirmations(pkg.purchase_confirmation);
   const trackingInfo = pkg.tracking_info as DocumentData | null;
 
-  // Count uploaded documents
-  const uploadedCount = [
-    paymentReceipt,
-    purchaseConfirmation,
-    trackingInfo
-  ].filter(Boolean).length;
+  const uploadedCount = (paymentReceipt ? 1 : 0) + confirmations.length + (trackingInfo ? 1 : 0);
 
   if (uploadedCount === 0) {
     return null;
@@ -139,23 +103,11 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
                   {new Date(paymentReceipt.uploadedAt).toLocaleDateString('es-GT')}
                 </span>
               )}
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0"
-                onClick={() => viewPaymentReceipt(paymentReceipt)}
-                title="Ver documento"
-              >
+              <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => viewPaymentReceipt(paymentReceipt)} title="Ver documento">
                 <Eye className="h-3 w-3" />
               </Button>
               {onEditDocument && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0"
-                  onClick={() => onEditDocument('payment_receipt')}
-                  title="Editar documento"
-                >
+                <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => onEditDocument('payment_receipt')} title="Editar documento">
                   <Edit className="h-3 w-3" />
                 </Button>
               )}
@@ -163,47 +115,37 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
           </div>
         )}
 
-        {/* Purchase Confirmation */}
-        {purchaseConfirmation && (
-          <div className="flex items-center justify-between p-2 bg-muted/20 rounded-md border">
+        {/* Purchase Confirmations - render each file as a row */}
+        {confirmations.map((confirmation, index) => (
+          <div key={index} className="flex items-center justify-between p-2 bg-muted/20 rounded-md border">
             <div className="flex items-center space-x-2 flex-1 min-w-0">
               <FileText className="h-3 w-3 text-primary" />
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium truncate">Confirmación de compra</p>
+                <p className="text-xs font-medium truncate">
+                  Confirmación de compra{confirmations.length > 1 ? ` (${index + 1})` : ''}
+                </p>
                 <p className="text-xs text-muted-foreground truncate">
-                  {purchaseConfirmation.filename || 'Confirmación subida'}
+                  {confirmation.filename || 'Confirmación subida'}
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-1">
-              {purchaseConfirmation.uploadedAt && (
+              {confirmation.uploadedAt && (
                 <span className="text-xs text-muted-foreground">
-                  {new Date(purchaseConfirmation.uploadedAt).toLocaleDateString('es-GT')}
+                  {new Date(confirmation.uploadedAt).toLocaleDateString('es-GT')}
                 </span>
               )}
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0"
-                onClick={() => viewPurchaseConfirmation(purchaseConfirmation)}
-                title="Ver documento"
-              >
+              <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => viewPurchaseConfirmation(confirmation as DocumentData)} title="Ver documento">
                 <Eye className="h-3 w-3" />
               </Button>
               {onEditDocument && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0"
-                  onClick={() => onEditDocument('purchase_confirmation')}
-                  title="Editar documento"
-                >
+                <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => onEditDocument('purchase_confirmation')} title="Editar documento">
                   <Edit className="h-3 w-3" />
                 </Button>
               )}
             </div>
           </div>
-        )}
+        ))}
 
         {/* Tracking Information */}
         {trackingInfo && (
@@ -224,29 +166,13 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
                     {new Date(trackingInfo.timestamp).toLocaleDateString('es-GT')}
                   </span>
                 )}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0"
-                  onClick={() => {
-                    setModalImage({
-                      url: '',
-                      title: "Información de Seguimiento"
-                    });
-                    setModalOpen(true);
-                  }}
-                  title="Ver información de seguimiento"
-                >
+                <Button size="sm" variant="ghost" className="h-6 w-6 p-0"
+                  onClick={() => { setModalImage({ url: '', title: "Información de Seguimiento" }); setModalOpen(true); }}
+                  title="Ver información de seguimiento">
                   <Eye className="h-3 w-3" />
                 </Button>
                 {onEditDocument && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 w-6 p-0"
-                    onClick={() => onEditDocument('tracking_info')}
-                    title="Editar información"
-                  >
+                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => onEditDocument('tracking_info')} title="Editar información">
                     <Edit className="h-3 w-3" />
                   </Button>
                 )}
@@ -268,27 +194,17 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
                 <div className="space-y-3">
                   <div className="flex items-center justify-between border-b pb-2">
                     <span className="text-sm text-muted-foreground">Número de seguimiento:</span>
-                    <span className="text-sm font-mono">
-                      {trackingInfo?.trackingNumber || 'No disponible'}
-                    </span>
+                    <span className="text-sm font-mono">{trackingInfo?.trackingNumber || 'No disponible'}</span>
                   </div>
-                  
                   <div className="flex items-center justify-between border-b pb-2">
                     <span className="text-sm text-muted-foreground">Empresa de envío:</span>
-                    <span className="text-sm">
-                      {(trackingInfo as any)?.shippingCompany || 'No especificada'}
-                    </span>
+                    <span className="text-sm">{(trackingInfo as any)?.shippingCompany || 'No especificada'}</span>
                   </div>
-                  
                   <div className="flex items-start justify-between border-b pb-2">
                     <span className="text-sm text-muted-foreground">Link de seguimiento:</span>
                     <div className="text-right">
                       {trackingInfo?.trackingUrl ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.open(trackingInfo.trackingUrl, '_blank')}
-                        >
+                        <Button size="sm" variant="outline" onClick={() => window.open(trackingInfo.trackingUrl, '_blank')}>
                           <Eye className="h-3 w-3 mr-1" />
                           Abrir seguimiento
                         </Button>
@@ -297,30 +213,22 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
                       )}
                     </div>
                   </div>
-
                   {(trackingInfo as any)?.notes && (
                     <div className="border-b pb-2">
                       <span className="text-sm text-muted-foreground">Notas:</span>
                       <p className="text-sm mt-1">{(trackingInfo as any).notes}</p>
                     </div>
                   )}
-
                   {trackingInfo?.timestamp && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Fecha de registro:</span>
-                      <span className="text-sm">
-                        {new Date(trackingInfo.timestamp).toLocaleDateString('es-GT')}
-                      </span>
+                      <span className="text-sm">{new Date(trackingInfo.timestamp).toLocaleDateString('es-GT')}</span>
                     </div>
                   )}
                 </div>
               </div>
             ) : modalImage && (
-              <img 
-                src={modalImage.url} 
-                alt={modalImage.title}
-                className="max-w-full max-h-[70vh] object-contain"
-              />
+              <img src={modalImage.url} alt={modalImage.title} className="max-w-full max-h-[70vh] object-contain" />
             )}
           </div>
         </DialogContent>
