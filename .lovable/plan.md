@@ -1,46 +1,29 @@
 
 
-## Plan: Three-Tier Delivery Fees (DB-driven, not hardcoded)
+## Analysis: Quote Generation and Delivery Fees
 
-### New fee structure
-- **Municipio de Guatemala**: Q25 (`delivery_fee_guatemala_city`)
-- **Otros municipios del Depto. Guatemala** (Mixco, Villa Nueva, etc.): Q45 (`delivery_fee_guatemala_department`) — NEW
-- **Fuera del Depto. Guatemala**: Q60 (`delivery_fee_outside_city`)
+The 3-tier zone classification (`guatemala_city`, `guatemala_department`, `outside`) is working correctly. The `getDeliveryZone()` function properly classifies destinations, and all quote generation paths use it.
 
-### Changes
+**However, there is a gap**: `getPriceBreakdown()` does NOT pass the dynamic DB delivery fees to `getDeliveryFee()`. It only passes `rates` for service fees. This means:
 
-**1. DB Migration** — Add column `delivery_fee_guatemala_department` (numeric, default 45) to `favoron_company_information`.
+- Service fees: correctly use DB values (dynamic rates passed through)
+- Delivery fees: use hardcoded constants from `constants.ts` (Q25, Q45, Q60), NOT the DB values
 
-**2. Zone classifier** — Replace binary `isGuatemalaCityArea` with `getDeliveryZone()` returning `'guatemala_city' | 'guatemala_department' | 'outside'` in:
-- `src/lib/pricing.ts`
-- `src/contexts/PlatformFeesContext.tsx`
+Right now the constants match the DB defaults, so quotes are correct. But if you ever change delivery fees from the admin panel (e.g., Q30 instead of Q25), new quotes would still use the old hardcoded values.
 
-The current "excluded areas" list (Mixco, Villa Nueva, Petapa, etc.) becomes the identifier for `guatemala_department` zone instead of falling through to `outside`.
+### Fix
 
-**3. `src/hooks/usePlatformFees.tsx`** — Add `delivery_fee_guatemala_department` to interface, defaults (45), select query, and form state.
+Update `getPriceBreakdown()` in `src/lib/pricing.ts` to also accept and pass delivery fee config:
 
-**4. `src/pages/AdminPlatformFees.tsx`** — Add third input "Otros Municipios Dept. Guatemala (Q)" between City and Outside inputs. Update preview section to show 3 tiers.
+1. Add an optional `fees` parameter (same structure `getDeliveryFee` already accepts)
+2. Pass it through to `getDeliveryFee()`
+3. Update callers (`createNormalizedQuote`, `QuoteDialog`) to pass delivery fees when available
 
-**5. `src/contexts/PlatformFeesContext.tsx`** — Add `delivery_fee_guatemala_department` to interface, fallback, fetch, and update `getDeliveryFee` to use 3 zones with the new DB field.
+### Files to modify
+- `src/lib/pricing.ts` — add `fees` param to `getPriceBreakdown`, pass to `getDeliveryFee`
+- `src/lib/quoteHelpers.ts` — accept and pass `fees` in `createNormalizedQuote` and `normalizeQuote`
+- `src/utils/adminQuoteGeneration.ts` — fetch delivery fees from DB and pass them through
+- `src/components/QuoteDialog.tsx` — pass delivery fees from `PlatformFeesContext`
 
-**6. `src/lib/constants.ts`** — Add `GUATEMALA_DEPT_DELIVERY_FEE: 45` fallback.
-
-**7. `src/lib/pricing.ts`** — Update `getDeliveryFee` to use 3 zones. Prime logic:
-- Guatemala City: Q0
-- Guatemala Dept: fee - discount
-- Outside: fee - discount
-
-**8. Edge functions** (`intelligent-quote-backfill`, `fix-delivery-fees-v3`) — Update zone logic and fee calculation to 3 tiers, fetching the new column from DB.
-
-### Zone classification
-```text
-getDeliveryZone(cityArea):
-  if matches Mixco, Villa Nueva, Petapa, etc. → 'guatemala_department'
-  if matches Guatemala, Ciudad de Guatemala, zona X → 'guatemala_city'
-  else → 'outside'
-```
-
-### Files affected
-- **Create**: 1 migration SQL
-- **Modify**: `AdminPlatformFees.tsx`, `usePlatformFees.tsx`, `PlatformFeesContext.tsx`, `pricing.ts`, `constants.ts`, 2 edge functions
+This ensures that when you change delivery fees in the admin panel, all new quotes will reflect those changes immediately.
 
