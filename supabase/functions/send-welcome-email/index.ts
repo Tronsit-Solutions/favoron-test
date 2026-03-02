@@ -43,7 +43,7 @@ const getEmailTemplateA = (firstName: string) => `
           <tr>
             <td style="padding: 40px;">
               <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                <strong>Gracias por sumarte a Favorón.</strong> Somos un proyecto joven, pero con un objetivo claro: conectar a quienes viajan desde EE.UU. con quienes buscan recibir productos allá en Guatemala.
+                <strong>Gracias por sumarte a Favorón.</strong> Somos un proyecto joven, pero con un objetivo claro: conectar a quienes viajan desde cualquier parte del mundo con quienes buscan recibir productos en Guatemala.
               </p>
               
               <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
@@ -131,7 +131,7 @@ const getEmailTemplateB = (firstName: string) => `
           <tr>
             <td style="padding: 40px;">
               <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-                <strong>Ya somos más de 600 personas usando Favorón</strong> para traer productos desde EE.UU. hasta Guatemala de forma segura y accesible.
+                <strong>Ya somos más de 600 personas usando Favorón</strong> para traer productos desde cualquier parte del mundo hasta Guatemala de forma segura y accesible.
               </p>
               
               <!-- Stats Grid -->
