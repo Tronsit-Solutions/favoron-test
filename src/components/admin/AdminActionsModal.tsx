@@ -182,7 +182,13 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
           rates: {
             standard: fees?.service_fee_rate_standard ?? 0.50,
             prime: fees?.service_fee_rate_prime ?? 0.25
-          }
+          },
+          fees: fees ? {
+            delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+            delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
+            delivery_fee_outside_city: fees.delivery_fee_outside_city,
+            prime_delivery_discount: fees.prime_delivery_discount,
+          } : undefined
         });
 
         updateData = {
