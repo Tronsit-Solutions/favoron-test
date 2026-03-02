@@ -10,6 +10,7 @@ import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCi
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { inferCountryFromCity } from '@/lib/cities';
+import { normalizeProductUrl } from '@/lib/validators';
 
 // Country/city options (same as PackageRequestForm)
 // Online purchases: foreign stores only (no Guatemala)
@@ -1702,20 +1703,23 @@ const [editForm, setEditForm] = useState({
                               </p>
                             </div>
                           )}
-                          {product.link && (
-                            <div>
-                              <p className="font-medium text-muted-foreground">Link</p>
-                              <a 
-                                href={product.link}
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center text-primary hover:underline text-xs"
-                              >
-                                <ExternalLink className="h-3 w-3 mr-1" />
-                                <span>Ver producto</span>
-                              </a>
-                            </div>
-                          )}
+                          {(() => {
+                            const normalizedLink = normalizeProductUrl(product.link);
+                            return normalizedLink && (
+                              <div>
+                                <p className="font-medium text-muted-foreground">Link</p>
+                                <a 
+                                  href={normalizedLink}
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center text-primary hover:underline text-xs"
+                                >
+                                  <ExternalLink className="h-3 w-3 mr-1" />
+                                  <span>Ver producto</span>
+                                </a>
+                              </div>
+                            );
+                          })()}
                           {product.requestType === 'personal' && product.packageWeight && (
                             <div>
                               <p className="font-medium text-muted-foreground">Peso (kg)</p>
