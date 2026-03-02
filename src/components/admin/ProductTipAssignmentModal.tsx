@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, DollarSign, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { normalizeProductUrl } from "@/lib/validators";
 import { useAdminTips } from "@/hooks/useAdminTips";
 
 interface Product {
@@ -217,7 +218,7 @@ const ProductTipAssignmentModal = ({
                        {product.itemLink && (
                          <div className="pt-1">
                            <a 
-                             href={product.itemLink} 
+                             href={normalizeProductUrl(product.itemLink) || product.itemLink} 
                              target="_blank" 
                              rel="noopener noreferrer"
                              className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors hover:underline"
