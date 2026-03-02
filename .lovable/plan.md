@@ -1,24 +1,21 @@
 
 
-## Plan: Add label preview button to search results
+## Plan: Fix scroll in combobox dropdown
 
-### What
-Add a label icon button to each package in the search tab. Clicking it opens the existing `PackageLabelModal` to preview/print the label.
+### Problem
+The city selector dropdown (Combobox) cannot scroll on mobile. The `CommandList` has `overflow-y-auto` but mobile touch scrolling is blocked, likely due to missing `-webkit-overflow-scrolling: touch` and `touch-action` styles, plus the popover may be clipped by the dialog/modal container.
 
-### How
+### Changes
 
-**File: `src/components/operations/OperationsSearchTab.tsx`**
+**File: `src/components/ui/command.tsx`** (line 63)
+- Add `overscroll-contain` and mobile touch scrolling support to `CommandList`:
+  - Change class from `"max-h-[300px] overflow-y-auto overflow-x-hidden"` to `"max-h-[300px] overflow-y-auto overflow-x-hidden overscroll-contain touch-action-pan-y"` and add inline style for `-webkit-overflow-scrolling: touch`.
 
-1. Import `PackageLabelModal` and a `Tag` button (Tag icon already imported).
-2. Add state for `selectedPackage` and `showLabelModal`.
-3. Add a clickable Tag button next to each package's label number badge (or next to the price).
-4. When clicked, map the `SearchResult` fields to the shape `PackageLabelModal` expects:
-   - `id` → `package_id`
-   - `item_description` → from `getProductNames()`
-   - `products_data` → already available
-   - `label_number` → already available
-   - `status` → `package_status`
-5. Render `PackageLabelModal` at the bottom of the component with the selected package.
+**File: `src/components/ui/combobox.tsx`** (line 81)
+- Ensure the `PopoverContent` doesn't clip scrollable content by adding `overflow-hidden` removal if present, and ensure proper sizing with `max-h-[60vh]` so on small screens the dropdown doesn't overflow the viewport.
 
-The search result data already contains `products_data`, `label_number`, and all fields the label component needs. The modal handles label number generation if one doesn't exist yet.
+### Details
+- The root cause is likely that `cmdk`'s list container doesn't propagate touch events for scrolling on iOS Safari
+- Adding `-webkit-overflow-scrolling: touch` and `touch-action: pan-y` on the `CommandList` enables native momentum scrolling on iOS
+- `overscroll-contain` prevents scroll chaining to the parent
 
