@@ -18,13 +18,13 @@ const AdminPlatformFees = () => {
   const [formData, setFormData] = useState<Omit<PlatformFees, 'id'> | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Initialize form data when fees load
   useEffect(() => {
     if (fees) {
       setFormData({
         service_fee_rate_standard: fees.service_fee_rate_standard,
         service_fee_rate_prime: fees.service_fee_rate_prime,
         delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+        delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
         delivery_fee_outside_city: fees.delivery_fee_outside_city,
         prime_delivery_discount: fees.prime_delivery_discount,
         prime_membership_price: fees.prime_membership_price,
@@ -60,6 +60,7 @@ const AdminPlatformFees = () => {
         service_fee_rate_standard: fees.service_fee_rate_standard,
         service_fee_rate_prime: fees.service_fee_rate_prime,
         delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+        delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
         delivery_fee_outside_city: fees.delivery_fee_outside_city,
         prime_delivery_discount: fees.prime_delivery_discount,
         prime_membership_price: fees.prime_membership_price,
@@ -71,13 +72,19 @@ const AdminPlatformFees = () => {
   };
 
   // Calculate preview values
-  const previewBasePrice = 100; // Q100 example
+  const previewBasePrice = 100;
   const standardServiceFee = formData ? previewBasePrice * formData.service_fee_rate_standard : 0;
   const primeServiceFee = formData ? previewBasePrice * formData.service_fee_rate_prime : 0;
+  
+  // Standard user totals
   const standardTotalCity = formData ? previewBasePrice + standardServiceFee + formData.delivery_fee_guatemala_city : 0;
-  const primeTotalCity = formData ? previewBasePrice + primeServiceFee + 0 : 0; // Prime free delivery in city
+  const standardTotalDept = formData ? previewBasePrice + standardServiceFee + formData.delivery_fee_guatemala_department : 0;
   const standardTotalOutside = formData ? previewBasePrice + standardServiceFee + formData.delivery_fee_outside_city : 0;
-  const primeTotalOutside = formData ? previewBasePrice + primeServiceFee + (formData.delivery_fee_outside_city - formData.prime_delivery_discount) : 0;
+  
+  // Prime user totals
+  const primeTotalCity = formData ? previewBasePrice + primeServiceFee + 0 : 0;
+  const primeTotalDept = formData ? previewBasePrice + primeServiceFee + Math.max(0, formData.delivery_fee_guatemala_department - formData.prime_delivery_discount) : 0;
+  const primeTotalOutside = formData ? previewBasePrice + primeServiceFee + Math.max(0, formData.delivery_fee_outside_city - formData.prime_delivery_discount) : 0;
 
   return (
     <RequireAdmin>
@@ -181,13 +188,13 @@ const AdminPlatformFees = () => {
                   Tarifas de Envío
                 </CardTitle>
                 <CardDescription>
-                  Costos de entrega según ubicación y tipo de usuario
+                  Costos de entrega según ubicación y tipo de usuario (3 zonas)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="delivery-city">Guatemala City (Q)</Label>
+                    <Label htmlFor="delivery-city">Municipio de Guatemala (Q)</Label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">Q</span>
                       <Input
@@ -200,11 +207,30 @@ const AdminPlatformFees = () => {
                         className="pl-8"
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground">Prime: Gratis en la ciudad</p>
+                    <p className="text-xs text-muted-foreground">Prime: Gratis</p>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="delivery-outside">Fuera de la Ciudad (Q)</Label>
+                    <Label htmlFor="delivery-dept">Otros Municipios Dept. Guatemala (Q)</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">Q</span>
+                      <Input
+                        id="delivery-dept"
+                        type="number"
+                        step="1"
+                        min="0"
+                        value={formData.delivery_fee_guatemala_department}
+                        onChange={(e) => handleChange('delivery_fee_guatemala_department', e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Mixco, Villa Nueva, Petapa, etc. Prime: Q{Math.max(0, formData.delivery_fee_guatemala_department - formData.prime_delivery_discount)}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="delivery-outside">Fuera del Depto. Guatemala (Q)</Label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">Q</span>
                       <Input
@@ -217,6 +243,9 @@ const AdminPlatformFees = () => {
                         className="pl-8"
                       />
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Prime: Q{Math.max(0, formData.delivery_fee_outside_city - formData.prime_delivery_discount)}
+                    </p>
                   </div>
                 </div>
 
@@ -227,7 +256,7 @@ const AdminPlatformFees = () => {
                     <Crown className="h-4 w-4 text-yellow-500" />
                     Descuento Prime en Envío (Q)
                   </Label>
-                  <div className="relative w-full md:w-1/2">
+                  <div className="relative w-full md:w-1/3">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">Q</span>
                     <Input
                       id="prime-discount"
@@ -240,7 +269,7 @@ const AdminPlatformFees = () => {
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Prime fuera de ciudad paga: Q{formData.delivery_fee_outside_city - formData.prime_delivery_discount}
+                    Descuento aplicado a envíos fuera del Municipio de Guatemala
                   </p>
                 </div>
               </CardContent>
@@ -345,11 +374,15 @@ const AdminPlatformFees = () => {
                       </div>
                       <Separator className="my-2" />
                       <div className="flex justify-between text-muted-foreground">
-                        <span>+ Envío Ciudad:</span>
+                        <span>+ Envío Municipio Guate:</span>
                         <span className="font-medium text-foreground">Q{standardTotalCity.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
-                        <span>+ Envío Fuera:</span>
+                        <span>+ Envío Depto. Guate:</span>
+                        <span className="font-medium text-foreground">Q{standardTotalDept.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>+ Envío Fuera Depto:</span>
                         <span className="font-medium text-foreground">Q{standardTotalOutside.toFixed(2)}</span>
                       </div>
                     </div>
@@ -372,11 +405,15 @@ const AdminPlatformFees = () => {
                       </div>
                       <Separator className="my-2" />
                       <div className="flex justify-between text-muted-foreground">
-                        <span>+ Envío Ciudad (gratis):</span>
+                        <span>+ Envío Municipio Guate (gratis):</span>
                         <span className="font-medium text-green-600">Q{primeTotalCity.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
-                        <span>+ Envío Fuera:</span>
+                        <span>+ Envío Depto. Guate:</span>
+                        <span className="font-medium text-foreground">Q{primeTotalDept.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>+ Envío Fuera Depto:</span>
                         <span className="font-medium text-foreground">Q{primeTotalOutside.toFixed(2)}</span>
                       </div>
                     </div>

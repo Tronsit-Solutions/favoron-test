@@ -1,6 +1,81 @@
 import { PRICING_CONFIG } from './constants';
 
 export type TrustLevel = 'basic' | 'confiable' | 'prime';
+export type DeliveryZone = 'guatemala_city' | 'guatemala_department' | 'outside';
+
+/**
+ * List of municipalities in the Department of Guatemala that are NOT Guatemala City.
+ * These get the "guatemala_department" zone (middle tier).
+ */
+const GUATEMALA_DEPT_MUNICIPALITIES = [
+  'mixco',
+  'villa nueva',
+  'villanueva',
+  'villa canales',
+  'villacanales',
+  'san miguel petapa',
+  'petapa',
+  'amatitlan',
+  'amatitlán',
+  'fraijanes',
+  'santa catarina pinula',
+  'chinautla',
+  'san jose pinula',
+  'san josé pinula',
+  'palencia',
+  'san pedro ayampuc',
+  'san juan sacatepequez',
+  'san juan sacatepéquez',
+  'condado naranjo',
+  'san cristobal',
+  'san cristóbal',
+  'carretera a el salvador',
+  'carretera el salvador',
+];
+
+/**
+ * Patterns that match Guatemala City (municipio de Guatemala).
+ */
+const GUATEMALA_CITY_PATTERNS = [
+  /^guatemala$/,
+  /^guatemala\s*city$/i,
+  /^ciudad\s*de\s*guatemala$/i,
+  /^ciudad\s+de\s+guatemala/i,
+  /^ciudad\s*guatemala$/i,
+  /^guatemala\s*,?\s*guatemala$/i,
+  /^guatemala\s+zona\s*\d+/i,
+  /zona\s*\d+.*ciudad\s*de\s*guatemala/i,
+  /^zona\s*\d+.*guatemala$/i,
+  /^guate$/i,
+];
+
+/**
+ * Classify a cityArea into one of three delivery zones:
+ * - guatemala_city: Municipio de Guatemala (Q25)
+ * - guatemala_department: Other municipalities in Dept. Guatemala like Mixco, Villa Nueva (Q45)
+ * - outside: Outside Department of Guatemala (Q60)
+ */
+export const getDeliveryZone = (cityArea?: string): DeliveryZone => {
+  if (!cityArea) return 'outside';
+  const normalized = cityArea.toLowerCase().trim();
+
+  // Check department municipalities first (Mixco, Villa Nueva, etc.)
+  if (GUATEMALA_DEPT_MUNICIPALITIES.some(m => normalized.includes(m))) {
+    return 'guatemala_department';
+  }
+
+  // Check Guatemala City patterns
+  if (GUATEMALA_CITY_PATTERNS.some(p => p.test(normalized))) {
+    return 'guatemala_city';
+  }
+
+  return 'outside';
+};
+
+/** @deprecated Use getDeliveryZone instead */
+export const isGuatemalaCityArea = (cityArea?: string): boolean => {
+  return getDeliveryZone(cityArea) === 'guatemala_city';
+};
 
 /**
  * Get the commission rate for Favoron based on user's trust level
@@ -13,110 +88,50 @@ export const getFavoronCommissionRate = (trustLevel?: TrustLevel | string): numb
 };
 
 /**
- * Check if a cityArea is "Guatemala" (capital city only)
- * Only "Guatemala" qualifies for reduced delivery fee (Q25)
- * Mixco, Villa Nueva, Petapa, etc. are Q60
- */
-export const isGuatemalaCityArea = (cityArea?: string): boolean => {
-  if (!cityArea) return false;
-  const normalized = cityArea.toLowerCase().trim();
-  
-  // Lista de municipios/ciudades que NO son Guatemala Ciudad (Q60)
-  const excludedAreas = [
-    'mixco',
-    'villa nueva',
-    'villanueva',
-    'villa canales',
-    'villacanales',
-    'san miguel petapa',
-    'petapa',
-    'amatitlan',
-    'amatitlán',
-    'fraijanes',
-    'santa catarina pinula',
-    'chinautla',
-    'san jose pinula',
-    'san josé pinula',
-    'palencia',
-    'san pedro ayampuc',
-    'san juan sacatepequez',
-    'san juan sacatepéquez',
-    'condado naranjo',
-    'san cristobal',
-    'san cristóbal',
-    'carretera a el salvador',
-    'carretera el salvador',
-  ];
-  
-  // Si contiene algún área excluida, NO es Guatemala Ciudad
-  if (excludedAreas.some(excluded => normalized.includes(excluded))) {
-    return false;
-  }
-  
-  // Patrones que SÍ son Guatemala Ciudad
-  const guatemalaCityPatterns = [
-    /^guatemala$/,                           // "guatemala" exacto
-    /^guatemala\s*city$/i,                   // "guatemala city"
-    /^ciudad\s*de\s*guatemala$/i,            // "Ciudad de Guatemala" - coincidencia exacta del dropdown
-    /^ciudad\s+de\s+guatemala/i,             // "ciudad de guatemala..." con espacios
-    /^ciudad\s*guatemala$/i,                 // "Ciudad guatemala" - sin "de"
-    /^guatemala\s*,?\s*guatemala$/i,         // "guatemala, guatemala"
-    /^guatemala\s+zona\s*\d+/i,              // "guatemala zona 10"
-    /zona\s*\d+.*ciudad\s*de\s*guatemala/i,  // "zona 2 de la Ciudad de Guatemala"
-    /^zona\s*\d+.*guatemala$/i,              // "zona 10 guatemala"
-    /^guate$/i,                              // "guate" exacto
-  ];
-  
-  return guatemalaCityPatterns.some(pattern => pattern.test(normalized));
-};
-
-/**
- * Get the delivery fee based on delivery method, user's trust level, and cityArea
- * - Guatemala (city): Q25 for standard users, Q0 for Prime users
- * - Other cities (Mixco, Villa Nueva, etc.): Q60 for standard users, Q35 for Prime users
- * - Pickup: Q0 for everyone
- * 
- * @param deliveryMethod - 'pickup' or 'delivery'
- * @param trustLevel - user's trust level
- * @param cityArea - the cityArea field from confirmed_delivery_address (e.g., 'Guatemala', 'Mixco', 'Villa Nueva')
+ * Get the delivery fee based on delivery method, user's trust level, and cityArea.
+ * Three-tier system:
+ * - Guatemala City: Q25 standard, Q0 prime
+ * - Guatemala Dept (Mixco, etc.): Q45 standard, Q45-discount prime
+ * - Outside: Q60 standard, Q60-discount prime
  */
 export const getDeliveryFee = (
   deliveryMethod: string = 'pickup', 
   trustLevel?: TrustLevel | string,
-  cityArea?: string
+  cityArea?: string,
+  fees?: {
+    delivery_fee_guatemala_city: number;
+    delivery_fee_guatemala_department: number;
+    delivery_fee_outside_city: number;
+    prime_delivery_discount: number;
+  }
 ): number => {
-  // No delivery fee for pickup or returns (traveler compensation handled via tip)
   if (deliveryMethod === 'pickup' || 
       deliveryMethod === 'return_dropoff' || 
       deliveryMethod === 'return_pickup') {
     return 0;
   }
   
-  // Check if cityArea is Guatemala city (only "Guatemala" qualifies)
-  const isGuatemala = isGuatemalaCityArea(cityArea);
+  const zone = getDeliveryZone(cityArea);
   
-  // Prime users in Guatemala city get free delivery
-  if (trustLevel === 'prime' && isGuatemala) {
-    return 0;
+  const feeCity = fees?.delivery_fee_guatemala_city ?? PRICING_CONFIG.STANDARD_DELIVERY_FEE;
+  const feeDept = fees?.delivery_fee_guatemala_department ?? PRICING_CONFIG.GUATEMALA_DEPT_DELIVERY_FEE;
+  const feeOutside = fees?.delivery_fee_outside_city ?? PRICING_CONFIG.OUTSIDE_CITY_DELIVERY_FEE;
+  const discount = fees?.prime_delivery_discount ?? PRICING_CONFIG.PRIME_DISCOUNT;
+  
+  if (zone === 'guatemala_city') {
+    return trustLevel === 'prime' ? 0 : feeCity;
   }
   
-  // Prime users outside Guatemala city get Q25 discount (Q60 - Q25 = Q35)
-  if (trustLevel === 'prime' && !isGuatemala) {
-    return PRICING_CONFIG.OUTSIDE_CITY_DELIVERY_FEE - PRICING_CONFIG.PRIME_DISCOUNT; // Q35
+  if (zone === 'guatemala_department') {
+    return trustLevel === 'prime' ? Math.max(0, feeDept - discount) : feeDept;
   }
   
-  // Standard users: Q25 for Guatemala city, Q60 for other cities
-  return isGuatemala 
-    ? PRICING_CONFIG.STANDARD_DELIVERY_FEE // Q25
-    : PRICING_CONFIG.OUTSIDE_CITY_DELIVERY_FEE; // Q60
+  // outside
+  return trustLevel === 'prime' ? Math.max(0, feeOutside - discount) : feeOutside;
 };
 
 /**
  * Calculate the service fee based on trust level
- * 
- * @param basePrice - the base price to calculate fee from
- * @param trustLevel - user's trust level
- * @param rates - optional dynamic rates from DB (standard/prime). If not provided, uses PRICING_CONFIG fallback.
  */
 export const calculateServiceFee = (
   basePrice: number, 
@@ -148,7 +163,6 @@ export const calculateQuoteTotal = (
 
 /**
  * Calculate Favoron's revenue from a package
- * This is the commission rate applied to (base price + service fee)
  */
 export const calculateFavoronRevenue = (
   basePrice: number,
@@ -160,7 +174,7 @@ export const calculateFavoronRevenue = (
 };
 
 /**
- * Calculate traveler's tip (what they earn from the quote)
+ * Calculate traveler's tip
  */
 export const calculateTravelerTip = (
   totalPrice: number,
@@ -175,12 +189,6 @@ export const calculateTravelerTip = (
 
 /**
  * Get a breakdown of price components for transparency
- * 
- * @param basePrice - the base price (traveler tip)
- * @param deliveryMethod - 'pickup' or 'delivery'
- * @param trustLevel - user's trust level
- * @param destination - cityArea for delivery fee calculation
- * @param rates - optional dynamic rates from DB
  */
 export const getPriceBreakdown = (
   basePrice: number,

@@ -26,9 +26,10 @@ export const PRICING_CONFIG = {
   PRIME_COMMISSION_RATE: 0.25,
   
   // Delivery fees by trust level and location (fallback)
-  STANDARD_DELIVERY_FEE: 25,        // Q25 for Guatemala City
-  OUTSIDE_CITY_DELIVERY_FEE: 60,    // Q60 for other cities
-  PRIME_DISCOUNT: 25,               // Q25 discount for Prime users outside Guatemala City
+  STANDARD_DELIVERY_FEE: 25,        // Q25 for Guatemala City (municipio)
+  GUATEMALA_DEPT_DELIVERY_FEE: 45,  // Q45 for other municipalities in Dept. Guatemala
+  OUTSIDE_CITY_DELIVERY_FEE: 60,    // Q60 for outside Dept. Guatemala
+  PRIME_DISCOUNT: 25,               // Q25 discount for Prime users
   
   // Service fee calculation by trust level (fallback)
   // These are the DEFAULT rates - actual rates come from DB

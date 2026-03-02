@@ -1,0 +1,1 @@
+ALTER TABLE public.favoron_company_information ADD COLUMN delivery_fee_guatemala_department numeric DEFAULT 45;
