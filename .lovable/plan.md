@@ -2,17 +2,33 @@
 
 ## Problem
 
-In `PackageDetailModal.tsx` line 1709, product links are rendered with `href={product.link}` **without** passing through `normalizeProductUrl()`. Links like `amazon.com/...` (without `https://`) get treated as relative paths by the browser, so they navigate to `lovable.app/amazon.com/...` instead of the actual Amazon page.
+The `purchase_confirmation` field is now saved as an **array** (from the multi-upload feature), but two places in `PackageDetailModal.tsx` still treat it as a single object:
 
-The package 3dfe0ceb has 3 of 4 links without `https://` prefix -- that's why they don't work.
+1. **Line 811** — `hasPurchaseConfirmation` checks `pkg.purchase_confirmation.filePath` / `.filename`, which are `undefined` on an array → evaluates to `false` → section is hidden
+2. **Lines 2263-2269** — `PurchaseConfirmationViewer` receives the raw array but expects a single object
+
+Additionally, `PurchaseConfirmationViewer` itself only renders **one** document. It needs to handle an array.
 
 ## Fix
 
-**File**: `src/components/admin/PackageDetailModal.tsx`
+### 1. `src/components/admin/PackageDetailModal.tsx`
 
-1. Import `normalizeProductUrl` from `@/lib/validators`
-2. At line ~1709, change `href={product.link}` to `href={normalizeProductUrl(product.link) || product.link}`
-3. Also wrap the conditional at line 1705 to use `normalizeProductUrl` so invalid links aren't shown
+- Import `normalizeConfirmations` from `@/utils/confirmationHelpers`
+- Change `hasPurchaseConfirmation` (line 811) to:
+  ```ts
+  const confirmations = normalizeConfirmations(pkg.purchase_confirmation);
+  const hasPurchaseConfirmation = confirmations.length > 0;
+  ```
+- Replace the single `<PurchaseConfirmationViewer>` call with a loop over `confirmations`, rendering one viewer per document
 
-Also check `ProductQuickViewModal.tsx` and `ProductDetailModal.tsx` -- these already import `normalizeProductUrl` but should be verified for consistency.
+### 2. `src/components/admin/PurchaseConfirmationViewer.tsx`
+
+- No structural changes needed — it already handles a single confirmation object correctly. We just loop from the parent.
+
+### 3. Other consumers to fix with same pattern
+
+- `src/components/dashboard/TravelerPackageCard.tsx` (line 142)
+- `src/components/dashboard/traveler/TravelerPackageDetails.tsx` (line 323)
+
+Both pass `pkg.purchase_confirmation` directly — need to normalize and loop.
 
