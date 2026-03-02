@@ -1,32 +1,24 @@
 
 
-## Plan
+## Plan: Add label preview button to search results
 
-### 1. Fix `useDashboardActions.tsx` (line 33, 1291-1299)
+### What
+Add a label icon button to each package in the search tab. Clicking it opens the existing `PackageLabelModal` to preview/print the label.
 
-**Line 33**: Destructure `fees` alongside `rates` from `usePlatformFeesContext()`:
-```ts
-const { rates, fees } = usePlatformFeesContext();
-```
+### How
 
-**Lines 1291-1299**: Read `cityArea` from `confirmed_delivery_address` and pass `fees` to `createNormalizedQuote`:
-```ts
-const confirmedAddress = currentPackage.confirmed_delivery_address as any;
-const cityArea = confirmedAddress?.cityArea;
+**File: `src/components/operations/OperationsSearchTab.tsx`**
 
-const normalizedQuote = createNormalizedQuote(
-  currentPackage.admin_assigned_tip,
-  currentPackage.delivery_method || 'pickup',
-  shopperProfile.trust_level,
-  `Cotización generada automáticamente por admin`,
-  true,
-  cityArea || currentPackage.package_destination,
-  rates,
-  fees  // pass dynamic delivery fees
-);
-```
+1. Import `PackageLabelModal` and a `Tag` button (Tag icon already imported).
+2. Add state for `selectedPackage` and `showLabelModal`.
+3. Add a clickable Tag button next to each package's label number badge (or next to the price).
+4. When clicked, map the `SearchResult` fields to the shape `PackageLabelModal` expects:
+   - `id` → `package_id`
+   - `item_description` → from `getProductNames()`
+   - `products_data` → already available
+   - `label_number` → already available
+   - `status` → `package_status`
+5. Render `PackageLabelModal` at the bottom of the component with the selected package.
 
-### 2. Fix existing package quote via SQL
-
-Use the insert tool to update the specific package's quote JSON, changing `deliveryFee` from 60 to 45 and `totalPrice` accordingly (subtract 15). This requires identifying the package ID for the "Serum, Sun Serum Bloqueador, Oliovita" order first, then running an UPDATE on the `packages` table's `quote` JSONB field.
+The search result data already contains `products_data`, `label_number`, and all fields the label component needs. The modal handles label number generation if one doesn't exist yet.
 
