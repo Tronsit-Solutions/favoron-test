@@ -17,22 +17,47 @@ import AcquisitionSurveyModal from "@/components/AcquisitionSurveyModal";
 import AdminTravelerRatingsTab from "@/components/admin/AdminTravelerRatingsTab";
 import AdminPlatformReviewsTab from "@/components/admin/AdminPlatformReviewsTab";
 
+interface AcquisitionSurveyRow {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  acquisition_source: string | null;
+  acquisition_source_answered_at: string | null;
+  referrer_name: string | null;
+  created_at: string | null;
+}
+
 const AdminSurveys = () => {
   const [showPreview, setShowPreview] = useState(false);
   const { user, profile, userRole } = useAuth();
   const navigate = useNavigate();
 
-  const { data: surveyData, isLoading } = useQuery({
+  const { data: surveyData, isLoading } = useQuery<AcquisitionSurveyRow[]>({
     queryKey: ['acquisition-surveys'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, email, acquisition_source, acquisition_source_answered_at, referrer_name, created_at')
-        .not('acquisition_source', 'is', null)
-        .order('acquisition_source_answered_at', { ascending: false });
+      const pageSize = 1000;
+      let from = 0;
+      const allRows: AcquisitionSurveyRow[] = [];
 
-      if (error) throw error;
-      return data;
+      while (true) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, email, acquisition_source, acquisition_source_answered_at, referrer_name, created_at')
+          .not('acquisition_source', 'is', null)
+          .order('acquisition_source_answered_at', { ascending: false })
+          .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+
+        allRows.push(...data);
+
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
+
+      return allRows;
     }
   });
 
