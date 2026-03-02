@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import PurchaseConfirmationViewer from "@/components/admin/PurchaseConfirmationViewer";
+import { normalizeConfirmations } from "@/utils/confirmationHelpers";
 
 interface TravelerPackageDetailsProps {
   pkg: any;
@@ -319,16 +320,22 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
           <CollapsibleContent>
             <div className="mt-2 space-y-2">
               {/* Purchase confirmation */}
-              {pkg.purchase_confirmation && (
-                <div className="bg-card border border-border rounded-lg p-2">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Comprobante de Compra</p>
-                  <PurchaseConfirmationViewer 
-                    purchaseConfirmation={pkg.purchase_confirmation} 
-                    packageId={pkg.id}
-                    className="scale-90 origin-top-left"
-                  />
-                </div>
-              )}
+              {(() => {
+                const confs = normalizeConfirmations(pkg.purchase_confirmation);
+                return confs.length > 0 && (
+                  <div className="bg-card border border-border rounded-lg p-2">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Comprobante de Compra</p>
+                    {confs.map((conf, index) => (
+                      <PurchaseConfirmationViewer 
+                        key={index}
+                        purchaseConfirmation={conf} 
+                        packageId={pkg.id}
+                        className="scale-90 origin-top-left"
+                      />
+                    ))}
+                  </div>
+                );
+              })()}
               
               {/* Tracking info */}
               {pkg.tracking_info && (

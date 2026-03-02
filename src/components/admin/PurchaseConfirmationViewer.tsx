@@ -10,11 +10,11 @@ import { useToast } from "@/hooks/use-toast";
 
 interface PurchaseConfirmationViewerProps {
   purchaseConfirmation: {
-    filename: string;
-    uploadedAt: string;
+    filename?: string;
+    uploadedAt?: string;
     type?: string;
     filePath?: string;
-    bucket?: string; // nuevo: si existe, lo usamos
+    bucket?: string;
   };
   packageId: string;
   className?: string;
