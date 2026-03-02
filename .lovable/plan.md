@@ -1,26 +1,18 @@
 
 
-## Fix: Date picker not clickable in package request form
+## Fix: Welcome email says "EE.UU." instead of global
 
-The calendar dates can't be clicked because the Popover renders inside a Dialog, causing z-index/pointer-events conflicts.
+The welcome email template A in `supabase/functions/send-welcome-email/index.ts` says "conectar a quienes viajan desde EE.UU." but travelers come from anywhere in the world.
 
-### Changes needed in `src/components/PackageRequestForm.tsx` (lines 907-914):
+### Change
 
-1. Add `z-[60]` to `PopoverContent` so it renders above the Dialog overlay (z-50)
-2. Add `pointer-events-auto` to `Calendar` className so clicks register properly
+In `getEmailTemplateA`, update the copy from:
 
-```tsx
-<PopoverContent className="w-auto p-0 z-[60]" align="start">
-  <Calendar
-    mode="single"
-    selected={formData.deliveryDeadline || undefined}
-    onSelect={(date) => handleInputChange('deliveryDeadline', date)}
-    disabled={(date) => date < new Date()}
-    initialFocus
-    className="pointer-events-auto"
-  />
-</PopoverContent>
-```
+> "conectar a quienes viajan desde EE.UU. con quienes buscan recibir productos allá en Guatemala"
 
-Single file change, 2 lines modified.
+to:
+
+> "conectar a quienes viajan desde cualquier parte del mundo con quienes buscan recibir productos en Guatemala"
+
+Single line change in `supabase/functions/send-welcome-email/index.ts`.
 
