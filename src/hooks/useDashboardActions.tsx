@@ -30,7 +30,7 @@ export const useDashboardActions = (
   refreshTrips?: () => Promise<void>
 ) => {
   const { toast } = useToast();
-  const { rates } = usePlatformFeesContext();
+  const { rates, fees } = usePlatformFeesContext();
   const tripSubmitInProgressRef = useRef<boolean>(false);
 
   const handlePackageSubmit = async (packageData: any) => {
@@ -1288,14 +1288,18 @@ export const useDashboardActions = (
             }
 
             // Generate quote using admin_assigned_tip as base price
+            const confirmedAddress = currentPackage.confirmed_delivery_address as any;
+            const cityArea = confirmedAddress?.cityArea;
+
             const normalizedQuote = createNormalizedQuote(
               currentPackage.admin_assigned_tip,
               currentPackage.delivery_method || 'pickup',
               shopperProfile.trust_level,
               `Cotización generada automáticamente por admin`,
               true, // adminAssignedTipAccepted
-              currentPackage.package_destination,
-              rates
+              cityArea || currentPackage.package_destination,
+              rates,
+              fees  // pass dynamic delivery fees
             );
 
             // Update package with quote, address, and dates
