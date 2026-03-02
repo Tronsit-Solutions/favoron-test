@@ -1,11 +1,11 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, FileText, CheckCircle, Loader2, Eye, RefreshCw } from "lucide-react";
+import { Upload, FileText, CheckCircle, Loader2, Eye, RefreshCw, X, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePackageChat } from "@/hooks/usePackageChat";
+import { normalizeConfirmations, ConfirmationDocument } from "@/utils/confirmationHelpers";
 
 interface PurchaseConfirmationUploadProps {
   packageId: string;
@@ -13,14 +13,15 @@ interface PurchaseConfirmationUploadProps {
   onUpload: (data: any) => void;
 }
 
-type UploadState = 'ready' | 'uploading' | 'uploaded' | 'confirming' | 'confirmed';
+type UploadState = 'ready' | 'uploading' | 'uploaded' | 'confirming';
 
 const PurchaseConfirmationUpload = ({ 
   packageId, 
   currentConfirmation, 
   onUpload 
 }: PurchaseConfirmationUploadProps) => {
-  const [uploadState, setUploadState] = useState<UploadState>(currentConfirmation ? 'confirmed' : 'ready');
+  const existingFiles = normalizeConfirmations(currentConfirmation);
+  const [uploadState, setUploadState] = useState<UploadState>('ready');
   const [pendingFile, setPendingFile] = useState<{
     file: File;
     fileName: string;
@@ -28,7 +29,6 @@ const PurchaseConfirmationUpload = ({
     fileSize: number;
     fileType: string;
   } | null>(null);
-  const [confirmedFile, setConfirmedFile] = useState<any>(currentConfirmation);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -39,21 +39,12 @@ const PurchaseConfirmationUpload = ({
     if (file) {
       uploadFileToStorage(file);
     }
-    // Reset file input
     event.target.value = '';
   };
 
   const uploadFileToStorage = async (file: File) => {
     if (!file || !user) return;
 
-    console.log('📎 File selected:', {
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      sizeInMB: (file.size / (1024 * 1024)).toFixed(2) + 'MB'
-    });
-
-    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
     if (!allowedTypes.includes(file.type)) {
       toast({
@@ -64,7 +55,6 @@ const PurchaseConfirmationUpload = ({
       return;
     }
 
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "Archivo muy grande",
@@ -77,15 +67,11 @@ const PurchaseConfirmationUpload = ({
     setUploadState('uploading');
 
     try {
-      // Generate unique filename
       const fileExtension = file.name.split('.').pop();
       const fileName = `purchase_confirmation_${packageId}_${Date.now()}.${fileExtension}`;
       const filePath = `${user.id}/${fileName}`;
       const bucketName = 'purchase-confirmations';
 
-      console.log('📤 Uploading to Storage:', { fileName, filePath, bucketName });
-
-      // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from(bucketName)
         .upload(filePath, file);
@@ -101,9 +87,6 @@ const PurchaseConfirmationUpload = ({
         return;
       }
 
-      console.log('✅ File uploaded successfully to storage');
-
-      // Store pending file info for confirmation step
       setPendingFile({
         file,
         fileName: file.name,
@@ -131,17 +114,12 @@ const PurchaseConfirmationUpload = ({
   };
 
   const confirmPurchaseConfirmation = async () => {
-    if (!pendingFile || !user) {
-      console.error('❌ No pending file or user for confirmation');
-      return;
-    }
+    if (!pendingFile || !user) return;
 
-    console.log('✅ Confirming purchase confirmation...');
     setUploadState('confirming');
 
     try {
-      // Create confirmation data
-      const confirmationData = {
+      const newDoc: ConfirmationDocument = {
         filename: pendingFile.fileName,
         uploadedAt: new Date().toISOString(),
         type: 'purchase_confirmation',
@@ -151,34 +129,33 @@ const PurchaseConfirmationUpload = ({
         size: pendingFile.fileSize,
       };
 
-      console.log('📝 Purchase confirmation data prepared:', confirmationData);
+      // Merge with existing confirmations
+      const allConfirmations = [...existingFiles, newDoc];
       
-      // Call parent's onUpload to update the package
-      onUpload(confirmationData);
+      // Call parent with the full array
+      onUpload(allConfirmations);
       
-      // Send message to chat about the uploaded confirmation
       await sendMessage(`📄 He subido la confirmación de compra: ${pendingFile.fileName}`, 'status_update');
       
-      // Update local state
-      setConfirmedFile(confirmationData);
-      setUploadState('confirmed');
+      // Reset to ready so user can upload more
+      setPendingFile(null);
+      setUploadState('ready');
       
       toast({
-        title: "Confirmación de compra confirmada exitosamente",
-        description: "El viajero puede ver tu confirmación de compra. El tracking es independiente y puedes agregarlo cuando quieras.",
+        title: "Confirmación de compra subida",
+        description: existingFiles.length > 0 
+          ? `Ahora tienes ${allConfirmations.length} comprobante(s) subidos. Puedes agregar más si lo necesitas.`
+          : "Puedes agregar más comprobantes si tienes varias compras.",
       });
 
     } catch (error: any) {
-      console.error('❌ Error confirming purchase confirmation:', {
-        error: error.message,
-        pendingFile
-      });
+      console.error('❌ Error confirming purchase confirmation:', error);
       toast({
         title: "Error al confirmar",
         description: "No se pudo confirmar la confirmación de compra",
         variant: "destructive",
       });
-      setUploadState('uploaded'); // Go back to uploaded state for retry
+      setUploadState('uploaded');
     }
   };
 
@@ -191,135 +168,139 @@ const PurchaseConfirmationUpload = ({
     setUploadState('ready');
   };
 
-  const getStateDisplay = () => {
-    switch (uploadState) {
-      case 'ready':
-        return (
-          <>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              accept="image/*,.pdf"
-              className="hidden"
-            />
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-md p-4 text-center">
-              <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-xs text-muted-foreground mb-3">
-                Sube tu confirmación de compra (screenshot, factura, email)
-              </p>
-              <Button 
-                onClick={handleUploadClick}
-                size="sm"
-                className="w-full"
-              >
-                <FileText className="h-3 w-3 mr-2" />
-                Subir Confirmación
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              PDF, JPG, PNG, GIF, WebP. Máximo 5MB.
-            </p>
-          </>
-        );
-
-      case 'uploading':
-        return (
-          <div className="border-2 border-dashed border-primary/25 rounded-md p-4 text-center">
-            <Loader2 className="h-8 w-8 mx-auto mb-2 text-primary animate-spin" />
-            <p className="text-xs text-muted-foreground mb-3">
-              Subiendo archivo...
-            </p>
-            <Button size="sm" disabled className="w-full">
-              <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-              Subiendo...
-            </Button>
-          </div>
-        );
-
-      case 'uploaded':
-        return (
-          <div className="space-y-3">
-            <div className="border-2 border-dashed border-primary/50 rounded-md p-4 space-y-4">
-              <div className="flex items-center gap-3">
-                <FileText className="h-6 w-6 text-primary flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{pendingFile?.fileName}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {pendingFile && (pendingFile.fileSize / (1024 * 1024)).toFixed(2)} MB
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex flex-col gap-3 w-full">
-                <Button 
-                  onClick={confirmPurchaseConfirmation}
-                  size="sm" 
-                  className="w-full px-4 py-2 text-sm"
-                >
-                  <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span className="flex-1">Confirmar Subida</span>
-                </Button>
-                <Button 
-                  onClick={handleTryAgain}
-                  size="sm" 
-                  variant="outline"
-                  className="w-full px-4 py-2 text-sm"
-                >
-                  <RefreshCw className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span className="flex-1">Intentar de Nuevo</span>
-                </Button>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Revisa que sea el archivo correcto antes de confirmar
-            </p>
-          </div>
-        );
-
-      case 'confirming':
-        return (
-          <div className="border-2 border-dashed border-primary/25 rounded-md p-4 text-center">
-            <Loader2 className="h-8 w-8 mx-auto mb-2 text-primary animate-spin" />
-            <p className="text-xs text-muted-foreground mb-3">
-              Confirmando comprobante...
-            </p>
-            <Button size="sm" disabled className="w-full">
-              <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-              Confirmando...
-            </Button>
-          </div>
-        );
-
-      case 'confirmed':
-        return (
-          <div className="flex items-center space-x-2 p-3 bg-success/10 border border-success/20 rounded-md">
-            <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-success-foreground">Confirmación subida</p>
-              <p className="text-xs text-success-foreground/75 truncate">
-                {confirmedFile?.filename} • {confirmedFile && new Date(confirmedFile.uploadedAt).toLocaleDateString('es-GT')}
-              </p>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  const isCompleted = uploadState === 'confirmed';
-
   return (
     <div className="space-y-3">
       <div className="flex items-center space-x-2">
         <FileText className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm font-medium">Confirmación de Compra</span>
-        {isCompleted && <CheckCircle className="h-4 w-4 text-success" />}
+        {existingFiles.length > 0 && (
+          <span className="text-xs bg-success/10 text-success px-1.5 py-0.5 rounded-full font-medium">
+            {existingFiles.length} subido{existingFiles.length > 1 ? 's' : ''}
+          </span>
+        )}
       </div>
+
+      {/* Show already-uploaded files */}
+      {existingFiles.length > 0 && (
+        <div className="space-y-1">
+          {existingFiles.map((doc, index) => (
+            <div key={index} className="flex items-center space-x-2 p-2 bg-success/10 border border-success/20 rounded-md">
+              <CheckCircle className="h-3 w-3 text-success flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate">{doc.filename || `Comprobante ${index + 1}`}</p>
+                {doc.uploadedAt && (
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(doc.uploadedAt).toLocaleDateString('es-GT')}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       
-      {getStateDisplay()}
+      {/* Upload area */}
+      {uploadState === 'ready' && (
+        <>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            accept="image/*,.pdf"
+            className="hidden"
+          />
+          <div className="border-2 border-dashed border-muted-foreground/25 rounded-md p-4 text-center">
+            <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground mb-3">
+              {existingFiles.length > 0 
+                ? "¿Tienes más comprobantes? Súbelos aquí"
+                : "Sube tu confirmación de compra (screenshot, factura, email)"}
+            </p>
+            <Button 
+              onClick={handleUploadClick}
+              size="sm"
+              variant={existingFiles.length > 0 ? "outline" : "default"}
+              className="w-full"
+            >
+              {existingFiles.length > 0 ? (
+                <>
+                  <Plus className="h-3 w-3 mr-2" />
+                  Agregar Otro Comprobante
+                </>
+              ) : (
+                <>
+                  <FileText className="h-3 w-3 mr-2" />
+                  Subir Confirmación
+                </>
+              )}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            PDF, JPG, PNG, GIF, WebP. Máximo 5MB.
+          </p>
+        </>
+      )}
+
+      {uploadState === 'uploading' && (
+        <div className="border-2 border-dashed border-primary/25 rounded-md p-4 text-center">
+          <Loader2 className="h-8 w-8 mx-auto mb-2 text-primary animate-spin" />
+          <p className="text-xs text-muted-foreground mb-3">Subiendo archivo...</p>
+          <Button size="sm" disabled className="w-full">
+            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+            Subiendo...
+          </Button>
+        </div>
+      )}
+
+      {uploadState === 'uploaded' && (
+        <div className="space-y-3">
+          <div className="border-2 border-dashed border-primary/50 rounded-md p-4 space-y-4">
+            <div className="flex items-center gap-3">
+              <FileText className="h-6 w-6 text-primary flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{pendingFile?.fileName}</p>
+                <p className="text-xs text-muted-foreground">
+                  {pendingFile && (pendingFile.fileSize / (1024 * 1024)).toFixed(2)} MB
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex flex-col gap-3 w-full">
+              <Button 
+                onClick={confirmPurchaseConfirmation}
+                size="sm" 
+                className="w-full px-4 py-2 text-sm"
+              >
+                <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="flex-1">Confirmar Subida</span>
+              </Button>
+              <Button 
+                onClick={handleTryAgain}
+                size="sm" 
+                variant="outline"
+                className="w-full px-4 py-2 text-sm"
+              >
+                <RefreshCw className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="flex-1">Intentar de Nuevo</span>
+              </Button>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Revisa que sea el archivo correcto antes de confirmar
+          </p>
+        </div>
+      )}
+
+      {uploadState === 'confirming' && (
+        <div className="border-2 border-dashed border-primary/25 rounded-md p-4 text-center">
+          <Loader2 className="h-8 w-8 mx-auto mb-2 text-primary animate-spin" />
+          <p className="text-xs text-muted-foreground mb-3">Confirmando comprobante...</p>
+          <Button size="sm" disabled className="w-full">
+            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+            Confirmando...
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

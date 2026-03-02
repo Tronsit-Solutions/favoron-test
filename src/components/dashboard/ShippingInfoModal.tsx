@@ -153,16 +153,14 @@ const ShippingInfoModal = ({ isOpen, onClose, pkg, onDocumentUpload }: ShippingI
                 <h3 className="font-semibold text-sm sm:text-base">Documentos del Paquete</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Purchase Confirmation Upload */}
-                {!pkg.purchase_confirmation && (
-                  <div className="bg-muted/30 rounded-lg p-3 sm:p-4">
-                    <PurchaseConfirmationUpload
-                      packageId={pkg.id}
-                      currentConfirmation={pkg.purchase_confirmation}
-                      onUpload={(data) => onDocumentUpload('confirmation', data)}
-                    />
-                  </div>
-                )}
+                {/* Purchase Confirmation Upload - always show so users can add more */}
+                <div className="bg-muted/30 rounded-lg p-3 sm:p-4">
+                  <PurchaseConfirmationUpload
+                    packageId={pkg.id}
+                    currentConfirmation={pkg.purchase_confirmation}
+                    onUpload={(data) => onDocumentUpload('confirmation', data)}
+                  />
+                </div>
                 
                 {/* Tracking Information */}
                 {!pkg.tracking_info && (

@@ -875,6 +875,7 @@ export const useDashboardActions = (
       let newStatus = pkg.status;
 
       if (type === 'confirmation') {
+        // data is already the full array from PurchaseConfirmationUpload
         updatedData.purchase_confirmation = data;
         // Move to in_transit immediately when purchase confirmation is uploaded
         if (['pending_purchase','paid'].includes(pkg.status)) {
