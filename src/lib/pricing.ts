@@ -195,10 +195,16 @@ export const getPriceBreakdown = (
   deliveryMethod: string = 'pickup',
   trustLevel?: TrustLevel | string,
   destination?: string,
-  rates?: { standard: number; prime: number }
+  rates?: { standard: number; prime: number },
+  fees?: {
+    delivery_fee_guatemala_city: number;
+    delivery_fee_guatemala_department: number;
+    delivery_fee_outside_city: number;
+    prime_delivery_discount: number;
+  }
 ) => {
   const serviceFee = calculateServiceFee(basePrice, trustLevel, rates);
-  const deliveryFee = getDeliveryFee(deliveryMethod, trustLevel, destination);
+  const deliveryFee = getDeliveryFee(deliveryMethod, trustLevel, destination, fees);
   const totalPrice = basePrice + serviceFee + deliveryFee;
   const favoronRevenue = calculateFavoronRevenue(basePrice, serviceFee, trustLevel);
   const travelerTip = calculateTravelerTip(totalPrice, basePrice, serviceFee, deliveryFee, trustLevel);

@@ -139,6 +139,12 @@ const QuoteDialog = ({
   const { profile } = useAuth();
   const { toast } = useToast();
   const { rates, fees, getDeliveryFee: getContextDeliveryFee } = usePlatformFeesContext();
+  const deliveryFees = {
+    delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+    delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
+    delivery_fee_outside_city: fees.delivery_fee_outside_city,
+    prime_delivery_discount: fees.prime_delivery_discount,
+  };
   const [imageModalState, setImageModalState] = useState<{ isOpen: boolean; imageUrl: string; title: string }>({
     isOpen: false,
     imageUrl: '',
@@ -263,7 +269,7 @@ const QuoteDialog = ({
       const activeProducts = selectedProducts.filter(p => !p.excluded && !p.cancelled);
       const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
       const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
-      const breakdown = getPriceBreakdown(totalTip, packageDetails.delivery_method, packageDetails.shopper_trust_level, cityArea);
+      const breakdown = getPriceBreakdown(totalTip, packageDetails.delivery_method, packageDetails.shopper_trust_level, cityArea, rates, deliveryFees);
       
       // Favorón subtotal = tip + service fee (no delivery)
       const favoronSubtotal = breakdown.basePrice + breakdown.serviceFee;
@@ -390,7 +396,7 @@ const QuoteDialog = ({
     if (activeProducts.length === 0) return 0;
     const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
     const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
-    const breakdown = getPriceBreakdown(totalTip, packageDetails.delivery_method, packageDetails.shopper_trust_level, cityArea, rates);
+    const breakdown = getPriceBreakdown(totalTip, packageDetails.delivery_method, packageDetails.shopper_trust_level, cityArea, rates, deliveryFees);
     return breakdown.totalPrice;
   };
   
@@ -499,7 +505,8 @@ const QuoteDialog = ({
           existingQuote.message,
           true,
           packageDetails.package_destination,
-          rates
+          rates,
+          deliveryFees
         );
         submitData.recalculatedQuote = recalculatedQuote;
         
@@ -551,7 +558,8 @@ const QuoteDialog = ({
         message || '',
         true,
         packageDetails.package_destination,
-        rates
+        rates,
+        deliveryFees
       );
       
       clearPersistedState(); // Clear form data on successful submission
@@ -567,7 +575,8 @@ const QuoteDialog = ({
         message,
         undefined,
         packageDetails.package_destination,
-        rates
+        rates,
+        deliveryFees
       );
       
       // Logging for verification
@@ -1447,7 +1456,7 @@ const QuoteDialog = ({
                             {packageDetails.delivery_method === 'delivery' && (
                               <div className="flex justify-between text-sm text-slate-700">
                                 <span>🚚 Entrega a domicilio:</span>
-                                <span>{formatCurrency(getPriceBreakdown(0, 'delivery', packageDetails.shopper_trust_level, packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea).deliveryFee)}</span>
+                                <span>{formatCurrency(getPriceBreakdown(0, 'delivery', packageDetails.shopper_trust_level, packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea, rates, deliveryFees).deliveryFee)}</span>
                               </div>
                             )}
                             <div className="flex justify-between items-center pt-2 border-t border-slate-300">

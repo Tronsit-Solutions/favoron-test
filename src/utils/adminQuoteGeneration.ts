@@ -8,13 +8,20 @@ export interface QuoteGenerationData {
   adminAssignedTip: number;
   /** Dynamic rates from PlatformFeesContext - if not provided, will use fallback */
   rates?: { standard: number; prime: number };
+  /** Dynamic delivery fees from PlatformFeesContext */
+  fees?: {
+    delivery_fee_guatemala_city: number;
+    delivery_fee_guatemala_department: number;
+    delivery_fee_outside_city: number;
+    prime_delivery_discount: number;
+  };
 }
 
 /**
  * Generates a quote when admin changes status from "matched" to "quote_sent"
  */
 export async function generateQuoteForAdminStatusChange(data: QuoteGenerationData) {
-  const { currentPackage, trips, adminAssignedTip, rates } = data;
+  const { currentPackage, trips, adminAssignedTip, rates, fees } = data;
   
   // Check if we have admin_assigned_tip
   if (!adminAssignedTip || adminAssignedTip <= 0) {
@@ -74,7 +81,8 @@ export async function generateQuoteForAdminStatusChange(data: QuoteGenerationDat
     undefined, // No automatic message
     true, // adminAssignedTipAccepted
     cityArea || currentPackage.package_destination, // Prioritize cityArea over package_destination
-    rates // Pass dynamic rates from DB
+    rates, // Pass dynamic rates from DB
+    fees // Pass dynamic delivery fees from DB
   );
 
   console.log('📊 Quote generation details:', {
