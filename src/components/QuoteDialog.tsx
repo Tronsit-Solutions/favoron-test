@@ -24,7 +24,7 @@ import QuoteCountdown from "./dashboard/QuoteCountdown";
 import { REJECTION_REASONS } from "@/lib/constants";
 import QuoteActionsForm from "./forms/QuoteActionsForm";
 import { formatCurrency } from "@/lib/formatters";
-import { calculateQuoteTotal, getPriceBreakdown, calculateServiceFee, isGuatemalaCityArea } from '@/lib/pricing';
+import { calculateQuoteTotal, getPriceBreakdown, calculateServiceFee, getDeliveryZone } from '@/lib/pricing';
 import { createNormalizedQuote } from '@/lib/quoteHelpers';
 import { supabase } from "@/integrations/supabase/client";
 import './ui/mobile-input-fix.css';
@@ -138,7 +138,7 @@ const QuoteDialog = ({
 }: QuoteDialogProps) => {
   const { profile } = useAuth();
   const { toast } = useToast();
-  const { rates } = usePlatformFeesContext();
+  const { rates, fees, getDeliveryFee: getContextDeliveryFee } = usePlatformFeesContext();
   const [imageModalState, setImageModalState] = useState<{ isOpen: boolean; imageUrl: string; title: string }>({
     isOpen: false,
     imageUrl: '',
@@ -1270,16 +1270,16 @@ const QuoteDialog = ({
                             const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
                             const isPrime = packageDetails.shopper_trust_level === 'prime';
                             const isDelivery = packageDetails.delivery_method === 'delivery';
-                            const isGuatemala = isGuatemalaCityArea(cityArea);
+                            const zone = getDeliveryZone(cityArea);
                             
                             // Calculate service fees using dynamic rates from DB
                             const standardServiceFee = totalTip * rates.standard;
                             const primeServiceFee = totalTip * rates.prime;
                             const serviceFeeSavings = isPrime ? standardServiceFee - primeServiceFee : 0;
                             
-                            // Calculate delivery fees
-                            const standardDeliveryFee = isGuatemala ? 25 : 60;
-                            const primeDeliveryFee = isGuatemala ? 0 : 35;
+                            // Calculate delivery fees using context (DB-driven)
+                            const standardDeliveryFee = isDelivery ? getContextDeliveryFee('delivery', 'basic', cityArea) : 0;
+                            const primeDeliveryFee = isDelivery ? getContextDeliveryFee('delivery', 'prime', cityArea) : 0;
                             const actualDeliveryFee = isDelivery ? (isPrime ? primeDeliveryFee : standardDeliveryFee) : 0;
                             const deliverySavings = isDelivery && isPrime ? standardDeliveryFee - primeDeliveryFee : 0;
                             

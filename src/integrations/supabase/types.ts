@@ -340,6 +340,7 @@ export type Database = {
           country: string | null
           created_at: string
           delivery_fee_guatemala_city: number | null
+          delivery_fee_guatemala_department: number | null
           delivery_fee_outside_city: number | null
           email: string | null
           id: string
@@ -368,6 +369,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           delivery_fee_guatemala_city?: number | null
+          delivery_fee_guatemala_department?: number | null
           delivery_fee_outside_city?: number | null
           email?: string | null
           id?: string
@@ -396,6 +398,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           delivery_fee_guatemala_city?: number | null
+          delivery_fee_guatemala_department?: number | null
           delivery_fee_outside_city?: number | null
           email?: string | null
           id?: string
