@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, CheckCircle, Loader2, Eye, RefreshCw, X, Plus } from "lucide-react";
+import { Upload, FileText, CheckCircle, Loader2, RefreshCw, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +15,14 @@ interface PurchaseConfirmationUploadProps {
 
 type UploadState = 'ready' | 'uploading' | 'uploaded' | 'confirming';
 
+interface PendingFile {
+  file: File;
+  fileName: string;
+  filePath: string;
+  fileSize: number;
+  fileType: string;
+}
+
 const PurchaseConfirmationUpload = ({ 
   packageId, 
   currentConfirmation, 
@@ -22,139 +30,113 @@ const PurchaseConfirmationUpload = ({
 }: PurchaseConfirmationUploadProps) => {
   const existingFiles = normalizeConfirmations(currentConfirmation);
   const [uploadState, setUploadState] = useState<UploadState>('ready');
-  const [pendingFile, setPendingFile] = useState<{
-    file: File;
-    fileName: string;
-    filePath: string;
-    fileSize: number;
-    fileType: string;
-  } | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const { sendMessage } = usePackageChat({ packageId });
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      uploadFileToStorage(file);
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      uploadFilesToStorage(Array.from(files));
     }
     event.target.value = '';
   };
 
-  const uploadFileToStorage = async (file: File) => {
-    if (!file || !user) return;
+  const uploadFilesToStorage = async (files: File[]) => {
+    if (!files.length || !user) return;
 
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
-    if (!allowedTypes.includes(file.type)) {
-      toast({
-        title: "Formato no válido",
-        description: "Solo se permiten archivos JPG, PNG, GIF, WebP o PDF",
-        variant: "destructive",
-      });
-      return;
-    }
+    const validFiles = files.filter(file => {
+      if (!allowedTypes.includes(file.type)) {
+        toast({ title: "Formato no válido", description: `${file.name}: Solo JPG, PNG, GIF, WebP o PDF`, variant: "destructive" });
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "Archivo muy grande", description: `${file.name}: Debe ser menor a 5MB`, variant: "destructive" });
+        return false;
+      }
+      return true;
+    });
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "Archivo muy grande",
-        description: "El archivo debe ser menor a 5MB",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!validFiles.length) return;
 
     setUploadState('uploading');
 
     try {
-      const fileExtension = file.name.split('.').pop();
-      const fileName = `purchase_confirmation_${packageId}_${Date.now()}.${fileExtension}`;
-      const filePath = `${user.id}/${fileName}`;
+      const uploaded: PendingFile[] = [];
       const bucketName = 'purchase-confirmations';
 
-      const { error: uploadError } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, file);
+      for (const file of validFiles) {
+        const fileExtension = file.name.split('.').pop();
+        const fileName = `purchase_confirmation_${packageId}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${fileExtension}`;
+        const filePath = `${user.id}/${fileName}`;
 
-      if (uploadError) {
-        console.error('❌ Storage upload error:', uploadError);
-        toast({
-          title: "Error al subir archivo",
-          description: "No se pudo subir el archivo. Intenta de nuevo.",
-          variant: "destructive",
-        });
+        const { error: uploadError } = await supabase.storage
+          .from(bucketName)
+          .upload(filePath, file);
+
+        if (uploadError) {
+          console.error('❌ Storage upload error:', uploadError);
+          toast({ title: "Error al subir", description: `No se pudo subir ${file.name}`, variant: "destructive" });
+          continue;
+        }
+
+        uploaded.push({ file, fileName: file.name, filePath, fileSize: file.size, fileType: file.type });
+      }
+
+      if (uploaded.length === 0) {
         setUploadState('ready');
         return;
       }
 
-      setPendingFile({
-        file,
-        fileName: file.name,
-        filePath,
-        fileSize: file.size,
-        fileType: file.type,
-      });
-
+      setPendingFiles(uploaded);
       setUploadState('uploaded');
 
       toast({
-        title: "Archivo subido exitosamente",
-        description: "Ahora confirma para procesar la confirmación de compra",
+        title: `${uploaded.length} archivo(s) subido(s)`,
+        description: "Confirma para procesar las confirmaciones de compra",
       });
-
     } catch (error: any) {
       console.error('❌ Unexpected error during upload:', error);
-      toast({
-        title: "Error inesperado",
-        description: "Ocurrió un error al subir el archivo",
-        variant: "destructive",
-      });
+      toast({ title: "Error inesperado", description: "Ocurrió un error al subir los archivos", variant: "destructive" });
       setUploadState('ready');
     }
   };
 
   const confirmPurchaseConfirmation = async () => {
-    if (!pendingFile || !user) return;
+    if (!pendingFiles.length || !user) return;
 
     setUploadState('confirming');
 
     try {
-      const newDoc: ConfirmationDocument = {
-        filename: pendingFile.fileName,
+      const newDocs: ConfirmationDocument[] = pendingFiles.map(pf => ({
+        filename: pf.fileName,
         uploadedAt: new Date().toISOString(),
-        type: 'purchase_confirmation',
-        filePath: pendingFile.filePath,
+        type: 'purchase_confirmation' as const,
+        filePath: pf.filePath,
         bucket: 'purchase-confirmations',
-        mimeType: pendingFile.fileType,
-        size: pendingFile.fileSize,
-      };
+        mimeType: pf.fileType,
+        size: pf.fileSize,
+      }));
 
-      // Merge with existing confirmations
-      const allConfirmations = [...existingFiles, newDoc];
-      
-      // Call parent with the full array
+      const allConfirmations = [...existingFiles, ...newDocs];
       onUpload(allConfirmations);
-      
-      await sendMessage(`📄 He subido la confirmación de compra: ${pendingFile.fileName}`, 'status_update');
-      
-      // Reset to ready so user can upload more
-      setPendingFile(null);
-      setUploadState('ready');
-      
-      toast({
-        title: "Confirmación de compra subida",
-        description: existingFiles.length > 0 
-          ? `Ahora tienes ${allConfirmations.length} comprobante(s) subidos. Puedes agregar más si lo necesitas.`
-          : "Puedes agregar más comprobantes si tienes varias compras.",
-      });
 
+      const fileNames = pendingFiles.map(pf => pf.fileName).join(', ');
+      await sendMessage(`📄 He subido ${pendingFiles.length} confirmación(es) de compra: ${fileNames}`, 'status_update');
+
+      setPendingFiles([]);
+      setUploadState('ready');
+
+      toast({
+        title: "Confirmaciones de compra subidas",
+        description: `Ahora tienes ${allConfirmations.length} comprobante(s). Puedes agregar más si lo necesitas.`,
+      });
     } catch (error: any) {
       console.error('❌ Error confirming purchase confirmation:', error);
-      toast({
-        title: "Error al confirmar",
-        description: "No se pudo confirmar la confirmación de compra",
-        variant: "destructive",
-      });
+      toast({ title: "Error al confirmar", description: "No se pudo confirmar las confirmaciones", variant: "destructive" });
       setUploadState('uploaded');
     }
   };
@@ -164,7 +146,7 @@ const PurchaseConfirmationUpload = ({
   };
 
   const handleTryAgain = () => {
-    setPendingFile(null);
+    setPendingFiles([]);
     setUploadState('ready');
   };
 
@@ -180,7 +162,6 @@ const PurchaseConfirmationUpload = ({
         )}
       </div>
 
-      {/* Show already-uploaded files */}
       {existingFiles.length > 0 && (
         <div className="space-y-1">
           {existingFiles.map((doc, index) => (
@@ -198,8 +179,7 @@ const PurchaseConfirmationUpload = ({
           ))}
         </div>
       )}
-      
-      {/* Upload area */}
+
       {uploadState === 'ready' && (
         <>
           <input
@@ -207,14 +187,15 @@ const PurchaseConfirmationUpload = ({
             ref={fileInputRef}
             onChange={handleFileSelect}
             accept="image/*,.pdf"
+            multiple
             className="hidden"
           />
           <div className="border-2 border-dashed border-muted-foreground/25 rounded-md p-4 text-center">
             <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
             <p className="text-xs text-muted-foreground mb-3">
               {existingFiles.length > 0 
-                ? "¿Tienes más comprobantes? Súbelos aquí"
-                : "Sube tu confirmación de compra (screenshot, factura, email)"}
+                ? "¿Tienes más comprobantes? Súbelos aquí (puedes seleccionar varios)"
+                : "Sube tus confirmaciones de compra (puedes seleccionar varios archivos)"}
             </p>
             <Button 
               onClick={handleUploadClick}
@@ -225,18 +206,18 @@ const PurchaseConfirmationUpload = ({
               {existingFiles.length > 0 ? (
                 <>
                   <Plus className="h-3 w-3 mr-2" />
-                  Agregar Otro Comprobante
+                  Agregar Más Comprobantes
                 </>
               ) : (
                 <>
                   <FileText className="h-3 w-3 mr-2" />
-                  Subir Confirmación
+                  Subir Confirmaciones
                 </>
               )}
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            PDF, JPG, PNG, GIF, WebP. Máximo 5MB.
+            PDF, JPG, PNG, GIF, WebP. Máximo 5MB por archivo. Puedes seleccionar varios.
           </p>
         </>
       )}
@@ -244,7 +225,7 @@ const PurchaseConfirmationUpload = ({
       {uploadState === 'uploading' && (
         <div className="border-2 border-dashed border-primary/25 rounded-md p-4 text-center">
           <Loader2 className="h-8 w-8 mx-auto mb-2 text-primary animate-spin" />
-          <p className="text-xs text-muted-foreground mb-3">Subiendo archivo...</p>
+          <p className="text-xs text-muted-foreground mb-3">Subiendo archivos...</p>
           <Button size="sm" disabled className="w-full">
             <Loader2 className="h-3 w-3 mr-2 animate-spin" />
             Subiendo...
@@ -255,15 +236,17 @@ const PurchaseConfirmationUpload = ({
       {uploadState === 'uploaded' && (
         <div className="space-y-3">
           <div className="border-2 border-dashed border-primary/50 rounded-md p-4 space-y-4">
-            <div className="flex items-center gap-3">
-              <FileText className="h-6 w-6 text-primary flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{pendingFile?.fileName}</p>
-                <p className="text-xs text-muted-foreground">
-                  {pendingFile && (pendingFile.fileSize / (1024 * 1024)).toFixed(2)} MB
-                </p>
+            {pendingFiles.map((pf, idx) => (
+              <div key={idx} className="flex items-center gap-3">
+                <FileText className="h-5 w-5 text-primary flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{pf.fileName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {(pf.fileSize / (1024 * 1024)).toFixed(2)} MB
+                  </p>
+                </div>
               </div>
-            </div>
+            ))}
             
             <div className="flex flex-col gap-3 w-full">
               <Button 
@@ -272,7 +255,7 @@ const PurchaseConfirmationUpload = ({
                 className="w-full px-4 py-2 text-sm"
               >
                 <CheckCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span className="flex-1">Confirmar Subida</span>
+                <span className="flex-1">Confirmar {pendingFiles.length} archivo(s)</span>
               </Button>
               <Button 
                 onClick={handleTryAgain}
@@ -286,7 +269,7 @@ const PurchaseConfirmationUpload = ({
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Revisa que sea el archivo correcto antes de confirmar
+            Revisa que sean los archivos correctos antes de confirmar
           </p>
         </div>
       )}
@@ -294,7 +277,7 @@ const PurchaseConfirmationUpload = ({
       {uploadState === 'confirming' && (
         <div className="border-2 border-dashed border-primary/25 rounded-md p-4 text-center">
           <Loader2 className="h-8 w-8 mx-auto mb-2 text-primary animate-spin" />
-          <p className="text-xs text-muted-foreground mb-3">Confirmando comprobante...</p>
+          <p className="text-xs text-muted-foreground mb-3">Confirmando comprobantes...</p>
           <Button size="sm" disabled className="w-full">
             <Loader2 className="h-3 w-3 mr-2 animate-spin" />
             Confirmando...
