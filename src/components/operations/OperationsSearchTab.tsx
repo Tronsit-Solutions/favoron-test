@@ -1,13 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Loader2, Tag, MapPin, User, Calendar, Plane, ChevronDown, Package } from 'lucide-react';
+import { Search, Loader2, Tag, MapPin, User, Calendar, Plane, ChevronDown, Package, Printer } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { getStatusColor } from '@/lib/styles';
 import { getStatusLabel } from '@/lib/formatters';
+import { PackageLabelModal } from '@/components/admin/PackageLabelModal';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -48,6 +50,7 @@ const OperationsSearchTab = () => {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [labelPkg, setLabelPkg] = useState<any>(null);
 
   // Debounce
   useEffect(() => {
@@ -263,11 +266,31 @@ const OperationsSearchTab = () => {
                             </p>
                           </div>
 
-                          {item.estimated_price != null && (
-                            <span className="text-sm font-semibold whitespace-nowrap">
-                              Q{item.estimated_price.toFixed(2)}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-2 shrink-0">
+                            {item.estimated_price != null && (
+                              <span className="text-sm font-semibold whitespace-nowrap">
+                                Q{item.estimated_price.toFixed(2)}
+                              </span>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              title="Ver etiqueta"
+                              onClick={() => setLabelPkg({
+                                id: item.package_id,
+                                item_description: getProductNames(item),
+                                products_data: item.products_data,
+                                label_number: item.label_number,
+                                status: item.package_status,
+                                estimated_price: item.estimated_price,
+                                created_at: item.created_at,
+                                shopper_name: `${item.shopper_first_name || ''} ${item.shopper_last_name || ''}`.trim(),
+                              })}
+                            >
+                              <Printer className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -277,6 +300,13 @@ const OperationsSearchTab = () => {
             </Collapsible>
           ))}
         </div>
+      )}
+      {labelPkg && (
+        <PackageLabelModal
+          isOpen={!!labelPkg}
+          onClose={() => setLabelPkg(null)}
+          pkg={labelPkg}
+        />
       )}
     </div>
   );
