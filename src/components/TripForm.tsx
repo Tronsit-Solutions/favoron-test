@@ -696,6 +696,7 @@ const TripForm = ({
                     searchPlaceholder="Buscar país..."
                     emptyMessage="No se encontraron países"
                     className="w-full text-sm h-8"
+                    portalled={false}
                   />
                 </div>
               )}
@@ -715,6 +716,7 @@ const TripForm = ({
                     emptyMessage="No encontrada"
                     className="w-full text-sm h-8"
                     allowCustomValue={true}
+                    portalled={false}
                   />
                 </div>
               ) : (
@@ -783,6 +785,7 @@ const TripForm = ({
                     searchPlaceholder="Buscar país..."
                     emptyMessage="No se encontraron países"
                     className="w-full text-sm h-8"
+                    portalled={false}
                   />
                 </div>
               )}
@@ -802,6 +805,7 @@ const TripForm = ({
                     emptyMessage="No encontrada"
                     className="w-full text-sm h-8"
                     allowCustomValue={true}
+                    portalled={false}
                   />
                 </div>
               ) : (

@@ -62,6 +62,9 @@ const CommandList = React.forwardRef<
     ref={ref}
     className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden overscroll-contain", className)}
     style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+    onWheel={(e) => {
+      e.stopPropagation()
+    }}
     {...props}
   />
 ))
