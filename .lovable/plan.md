@@ -1,17 +1,21 @@
 
 
-## Plan: Normalizar links de productos en AdminMatchDialog
+## Plan: Mejorar mensajes de empaque original en vista del viajero
 
-### Problema
-Los links de productos en el modal de matching no pasan por `normalizeProductUrl`, lo que causa que URLs sin protocolo (ej. `amazon.com/...`) se interpreten como rutas relativas del dominio de la app.
+### Cambios de texto
 
-### Cambios
+**Cuando SÍ necesita empaque original:**
+- Título: "Conservar empaque original del producto"
+- Subtítulo: "Se refiere al empaque de la marca, no a la caja de cartón del envío/delivery."
 
-**`src/components/admin/AdminMatchDialog.tsx`**
+**Cuando NO necesita empaque original:**
+- Título: "No requiere empaque original"
+- Subtítulo: "Puedes descartar el empaque de la marca y enviar solo el producto."
 
-1. Importar `normalizeProductUrl` desde `@/lib/validators`.
-2. Aplicar `normalizeProductUrl()` en los 3 lugares donde se renderizan links de productos:
-   - Línea ~662: badge "Ver producto" del resumen del paquete
-   - Línea ~760: links individuales de cada producto en la vista expandida
-   - Línea ~789: link fallback cuando no hay productos individuales
+### Archivos a modificar
+
+1. **`src/components/QuoteDialog.tsx`** — indicador de empaque en el modal de aceptar/rechazar.
+2. **`src/components/dashboard/traveler/TravelerPackageDetails.tsx`** — indicador de empaque en detalles del paquete (2 lugares: bloque products_data y bloque products fallback).
+
+Solo se actualiza el texto. Sin cambios de lógica ni estructura.
 
