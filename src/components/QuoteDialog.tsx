@@ -218,12 +218,18 @@ const QuoteDialog = ({
   // Selected products state for multi-product orders (shoppers can remove products)
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   
+  // Delivery method toggle for shoppers
+  const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState<string>(packageDetails.delivery_method || 'pickup');
+  
   // Initialize selected products when modal opens
   useEffect(() => {
     if (isOpen && packageDetails.products_data && Array.isArray(packageDetails.products_data)) {
       setSelectedProducts([...packageDetails.products_data]);
     }
-  }, [isOpen, packageDetails.products_data]);
+    if (isOpen) {
+      setSelectedDeliveryMethod(packageDetails.delivery_method || 'pickup');
+    }
+  }, [isOpen, packageDetails.products_data, packageDetails.delivery_method]);
   
   // Discount code validation state
   const [isValidatingCode, setIsValidatingCode] = useState(false);
@@ -269,7 +275,7 @@ const QuoteDialog = ({
       const activeProducts = selectedProducts.filter(p => !p.excluded && !p.cancelled);
       const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
       const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
-      const breakdown = getPriceBreakdown(totalTip, packageDetails.delivery_method, packageDetails.shopper_trust_level, cityArea, rates, deliveryFees);
+      const breakdown = getPriceBreakdown(totalTip, selectedDeliveryMethod, packageDetails.shopper_trust_level, cityArea, rates, deliveryFees);
       
       // Favorón subtotal = tip + service fee (no delivery)
       const favoronSubtotal = breakdown.basePrice + breakdown.serviceFee;
@@ -396,7 +402,7 @@ const QuoteDialog = ({
     if (activeProducts.length === 0) return 0;
     const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
     const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
-    const breakdown = getPriceBreakdown(totalTip, packageDetails.delivery_method, packageDetails.shopper_trust_level, cityArea, rates, deliveryFees);
+    const breakdown = getPriceBreakdown(totalTip, selectedDeliveryMethod, packageDetails.shopper_trust_level, cityArea, rates, deliveryFees);
     return breakdown.totalPrice;
   };
   
@@ -452,11 +458,11 @@ const QuoteDialog = ({
     if (isShopperViewingQuote && existingQuote) {
       // Shopper sees quote total recalculated with shopper trust level
       const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
-      return calculateQuoteTotal(base, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
+      return calculateQuoteTotal(base, selectedDeliveryMethod, packageDetails.shopper_trust_level, packageDetails.package_destination);
     }
     if (adminTipAmount && isShopperViewingQuote) {
       // If shopper is viewing admin assigned tip as quote, calculate total using centralized logic
-      return calculateQuoteTotal(adminTipAmount, packageDetails.delivery_method, packageDetails.shopper_trust_level, packageDetails.package_destination);
+      return calculateQuoteTotal(adminTipAmount, selectedDeliveryMethod, packageDetails.shopper_trust_level, packageDetails.package_destination);
     }
     return adminTipAmount;
   };
@@ -486,6 +492,11 @@ const QuoteDialog = ({
         submitData.finalTotalPrice = finalTotal;
       }
       
+      // Include delivery method change if shopper changed it
+      if (selectedDeliveryMethod !== packageDetails.delivery_method) {
+        submitData.deliveryMethodChange = selectedDeliveryMethod;
+      }
+      
       // Check if shopper excluded (struck-through) any products
       const activeProducts = selectedProducts.filter((p: any) => !p.excluded);
       const excludedProducts = selectedProducts.filter((p: any) => p.excluded);
@@ -500,7 +511,7 @@ const QuoteDialog = ({
         );
         const recalculatedQuote = createNormalizedQuote(
           newTotalTip,
-          packageDetails.delivery_method,
+          selectedDeliveryMethod,
           packageDetails.shopper_trust_level,
           existingQuote.message,
           true,
@@ -1283,7 +1294,7 @@ const QuoteDialog = ({
                             );
                             const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
                             const isPrime = packageDetails.shopper_trust_level === 'prime';
-                            const isDelivery = packageDetails.delivery_method === 'delivery';
+                            const isDelivery = selectedDeliveryMethod === 'delivery';
                             const zone = getDeliveryZone(cityArea);
                             
                             // Calculate service fees using dynamic rates from DB
@@ -1321,6 +1332,55 @@ const QuoteDialog = ({
                                     <span className="font-medium text-slate-800">
                                       {isPrime ? formatCurrency(standardDeliveryFee) : (actualDeliveryFee === 0 ? '¡GRATIS!' : formatCurrency(actualDeliveryFee))}
                                     </span>
+                                  </div>
+                                )}
+                                
+                                {/* Delivery method toggle for shoppers */}
+                                {isShopperViewingQuote && !isQuoteExpired && (
+                                  <div className="bg-slate-100 border border-slate-200 rounded-lg p-3 mt-1">
+                                    <p className="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
+                                      <Truck className="w-3.5 h-3.5" /> Método de entrega
+                                    </p>
+                                    <RadioGroup 
+                                      value={selectedDeliveryMethod} 
+                                      onValueChange={(val) => {
+                                        setSelectedDeliveryMethod(val);
+                                        // Clear discount when delivery method changes
+                                        if (discountSuccess) removeDiscount();
+                                      }}
+                                      className="space-y-1.5"
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                          <RadioGroupItem value="pickup" id="pickup" />
+                                          <Label htmlFor="pickup" className="text-sm text-slate-700 cursor-pointer">
+                                            Recoger en punto de entrega
+                                          </Label>
+                                        </div>
+                                        <span className="text-xs text-emerald-600 font-medium">Gratis</span>
+                                      </div>
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                          <RadioGroupItem value="delivery" id="delivery" />
+                                          <Label htmlFor="delivery" className="text-sm text-slate-700 cursor-pointer">
+                                            Entrega a domicilio
+                                          </Label>
+                                        </div>
+                                        <span className="text-xs font-medium text-slate-600">
+                                          {formatCurrency(isPrime ? Math.max(0, standardDeliveryFee - (fees.prime_delivery_discount || 0)) : standardDeliveryFee)}
+                                        </span>
+                                      </div>
+                                    </RadioGroup>
+                                    {selectedDeliveryMethod === 'delivery' && selectedDeliveryMethod !== packageDetails.delivery_method && (
+                                      <p className="text-[11px] text-amber-600 mt-2">
+                                        ⚠️ Deberás confirmar tu dirección de entrega después del pago.
+                                      </p>
+                                    )}
+                                    {selectedDeliveryMethod !== packageDetails.delivery_method && (
+                                      <p className="text-[11px] text-primary mt-1 font-medium">
+                                        ✏️ Cambiarás de {packageDetails.delivery_method === 'delivery' ? 'entrega a domicilio' : 'pickup'} a {selectedDeliveryMethod === 'delivery' ? 'entrega a domicilio' : 'pickup'}
+                                      </p>
+                                    )}
                                   </div>
                                 )}
                                 
@@ -1458,7 +1518,7 @@ const QuoteDialog = ({
                               <span>Subtotal con descuento:</span>
                               <span>{formatCurrency(originalTotal - discountAmount)}</span>
                             </div>
-                            {packageDetails.delivery_method === 'delivery' && (
+                            {selectedDeliveryMethod === 'delivery' && (
                               <div className="flex justify-between text-sm text-slate-700">
                                 <span>🚚 Entrega a domicilio:</span>
                                 <span>{formatCurrency(getPriceBreakdown(0, 'delivery', packageDetails.shopper_trust_level, packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea, rates, deliveryFees).deliveryFee)}</span>

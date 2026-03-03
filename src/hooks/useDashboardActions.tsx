@@ -675,6 +675,35 @@ export const useDashboardActions = (
         if (quoteData.message === 'accepted') {
           console.log('✅ Accepting quote via RPC accept_quote');
           
+          // Handle delivery method change
+          if (quoteData.deliveryMethodChange) {
+            console.log('🚚 Shopper changed delivery method to:', quoteData.deliveryMethodChange);
+            
+            // Recalculate quote with new delivery method
+            const currentQuote = selectedPackage.quote || {};
+            const basePrice = parseFloat(currentQuote.price || '0');
+            const recalculatedQuote = createNormalizedQuote(
+              basePrice,
+              quoteData.deliveryMethodChange,
+              selectedPackage.profiles?.trust_level || 'basic',
+              currentQuote.message || '',
+              true,
+              selectedPackage.package_destination,
+              rates,
+              {
+                delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+                delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
+                delivery_fee_outside_city: fees.delivery_fee_outside_city,
+                prime_delivery_discount: fees.prime_delivery_discount,
+              }
+            );
+            
+            await updatePackage(selectedPackage.id, {
+              delivery_method: quoteData.deliveryMethodChange,
+              quote: recalculatedQuote
+            });
+          }
+          
           // Handle product exclusions (when shopper removed products from quote)
           if (quoteData.updatedProducts && quoteData.recalculatedQuote) {
             console.log('📦 Shopper excluded products, updating products_data and quote');
