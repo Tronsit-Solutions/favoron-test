@@ -188,7 +188,12 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
                       ? 'text-amber-600 bg-amber-50' 
                       : 'text-muted-foreground bg-muted/30'
                   }`}>
-                    📦 {product.needsOriginalPackaging ? 'Conservar empaque original' : 'No requiere empaque original'}
+                    📦 {product.needsOriginalPackaging ? 'Conservar empaque original del producto' : 'No requiere empaque original'}
+                    <span className="block text-[10px] text-muted-foreground font-normal ml-5">
+                      {product.needsOriginalPackaging 
+                        ? 'Se refiere al empaque de la marca, no a la caja de cartón del envío/delivery.' 
+                        : 'Puedes descartar el empaque de la marca y enviar solo el producto.'}
+                    </span>
                   </p>
                 </div>
               );
@@ -257,7 +262,12 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
                       ? 'text-amber-600 bg-amber-50' 
                       : 'text-muted-foreground bg-muted/30'
                   }`}>
-                    📦 {product.needsOriginalPackaging ? 'Conservar empaque original' : 'No requiere empaque original'}
+                    📦 {product.needsOriginalPackaging ? 'Conservar empaque original del producto' : 'No requiere empaque original'}
+                    <span className="block text-[10px] text-muted-foreground font-normal ml-5">
+                      {product.needsOriginalPackaging 
+                        ? 'Se refiere al empaque de la marca, no a la caja de cartón del envío/delivery.' 
+                        : 'Puedes descartar el empaque de la marca y enviar solo el producto.'}
+                    </span>
                   </p>
                 </div>
               );
