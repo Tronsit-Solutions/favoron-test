@@ -162,6 +162,7 @@ export const initClientErrorLogger = () => {
   });
 
   window.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
+    event.preventDefault(); // Evitar que el navegador trate la rejection como fatal
     const reason = (event && (event as any).reason) ?? "unhandledrejection";
     const norm = normalizeError(reason);
     const fp = fingerprintOf(norm.message, norm.stack || undefined);

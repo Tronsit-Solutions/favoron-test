@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { PlatformFeesProvider } from "@/contexts/PlatformFeesContext";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { RequireOperations } from "@/components/auth/RequireOperations";
+import { toast } from "sonner";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -30,7 +32,18 @@ import SupportBubble from "./components/SupportBubble";
 
 const queryClient = new QueryClient();
 
-const App = () => (
+const App = () => {
+  useEffect(() => {
+    const handler = (event: PromiseRejectionEvent) => {
+      event.preventDefault();
+      console.error("[App] Unhandled rejection:", event.reason);
+      toast.error("Ocurrió un error inesperado. Si persiste, recarga la página.");
+    };
+    window.addEventListener("unhandledrejection", handler);
+    return () => window.removeEventListener("unhandledrejection", handler);
+  }, []);
+
+  return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -114,6 +127,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;
