@@ -1,15 +1,26 @@
 
 
-## Plan: Cambiar ciudades de EE.UU. a estados
+## Plan: Corregir correo de confirmación de viaje
 
-### Problema
-El dropdown de ciudades para Estados Unidos muestra ciudades (New York, Los Angeles, etc.) cuando sería más útil mostrar estados (Florida, California, Texas, etc.) tanto en origen como en destino.
+### Problemas
+1. **Países en minúscula sin acentos**: El email usa el `value` del país (slug como `espana`, `guatemala`) en vez del `label` de presentación (`España`, `Guatemala`).
+2. **Unidad incorrecta**: Dice "lb" pero debería decir "kg".
 
 ### Cambios
 
-**`src/lib/cities.ts`**
-- Renombrar `US_CITIES` a `US_STATES` y reemplazar la lista de ~39 ciudades por los 50 estados de EE.UU. + DC, con formato `{ value: 'Florida', label: 'Florida' }`.
-- Actualizar la referencia en `getCitiesByCountry` para que `'estados-unidos'` devuelva `US_STATES`.
+**`src/hooks/useDashboardActions.tsx`** (líneas ~236-244)
 
-No se necesitan cambios en `TripForm.tsx` ni `EditTripModal.tsx` porque ya consumen `getCitiesByCountry` dinámicamente.
+1. Importar `COUNTRIES` y `MAIN_COUNTRIES` desde `@/lib/countries` para hacer lookup del label.
+2. Crear una función helper inline para resolver el nombre de presentación del país:
+   ```ts
+   const getCountryLabel = (val: string) => 
+     [...MAIN_COUNTRIES, ...COUNTRIES].find(c => c.value === val)?.label || val;
+   ```
+3. Usar `getCountryLabel(dbTripData.from_country)` y `getCountryLabel(dbTripData.to_country)` en el template del email en lugar del valor crudo.
+4. Cambiar `lb` → `kg` en la línea del espacio disponible.
+
+### Resultado esperado
+- Origen: **Madrid, España** (en vez de "Madrid, espana")
+- Destino: **Guatemala City, Guatemala** (en vez de "Guatemala City, guatemala")
+- Espacio disponible: **10 kg** (en vez de "10 lb")
 
