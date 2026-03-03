@@ -1,30 +1,38 @@
 
 
-## Plan: Prevenir que el sandbox deje de cargar por errores no capturados
+## Plan: Permitir al shopper cambiar método de entrega al responder cotización
 
-### Diagnóstico
-No hay errores visibles en consola, lo que sugiere que una **promesa rechazada sin capturar** (unhandled rejection) está crasheando React y dejando la pantalla en blanco. El proyecto no tiene:
-1. **Error Boundary** de React — si un componente lanza un error durante el render, toda la app muere sin recuperación.
-2. **`event.preventDefault()`** en el handler de `unhandledrejection` — el logger actual registra el error pero no lo suprime, permitiendo que el navegador lo trate como fatal.
+### Problema
+Actualmente el shopper no puede cambiar su método de entrega (delivery vs pickup) al ver la cotización. Si eligió delivery y ya no lo quiere (o viceversa), no tiene forma de modificarlo.
 
-### Cambios propuestos
+### Cambios
 
-#### 1. Crear un Error Boundary global (`src/components/ErrorBoundary.tsx`)
-- Componente de clase React que captura errores de rendering.
-- Muestra un fallback amigable con botón "Recargar" en vez de pantalla blanca.
-- Loguea el error via `window.favoronLogError`.
+#### 1. `src/components/QuoteDialog.tsx`
+- Agregar estado local `selectedDeliveryMethod` inicializado con `packageDetails.delivery_method`.
+- En la sección de precios (donde se muestra "Entrega a domicilio"), agregar un toggle/switch o botones para que el shopper pueda cambiar entre "Recoger en punto" y "Entrega a domicilio".
+- Solo mostrar este toggle cuando `isShopperViewingQuote` (no para viajeros ni admin).
+- Todos los cálculos de precios que usan `packageDetails.delivery_method` deben usar `selectedDeliveryMethod` en su lugar para recalcular en tiempo real.
+- Al hacer submit (`handleSubmit`), incluir `deliveryMethodChange: selectedDeliveryMethod` en `submitData` si cambió respecto al original.
 
-#### 2. Envolver la app con el Error Boundary (`src/main.tsx`)
-- Wrappear `<App />` con `<ErrorBoundary>`.
+#### 2. `src/hooks/useDashboardActions.tsx`
+- En el flujo de aceptación de cotización del shopper (`message === 'accepted'`), verificar si `quoteData.deliveryMethodChange` existe.
+- Si hay cambio, actualizar `delivery_method` en el paquete junto con la aceptación.
+- Recalcular el quote con el nuevo delivery method antes de guardarlo.
 
-#### 3. Suprimir unhandled rejections fatales (`src/lib/clientErrorLogger.ts`)
-- Agregar `event.preventDefault()` en el listener de `unhandledrejection` para evitar que el navegador trate la promesa rechazada como error fatal.
+### UI propuesta
+Dentro del card de precios del shopper, debajo de la línea de "Entrega a domicilio" o del total, un bloque tipo:
 
-#### 4. Agregar handler de unhandled rejections en App.tsx
-- `useEffect` con listener `unhandledrejection` que muestra un toast de error y llama `event.preventDefault()` como red de seguridad adicional.
+```
+┌─────────────────────────────────────┐
+│ 🚚 Método de entrega               │
+│ ○ Recoger en punto de entrega      │
+│ ● Entrega a domicilio    Q45.00    │
+└─────────────────────────────────────┘
+```
 
-### Resultado
-- Errores de rendering → fallback visual con opción de recargar (en vez de pantalla blanca).
-- Promesas rechazadas → se loguean y suprimen sin crashear la app.
-- El sandbox dejará de quedarse en blanco por errores no capturados.
+Con radio buttons que recalculen el total inmediatamente. Si el shopper no tiene dirección confirmada y selecciona delivery, se mostraría una nota indicando que deberá confirmar dirección después.
+
+### Archivos a modificar
+1. **`src/components/QuoteDialog.tsx`** — toggle de delivery method + recálculo de precios en tiempo real.
+2. **`src/hooks/useDashboardActions.tsx`** — persistir el cambio de delivery_method al aceptar la cotización.
 
