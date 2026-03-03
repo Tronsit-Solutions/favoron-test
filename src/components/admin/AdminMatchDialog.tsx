@@ -14,6 +14,7 @@ import { useModalState } from "@/contexts/ModalStateContext";
 import ProductTipAssignmentModal from "./ProductTipAssignmentModal";
 import { usePackageDetails } from "@/hooks/usePackageDetails";
 import { useMemo } from "react";
+import { normalizeProductUrl } from "@/lib/validators";
 
 interface AdminMatchDialogProps {
   showMatchDialog: boolean;
@@ -657,18 +658,21 @@ const AdminMatchDialog = ({
                                        })()}
                       </Badge>
                     )}
-                    {selectedPackage.item_link && (
-                      <a 
-                        href={selectedPackage.item_link} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full hover:bg-blue-200 transition-colors"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        Ver producto
-                      </a>
-                    )}
+                    {(() => {
+                      const normalizedLink = normalizeProductUrl(selectedPackage.item_link);
+                      return normalizedLink && (
+                        <a 
+                          href={normalizedLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full hover:bg-blue-200 transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Ver producto
+                        </a>
+                      );
+                    })()}
                   </div>
 
                   {/* Additional Package Information */}
@@ -755,20 +759,23 @@ const AdminMatchDialog = ({
                                     <span className="font-medium text-blue-900 truncate flex-1">
                                       {index + 1}. {product.itemDescription || product.item_description || 'Producto'}
                                     </span>
-                                    {product.itemLink || product.item_link ? (
-                                      <a
-                                        href={product.itemLink || product.item_link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded hover:bg-blue-200"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        <ExternalLink className="h-3 w-3" />
-                                        Ver
-                                      </a>
-                                    ) : (
-                                      <span className="text-xs text-gray-400">Sin link</span>
-                                    )}
+                                    {(() => {
+                                      const normalizedLink = normalizeProductUrl(product.itemLink || product.item_link);
+                                      return normalizedLink ? (
+                                        <a
+                                          href={normalizedLink}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded hover:bg-blue-200"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <ExternalLink className="h-3 w-3" />
+                                          Ver
+                                        </a>
+                                      ) : (
+                                        <span className="text-xs text-gray-400">Sin link</span>
+                                      );
+                                    })()}
                                   </div>
                                   {/* Indicador de empaque original */}
                                   <Badge 
@@ -784,18 +791,21 @@ const AdminMatchDialog = ({
                                 </div>
                               ))}
                             </div>
-                          ) : selectedPackage?.item_link ? (
-                            <a 
-                              href={selectedPackage.item_link}
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="font-medium text-sm text-blue-600 hover:underline truncate block mt-1"
-                            >
-                              Ver producto
-                            </a>
-                          ) : (
-                            <p className="text-sm text-gray-500 mt-1">Sin links de productos</p>
-                          )}
+                          ) : (() => {
+                            const normalizedLink = normalizeProductUrl(selectedPackage?.item_link);
+                            return normalizedLink ? (
+                              <a 
+                                href={normalizedLink}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="font-medium text-sm text-blue-600 hover:underline truncate block mt-1"
+                              >
+                                Ver producto
+                              </a>
+                            ) : (
+                              <p className="text-sm text-gray-500 mt-1">Sin links de productos</p>
+                            );
+                          })()}
                           
                           <p className="text-xs text-blue-700 mt-1">
                             Total: {getTotalQuantity()} unidad{getTotalQuantity() !== 1 ? 'es' : ''}
