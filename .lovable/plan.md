@@ -1,24 +1,27 @@
 
 
-## Plan: Convertir pedido fd0176b2 a personal y agregar foto
+## Plan: Duplicar orden 37f07d91 sin viajero, estatus approved
 
-### Paquete encontrado
-- **ID**: `fd0176b2-3ba8-4db2-81af-f60a0fd51e65`
-- **Estado**: approved
-- **Tipo actual**: online
-- **Descripción**: Compra en shapedly.com
+### Datos del paquete original
+- **ID**: `37f07d91-c7be-472e-a82d-191ebba5b0a8`
+- **Usuario**: `e35160f9-0cb0-45ce-987d-32431caaf986`
+- **Productos**: Carregador de Bateria ($17.99) + Juego de mesa chico ($11.99)
+- **Estado actual**: `in_transit` con viajero asignado (`b35ab649`)
 
 ### Pasos
 
-#### 1. Subir la foto al bucket `product-photos`
-Copiar la imagen del usuario al proyecto y subirla al bucket `product-photos` en Supabase Storage bajo la carpeta del usuario dueño del paquete.
+#### 1. Crear Edge Function temporal `temp-duplicate-37f07d91`
+Insertar un nuevo registro en `packages` con:
+- Todos los campos del producto copiados (products_data, item_description, estimated_price, purchase_origin, package_destination, delivery_method, admin_assigned_tip, payment_method)
+- **status**: `approved`
+- **matched_trip_id**: `null` (sin viajero)
+- Campos de viajero en null: traveler_address, matched_trip_dates, traveler_confirmation, etc.
+- Campos de pago/tracking en null: quote, payment_receipt, purchase_confirmation, tracking_info
+- **internal_notes**: "Duplicado de orden 37f07d91 sin viajero asignado"
 
-#### 2. Actualizar `products_data` en la base de datos
-Modificar el paquete vía SQL (edge function temporal con service role):
-- Cambiar `requestType` de `'online'` a `'personal'`
-- Agregar la URL de la foto subida al array `productPhotos`
-- Mantener todos los demás campos intactos (`estimatedPrice`, `itemDescription`, `quantity`, etc.)
+#### 2. Ejecutar y verificar
+Invocar la función, confirmar que se creó el nuevo paquete con ID y status `approved`.
 
-### Resultado esperado
-El paquete se mostrará como "Pedido personal" con la foto de referencia del producto (bras de Shapedly) visible en los modales de detalle y cotización.
+#### 3. Eliminar la Edge Function temporal
+Borrar `supabase/functions/temp-duplicate-37f07d91/` después de ejecutar.
 
