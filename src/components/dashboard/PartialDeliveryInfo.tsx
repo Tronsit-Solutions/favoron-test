@@ -1,137 +1,139 @@
 import { Package as PackageType } from "@/types";
-import { MapPin, Calendar, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { MapPin, Calendar, Clock, Home, AlertCircle } from "lucide-react";
+import { formatDateUTC } from "@/lib/formatters";
 
 interface PartialDeliveryInfoProps {
   pkg: PackageType;
 }
 
+const addBusinessDays = (dateStr: string, days: number): Date => {
+  const date = new Date(dateStr);
+  const result = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  let added = 0;
+  while (added < days) {
+    result.setUTCDate(result.getUTCDate() + 1);
+    const dow = result.getUTCDay();
+    if (dow !== 0 && dow !== 6) added++;
+  }
+  return result;
+};
+
 export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
-  // Parse matched_trip_dates
   const tripDates = pkg.matched_trip_dates as any;
   const travelerAddress = pkg.traveler_address as any;
 
   if (!tripDates && !travelerAddress) {
     return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription className="text-xs">
+      <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/50 p-3">
+        <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+        <p className="text-xs text-amber-900">
           Información de entrega aún no disponible. El viajero proporcionará estos datos pronto.
-        </AlertDescription>
-      </Alert>
+        </p>
+      </div>
     );
   }
 
-  // Get partial address info - first line and city
-  const getPartialAddressInfo = () => {
-    if (!travelerAddress) return null;
-    
-    const addressLine1 = travelerAddress.streetAddress || travelerAddress.address_line_1 || travelerAddress.street_address || travelerAddress.direccion || null;
-    const city = travelerAddress.cityArea || travelerAddress.city || travelerAddress.ciudad || '***';
-    
-    return { addressLine1, city };
-  };
+  const addressLine1 = travelerAddress?.streetAddress || travelerAddress?.address_line_1 || travelerAddress?.street_address || travelerAddress?.direccion || null;
+  const addressLine2 = travelerAddress?.streetAddress2 || travelerAddress?.address_line_2 || travelerAddress?.street_address_2 || null;
+  const city = travelerAddress?.cityArea || travelerAddress?.city || travelerAddress?.ciudad || null;
+  const postalCode = travelerAddress?.postalCode || travelerAddress?.postal_code || null;
 
-  const partialAddress = getPartialAddressInfo();
+  const firstDay = tripDates?.first_day_packages || tripDates?.packageReceptionStart;
+  const lastDay = tripDates?.last_day_packages || tripDates?.packageReceptionEnd;
+  const deliveryDate = tripDates?.delivery_date || tripDates?.officeDeliveryDate;
+
+  const estimatedDelivery = deliveryDate ? addBusinessDays(deliveryDate, 2) : null;
 
   return (
-    <div className="space-y-2">
-      <Alert className="bg-blue-50/50 border-blue-200">
-        <AlertCircle className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-xs text-blue-900">
+    <div className="space-y-3">
+      {/* Amber info alert */}
+      <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/50 p-3">
+        <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+        <p className="text-xs text-amber-900">
           Esta es información parcial. Los detalles completos estarán disponibles después de completar el pago.
-        </AlertDescription>
-      </Alert>
+        </p>
+      </div>
 
-      {/* Partial Address */}
-      {partialAddress && (
-        <div className="space-y-1">
-          <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5 text-primary" />
-            Ubicación de Entrega
-          </h4>
-          <div className="bg-muted/30 rounded-md p-2 space-y-1">
-            {partialAddress.addressLine1 && (
-              <p className="text-xs text-foreground">
-                {partialAddress.addressLine1}
-              </p>
-            )}
-            <p className="text-xs text-foreground">
-              <span className="font-medium">Ciudad: </span>
-              {partialAddress.city}
-            </p>
+      {/* Inline delivery info rows */}
+      <div className="space-y-2.5">
+        {/* Reception window */}
+        {firstDay && lastDay && (
+          <div className="flex items-center gap-3">
+            <Clock className="h-4 w-4 text-slate-400 flex-shrink-0" />
+            <div className="text-sm">
+              <span className="text-slate-600">Ventana de recepción: </span>
+              <span className="font-medium text-slate-800">
+                {formatDateUTC(firstDay)} - {formatDateUTC(lastDay)}
+              </span>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Reception Window */}
-      {tripDates && (
-        <div className="space-y-1">
-          <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5 text-primary" />
-            Ventana de Recepción
-          </h4>
-          <div className="bg-muted/30 rounded-md p-2 space-y-1">
-            {(tripDates.first_day_packages || tripDates.packageReceptionStart) && 
-             (tripDates.last_day_packages || tripDates.packageReceptionEnd) && (
-              <div>
-                <p className="text-xs font-medium text-foreground mb-0.5">
-                  Fechas para enviar el paquete:
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Desde: {new Date(
-                    new Date(tripDates.first_day_packages || tripDates.packageReceptionStart).getUTCFullYear(),
-                    new Date(tripDates.first_day_packages || tripDates.packageReceptionStart).getUTCMonth(),
-                    new Date(tripDates.first_day_packages || tripDates.packageReceptionStart).getUTCDate()
-                  ).toLocaleDateString('es-GT', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Hasta: {new Date(
-                    new Date(tripDates.last_day_packages || tripDates.packageReceptionEnd).getUTCFullYear(),
-                    new Date(tripDates.last_day_packages || tripDates.packageReceptionEnd).getUTCMonth(),
-                    new Date(tripDates.last_day_packages || tripDates.packageReceptionEnd).getUTCDate()
-                  ).toLocaleDateString('es-GT', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
-                </p>
-              </div>
-            )}
-            
-            {(tripDates.delivery_date || tripDates.officeDeliveryDate) && (
-              <div className="pt-2 border-t border-muted/50">
-                <p className="text-xs font-medium text-foreground mb-0.5">
-                  Fecha estimada de entrega en oficina:
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(
-                    new Date(tripDates.delivery_date || tripDates.officeDeliveryDate).getUTCFullYear(),
-                    new Date(tripDates.delivery_date || tripDates.officeDeliveryDate).getUTCMonth(),
-                    new Date(tripDates.delivery_date || tripDates.officeDeliveryDate).getUTCDate()
-                  ).toLocaleDateString('es-GT', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
-                </p>
-              </div>
-            )}
+        {/* Estimated delivery date */}
+        {estimatedDelivery && (
+          <div className="flex items-center gap-3">
+            <Calendar className="h-4 w-4 text-slate-400 flex-shrink-0" />
+            <div className="text-sm">
+              <span className="text-slate-600">Fecha estimada de entrega: </span>
+              <span className="font-medium text-slate-800">
+                {estimatedDelivery.toLocaleDateString('es-GT')}
+              </span>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Important Note */}
-      <Alert className="bg-amber-50/50 border-amber-200">
-        <AlertCircle className="h-4 w-4 text-amber-600" />
-        <AlertDescription className="text-xs text-amber-900">
+        {/* City */}
+        {city && (
+          <div className="flex items-center gap-3">
+            <Home className="h-4 w-4 text-slate-400 flex-shrink-0" />
+            <div className="text-sm">
+              <span className="text-slate-600">Ciudad: </span>
+              <span className="font-medium text-slate-800">{city}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Address line 1 */}
+        {addressLine1 && (
+          <div className="flex items-center gap-3">
+            <MapPin className="h-4 w-4 text-slate-400 flex-shrink-0" />
+            <div className="text-sm">
+              <span className="text-slate-600">Dirección: </span>
+              <span className="font-medium text-slate-800">{addressLine1}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Address line 2 - blurred */}
+        {addressLine2 && (
+          <div className="flex items-center gap-3">
+            <MapPin className="h-4 w-4 text-slate-400/50 flex-shrink-0" />
+            <div className="text-sm">
+              <span className="text-slate-600">Dirección 2: </span>
+              <span className="blur-[4px] select-none text-slate-400">{addressLine2}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Postal code */}
+        {postalCode && (
+          <div className="flex items-center gap-3">
+            <MapPin className="h-4 w-4 text-slate-400 flex-shrink-0" />
+            <div className="text-sm">
+              <span className="text-slate-600">Código postal: </span>
+              <span className="font-medium text-slate-800">{postalCode}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Important note */}
+      <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/50 p-3">
+        <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+        <p className="text-xs text-amber-900">
           <strong>Importante:</strong> Asegúrate de que el paquete llegue dentro de la ventana de recepción para que el viajero pueda llevarlo.
-        </AlertDescription>
-      </Alert>
+        </p>
+      </div>
     </div>
   );
 };
