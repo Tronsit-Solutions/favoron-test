@@ -6,6 +6,7 @@ import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 import { sendWhatsAppNotification } from '@/lib/whatsappNotifications';
 import { createHistoryEntry, appendTripHistoryEntry, buildEditDiff } from '@/utils/tripHistoryHelpers';
 import { inferCountryFromCity } from '@/lib/cities';
+import { getCountryLabel } from '@/lib/countries';
 
 export const useDashboardActions = (
   packages: any[],
@@ -235,12 +236,12 @@ export const useDashboardActions = (
 
           const emailMessage = `
             <p>¡Tu viaje fue registrado exitosamente! Aquí tienes un resumen:</p>
-            <p><strong>Origen:</strong> ${dbTripData.from_city}${dbTripData.from_country ? `, ${dbTripData.from_country}` : ''}</p>
-            <p><strong>Destino:</strong> ${dbTripData.to_city}${dbTripData.to_country ? `, ${dbTripData.to_country}` : ''}</p>
+            <p><strong>Origen:</strong> ${dbTripData.from_city}${dbTripData.from_country ? `, ${getCountryLabel(dbTripData.from_country)}` : ''}</p>
+            <p><strong>Destino:</strong> ${dbTripData.to_city}${dbTripData.to_country ? `, ${getCountryLabel(dbTripData.to_country)}` : ''}</p>
             <p><strong>Fecha de llegada:</strong> ${arrivalDateStr}</p>
             <p><strong>Ventana de recepción:</strong> ${firstDayStr} — ${lastDayStr}</p>
             <p><strong>Método de entrega:</strong> ${deliveryMethodLabel}</p>
-            ${dbTripData.available_space ? `<p><strong>Espacio disponible:</strong> ${dbTripData.available_space} lb</p>` : ''}
+            ${dbTripData.available_space ? `<p><strong>Espacio disponible:</strong> ${dbTripData.available_space} kg</p>` : ''}
             <p>Nuestro equipo revisará tu viaje y te asignaremos paquetes pronto.</p>
           `;
 
