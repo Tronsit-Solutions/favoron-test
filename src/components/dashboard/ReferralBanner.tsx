@@ -31,7 +31,7 @@ const ReferralBanner = () => {
 
   if (loading || !referralCode) return null;
 
-  const referralLink = `${APP_URL}/auth?ref=${referralCode}`;
+  const referralLink = `${APP_URL}/auth?ref=${referralCode}&mode=register`;
   const shareMessage = `¡Únete a Favorón con mi link de referido y recibe un descuento de Q${discountAmount} en tu primer pedido! ${referralLink}`;
 
   const handleCopy = async () => {
