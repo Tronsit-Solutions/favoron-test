@@ -1,26 +1,17 @@
 
 
-## El país SÍ se está guardando correctamente
+## Referral link directo a registro
 
-Revisé la base de datos y **todos los paquetes recientes tienen el campo `package_destination_country` guardado correctamente** (ej: `Guatemala`, `Guatemala City`). Solo hay 2 registros antiguos (de febrero) donde está null.
+Actualmente el link de referido (`/auth?ref=CODE`) ya apunta a la página de auth, pero el link que se copia en `ReferralBanner` usa `favoron.app/auth?ref=CODE`. El problema es que algunos componentes generan el link como `/?ref=CODE` (landing page) en vez de `/auth?ref=CODE`.
 
-El problema real es que el **modal de edición** (`EditPackageModal`) no muestra el país guardado porque usa `COUNTRY_QUICK_OPTIONS` con slugs (`'guatemala'`) mientras que la DB tiene labels (`'Guatemala'`). Este es el fix que ya aprobaste antes pero no se implementó.
+### Cambios
 
-### Fix en `src/components/dashboard/EditPackageModal.tsx`
+**`src/components/dashboard/ReferralBanner.tsx`**:
+- Cambiar `referralLink` de `${APP_URL}/auth?ref=${referralCode}` → verificar que ya apunta a `/auth`
+- Asegurar que el link incluya el modo registro: `${APP_URL}/auth?ref=${referralCode}&mode=register`
 
-1. **Remover** imports de `COUNTRY_QUICK_OPTIONS`, `getCitiesByCountry`, `countryHasCities`
-2. **Agregar** las mismas listas hardcodeadas que usa `PackageRequestForm`:
-   ```typescript
-   const destinationCountries = [
-     { value: 'Guatemala', label: 'Guatemala' },
-     { value: 'Estados Unidos', label: 'Estados Unidos' },
-     { value: 'España', label: 'España' },
-     { value: 'México', label: 'México' },
-     { value: 'Otro', label: 'Otro país' }
-   ];
-   const citiesByCountry = { 'Guatemala': [...], 'Estados Unidos': [...], ... };
-   ```
-3. Reemplazar `cityOptions`/`hasCities` con lookups al nuevo `citiesByCountry`
+**`src/pages/Auth.tsx`**:
+- Leer el query param `mode=register` y abrir directamente en modo registro en vez de login
 
-Esto hará que los Select values coincidan con lo que está en la DB y se pre-seleccionen correctamente.
+Esto hará que al abrir el link de referido, el usuario vea directamente el formulario de registro.
 
