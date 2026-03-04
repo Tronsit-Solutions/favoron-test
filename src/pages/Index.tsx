@@ -1,7 +1,7 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { Suspense, lazy, ComponentType } from "react";
+import { Suspense, lazy, ComponentType, useEffect } from "react";
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
@@ -34,8 +34,20 @@ const Index = () => {
   const { user, profile, userRole, loading, signOut } = useAuth();
   const navigate = useNavigate();
 
+  // Capture referral code immediately on landing
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      localStorage.setItem('pending_referral_code', refCode);
+      console.log('📎 Referral code captured on landing:', refCode);
+    }
+  }, []);
+
   const openAuth = (mode: "login" | "register" = "login") => {
-    navigate('/auth', { state: { mode } });
+    const refCode = new URLSearchParams(window.location.search).get('ref');
+    const authUrl = refCode ? `/auth?ref=${refCode}` : '/auth';
+    navigate(authUrl, { state: { mode } });
   };
 
   // No blocking on auth - landing page renders immediately
