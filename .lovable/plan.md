@@ -1,17 +1,38 @@
 
 
-## Referral link directo a registro
+## Fix: Country not showing due to case mismatch
 
-Actualmente el link de referido (`/auth?ref=CODE`) ya apunta a la página de auth, pero el link que se copia en `ReferralBanner` usa `favoron.app/auth?ref=CODE`. El problema es que algunos componentes generan el link como `/?ref=CODE` (landing page) en vez de `/auth?ref=CODE`.
+The package `#7320d5` has `package_destination_country = "guatemala"` (lowercase) in the database, but the Select options use `"Guatemala"` (capitalized). Radix Select requires an exact match, so it shows "Selecciona el país" instead.
 
-### Cambios
+Some older packages were saved with lowercase slugs while newer ones use proper labels. The fix needs to handle both cases.
 
-**`src/components/dashboard/ReferralBanner.tsx`**:
-- Cambiar `referralLink` de `${APP_URL}/auth?ref=${referralCode}` → verificar que ya apunta a `/auth`
-- Asegurar que el link incluya el modo registro: `${APP_URL}/auth?ref=${referralCode}&mode=register`
+### Change in `src/components/dashboard/EditPackageModal.tsx`
 
-**`src/pages/Auth.tsx`**:
-- Leer el query param `mode=register` y abrir directamente en modo registro en vez de login
+Normalize the `packageDestinationCountry` value when initializing state. Add a mapping function that converts known slugs to their label equivalents:
 
-Esto hará que al abrir el link de referido, el usuario vea directamente el formulario de registro.
+```typescript
+// Normalize country value to match Select options
+const normalizeCountry = (val: string): string => {
+  if (!val) return '';
+  const mapping: Record<string, string> = {
+    'guatemala': 'Guatemala',
+    'estados_unidos': 'Estados Unidos',
+    'estados unidos': 'Estados Unidos',
+    'espana': 'España',
+    'españa': 'España',
+    'mexico': 'México',
+    'méxico': 'México',
+  };
+  return mapping[val.toLowerCase()] || 
+    destinationCountries.find(c => c.value.toLowerCase() === val.toLowerCase())?.value || 
+    val;
+};
+```
+
+Apply this normalization in three places:
+1. Initial `useState` for `packageDestinationCountry`
+2. The `useEffect` reset when `pkg` changes
+3. The `handleResetChanges` function
+
+This ensures any legacy lowercase/slug values from the DB are correctly matched to the capitalized Select options without needing a DB migration.
 
