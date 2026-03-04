@@ -24,8 +24,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { COUNTRY_QUICK_OPTIONS } from "@/lib/countries";
-import { getCitiesByCountry, countryHasCities } from "@/lib/cities";
 
 type PackageType = Tables<"packages">;
 
@@ -104,10 +102,50 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
   const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>(existingAddress || {});
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({ products: {} });
 
-  // Destination options - use centralized data
-  const destinationCountries = COUNTRY_QUICK_OPTIONS.filter(c => c.value !== '__otro__');
-  const cityOptions = getCitiesByCountry(packageDestinationCountry);
-  const hasCities = countryHasCities(packageDestinationCountry);
+  // Destination options - use label-based values matching DB storage
+  const destinationCountries = [
+    { value: 'Guatemala', label: 'Guatemala' },
+    { value: 'Estados Unidos', label: 'Estados Unidos' },
+    { value: 'España', label: 'España' },
+    { value: 'México', label: 'México' },
+    { value: 'Otro', label: 'Otro país' },
+  ];
+  const citiesByCountry: Record<string, { value: string; label: string }[]> = {
+    'Guatemala': [
+      { value: 'Guatemala City', label: 'Ciudad de Guatemala' },
+      { value: 'Antigua Guatemala', label: 'Antigua Guatemala' },
+      { value: 'Quetzaltenango', label: 'Quetzaltenango' },
+      { value: 'Escuintla', label: 'Escuintla' },
+      { value: 'Mixco', label: 'Mixco' },
+      { value: 'Villa Nueva', label: 'Villa Nueva' },
+      { value: 'Cobán', label: 'Cobán' },
+      { value: 'Huehuetenango', label: 'Huehuetenango' },
+      { value: 'Otra ciudad', label: 'Otra ciudad' },
+    ],
+    'Estados Unidos': [
+      { value: 'Miami', label: 'Miami' },
+      { value: 'New York', label: 'New York' },
+      { value: 'Los Angeles', label: 'Los Angeles' },
+      { value: 'Houston', label: 'Houston' },
+      { value: 'Otra ciudad', label: 'Otra ciudad' },
+    ],
+    'España': [
+      { value: 'Madrid', label: 'Madrid' },
+      { value: 'Barcelona', label: 'Barcelona' },
+      { value: 'Valencia', label: 'Valencia' },
+      { value: 'Sevilla', label: 'Sevilla' },
+      { value: 'Otra ciudad', label: 'Otra ciudad' },
+    ],
+    'México': [
+      { value: 'Ciudad de México', label: 'Ciudad de México' },
+      { value: 'Guadalajara', label: 'Guadalajara' },
+      { value: 'Monterrey', label: 'Monterrey' },
+      { value: 'Cancún', label: 'Cancún' },
+      { value: 'Otra ciudad', label: 'Otra ciudad' },
+    ],
+  };
+  const cityOptions = citiesByCountry[packageDestinationCountry] || [];
+  const hasCities = cityOptions.length > 0;
   const [deliveryDeadline, setDeliveryDeadline] = useState<Date | undefined>(
     pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined
   );
