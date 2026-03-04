@@ -368,7 +368,13 @@ export const useDashboardActions = (
           if (isPaidPackage) {
             console.log('📦 Package already paid, proceeding directly and updating delivery info');
             // For paid packages, move to pending_purchase and update delivery info
-            const normalizedQuoteData = normalizeQuote(quoteData, selectedPackage.delivery_method, selectedPackage.profiles?.trust_level || 'basic', selectedPackage.package_destination, rates);
+            const cityArea = (selectedPackage.confirmed_delivery_address as any)?.cityArea;
+            const normalizedQuoteData = normalizeQuote(quoteData, selectedPackage.delivery_method, selectedPackage.profiles?.trust_level || 'basic', cityArea || selectedPackage.package_destination, rates, {
+              delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+              delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
+              delivery_fee_outside_city: fees.delivery_fee_outside_city,
+              prime_delivery_discount: fees.prime_delivery_discount,
+            });
             await updatePackage(selectedPackage.id, {
               status: 'pending_purchase',
               quote: normalizedQuoteData,
@@ -383,7 +389,13 @@ export const useDashboardActions = (
           } else {
             console.log('💰 Sending quote to shopper for payment (with delivery info)');
             // For unpaid packages, send quote to shopper and include delivery info
-            const normalizedQuoteData = normalizeQuote(quoteData, selectedPackage.delivery_method, selectedPackage.profiles?.trust_level || 'basic', selectedPackage.package_destination, rates);
+            const cityAreaUnpaid = (selectedPackage.confirmed_delivery_address as any)?.cityArea;
+            const normalizedQuoteData = normalizeQuote(quoteData, selectedPackage.delivery_method, selectedPackage.profiles?.trust_level || 'basic', cityAreaUnpaid || selectedPackage.package_destination, rates, {
+              delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+              delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
+              delivery_fee_outside_city: fees.delivery_fee_outside_city,
+              prime_delivery_discount: fees.prime_delivery_discount,
+            });
             await updatePackage(selectedPackage.id, {
               status: 'quote_sent',
               quote: normalizedQuoteData,
@@ -645,7 +657,13 @@ export const useDashboardActions = (
             arrival_date: matchedTrip.arrival_date
           };
 
-          const normalizedQuoteData = normalizeQuote(quoteData, selectedPackage.delivery_method, selectedPackage.shopper_trust_level, selectedPackage.package_destination, rates);
+          const cityAreaTraveler = (selectedPackage.confirmed_delivery_address as any)?.cityArea;
+          const normalizedQuoteData = normalizeQuote(quoteData, selectedPackage.delivery_method, selectedPackage.shopper_trust_level, cityAreaTraveler || selectedPackage.package_destination, rates, {
+            delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+            delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
+            delivery_fee_outside_city: fees.delivery_fee_outside_city,
+            prime_delivery_discount: fees.prime_delivery_discount,
+          });
           await updatePackage(selectedPackage.id, {
             status: 'quote_sent',
             quote: normalizedQuoteData
@@ -688,7 +706,7 @@ export const useDashboardActions = (
               selectedPackage.profiles?.trust_level || 'basic',
               currentQuote.message || '',
               true,
-              selectedPackage.package_destination,
+              (selectedPackage.confirmed_delivery_address as any)?.cityArea || selectedPackage.package_destination,
               rates,
               {
                 delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
