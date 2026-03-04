@@ -88,6 +88,7 @@ import RejectionReasonModal from "./RejectionReasonModal";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
+import { parseStorageRef } from "@/lib/storageUrls";
 import { usePackageDetails } from "@/hooks/usePackageDetails";
 import { QuoteRecalculator } from "./QuoteRecalculator";
 import QuoteEditModal from "./QuoteEditModal";
@@ -939,6 +940,41 @@ const [editForm, setEditForm] = useState({
     } finally {
       setUploadingPhotoForProduct(null);
       event.target.value = '';
+    }
+  };
+
+  // Handle admin deleting a photo from a personal product
+  const handleAdminDeletePhoto = async (productIndex: number, photoIndex: number) => {
+    try {
+      const currentProducts = Array.isArray(pkg.products_data) ? [...pkg.products_data] : [];
+      if (!currentProducts[productIndex]) return;
+
+      const updatedProduct = { ...currentProducts[productIndex] as any };
+      const existingPhotos = Array.isArray(updatedProduct.productPhotos) ? [...updatedProduct.productPhotos] : [];
+      const photoRef = existingPhotos[photoIndex];
+
+      // Delete from storage
+      if (photoRef) {
+        const parsed = parseStorageRef(typeof photoRef === 'string' ? photoRef : `${photoRef.bucket}/${photoRef.filePath}`);
+        if (parsed) {
+          await supabase.storage.from(parsed.bucket).remove([parsed.filePath]);
+        }
+      }
+
+      // Remove from array
+      existingPhotos.splice(photoIndex, 1);
+      updatedProduct.productPhotos = existingPhotos;
+      currentProducts[productIndex] = updatedProduct;
+
+      if (onUpdatePackage) {
+        await onUpdatePackage(pkg.id, { products_data: currentProducts });
+        await refetchPackageDetails();
+      }
+
+      toast({ title: "Foto eliminada", description: "La foto se eliminó exitosamente" });
+    } catch (error: any) {
+      console.error('Error deleting admin photo:', error);
+      toast({ title: "Error al eliminar foto", description: error.message || "Intenta de nuevo", variant: "destructive" });
     }
   };
 
@@ -1833,17 +1869,29 @@ const [editForm, setEditForm] = useState({
                             {product.productPhotos && product.productPhotos.length > 0 && (
                               <div className="grid grid-cols-3 gap-2 mb-2">
                                 {product.productPhotos.map((photo: string, idx: number) => (
-                                  <ProductPhoto
-                                    key={idx}
-                                    photo={photo}
-                                    idx={idx}
-                                    productId={product.id}
-                                    productDescription={product.description}
-                                    onImageClick={(url, title, filename) => {
-                                      setSelectedImage({ url, title, filename });
-                                      setImageViewerOpen(true);
-                                    }}
-                                  />
+                                  <div key={idx} className="relative group">
+                                    <ProductPhoto
+                                      photo={photo}
+                                      idx={idx}
+                                      productId={product.id}
+                                      productDescription={product.description}
+                                      onImageClick={(url, title, filename) => {
+                                        setSelectedImage({ url, title, filename });
+                                        setImageViewerOpen(true);
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      className="absolute top-1 right-1 z-10 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold shadow-md"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAdminDeletePhoto(product.index, idx);
+                                      }}
+                                      title="Eliminar foto"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
                                 ))}
                               </div>
                             )}
