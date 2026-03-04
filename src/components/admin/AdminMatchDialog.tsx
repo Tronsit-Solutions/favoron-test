@@ -756,26 +756,28 @@ const AdminMatchDialog = ({
                               {fullPackage.products_data.map((product: any, index: number) => (
                                 <div key={index} className="space-y-1">
                                   <div className="flex items-center gap-2 text-sm">
-                                    <span className="font-medium text-blue-900 truncate flex-1">
+                                    <span className="font-medium text-blue-900 truncate flex-1 min-w-0">
                                       {index + 1}. {product.itemDescription || product.item_description || 'Producto'}
                                     </span>
-                                    {(() => {
-                                      const normalizedLink = normalizeProductUrl(product.itemLink || product.item_link);
-                                      return normalizedLink ? (
-                                        <a
-                                          href={normalizedLink}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded hover:bg-blue-200"
-                                          onClick={(e) => e.stopPropagation()}
-                                        >
-                                          <ExternalLink className="h-3 w-3" />
-                                          Ver
-                                        </a>
-                                      ) : (
-                                        <span className="text-xs text-gray-400">Sin link</span>
-                                      );
-                                    })()}
+                                    <span className="shrink-0">
+                                      {(() => {
+                                        const normalizedLink = normalizeProductUrl(product.itemLink || product.item_link);
+                                        return normalizedLink ? (
+                                          <a
+                                            href={normalizedLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded hover:bg-blue-200"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            <ExternalLink className="h-3 w-3" />
+                                            Ver
+                                          </a>
+                                        ) : (
+                                          <span className="text-xs text-gray-400">Sin link</span>
+                                        );
+                                      })()}
+                                    </span>
                                   </div>
                                   {/* Indicador de empaque original */}
                                   <Badge 
