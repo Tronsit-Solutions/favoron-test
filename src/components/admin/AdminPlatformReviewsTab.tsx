@@ -165,11 +165,11 @@ const AdminPlatformReviewsTab = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">
+                        <Badge variant={r.communication_quality === "excellent" || r.communication_quality === "good" ? "success" : r.communication_quality === "fair" ? "warning" : "destructive"}>
                           {communicationLabels[r.communication_quality] || r.communication_quality}
                         </Badge>
                       </TableCell>
-                      <TableCell className="max-w-[200px] truncate">{r.review_text || "—"}</TableCell>
+                      <TableCell className="max-w-[300px] whitespace-pre-wrap break-words">{r.review_text || "—"}</TableCell>
                       <TableCell>
                         {r.consent_to_publish ? (
                           <Badge variant="success">Sí</Badge>
