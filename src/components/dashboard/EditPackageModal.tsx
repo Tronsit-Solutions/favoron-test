@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Package, ExternalLink, DollarSign, Hash, MapPin, Truck, Home, CalendarIcon, Lock, AlertCircle, RotateCcw } from "lucide-react";
+import { Package, ExternalLink, DollarSign, Hash, MapPin, Truck, Home, CalendarIcon, Lock, AlertCircle, RotateCcw, Plus, X } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,6 +24,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { COUNTRY_QUICK_OPTIONS } from "@/lib/countries";
+import { getCitiesByCountry, countryHasCities } from "@/lib/cities";
 
 type PackageType = Tables<"packages">;
 
@@ -102,40 +104,10 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
   const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>(existingAddress || {});
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({ products: {} });
 
-  // Destination options
-  const destinationCountries = [
-    { value: 'Guatemala', label: 'Guatemala' },
-    { value: 'Estados Unidos', label: 'Estados Unidos' },
-    { value: 'España', label: 'España' },
-    { value: 'México', label: 'México' },
-    { value: 'Otro', label: 'Otro país' }
-  ];
-
-  const citiesByCountry: Record<string, string[]> = {
-    'Guatemala': [
-      'Cualquier ciudad', 'Guatemala City', 'Sacatepéquez', 'Chimaltenango', 'Escuintla',
-      'Santa Rosa', 'Sololá', 'Totonicapán', 'Quetzaltenango', 'Suchitepéquez',
-      'Retalhuleu', 'San Marcos', 'Huehuetenango', 'Quiché', 'Baja Verapaz',
-      'Alta Verapaz', 'Petén', 'Izabal', 'Zacapa', 'Chiquimula',
-      'Jalapa', 'Jutiapa', 'El Progreso', 'Otra ciudad'
-    ],
-    'Estados Unidos': [
-      'Cualquier ciudad', 'Miami', 'New York', 'Los Angeles', 'Houston', 'Chicago',
-      'San Francisco', 'Dallas', 'Atlanta', 'Phoenix',
-      'Las Vegas', 'Orlando', 'Washington D.C.', 'Otra ciudad'
-    ],
-    'España': [
-      'Cualquier ciudad', 'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Málaga',
-      'Bilbao', 'Zaragoza', 'Granada', 'Palma de Mallorca',
-      'San Sebastián', 'Otra ciudad'
-    ],
-    'México': [
-      'Cualquier ciudad', 'Ciudad de México', 'Guadalajara', 'Monterrey', 'Cancún',
-      'Tijuana', 'Puebla', 'León', 'Mérida', 'Querétaro',
-      'Toluca', 'Otra ciudad'
-    ],
-    'Otro': ['Cualquier ciudad', 'Otra ciudad']
-  };
+  // Destination options - use centralized data
+  const destinationCountries = COUNTRY_QUICK_OPTIONS.filter(c => c.value !== '__otro__');
+  const cityOptions = getCitiesByCountry(packageDestinationCountry);
+  const hasCities = countryHasCities(packageDestinationCountry);
   const [deliveryDeadline, setDeliveryDeadline] = useState<Date | undefined>(
     pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined
   );
@@ -347,9 +319,21 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
 
                     return (
                     <div key={index} className="p-4 border rounded-lg bg-muted/30 space-y-3">
+                    <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-muted-foreground">
                         Producto {index + 1}
                       </span>
+                      {products.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                          onClick={() => setProducts(prev => prev.filter((_, i) => i !== index))}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                       
                       {/* Product Link */}
                       <div className="space-y-1">
@@ -450,7 +434,24 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                       </div>
                     </div>
                     );
-                  })}
+                   })}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-2 text-xs"
+                    onClick={() => setProducts(prev => [...prev, {
+                      itemLink: '',
+                      itemDescription: '',
+                      estimatedPrice: '',
+                      quantity: 1,
+                      requestType: 'compra',
+                      additionalNotes: '',
+                      needsOriginalPackaging: false,
+                    }])}
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Agregar producto
+                  </Button>
                 </div>
               ) : (
                 /* Fallback for packages without products_data - show general fields */
@@ -537,22 +538,32 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                   {!canEditDestination && <Lock className="h-3 w-3" />}
                   Ciudad de destino
                 </Label>
-                <Select 
-                  value={packageDestination} 
-                  onValueChange={setPackageDestination}
-                  disabled={!canEditDestination || !packageDestinationCountry}
-                >
-                  <SelectTrigger className={cn(changedClass(fieldChanged("packageDestination", packageDestination)))}>
-                    <SelectValue placeholder="Selecciona la ciudad" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(citiesByCountry[packageDestinationCountry] || []).map(city => (
-                      <SelectItem key={city} value={city}>
-                        {city}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {hasCities ? (
+                  <Select 
+                    value={packageDestination} 
+                    onValueChange={setPackageDestination}
+                    disabled={!canEditDestination || !packageDestinationCountry}
+                  >
+                    <SelectTrigger className={cn(changedClass(fieldChanged("packageDestination", packageDestination)))}>
+                      <SelectValue placeholder="Selecciona la ciudad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cityOptions.map(city => (
+                        <SelectItem key={city.value} value={city.value}>
+                          {city.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    value={packageDestination}
+                    onChange={(e) => setPackageDestination(e.target.value)}
+                    placeholder="Escribe la ciudad de destino"
+                    disabled={!canEditDestination || !packageDestinationCountry}
+                    className={cn("text-sm", changedClass(fieldChanged("packageDestination", packageDestination)))}
+                  />
+                )}
                 {!canEditDestination && (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
                     <Lock className="h-3 w-3 flex-shrink-0" />
