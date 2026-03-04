@@ -65,10 +65,10 @@ const Auth = () => {
       // Check for OAuth errors in URL
       detectAuthErrorFromUrl();
       
-      // Check for mode from navigation state
-      const mode = location.state?.mode;
-      console.log('Navigation mode:', mode);
-      if (mode === 'register') {
+      // Check for mode from navigation state or URL query param
+      const urlMode = location.state?.mode || new URLSearchParams(window.location.search).get('mode');
+      console.log('Navigation mode:', urlMode);
+      if (urlMode === 'register') {
         console.log('Setting currentTab to signup');
         setCurrentTab('signup');
       }
