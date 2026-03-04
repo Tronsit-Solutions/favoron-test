@@ -429,8 +429,58 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       };
     });
 
+    // Generate automatic cancellation counterparts for cancelled-but-paid packages without a refund_order
+    const refundedPackageIds = new Set((refundOrders || []).map(r => r.package_id));
+    const cancellationData: EnrichedPackageData[] = eligiblePackages
+      .filter(pkg => {
+        if (!cancelledButPaidStates.includes(pkg.status)) return false;
+        // Already has a refund_order — skip to avoid duplication
+        if (refundedPackageIds.has(pkg.id)) return false;
+        return true;
+      })
+      .map((pkg): EnrichedPackageData => {
+        const quote = pkg.quote as any;
+        const quoteValues = getQuoteValues(quote);
+
+        const shopperProfile = profiles?.[pkg.user_id];
+        const shopperName = shopperProfile
+          ? `${shopperProfile.first_name} ${shopperProfile.last_name}`.trim() || 'Usuario'
+          : 'Usuario';
+
+        const travelerId = pkg.matched_trip_id ? trips?.[pkg.matched_trip_id] : null;
+        const travelerProfile = travelerId ? profiles?.[travelerId] : null;
+        const travelerName = travelerProfile
+          ? `${travelerProfile.first_name} ${travelerProfile.last_name}`.trim() || 'Viajero'
+          : '-';
+
+        let productDesc = pkg.item_description || 'Sin descripción';
+        if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+          const names = (pkg.products_data as any[]).map((p: any) => p.itemDescription).filter(Boolean);
+          if (names.length > 0) productDesc = names.join(', ');
+        }
+
+        return {
+          package: pkg,
+          shopperName,
+          travelerName,
+          tripId: pkg.matched_trip_id || null,
+          productDescription: `Cancelación - ${productDesc}`,
+          productLink: null,
+          paymentDate: format(new Date(pkg.updated_at), 'dd/MM/yyyy'),
+          totalToPay: -quoteValues.finalTotalPrice,
+          discountAmount: 0,
+          travelerTip: -quoteValues.price,
+          favoronRevenue: -quoteValues.serviceFee,
+          messengerPayment: -quoteValues.deliveryFee,
+          paymentMethod: 'Cancelación',
+          isPrimeMembership: false,
+          isRefund: true,
+          refundAmount: quoteValues.finalTotalPrice
+        };
+      });
+
     // Combine and sort by date
-    return [...packageData, ...primeData, ...refundData].sort((a, b) => {
+    return [...packageData, ...primeData, ...refundData, ...cancellationData].sort((a, b) => {
       const dateA = new Date(a.paymentDate.split('/').reverse().join('-'));
       const dateB = new Date(b.paymentDate.split('/').reverse().join('-'));
       return dateB.getTime() - dateA.getTime();
