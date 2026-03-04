@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban, Clock, Globe } from "lucide-react";
+import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban, Clock, Globe, Upload, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { inferCountryFromCity } from '@/lib/cities';
@@ -218,6 +218,11 @@ const [editForm, setEditForm] = useState({
   
   // State for quote edit modal
   const [quoteEditModalOpen, setQuoteEditModalOpen] = useState(false);
+  
+  // State for admin photo upload
+  const [uploadingPhotoForProduct, setUploadingPhotoForProduct] = useState<number | null>(null);
+  const adminPhotoInputRef = useRef<HTMLInputElement>(null);
+  const [pendingPhotoProductIndex, setPendingPhotoProductIndex] = useState<number | null>(null);
   
   // State for rejection history profiles
   const [rejectionProfiles, setRejectionProfiles] = useState<Record<string, any>>({});
@@ -873,9 +878,81 @@ const [editForm, setEditForm] = useState({
   const totalOrderValue = detailedProducts.reduce((sum, product) => sum + product.subtotal, 0);
   const totalAdminTips = detailedProducts.filter(product => !product.cancelled).reduce((sum, product) => sum + product.adminTip, 0);
 
+  // Handle admin adding a photo to a personal product
+  const handleAdminAddPhoto = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || pendingPhotoProductIndex === null) {
+      event.target.value = '';
+      return;
+    }
+
+    const productIndex = pendingPhotoProductIndex;
+    setPendingPhotoProductIndex(null);
+
+    // Validate file
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({ title: "Formato no válido", description: "Solo JPG, PNG o WebP", variant: "destructive" });
+      event.target.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Archivo muy grande", description: "Máximo 5MB", variant: "destructive" });
+      event.target.value = '';
+      return;
+    }
+
+    setUploadingPhotoForProduct(productIndex);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `product_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${pkg.user_id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-photos')
+        .upload(filePath, file);
+
+      if (uploadError) throw new Error(`Error al subir: ${uploadError.message}`);
+
+      const storageRef = `product-photos/${filePath}`;
+
+      // Update products_data
+      const currentProducts = Array.isArray(pkg.products_data) ? [...pkg.products_data] : [];
+      if (currentProducts[productIndex]) {
+        const updatedProduct = { ...currentProducts[productIndex] as any };
+        const existingPhotos = Array.isArray(updatedProduct.productPhotos) ? [...updatedProduct.productPhotos] : [];
+        existingPhotos.push(storageRef);
+        updatedProduct.productPhotos = existingPhotos;
+        currentProducts[productIndex] = updatedProduct;
+
+        if (onUpdatePackage) {
+          await onUpdatePackage(pkg.id, { products_data: currentProducts });
+          // Refetch to show updated photos
+          await refetchPackageDetails();
+        }
+
+        toast({ title: "Foto agregada", description: "La foto se subió exitosamente" });
+      }
+    } catch (error: any) {
+      console.error('Error uploading admin photo:', error);
+      toast({ title: "Error al subir foto", description: error.message || "Intenta de nuevo", variant: "destructive" });
+    } finally {
+      setUploadingPhotoForProduct(null);
+      event.target.value = '';
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={() => closeModal(modalId)}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+        {/* Hidden file input for admin photo upload */}
+        <input
+          type="file"
+          ref={adminPhotoInputRef}
+          onChange={handleAdminAddPhoto}
+          accept="image/jpeg,image/jpg,image/png,image/webp"
+          className="hidden"
+        />
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -1749,25 +1826,50 @@ const [editForm, setEditForm] = useState({
                           </div>
                         )}
                         
-                        {/* Show photos for personal orders */}
-                        {product.requestType === 'personal' && product.productPhotos && product.productPhotos.length > 0 && (
+                        {/* Show photos for personal orders + admin upload */}
+                        {product.requestType === 'personal' && (
                           <div className="mt-2 pt-2 border-t">
                             <p className="font-medium text-muted-foreground text-xs mb-2">Fotos del producto:</p>
-                            <div className="grid grid-cols-3 gap-2">
-                              {product.productPhotos.map((photo: string, idx: number) => (
-                                <ProductPhoto
-                                  key={idx}
-                                  photo={photo}
-                                  idx={idx}
-                                  productId={product.id}
-                                  productDescription={product.description}
-                                  onImageClick={(url, title, filename) => {
-                                    setSelectedImage({ url, title, filename });
-                                    setImageViewerOpen(true);
-                                  }}
-                                />
-                              ))}
-                            </div>
+                            {product.productPhotos && product.productPhotos.length > 0 && (
+                              <div className="grid grid-cols-3 gap-2 mb-2">
+                                {product.productPhotos.map((photo: string, idx: number) => (
+                                  <ProductPhoto
+                                    key={idx}
+                                    photo={photo}
+                                    idx={idx}
+                                    productId={product.id}
+                                    productDescription={product.description}
+                                    onImageClick={(url, title, filename) => {
+                                      setSelectedImage({ url, title, filename });
+                                      setImageViewerOpen(true);
+                                    }}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                            {/* Admin add photo button */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full text-xs h-7"
+                              disabled={uploadingPhotoForProduct === product.index}
+                              onClick={() => {
+                                setPendingPhotoProductIndex(product.index);
+                                adminPhotoInputRef.current?.click();
+                              }}
+                            >
+                              {uploadingPhotoForProduct === product.index ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                  Subiendo...
+                                </>
+                              ) : (
+                                <>
+                                  <Upload className="h-3 w-3 mr-1" />
+                                  Agregar Foto
+                                </>
+                              )}
+                            </Button>
                           </div>
                         )}
 
