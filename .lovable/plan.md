@@ -1,34 +1,25 @@
 
 
-## Fix: Product link not visible when name is too long
+## One-time split: Apple Watch Series 11 42mm (Luis Coloma)
 
-### Problem
-In `AdminMatchDialog.tsx` line 758-761, the product description uses `truncate flex-1` which causes it to consume all horizontal space, hiding the "Ver" link button when the product name is long.
+### Package details
+- **ID**: `bec40b96-eece-41b6-b1cd-6317e9baa343`
+- **Item**: Apple Watch Series 11 42mm, quantity 2, $798 total
+- **Status**: approved
 
-### Fix
+### What I'll do
 
-**File: `src/components/admin/AdminMatchDialog.tsx` (~line 758-761)**
+Deploy a temporary edge function (using service role to bypass RLS INSERT restriction) that:
 
-Change the layout so the description truncates properly while the link button never shrinks:
+1. **Updates the original package**: sets quantity to 1, estimated_price to $399
+2. **Creates a new package**: clones all fields (user_id, destination, deadline, delivery_method, status, etc.) with quantity 1 and price $399
 
-- Add `min-w-0` to the description span (allows `truncate` to work properly in flex)
-- Add `shrink-0` to the link button wrapper so it's always visible
+### Why edge function
+The `packages` INSERT RLS policy requires `user_id = auth.uid()`. Since the admin is creating a package on behalf of Luis Coloma, we need service role access. Following the established admin data-patching pattern with a temporary edge function.
 
-```tsx
-// Before
-<div className="flex items-center gap-2 text-sm">
-  <span className="font-medium text-blue-900 truncate flex-1">
-    {index + 1}. {product.itemDescription || ...}
-  </span>
-  // link button...
+### Cloned fields
+- user_id, item_description, item_link, estimated_price ($399), purchase_origin, package_destination, package_destination_country, delivery_deadline, delivery_method, status, additional_notes, products_data (with quantity=1)
 
-// After
-<div className="flex items-center gap-2 text-sm">
-  <span className="font-medium text-blue-900 truncate flex-1 min-w-0">
-    {index + 1}. {product.itemDescription || ...}
-  </span>
-  // link button with shrink-0 wrapper...
-```
-
-And wrap the link/no-link output in a `<span className="shrink-0">` so it never gets hidden.
+### Not cloned
+- matched_trip_id, quote, payment_receipt, tracking_info, label_number, internal_notes
 
