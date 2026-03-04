@@ -82,6 +82,22 @@ interface ValidationErrors {
   packageDestinationCountry?: string;
 }
 
+// Normalize country value from DB to match Select option values
+const normalizeCountry = (val: string): string => {
+  if (!val) return '';
+  const mapping: Record<string, string> = {
+    'guatemala': 'Guatemala',
+    'estados_unidos': 'Estados Unidos',
+    'estados unidos': 'Estados Unidos',
+    'espana': 'España',
+    'españa': 'España',
+    'mexico': 'México',
+    'méxico': 'México',
+    'otro': 'Otro',
+  };
+  return mapping[val.toLowerCase()] || val;
+};
+
 export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageModalProps) => {
   // Parse existing products data
   const existingProducts = Array.isArray(pkg.products_data) 
@@ -98,7 +114,7 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
   const [additionalNotes, setAdditionalNotes] = useState(pkg.additional_notes || "");
   const [deliveryMethod, setDeliveryMethod] = useState(pkg.delivery_method || "pickup");
   const [packageDestination, setPackageDestination] = useState(pkg.package_destination || "");
-  const [packageDestinationCountry, setPackageDestinationCountry] = useState(pkg.package_destination_country || "");
+  const [packageDestinationCountry, setPackageDestinationCountry] = useState(normalizeCountry(pkg.package_destination_country || ""));
   const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>(existingAddress || {});
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({ products: {} });
 
@@ -200,7 +216,7 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
     setAdditionalNotes(pkg.additional_notes || "");
     setDeliveryMethod(pkg.delivery_method || "pickup");
     setPackageDestination(pkg.package_destination || "");
-    setPackageDestinationCountry(pkg.package_destination_country || "");
+    setPackageDestinationCountry(normalizeCountry(pkg.package_destination_country || ""));
     setDeliveryAddress(addr || {});
     setDeliveryDeadline(pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined);
     setValidationErrors({ products: {} });
@@ -300,7 +316,7 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
     setAdditionalNotes(pkg.additional_notes || "");
     setDeliveryMethod(pkg.delivery_method || "pickup");
     setPackageDestination(pkg.package_destination || "");
-    setPackageDestinationCountry(pkg.package_destination_country || "");
+    setPackageDestinationCountry(normalizeCountry(pkg.package_destination_country || ""));
     setDeliveryAddress(addr || {});
     setDeliveryDeadline(pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined);
     setValidationErrors({ products: {} });
