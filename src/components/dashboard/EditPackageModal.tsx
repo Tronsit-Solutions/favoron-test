@@ -112,10 +112,28 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
   ];
 
   const citiesByCountry: Record<string, string[]> = {
-    'Guatemala': ['Cualquier ciudad', 'Ciudad de Guatemala', 'Antigua Guatemala', 'Quetzaltenango', 'Escuintla', 'Otra ciudad'],
-    'Estados Unidos': ['Cualquier ciudad', 'Miami', 'New York', 'Los Angeles', 'Houston', 'Chicago', 'Otra ciudad'],
-    'España': ['Cualquier ciudad', 'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Otra ciudad'],
-    'México': ['Cualquier ciudad', 'Ciudad de México', 'Guadalajara', 'Monterrey', 'Cancún', 'Otra ciudad'],
+    'Guatemala': [
+      'Cualquier ciudad', 'Guatemala City', 'Sacatepéquez', 'Chimaltenango', 'Escuintla',
+      'Santa Rosa', 'Sololá', 'Totonicapán', 'Quetzaltenango', 'Suchitepéquez',
+      'Retalhuleu', 'San Marcos', 'Huehuetenango', 'Quiché', 'Baja Verapaz',
+      'Alta Verapaz', 'Petén', 'Izabal', 'Zacapa', 'Chiquimula',
+      'Jalapa', 'Jutiapa', 'El Progreso', 'Otra ciudad'
+    ],
+    'Estados Unidos': [
+      'Cualquier ciudad', 'Miami', 'New York', 'Los Angeles', 'Houston', 'Chicago',
+      'San Francisco', 'Dallas', 'Atlanta', 'Phoenix',
+      'Las Vegas', 'Orlando', 'Washington D.C.', 'Otra ciudad'
+    ],
+    'España': [
+      'Cualquier ciudad', 'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Málaga',
+      'Bilbao', 'Zaragoza', 'Granada', 'Palma de Mallorca',
+      'San Sebastián', 'Otra ciudad'
+    ],
+    'México': [
+      'Cualquier ciudad', 'Ciudad de México', 'Guadalajara', 'Monterrey', 'Cancún',
+      'Tijuana', 'Puebla', 'León', 'Mérida', 'Querétaro',
+      'Toluca', 'Otra ciudad'
+    ],
     'Otro': ['Cualquier ciudad', 'Otra ciudad']
   };
   const [deliveryDeadline, setDeliveryDeadline] = useState<Date | undefined>(
