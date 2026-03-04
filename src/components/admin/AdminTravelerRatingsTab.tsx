@@ -148,7 +148,7 @@ const AdminTravelerRatingsTab = () => {
                           <Badge variant="destructive">No</Badge>
                         )}
                       </TableCell>
-                      <TableCell className="max-w-[200px] truncate">{r.comment || "—"}</TableCell>
+                      <TableCell className="max-w-[300px] whitespace-pre-wrap break-words">{r.comment || "—"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                         {format(new Date(r.created_at), "PPp", { locale: es })}
                       </TableCell>
