@@ -1,27 +1,28 @@
 
-## Contrapartida para paquetes cancelados pagados
 
-### Situación actual
-El paquete de Raul Secaira (`7c021d06`) fue pagado (tiene `payment_receipt` con comprobante) y luego cancelado (`status: 'cancelled'`). La tabla financiera lo muestra como ingreso positivo (Q360: tip Q240 + serviceFee Q120), pero **no existe un `refund_order`** asociado, por lo que no aparece ninguna contrapartida negativa.
+## Crear orden de cobro para Alejandra De Leon Fernandez
 
-### Problema
-Cuando un paquete pagado se cancela sin crear un refund_order, el resumen financiero sigue mostrando el ingreso como si fuera válido. La cancelación debería reflejarse como una fila negativa automática.
+### Datos confirmados
+- **Viajera**: Alejandra De Leon Fernandez (`2622016c`)
+- **Viaje**: Miami → Guatemala City (`80f8400b`)
+- **Monto acumulado**: Q170 (2 paquetes entregados)
+- **Banco**: Industrial, Ahorros
+- **Titular**: Alejandra De Leon
+- **Cuenta**: 3707566
 
-### Solución
+### Acción
 
-En `src/components/admin/FinancialSummaryTable.tsx`, después de generar `refundData` (línea ~430), agregar lógica para generar **contrapartidas automáticas** para paquetes cancelados-pero-pagados que **no tengan un refund_order asociado**:
+Desplegar una edge function temporal `admin-create-payment-order` que ejecute el RPC `create_payment_order_with_snapshot` con service role, pasando:
 
-1. Filtrar los `eligiblePackages` con `status === 'cancelled'` o `'archived_by_shopper'` que tengan evidencia de pago
-2. Excluir los que ya tienen un `refund_order` (para no duplicar)
-3. Generar una fila negativa por cada uno, con:
-   - `totalToPay: -totalOriginal`
-   - `travelerTip: -tipOriginal`  
-   - `favoronRevenue: -serviceFeeOriginal`
-   - `messengerPayment: -deliveryFeeOriginal`
-   - `paymentMethod: 'Cancelación'`
-   - Descripción: `"Cancelación - [producto]"`
-   - Fecha: fecha de actualización del paquete (cuando se canceló)
+```
+traveler_id: 2622016c-427d-4a97-89b0-eab611d96ae8
+trip_id: 80f8400b-b527-4f1d-9c99-d1a86cd68c26
+amount: 170
+bank_name: Industrial
+bank_account_holder: Alejandra De Leon
+bank_account_number: 3707566
+bank_account_type: ahorros
+```
 
-4. Incluir estas filas en el array combinado junto con `packageData`, `primeData` y `refundData`
+Esto creará la orden con snapshot histórico de los 2 paquetes entregados y marcará `payment_order_created = true` en el acumulador. Después de confirmar que se creó correctamente, eliminar la edge function temporal.
 
-Esto hará que el paquete de Raul aparezca dos veces: una como ingreso (+Q360) y otra como cancelación (-Q360), reflejando correctamente que el dinero debe devolverse.
