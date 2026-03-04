@@ -1,36 +1,24 @@
 
 
-## Root Cause: Wrong field used for delivery zone classification
+## Change Ana Enriquez's package from delivery to pickup
 
-The delivery fee is Q60 instead of Q45 because when quotes are generated via the **traveler quote flow** in `useDashboardActions.tsx`, the code passes `selectedPackage.package_destination` (which is "Guatemala City") to the zone classifier instead of `confirmed_delivery_address.cityArea` (which is "Fraijanes").
+### Package
+- **ID**: `11f3f330-62ee-4f00-a148-c43472522f2e`
+- **Current**: delivery_method = "delivery", deliveryFee = Q60, totalPrice = Q127.50
+- **Status**: quote_sent
 
-The zone classifier sees "Guatemala City" and since it doesn't match any department municipality, it defaults to... well, actually it would match `guatemala_city` zone (Q25). But the real issue is that `normalizeQuote` is called **without the `fees` parameter**, so it falls back to hardcoded constants. Let me verify — the `getDeliveryFee` function without `fees` uses `PRICING_CONFIG` constants which may not have the three-tier system.
+### What I'll do
 
-Actually, looking more carefully: `package_destination = "Guatemala City"` would match the `guatemala_city` zone and give Q25, not Q60. But the quote shows Q60. This suggests the quote was set with a `message` by the traveler, and the `deliveryFee: 60` was part of the original `quoteData` that came in, and `normalizeQuote` didn't correct it because it wasn't passing `fees`.
+Deploy a temporary edge function (service role) to:
 
-### The fix: 4 locations in `useDashboardActions.tsx`
+1. Update `delivery_method` from `"delivery"` to `"pickup"`
+2. Recalculate the quote removing the delivery fee:
+   - price: Q45 (unchanged)
+   - serviceFee: Q22.50 (unchanged)
+   - deliveryFee: 0
+   - totalPrice: Q67.50 (was Q127.50)
+3. Clear `confirmed_delivery_address` since pickup doesn't need it
 
-All calls to `normalizeQuote`/`createNormalizedQuote` need to:
-1. Use `confirmed_delivery_address.cityArea` instead of `package_destination`
-2. Pass `fees` (dynamic delivery fees from PlatformFeesContext)
-
-**Lines to fix:**
-
-1. **Line 371**: `normalizeQuote(quoteData, ..., selectedPackage.package_destination, rates)`
-   → Add cityArea extraction, pass `cityArea || selectedPackage.package_destination`, add `fees`
-
-2. **Line 386**: Same fix
-
-3. **Line 648**: Same fix  
-
-4. **Line 691**: `createNormalizedQuote(..., selectedPackage.package_destination, rates, {...fees})`
-   → Use `cityArea || selectedPackage.package_destination`
-
-### Additional: Backfill the Fraijanes package
-
-After the code fix, run the existing `fix-delivery-fees-v3` edge function to correct the Fraijanes package (and any other affected active packages) from Q60 to Q45.
-
-### Summary
-- Single file change: `src/hooks/useDashboardActions.tsx` (4 call sites)
-- Invoke `fix-delivery-fees-v3` to correct existing wrong quotes
+### Why edge function
+The quote is already sent to the shopper. A direct admin update via the UI would trigger normalizeQuote recalculation logic. Using service role ensures a clean, precise update without side effects.
 
