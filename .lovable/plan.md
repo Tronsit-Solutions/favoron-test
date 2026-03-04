@@ -1,38 +1,27 @@
 
+## Contrapartida para paquetes cancelados pagados
 
-## Fix: Country not showing due to case mismatch
+### Situación actual
+El paquete de Raul Secaira (`7c021d06`) fue pagado (tiene `payment_receipt` con comprobante) y luego cancelado (`status: 'cancelled'`). La tabla financiera lo muestra como ingreso positivo (Q360: tip Q240 + serviceFee Q120), pero **no existe un `refund_order`** asociado, por lo que no aparece ninguna contrapartida negativa.
 
-The package `#7320d5` has `package_destination_country = "guatemala"` (lowercase) in the database, but the Select options use `"Guatemala"` (capitalized). Radix Select requires an exact match, so it shows "Selecciona el país" instead.
+### Problema
+Cuando un paquete pagado se cancela sin crear un refund_order, el resumen financiero sigue mostrando el ingreso como si fuera válido. La cancelación debería reflejarse como una fila negativa automática.
 
-Some older packages were saved with lowercase slugs while newer ones use proper labels. The fix needs to handle both cases.
+### Solución
 
-### Change in `src/components/dashboard/EditPackageModal.tsx`
+En `src/components/admin/FinancialSummaryTable.tsx`, después de generar `refundData` (línea ~430), agregar lógica para generar **contrapartidas automáticas** para paquetes cancelados-pero-pagados que **no tengan un refund_order asociado**:
 
-Normalize the `packageDestinationCountry` value when initializing state. Add a mapping function that converts known slugs to their label equivalents:
+1. Filtrar los `eligiblePackages` con `status === 'cancelled'` o `'archived_by_shopper'` que tengan evidencia de pago
+2. Excluir los que ya tienen un `refund_order` (para no duplicar)
+3. Generar una fila negativa por cada uno, con:
+   - `totalToPay: -totalOriginal`
+   - `travelerTip: -tipOriginal`  
+   - `favoronRevenue: -serviceFeeOriginal`
+   - `messengerPayment: -deliveryFeeOriginal`
+   - `paymentMethod: 'Cancelación'`
+   - Descripción: `"Cancelación - [producto]"`
+   - Fecha: fecha de actualización del paquete (cuando se canceló)
 
-```typescript
-// Normalize country value to match Select options
-const normalizeCountry = (val: string): string => {
-  if (!val) return '';
-  const mapping: Record<string, string> = {
-    'guatemala': 'Guatemala',
-    'estados_unidos': 'Estados Unidos',
-    'estados unidos': 'Estados Unidos',
-    'espana': 'España',
-    'españa': 'España',
-    'mexico': 'México',
-    'méxico': 'México',
-  };
-  return mapping[val.toLowerCase()] || 
-    destinationCountries.find(c => c.value.toLowerCase() === val.toLowerCase())?.value || 
-    val;
-};
-```
+4. Incluir estas filas en el array combinado junto con `packageData`, `primeData` y `refundData`
 
-Apply this normalization in three places:
-1. Initial `useState` for `packageDestinationCountry`
-2. The `useEffect` reset when `pkg` changes
-3. The `handleResetChanges` function
-
-This ensures any legacy lowercase/slug values from the DB are correctly matched to the capitalized Select options without needing a DB migration.
-
+Esto hará que el paquete de Raul aparezca dos veces: una como ingreso (+Q360) y otra como cancelación (-Q360), reflejando correctamente que el dinero debe devolverse.
