@@ -1,9 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote, Receipt, MapPin, User, Calendar } from "lucide-react";
+import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote, Receipt, MapPin, User, Calendar, Pencil } from "lucide-react";
 import { useState, useEffect } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
+import { TripEditSelectionModal } from "./TripEditSelectionModal";
 import { TripPaymentSummary } from "./TripPaymentSummary";
 import { TripDetailModal } from "./TripDetailModal";
 import { TripDate } from "./TripDate";
@@ -29,6 +30,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showBankingModal, setShowBankingModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [showEditSelectionModal, setShowEditSelectionModal] = useState(false);
   const [paymentReceipt, setPaymentReceipt] = useState<{receipt_url: string, receipt_filename?: string} | null>(null);
 
   // Hook para obtener datos del trip payment accumulator
@@ -149,6 +151,17 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               </CardTitle>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
+              {canEdit && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowEditSelectionModal(true)}
+                  className="h-8 w-8 p-0 hover:bg-muted/50"
+                  title="Editar viaje"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              )}
               <Button
                 size="sm"
                 variant="ghost"
@@ -339,6 +352,17 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
         filename={paymentReceipt.receipt_filename}
       />
     )}
+
+    {/* Trip Edit Selection Modal */}
+    <TripEditSelectionModal
+      isOpen={showEditSelectionModal}
+      onClose={() => setShowEditSelectionModal(false)}
+      onSelectOption={(option) => {
+        setShowEditSelectionModal(false);
+        setShowEditModal(true);
+      }}
+      hasActivePackages={packages.length > 0}
+    />
     </>
   );
 };
