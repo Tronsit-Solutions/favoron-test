@@ -1,34 +1,44 @@
 
 
-## Plan: Agregar fotos a pedidos personales desde el admin
+## Plan: Fix RLS policy for admin photo uploads
 
-### Contexto
-Actualmente el admin puede ver fotos de productos personales pero no puede agregar nuevas. La subida de fotos solo existe en el formulario de solicitud del shopper (`ProductPhotoUpload`). El admin necesita poder agregar fotos directamente desde el modal de detalle del paquete.
+### Problem
+The storage bucket `product-photos` has an INSERT policy that only allows users to upload files to their own folder (`auth.uid() = foldername(name)[1]`). When an admin uploads a photo for a different user's order, the folder is the **package owner's** user_id, not the admin's, so the RLS policy blocks it.
 
-### Cambio
+### Fix
+Add a new storage RLS policy allowing admins to upload to the `product-photos` bucket:
 
-**Archivo: `src/components/admin/PackageDetailModal.tsx`**
+```sql
+CREATE POLICY "Admins can upload product photos"
+ON storage.objects
+FOR INSERT
+WITH CHECK (
+  bucket_id = 'product-photos'
+  AND EXISTS (
+    SELECT 1 FROM user_roles
+    WHERE user_roles.user_id = auth.uid()
+    AND user_roles.role = 'admin'
+  )
+);
+```
 
-1. **En la sección de fotos de productos personales** (línea ~1753), agregar un botón "Agregar Foto" debajo de las fotos existentes (o como área de upload si no hay fotos).
+Also add an UPDATE policy for admins (needed for upserts):
 
-2. **Nueva función `handleAdminAddPhoto`**:
-   - Abre un file input oculto para seleccionar imagen
-   - Sube la imagen al bucket `product-photos` bajo la carpeta del usuario dueño del paquete (`pkg.user_id`)
-   - Actualiza `products_data` del paquete: agrega la referencia de storage al array `productPhotos` del producto correspondiente
-   - Usa `onUpdatePackage` para guardar los cambios (mismo patrón que la edición existente)
+```sql
+CREATE POLICY "Admins can update product photos"
+ON storage.objects
+FOR UPDATE
+USING (
+  bucket_id = 'product-photos'
+  AND EXISTS (
+    SELECT 1 FROM user_roles
+    WHERE user_roles.user_id = auth.uid()
+    AND user_roles.role = 'admin'
+  )
+);
+```
 
-3. **UI**: Un botón pequeño con icono `Upload` + "Agregar Foto" que aparece solo para pedidos `personal`, junto a las fotos existentes. Incluir un `<input type="file" hidden>` con ref.
-
-4. **Flujo**:
-   - Admin hace clic en "Agregar Foto" en un producto específico
-   - Se abre selector de archivos (JPG, PNG, WebP, max 5MB)
-   - Se sube al bucket `product-photos/{user_id}/product_{timestamp}.ext`
-   - Se actualiza `products_data[index].productPhotos` con la nueva referencia
-   - Se llama `onUpdatePackage` con el `products_data` actualizado
-   - Toast de confirmación
-
-### Alcance
-- Solo se modifica `PackageDetailModal.tsx`
-- Se reutiliza la misma lógica de storage que `ProductPhotoUpload` pero simplificada para admin
-- No se necesitan migraciones de DB ni nuevas edge functions
+### Scope
+- Single SQL migration, no code changes needed
+- The existing `handleAdminAddPhoto` function in `PackageDetailModal.tsx` will work as-is once the policy is added
 
