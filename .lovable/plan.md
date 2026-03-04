@@ -1,23 +1,37 @@
 
 
-## Fix: Destination pre-selection + Add products feature
+## Fix: Referral code lost when navigating from landing page to auth
 
-### Problem 1: Country/City not showing saved values
-The EditPackageModal uses hardcoded country values like `'Guatemala'`, `'España'` but the database stores slugs like `'guatemala'`, `'espana'`, `'estados-unidos'`. The Radix Select can't match them, so dropdowns appear empty.
+### Problem
+When a user opens `favoron.app/?ref=DRUPHC`, the `ref` query param is on the landing page URL. When they click "Registrarse", `openAuth()` in `Index.tsx` navigates to `/auth` **without** carrying the `ref` param. The Auth page then reads `window.location.search` but finds no `ref` — so the referral is never saved to localStorage.
 
-**Fix**: Replace the hardcoded `destinationCountries` and `citiesByCountry` with the centralized data from `@/lib/countries` (COUNTRY_QUICK_OPTIONS) and `@/lib/cities` (getCitiesByCountry, countryHasCities). This ensures the Select values match what's stored in the DB.
+This also explains why Natalia's referral to Emma wasn't recorded: Emma likely landed on `/?ref=DRUPHC`, clicked Register, and the code was lost.
 
-### Problem 2: Can't add more products
-Currently the products list is fixed to what was saved. Users should be able to add new products and remove existing ones.
+### Fix (two places)
 
-**Fix**: Add an "Agregar producto" button below the products list, and an X button on each product card (disabled if only 1 product remains). New products get empty default values.
+**1. `src/pages/Index.tsx`** — Capture `ref` from URL on landing page and save to localStorage immediately (before any navigation happens):
+```typescript
+useEffect(() => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const refCode = searchParams.get('ref');
+  if (refCode) {
+    localStorage.setItem('pending_referral_code', refCode);
+    console.log('📎 Referral code captured on landing:', refCode);
+  }
+}, []);
+```
 
-### Files to modify
-- `src/components/dashboard/EditPackageModal.tsx`:
-  - Import `COUNTRY_QUICK_OPTIONS` from `@/lib/countries` and `getCitiesByCountry, countryHasCities` from `@/lib/cities`
-  - Replace `destinationCountries` array with `COUNTRY_QUICK_OPTIONS` (using `value`/`label` format)
-  - Replace `citiesByCountry` lookup with `getCitiesByCountry(packageDestinationCountry)` call
-  - For countries without predefined cities, show a text input instead of Select
-  - Add "Agregar producto" button and per-product remove button
-  - Update validation to handle dynamic product count
+**2. Also pass ref to `/auth` URL** — Update `openAuth` to forward the ref param:
+```typescript
+const openAuth = (mode: "login" | "register" = "login") => {
+  const refCode = new URLSearchParams(window.location.search).get('ref');
+  const authUrl = refCode ? `/auth?ref=${refCode}` : '/auth';
+  navigate(authUrl, { state: { mode } });
+};
+```
+
+This ensures the ref code is both persisted in localStorage immediately on landing AND forwarded to the auth page URL as a fallback. The existing Auth.tsx code will pick it up from either source.
+
+### For the Natalia/Emma case
+Once this fix is deployed, future referrals will work. For the existing missed referral, an admin manual insert is still needed (as discussed in the previous plan).
 
