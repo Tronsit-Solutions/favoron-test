@@ -1,24 +1,34 @@
 
 
-## Plan: Add delete photo functionality for personal order photos
+## Fix: Product link not visible when name is too long
 
-### Change
+### Problem
+In `AdminMatchDialog.tsx` line 758-761, the product description uses `truncate flex-1` which causes it to consume all horizontal space, hiding the "Ver" link button when the product name is long.
 
-**File: `src/components/admin/PackageDetailModal.tsx`**
+### Fix
 
-1. **Add `handleAdminDeletePhoto` function** (near `handleAdminAddPhoto`):
-   - Takes `productIndex` and `photoIndex` as parameters
-   - Removes the photo from the `productPhotos` array in `products_data`
-   - Deletes the file from Supabase storage using `parseStorageRef`
-   - Calls `onUpdatePackage` to persist and `refetchPackageDetails` to refresh UI
-   - Shows toast confirmation
+**File: `src/components/admin/AdminMatchDialog.tsx` (~line 758-761)**
 
-2. **Add delete button overlay on each photo** (lines ~1835-1847):
-   - Add a small `X` button positioned absolutely on top-right of each `ProductPhoto` wrapper
-   - Only visible on hover for clean UX
-   - Confirms deletion with the handler above
+Change the layout so the description truncates properly while the link button never shrinks:
 
-### Scope
-- Single file change: `PackageDetailModal.tsx`
-- No DB/migration changes needed (admin already has UPDATE on packages)
+- Add `min-w-0` to the description span (allows `truncate` to work properly in flex)
+- Add `shrink-0` to the link button wrapper so it's always visible
+
+```tsx
+// Before
+<div className="flex items-center gap-2 text-sm">
+  <span className="font-medium text-blue-900 truncate flex-1">
+    {index + 1}. {product.itemDescription || ...}
+  </span>
+  // link button...
+
+// After
+<div className="flex items-center gap-2 text-sm">
+  <span className="font-medium text-blue-900 truncate flex-1 min-w-0">
+    {index + 1}. {product.itemDescription || ...}
+  </span>
+  // link button with shrink-0 wrapper...
+```
+
+And wrap the link/no-link output in a `<span className="shrink-0">` so it never gets hidden.
 
