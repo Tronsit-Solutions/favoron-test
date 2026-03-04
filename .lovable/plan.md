@@ -1,44 +1,24 @@
 
 
-## Plan: Fix RLS policy for admin photo uploads
+## Plan: Add delete photo functionality for personal order photos
 
-### Problem
-The storage bucket `product-photos` has an INSERT policy that only allows users to upload files to their own folder (`auth.uid() = foldername(name)[1]`). When an admin uploads a photo for a different user's order, the folder is the **package owner's** user_id, not the admin's, so the RLS policy blocks it.
+### Change
 
-### Fix
-Add a new storage RLS policy allowing admins to upload to the `product-photos` bucket:
+**File: `src/components/admin/PackageDetailModal.tsx`**
 
-```sql
-CREATE POLICY "Admins can upload product photos"
-ON storage.objects
-FOR INSERT
-WITH CHECK (
-  bucket_id = 'product-photos'
-  AND EXISTS (
-    SELECT 1 FROM user_roles
-    WHERE user_roles.user_id = auth.uid()
-    AND user_roles.role = 'admin'
-  )
-);
-```
+1. **Add `handleAdminDeletePhoto` function** (near `handleAdminAddPhoto`):
+   - Takes `productIndex` and `photoIndex` as parameters
+   - Removes the photo from the `productPhotos` array in `products_data`
+   - Deletes the file from Supabase storage using `parseStorageRef`
+   - Calls `onUpdatePackage` to persist and `refetchPackageDetails` to refresh UI
+   - Shows toast confirmation
 
-Also add an UPDATE policy for admins (needed for upserts):
-
-```sql
-CREATE POLICY "Admins can update product photos"
-ON storage.objects
-FOR UPDATE
-USING (
-  bucket_id = 'product-photos'
-  AND EXISTS (
-    SELECT 1 FROM user_roles
-    WHERE user_roles.user_id = auth.uid()
-    AND user_roles.role = 'admin'
-  )
-);
-```
+2. **Add delete button overlay on each photo** (lines ~1835-1847):
+   - Add a small `X` button positioned absolutely on top-right of each `ProductPhoto` wrapper
+   - Only visible on hover for clean UX
+   - Confirms deletion with the handler above
 
 ### Scope
-- Single SQL migration, no code changes needed
-- The existing `handleAdminAddPhoto` function in `PackageDetailModal.tsx` will work as-is once the policy is added
+- Single file change: `PackageDetailModal.tsx`
+- No DB/migration changes needed (admin already has UPDATE on packages)
 
