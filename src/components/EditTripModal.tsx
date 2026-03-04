@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,19 +8,42 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plane, MapPin, Package, Phone, Building2, Target, Mail, Users } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, Phone, Building2, Target, Mail, Users, AlertCircle, RotateCcw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Combobox } from "@/components/ui/combobox";
 import { COUNTRIES, MAIN_COUNTRIES, COUNTRY_QUICK_OPTIONS } from "@/lib/countries";
 import { getCitiesByCountry, countryHasCities } from "@/lib/cities";
 import { useDeliveryPoints } from "@/hooks/useDeliveryPoints";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
 interface EditTripModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (tripData: any) => void;
   tripData: any;
 }
+
+interface ValidationErrors {
+  fromCity?: string;
+  fromCountry?: string;
+  toCity?: string;
+  arrivalDate?: string;
+  availableSpace?: string;
+  deliveryMethod?: string;
+  deliveryDate?: string;
+  accommodationType?: string;
+  streetAddress?: string;
+  cityArea?: string;
+  postalCode?: string;
+  contactNumber?: string;
+  recipientName?: string;
+  firstDayPackages?: string;
+  lastDayPackages?: string;
+}
+
 const EditTripModal = ({
   isOpen,
   onClose,
@@ -35,7 +58,6 @@ const EditTripModal = ({
     toCityOther: tripData?.toCityOther || '',
     toCountry: tripData?.to_country || 'Guatemala',
     arrivalDate: tripData?.arrival_date ? new Date(tripData.arrival_date) : null as Date | null,
-    // departureDate removed - using arrival_date consistently
     availableSpace: tripData?.available_space?.toString() || '',
     deliveryMethod: tripData?.delivery_method || '',
     deliveryDate: tripData?.delivery_date ? new Date(tripData.delivery_date) : null as Date | null,
@@ -61,6 +83,72 @@ const EditTripModal = ({
       preferredTime: tripData?.messenger_pickup_info?.preferredTime || ''
     }
   });
+
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+
+  // Store original values for change detection
+  const originalFormData = useMemo(() => {
+    if (!tripData) return null;
+    return {
+      fromCity: tripData?.from_city || '',
+      fromCountry: tripData?.from_country || '',
+      toCity: tripData?.to_city || '',
+      toCountry: tripData?.to_country || 'Guatemala',
+      arrivalDate: tripData?.arrival_date || null,
+      availableSpace: tripData?.available_space?.toString() || '',
+      deliveryMethod: tripData?.delivery_method || '',
+      deliveryDate: tripData?.delivery_date || null,
+      additionalInfo: tripData?.additionalInfo || '',
+      recipientName: tripData?.package_receiving_address?.recipientName || '',
+      accommodationType: tripData?.package_receiving_address?.accommodationType || '',
+      streetAddress: tripData?.package_receiving_address?.streetAddress || '',
+      streetAddress2: tripData?.package_receiving_address?.streetAddress2 || '',
+      cityArea: tripData?.package_receiving_address?.cityArea || '',
+      postalCode: tripData?.package_receiving_address?.postalCode || '',
+      hotelAirbnbName: tripData?.package_receiving_address?.hotelAirbnbName || '',
+      contactNumber: tripData?.package_receiving_address?.contactNumber || '',
+      firstDayPackages: tripData?.first_day_packages || null,
+      lastDayPackages: tripData?.last_day_packages || null,
+    };
+  }, [tripData]);
+
+  // Check if a field changed
+  const isChanged = (field: string, currentValue: any): boolean => {
+    if (!originalFormData) return false;
+    const orig = (originalFormData as any)[field];
+    if (currentValue instanceof Date && orig) {
+      return currentValue.toISOString().split('T')[0] !== new Date(orig).toISOString().split('T')[0];
+    }
+    return String(currentValue || '') !== String(orig || '');
+  };
+
+  const changedDot = (field: string, value: any) => {
+    if (!isChanged(field, value)) return null;
+    return <span className="inline-block w-2 h-2 rounded-full bg-blue-500 ml-1" title="Campo modificado" />;
+  };
+
+  // Detect any changes
+  const hasAnyChanges = useMemo(() => {
+    if (!originalFormData) return false;
+    if (isChanged('fromCity', formData.fromCity)) return true;
+    if (isChanged('fromCountry', formData.fromCountry)) return true;
+    if (isChanged('toCity', formData.toCity)) return true;
+    if (isChanged('toCountry', formData.toCountry)) return true;
+    if (isChanged('arrivalDate', formData.arrivalDate)) return true;
+    if (isChanged('availableSpace', formData.availableSpace)) return true;
+    if (isChanged('deliveryMethod', formData.deliveryMethod)) return true;
+    if (isChanged('deliveryDate', formData.deliveryDate)) return true;
+    if (isChanged('recipientName', formData.packageReceivingAddress.recipientName)) return true;
+    if (isChanged('accommodationType', formData.packageReceivingAddress.accommodationType)) return true;
+    if (isChanged('streetAddress', formData.packageReceivingAddress.streetAddress)) return true;
+    if (isChanged('cityArea', formData.packageReceivingAddress.cityArea)) return true;
+    if (isChanged('postalCode', formData.packageReceivingAddress.postalCode)) return true;
+    if (isChanged('contactNumber', formData.packageReceivingAddress.contactNumber)) return true;
+    if (isChanged('firstDayPackages', formData.firstDayPackages)) return true;
+    if (isChanged('lastDayPackages', formData.lastDayPackages)) return true;
+    if (isChanged('additionalInfo', formData.additionalInfo)) return true;
+    return false;
+  }, [formData, originalFormData]);
 
   // Sync formData with tripData whenever tripData changes
   useEffect(() => {
@@ -98,6 +186,7 @@ const EditTripModal = ({
           preferredTime: tripData?.messenger_pickup_info?.preferredTime || ''
         }
       });
+      setValidationErrors({});
     }
   }, [tripData]);
 
@@ -122,14 +211,40 @@ const EditTripModal = ({
     value: 'casa',
     label: 'Casa/Apartamento'
   }];
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+
+  const validate = (): boolean => {
+    const errors: ValidationErrors = {};
     const finalFromCity = formData.fromCity === 'Otra ciudad' ? formData.fromCityOther : formData.fromCity;
     const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
-    if (!finalFromCity || !finalToCity || !formData.arrivalDate || !formData.availableSpace || !formData.deliveryMethod || !formData.deliveryDate || !formData.packageReceivingAddress.accommodationType || !formData.packageReceivingAddress.streetAddress || !formData.packageReceivingAddress.cityArea || !formData.packageReceivingAddress.postalCode || !formData.packageReceivingAddress.contactNumber || !formData.packageReceivingAddress.recipientName || !formData.firstDayPackages || !formData.lastDayPackages || !formData.fromCountry) {
-      alert('Por favor completa todos los campos obligatorios');
+    
+    if (!formData.fromCountry) errors.fromCountry = "Obligatorio";
+    if (!finalFromCity) errors.fromCity = "Obligatorio";
+    if (!finalToCity) errors.toCity = "Obligatorio";
+    if (!formData.arrivalDate) errors.arrivalDate = "Obligatorio";
+    if (!formData.availableSpace) errors.availableSpace = "Obligatorio";
+    if (!formData.deliveryMethod) errors.deliveryMethod = "Obligatorio";
+    if (!formData.deliveryDate) errors.deliveryDate = "Obligatorio";
+    if (!formData.packageReceivingAddress.accommodationType) errors.accommodationType = "Obligatorio";
+    if (!formData.packageReceivingAddress.streetAddress) errors.streetAddress = "Obligatorio";
+    if (!formData.packageReceivingAddress.cityArea) errors.cityArea = "Obligatorio";
+    if (!formData.packageReceivingAddress.postalCode) errors.postalCode = "Obligatorio";
+    if (!formData.packageReceivingAddress.contactNumber) errors.contactNumber = "Obligatorio";
+    if (!formData.packageReceivingAddress.recipientName) errors.recipientName = "Obligatorio";
+    if (!formData.firstDayPackages) errors.firstDayPackages = "Obligatorio";
+    if (!formData.lastDayPackages) errors.lastDayPackages = "Obligatorio";
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) {
+      toast.error("Completa todos los campos obligatorios");
       return;
     }
+    const finalFromCity = formData.fromCity === 'Otra ciudad' ? formData.fromCityOther : formData.fromCity;
+    const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
     const submitData = {
       id: tripData.id,
       ...formData,
@@ -141,11 +256,55 @@ const EditTripModal = ({
     };
     onSubmit(submitData);
   };
+
+  const handleResetChanges = () => {
+    if (tripData) {
+      setFormData({
+        fromCity: tripData?.from_city || '',
+        fromCityOther: tripData?.fromCityOther || '',
+        fromCountry: tripData?.from_country || '',
+        toCity: tripData?.to_city || '',
+        toCityOther: tripData?.toCityOther || '',
+        toCountry: tripData?.to_country || 'Guatemala',
+        arrivalDate: tripData?.arrival_date ? new Date(tripData.arrival_date) : null,
+        availableSpace: tripData?.available_space?.toString() || '',
+        deliveryMethod: tripData?.delivery_method || '',
+        deliveryDate: tripData?.delivery_date ? new Date(tripData.delivery_date) : null,
+        additionalInfo: tripData?.additionalInfo || '',
+        packageReceivingAddress: {
+          accommodationType: tripData?.package_receiving_address?.accommodationType || '',
+          streetAddress: tripData?.package_receiving_address?.streetAddress || '',
+          streetAddress2: tripData?.package_receiving_address?.streetAddress2 || '',
+          cityArea: tripData?.package_receiving_address?.cityArea || '',
+          postalCode: tripData?.package_receiving_address?.postalCode || '',
+          hotelAirbnbName: tripData?.package_receiving_address?.hotelAirbnbName || '',
+          contactNumber: tripData?.package_receiving_address?.contactNumber || '',
+          recipientName: tripData?.package_receiving_address?.recipientName || ''
+        },
+        firstDayPackages: tripData?.first_day_packages ? new Date(tripData.first_day_packages) : null,
+        lastDayPackages: tripData?.last_day_packages ? new Date(tripData.last_day_packages) : null,
+        messengerPickupInfo: {
+          streetAddress: tripData?.messenger_pickup_info?.streetAddress || '',
+          cityArea: tripData?.messenger_pickup_info?.cityArea || '',
+          accommodationName: tripData?.messenger_pickup_info?.accommodationName || '',
+          contactNumber: tripData?.messenger_pickup_info?.contactNumber || '',
+          pickupInstructions: tripData?.messenger_pickup_info?.pickupInstructions || '',
+          preferredTime: tripData?.messenger_pickup_info?.preferredTime || ''
+        }
+      });
+      setValidationErrors({});
+    }
+  };
+
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+    // Clear validation error
+    if ((validationErrors as any)[field]) {
+      setValidationErrors(prev => ({ ...prev, [field]: undefined }));
+    }
   };
   const handleAddressChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -155,6 +314,9 @@ const EditTripModal = ({
         [field]: value
       }
     }));
+    if ((validationErrors as any)[field]) {
+      setValidationErrors(prev => ({ ...prev, [field]: undefined }));
+    }
   };
 
   const handleMessengerInfoChange = (field: string, value: string) => {
@@ -166,7 +328,6 @@ const EditTripModal = ({
       }
     }));
   };
-  const displayToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
   
   // Fetch delivery points for conditional delivery options
   const { getDeliveryPointByCity } = useDeliveryPoints();
@@ -191,17 +352,42 @@ const EditTripModal = ({
       setFormData(prev => ({ ...prev, deliveryMethod: '' }));
     }
   }, [formData.toCountry, formData.toCity, hasOfficialDeliveryOptions]);
+
+  // Helper for error styling
+  const errorClass = (field: string) => (validationErrors as any)[field] ? "border-destructive" : "";
+  const errorMsg = (field: string) => {
+    const msg = (validationErrors as any)[field];
+    if (!msg) return null;
+    return (
+      <p className="text-xs text-destructive flex items-center gap-1 mt-1">
+        <AlertCircle className="h-3 w-3" />
+        {msg}
+      </p>
+    );
+  };
+
+  // Title: "Editar Viaje: Miami → Guatemala" instead of UUID
+  const tripTitle = tripData 
+    ? `Editar Viaje: ${tripData.from_city || '?'} → ${tripData.to_city || '?'}`
+    : 'Editar Viaje';
   
   if (!tripData) return null;
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <Plane className="h-5 w-5 text-traveler" />
-            <span>Editar Viaje #{tripData.id}</span>
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center space-x-2">
+              <Plane className="h-5 w-5 text-traveler" />
+              <span>{tripTitle}</span>
+            </DialogTitle>
+            {hasAnyChanges && (
+              <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 text-xs">
+                Cambios sin guardar
+              </Badge>
+            )}
+          </div>
           <DialogDescription>
-            Modifica la información de tu viaje registrado.
+            Modifica la información de tu viaje. Los campos con <span className="text-destructive">*</span> son obligatorios.
           </DialogDescription>
         </DialogHeader>
 
@@ -223,7 +409,10 @@ const EditTripModal = ({
               </Label>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">País *</Label>
+                  <Label className="text-xs text-muted-foreground">
+                    País <span className="text-destructive">*</span>
+                    {changedDot('fromCountry', formData.fromCountry)}
+                  </Label>
                   {!showFullCountryListOrigin && isOriginInMainList ? (
                     <Select 
                       value={formData.fromCountry}
@@ -232,11 +421,11 @@ const EditTripModal = ({
                           setShowFullCountryListOrigin(true);
                         } else {
                           handleInputChange('fromCountry', value);
-                          handleInputChange('fromCity', ''); // Clear city when country changes
+                          handleInputChange('fromCity', '');
                         }
                       }}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className={errorClass('fromCountry')}>
                         <SelectValue placeholder="País">
                           {formData.fromCountry && MAIN_COUNTRIES.find(c => c.value === formData.fromCountry)?.label}
                         </SelectValue>
@@ -267,9 +456,13 @@ const EditTripModal = ({
                       portalled={false}
                     />
                   )}
+                  {errorMsg('fromCountry')}
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Ciudad *</Label>
+                  <Label className="text-xs text-muted-foreground">
+                    Ciudad <span className="text-destructive">*</span>
+                    {changedDot('fromCity', formData.fromCity)}
+                  </Label>
                   {countryHasCities(formData.fromCountry) ? (
                     <Combobox
                       options={originCities}
@@ -284,8 +477,10 @@ const EditTripModal = ({
                       placeholder="Ciudad de origen" 
                       value={formData.fromCity}
                       onChange={e => handleInputChange('fromCity', e.target.value)}
+                      className={errorClass('fromCity')}
                     />
                   )}
+                  {errorMsg('fromCity')}
                 </div>
               </div>
             </div>
@@ -298,7 +493,10 @@ const EditTripModal = ({
               </Label>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">País *</Label>
+                  <Label className="text-xs text-muted-foreground">
+                    País <span className="text-destructive">*</span>
+                    {changedDot('toCountry', formData.toCountry)}
+                  </Label>
                   {!showFullCountryListDestination && isDestinationInMainList ? (
                     <Select 
                       value={formData.toCountry}
@@ -307,11 +505,11 @@ const EditTripModal = ({
                           setShowFullCountryListDestination(true);
                         } else {
                           handleInputChange('toCountry', value);
-                          handleInputChange('toCity', ''); // Clear city when country changes
+                          handleInputChange('toCity', '');
                         }
                       }}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className={errorClass('toCity')}>
                         <SelectValue placeholder="País">
                           {formData.toCountry && MAIN_COUNTRIES.find(c => c.value === formData.toCountry)?.label}
                         </SelectValue>
@@ -344,7 +542,10 @@ const EditTripModal = ({
                   )}
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Ciudad *</Label>
+                  <Label className="text-xs text-muted-foreground">
+                    Ciudad <span className="text-destructive">*</span>
+                    {changedDot('toCity', formData.toCity)}
+                  </Label>
                   {countryHasCities(formData.toCountry) ? (
                     <Combobox
                       options={destinationCities}
@@ -359,17 +560,22 @@ const EditTripModal = ({
                       placeholder="Ciudad de destino" 
                       value={formData.toCity}
                       onChange={e => handleInputChange('toCity', e.target.value)}
+                      className={errorClass('toCity')}
                     />
                   )}
+                  {errorMsg('toCity')}
                 </div>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Fecha de llegada a destino *</Label>
+              <Label>
+                Fecha de llegada a destino <span className="text-destructive">*</span>
+                {changedDot('arrivalDate', formData.arrivalDate)}
+              </Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal" type="button">
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", errorClass('arrivalDate'))} type="button">
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {formData.arrivalDate ? format(formData.arrivalDate, "PPP", {
                     locale: es
@@ -380,14 +586,19 @@ const EditTripModal = ({
                   <Calendar mode="single" selected={formData.arrivalDate || undefined} onSelect={date => handleInputChange('arrivalDate', date)} disabled={date => date < new Date()} initialFocus />
                 </PopoverContent>
               </Popover>
+              {errorMsg('arrivalDate')}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="availableSpace">Espacio disponible en tu equipaje (en kg) *</Label>
+              <Label htmlFor="availableSpace">
+                Espacio disponible en tu equipaje (en kg) <span className="text-destructive">*</span>
+                {changedDot('availableSpace', formData.availableSpace)}
+              </Label>
               <div className="relative">
                 <Package className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input id="availableSpace" type="number" step="0.5" placeholder="5.0" value={formData.availableSpace} onChange={e => handleInputChange('availableSpace', e.target.value)} className="pl-10" required />
+                <Input id="availableSpace" type="number" step="0.5" placeholder="5.0" value={formData.availableSpace} onChange={e => handleInputChange('availableSpace', e.target.value)} className={cn("pl-10", errorClass('availableSpace'))} required />
               </div>
+              {errorMsg('availableSpace')}
             </div>
           </div>
 
@@ -404,14 +615,21 @@ const EditTripModal = ({
             </p>
 
             <div className="space-y-2">
-              <Label htmlFor="recipientName">Nombre de la persona que recibe los paquetes *</Label>
-              <Input id="recipientName" type="text" placeholder="Ej: Juan Pérez" value={formData.packageReceivingAddress.recipientName} onChange={e => handleAddressChange('recipientName', e.target.value)} required />
+              <Label htmlFor="recipientName">
+                Nombre de la persona que recibe los paquetes <span className="text-destructive">*</span>
+                {changedDot('recipientName', formData.packageReceivingAddress.recipientName)}
+              </Label>
+              <Input id="recipientName" type="text" placeholder="Ej: Juan Pérez" value={formData.packageReceivingAddress.recipientName} onChange={e => handleAddressChange('recipientName', e.target.value)} className={errorClass('recipientName')} required />
+              {errorMsg('recipientName')}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="accommodationType">Tipo de alojamiento *</Label>
+              <Label htmlFor="accommodationType">
+                Tipo de alojamiento <span className="text-destructive">*</span>
+                {changedDot('accommodationType', formData.packageReceivingAddress.accommodationType)}
+              </Label>
               <Select value={formData.packageReceivingAddress.accommodationType} onValueChange={value => handleAddressChange('accommodationType', value)}>
-                <SelectTrigger>
+                <SelectTrigger className={errorClass('accommodationType')}>
                   <SelectValue placeholder="Selecciona el tipo de alojamiento" />
                 </SelectTrigger>
                 <SelectContent>
@@ -423,11 +641,16 @@ const EditTripModal = ({
                     </SelectItem>)}
                 </SelectContent>
               </Select>
+              {errorMsg('accommodationType')}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="streetAddress">Dirección línea 1 *</Label>
-              <Input id="streetAddress" type="text" placeholder="Ej: 123 Main Street" value={formData.packageReceivingAddress.streetAddress} onChange={e => handleAddressChange('streetAddress', e.target.value)} required />
+              <Label htmlFor="streetAddress">
+                Dirección línea 1 <span className="text-destructive">*</span>
+                {changedDot('streetAddress', formData.packageReceivingAddress.streetAddress)}
+              </Label>
+              <Input id="streetAddress" type="text" placeholder="Ej: 123 Main Street" value={formData.packageReceivingAddress.streetAddress} onChange={e => handleAddressChange('streetAddress', e.target.value)} className={errorClass('streetAddress')} required />
+              {errorMsg('streetAddress')}
             </div>
 
             <div className="space-y-2">
@@ -437,27 +660,42 @@ const EditTripModal = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="cityArea">Ciudad / Estado / Región *</Label>
-                <Input id="cityArea" type="text" placeholder="Ej: Miami, FL" value={formData.packageReceivingAddress.cityArea} onChange={e => handleAddressChange('cityArea', e.target.value)} required />
+                <Label htmlFor="cityArea">
+                  Ciudad / Estado / Región <span className="text-destructive">*</span>
+                  {changedDot('cityArea', formData.packageReceivingAddress.cityArea)}
+                </Label>
+                <Input id="cityArea" type="text" placeholder="Ej: Miami, FL" value={formData.packageReceivingAddress.cityArea} onChange={e => handleAddressChange('cityArea', e.target.value)} className={errorClass('cityArea')} required />
+                {errorMsg('cityArea')}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="postalCode">Código postal *</Label>
-                <Input id="postalCode" type="text" placeholder="Ej: 33101" value={formData.packageReceivingAddress.postalCode} onChange={e => handleAddressChange('postalCode', e.target.value)} required />
+                <Label htmlFor="postalCode">
+                  Código postal <span className="text-destructive">*</span>
+                  {changedDot('postalCode', formData.packageReceivingAddress.postalCode)}
+                </Label>
+                <Input id="postalCode" type="text" placeholder="Ej: 33101" value={formData.packageReceivingAddress.postalCode} onChange={e => handleAddressChange('postalCode', e.target.value)} className={errorClass('postalCode')} required />
+                {errorMsg('postalCode')}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="hotelAirbnbName">Nombre del lugar (Ej: Hotel Barceló, Condominio El Prado, etc.) *</Label>
+              <Label htmlFor="hotelAirbnbName">
+                Nombre del lugar (Ej: Hotel Barceló, Condominio El Prado, etc.) *
+                {changedDot('hotelAirbnbName', formData.packageReceivingAddress.hotelAirbnbName)}
+              </Label>
               <Input id="hotelAirbnbName" type="text" placeholder="Ej: Hotel InterContinental Miami" value={formData.packageReceivingAddress.hotelAirbnbName} onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} required />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="contactNumber">Número de contacto *</Label>
+              <Label htmlFor="contactNumber">
+                Número de contacto <span className="text-destructive">*</span>
+                {changedDot('contactNumber', formData.packageReceivingAddress.contactNumber)}
+              </Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input id="contactNumber" type="tel" placeholder="+1 (305) 123-4567" value={formData.packageReceivingAddress.contactNumber} onChange={e => handleAddressChange('contactNumber', e.target.value)} className="pl-10" required />
+                <Input id="contactNumber" type="tel" placeholder="+1 (305) 123-4567" value={formData.packageReceivingAddress.contactNumber} onChange={e => handleAddressChange('contactNumber', e.target.value)} className={cn("pl-10", errorClass('contactNumber'))} required />
               </div>
+              {errorMsg('contactNumber')}
               <p className="text-xs text-muted-foreground">
                 Si te hospedas en hotel, coloca el número del hotel
               </p>
@@ -465,10 +703,13 @@ const EditTripModal = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Primer día para recibir paquetes *</Label>
+                <Label>
+                  Primer día para recibir paquetes <span className="text-destructive">*</span>
+                  {changedDot('firstDayPackages', formData.firstDayPackages)}
+                </Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal" type="button">
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", errorClass('firstDayPackages'))} type="button">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formData.firstDayPackages ? format(formData.firstDayPackages, "dd/MM", {
                       locale: es
@@ -479,13 +720,17 @@ const EditTripModal = ({
                     <Calendar mode="single" selected={formData.firstDayPackages || undefined} onSelect={date => handleInputChange('firstDayPackages', date)} disabled={date => date < new Date()} initialFocus />
                   </PopoverContent>
                 </Popover>
+                {errorMsg('firstDayPackages')}
               </div>
 
               <div className="space-y-2">
-                <Label>Último día para recibir paquetes *</Label>
+                <Label>
+                  Último día para recibir paquetes <span className="text-destructive">*</span>
+                  {changedDot('lastDayPackages', formData.lastDayPackages)}
+                </Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal" type="button">
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", errorClass('lastDayPackages'))} type="button">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formData.lastDayPackages ? format(formData.lastDayPackages, "dd/MM", {
                       locale: es
@@ -496,6 +741,7 @@ const EditTripModal = ({
                     <Calendar mode="single" selected={formData.lastDayPackages || undefined} onSelect={date => handleInputChange('lastDayPackages', date)} disabled={date => date < new Date() || (formData.firstDayPackages ? date < formData.firstDayPackages : false)} initialFocus />
                   </PopoverContent>
                 </Popover>
+                {errorMsg('lastDayPackages')}
               </div>
             </div>
           </div>
@@ -517,9 +763,11 @@ const EditTripModal = ({
             <div className="space-y-3">
               <Label className="text-base font-medium">
                 {hasOfficialDeliveryOptions 
-                  ? '¿Cómo vas a entregar los paquetes a Favorón? *'
-                  : '¿Cómo vas a entregar los paquetes al shopper? *'
+                  ? '¿Cómo vas a entregar los paquetes a Favorón? '
+                  : '¿Cómo vas a entregar los paquetes al shopper? '
                 }
+                <span className="text-destructive">*</span>
+                {changedDot('deliveryMethod', formData.deliveryMethod)}
               </Label>
               <RadioGroup value={formData.deliveryMethod} onValueChange={value => handleInputChange('deliveryMethod', value)} className="space-y-3">
                 {hasOfficialDeliveryOptions ? (
@@ -561,6 +809,7 @@ const EditTripModal = ({
                   </>
                 )}
               </RadioGroup>
+              {errorMsg('deliveryMethod')}
               
               {formData.deliveryMethod === 'mensajero' && (
                 <div className="space-y-4 mt-4 p-4 border rounded-lg bg-muted/10">
@@ -653,10 +902,13 @@ const EditTripModal = ({
             </div>
 
             <div className="space-y-2">
-              <Label>Fecha en la que entregarás los paquetes *</Label>
+              <Label>
+                Fecha en la que entregarás los paquetes <span className="text-destructive">*</span>
+                {changedDot('deliveryDate', formData.deliveryDate)}
+              </Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left font-normal" type="button">
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", errorClass('deliveryDate'))} type="button">
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {formData.deliveryDate ? format(formData.deliveryDate, "PPP", {
                     locale: es
@@ -667,6 +919,7 @@ const EditTripModal = ({
                   <Calendar mode="single" selected={formData.deliveryDate || undefined} onSelect={date => handleInputChange('deliveryDate', date)} disabled={date => date < new Date() || (formData.arrivalDate ? date < formData.arrivalDate : false)} initialFocus />
                 </PopoverContent>
               </Popover>
+              {errorMsg('deliveryDate')}
             </div>
           </div>
 
@@ -685,13 +938,23 @@ const EditTripModal = ({
             </div>
           </div>
 
-          <div className="flex space-x-3">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-              Cancelar
-            </Button>
-            <Button type="submit" className="flex-1">
-              Guardar Cambios
-            </Button>
+          <div className="flex items-center justify-between">
+            <div>
+              {hasAnyChanges && (
+                <Button type="button" variant="ghost" size="sm" onClick={handleResetChanges} className="text-xs text-muted-foreground">
+                  <RotateCcw className="h-3 w-3 mr-1" />
+                  Deshacer cambios
+                </Button>
+              )}
+            </div>
+            <div className="flex space-x-3">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={!hasAnyChanges}>
+                Guardar Cambios
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

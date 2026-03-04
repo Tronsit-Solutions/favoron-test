@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -16,13 +16,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Package, ExternalLink, DollarSign, Hash, MapPin, Truck, Home, CalendarIcon } from "lucide-react";
+import { Package, ExternalLink, DollarSign, Hash, MapPin, Truck, Home, CalendarIcon, Lock, AlertCircle, RotateCcw } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 type PackageType = Tables<"packages">;
 
@@ -73,6 +74,14 @@ const getStatusVariant = (status: string): "default" | "secondary" | "destructiv
   return "outline";
 };
 
+// Validation errors type
+interface ValidationErrors {
+  products: { [index: number]: { itemDescription?: string; itemLink?: string } };
+  itemDescription?: string;
+  packageDestination?: string;
+  packageDestinationCountry?: string;
+}
+
 export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageModalProps) => {
   // Parse existing products data
   const existingProducts = Array.isArray(pkg.products_data) 
@@ -91,6 +100,7 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
   const [packageDestination, setPackageDestination] = useState(pkg.package_destination || "");
   const [packageDestinationCountry, setPackageDestinationCountry] = useState(pkg.package_destination_country || "");
   const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>(existingAddress || {});
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({ products: {} });
 
   // Destination options
   const destinationCountries = [
@@ -118,6 +128,40 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
   const canEditPrices = !quoteAcceptedStatuses.includes(pkg.status);
   const canEditDestination = !pkg.matched_trip_id; // Can't change destination if trip is assigned
 
+  // Original values for change detection
+  const originalValues = useMemo(() => ({
+    products: existingProducts,
+    itemDescription: pkg.item_description || "",
+    itemLink: pkg.item_link || "",
+    additionalNotes: pkg.additional_notes || "",
+    deliveryMethod: pkg.delivery_method || "pickup",
+    packageDestination: pkg.package_destination || "",
+    packageDestinationCountry: pkg.package_destination_country || "",
+    deliveryAddress: existingAddress || {},
+    deliveryDeadline: pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined,
+  }), [pkg]);
+
+  // Detect changes
+  const hasChanges = useMemo(() => {
+    if (itemDescription !== originalValues.itemDescription) return true;
+    if (itemLink !== originalValues.itemLink) return true;
+    if (additionalNotes !== originalValues.additionalNotes) return true;
+    if (deliveryMethod !== originalValues.deliveryMethod) return true;
+    if (packageDestination !== originalValues.packageDestination) return true;
+    if (packageDestinationCountry !== originalValues.packageDestinationCountry) return true;
+    if (JSON.stringify(products) !== JSON.stringify(originalValues.products)) return true;
+    if (JSON.stringify(deliveryAddress) !== JSON.stringify(originalValues.deliveryAddress)) return true;
+    if (deliveryDeadline?.toISOString() !== originalValues.deliveryDeadline?.toISOString()) return true;
+    return false;
+  }, [products, itemDescription, itemLink, additionalNotes, deliveryMethod, packageDestination, packageDestinationCountry, deliveryAddress, deliveryDeadline, originalValues]);
+
+  // Check if a specific field changed from original
+  const fieldChanged = (field: string, currentValue: any): boolean => {
+    const orig = (originalValues as any)[field];
+    if (typeof currentValue === 'object') return JSON.stringify(currentValue) !== JSON.stringify(orig);
+    return currentValue !== orig;
+  };
+
   // Reset form when package changes
   useEffect(() => {
     const prods = Array.isArray(pkg.products_data) ? (pkg.products_data as Product[]) : [];
@@ -131,6 +175,7 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
     setPackageDestinationCountry(pkg.package_destination_country || "");
     setDeliveryAddress(addr || {});
     setDeliveryDeadline(pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined);
+    setValidationErrors({ products: {} });
   }, [pkg]);
 
   const updateProduct = (index: number, field: keyof Product, value: string | number | boolean) => {
@@ -139,13 +184,51 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
       updated[index] = { ...updated[index], [field]: value };
       return updated;
     });
+    // Clear validation error for this field
+    if (validationErrors.products[index]?.[field as keyof typeof validationErrors.products[0]]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        products: {
+          ...prev.products,
+          [index]: { ...prev.products[index], [field]: undefined }
+        }
+      }));
+    }
   };
 
   const updateDeliveryAddress = (field: keyof DeliveryAddress, value: string) => {
     setDeliveryAddress(prev => ({ ...prev, [field]: value }));
   };
 
+  const validate = (): boolean => {
+    const errors: ValidationErrors = { products: {} };
+    let isValid = true;
+
+    if (products.length > 0) {
+      products.forEach((product, index) => {
+        const productErrors: { itemDescription?: string; itemLink?: string } = {};
+        if (!product.itemDescription?.trim()) {
+          productErrors.itemDescription = "La descripción es obligatoria";
+          isValid = false;
+        }
+        if (Object.keys(productErrors).length > 0) {
+          errors.products[index] = productErrors;
+        }
+      });
+    } else {
+      if (!itemDescription.trim()) {
+        errors.itemDescription = "La descripción es obligatoria";
+        isValid = false;
+      }
+    }
+
+    setValidationErrors(errors);
+    return isValid;
+  };
+
   const handleSave = async () => {
+    if (!validate()) return;
+
     setIsSaving(true);
     try {
       const updatedData: Partial<PackageType> & { id: string } = {
@@ -170,15 +253,35 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
       }
 
       await onSave(updatedData);
+      toast.success("Pedido actualizado correctamente");
       onClose();
     } catch (error) {
       console.error("Error saving package:", error);
+      toast.error("Error al guardar los cambios");
     } finally {
       setIsSaving(false);
     }
   };
 
+  const handleResetChanges = () => {
+    const prods = Array.isArray(pkg.products_data) ? (pkg.products_data as Product[]) : [];
+    const addr = pkg.confirmed_delivery_address as DeliveryAddress | null;
+    setProducts(prods);
+    setItemDescription(pkg.item_description || "");
+    setItemLink(pkg.item_link || "");
+    setAdditionalNotes(pkg.additional_notes || "");
+    setDeliveryMethod(pkg.delivery_method || "pickup");
+    setPackageDestination(pkg.package_destination || "");
+    setPackageDestinationCountry(pkg.package_destination_country || "");
+    setDeliveryAddress(addr || {});
+    setDeliveryDeadline(pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined);
+    setValidationErrors({ products: {} });
+  };
+
   const labelNumber = pkg.label_number ? `#${pkg.label_number}` : `#${pkg.id.slice(0, 6)}`;
+
+  // Helper for changed field highlight
+  const changedClass = (changed: boolean) => changed ? "ring-2 ring-amber-300/50 bg-amber-50/30" : "";
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -189,12 +292,19 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
               <Package className="h-5 w-5 text-primary" />
               Editar Pedido {labelNumber}
             </DialogTitle>
-            <Badge variant={getStatusVariant(pkg.status)}>
-              {STATUS_LABELS[pkg.status] || pkg.status}
-            </Badge>
+            <div className="flex items-center gap-2">
+              {hasChanges && (
+                <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 text-xs animate-fade-in">
+                  Cambios sin guardar
+                </Badge>
+              )}
+              <Badge variant={getStatusVariant(pkg.status)}>
+                {STATUS_LABELS[pkg.status] || pkg.status}
+              </Badge>
+            </div>
           </div>
           <DialogDescription className="text-sm text-muted-foreground">
-            Modifica los detalles de tu pedido. Algunos campos pueden estar bloqueados según el estado.
+            Modifica los detalles de tu pedido. Los campos con <Lock className="h-3 w-3 inline" /> están bloqueados.
           </DialogDescription>
         </DialogHeader>
 
@@ -209,7 +319,15 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
               
               {products.length > 0 ? (
                 <div className="space-y-4">
-                  {products.map((product, index) => (
+                  {products.map((product, index) => {
+                    const origProduct = originalValues.products[index];
+                    const descChanged = origProduct && product.itemDescription !== origProduct.itemDescription;
+                    const linkChanged = origProduct && product.itemLink !== origProduct.itemLink;
+                    const priceChanged = origProduct && String(product.estimatedPrice) !== String(origProduct.estimatedPrice);
+                    const qtyChanged = origProduct && String(product.quantity) !== String(origProduct.quantity);
+                    const packagingChanged = origProduct && product.needsOriginalPackaging !== origProduct.needsOriginalPackaging;
+
+                    return (
                     <div key={index} className="p-4 border rounded-lg bg-muted/30 space-y-3">
                       <span className="text-sm font-medium text-muted-foreground">
                         Producto {index + 1}
@@ -225,25 +343,38 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                           value={product.itemLink || ""}
                           onChange={(e) => updateProduct(index, "itemLink", e.target.value)}
                           placeholder="https://..."
-                          className="text-sm"
+                          className={cn("text-sm", changedClass(!!linkChanged))}
                         />
                       </div>
 
                       {/* Product Description */}
                       <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Descripción</Label>
+                        <Label className="text-xs text-muted-foreground">
+                          Descripción <span className="text-destructive">*</span>
+                        </Label>
                         <Input
                           value={product.itemDescription || ""}
                           onChange={(e) => updateProduct(index, "itemDescription", e.target.value)}
                           placeholder="Descripción del producto"
-                          className="text-sm"
+                          className={cn(
+                            "text-sm",
+                            changedClass(!!descChanged),
+                            validationErrors.products[index]?.itemDescription && "border-destructive ring-destructive/30"
+                          )}
                         />
+                        {validationErrors.products[index]?.itemDescription && (
+                          <p className="text-xs text-destructive flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {validationErrors.products[index].itemDescription}
+                          </p>
+                        )}
                       </div>
 
                       {/* Price and Quantity Row */}
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                            {!canEditPrices && <Lock className="h-3 w-3" />}
                             <DollarSign className="h-3 w-3" />
                             Precio estimado (USD)
                           </Label>
@@ -252,12 +383,13 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                             value={product.estimatedPrice || ""}
                             onChange={(e) => updateProduct(index, "estimatedPrice", parseFloat(e.target.value) || 0)}
                             placeholder="0.00"
-                            className="text-sm"
+                            className={cn("text-sm", changedClass(!!priceChanged))}
                             disabled={!canEditPrices}
                           />
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                            {!canEditPrices && <Lock className="h-3 w-3" />}
                             <Hash className="h-3 w-3" />
                             Cantidad
                           </Label>
@@ -266,20 +398,24 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                             value={product.quantity || 1}
                             onChange={(e) => updateProduct(index, "quantity", parseInt(e.target.value) || 1)}
                             min={1}
-                            className="text-sm"
+                            className={cn("text-sm", changedClass(!!qtyChanged))}
                             disabled={!canEditPrices}
                           />
                         </div>
                       </div>
 
                       {!canEditPrices && (
-                        <p className="text-xs text-muted-foreground italic">
-                          El precio y cantidad no se pueden modificar después de aceptar la cotización.
-                        </p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
+                          <Lock className="h-3 w-3 flex-shrink-0" />
+                          Precio y cantidad bloqueados después de aceptar cotización
+                        </div>
                       )}
 
                       {/* Empaque Original */}
-                      <div className="flex items-center space-x-2 pt-2 border-t border-muted/40 mt-3">
+                      <div className={cn(
+                        "flex items-center space-x-2 pt-2 border-t border-muted/40 mt-3",
+                        changedClass(!!packagingChanged)
+                      )}>
                         <Checkbox
                           id={`packaging-${index}`}
                           checked={product.needsOriginalPackaging || false}
@@ -295,7 +431,8 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                         </Label>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 /* Fallback for packages without products_data - show general fields */
@@ -309,17 +446,34 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                       value={itemLink}
                       onChange={(e) => setItemLink(e.target.value)}
                       placeholder="https://..."
-                      className="text-sm"
+                      className={cn("text-sm", changedClass(fieldChanged("itemLink", itemLink)))}
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Descripción</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Descripción <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       value={itemDescription}
-                      onChange={(e) => setItemDescription(e.target.value)}
+                      onChange={(e) => {
+                        setItemDescription(e.target.value);
+                        if (validationErrors.itemDescription) {
+                          setValidationErrors(prev => ({ ...prev, itemDescription: undefined }));
+                        }
+                      }}
                       placeholder="Descripción del producto"
-                      className="text-sm"
+                      className={cn(
+                        "text-sm",
+                        changedClass(fieldChanged("itemDescription", itemDescription)),
+                        validationErrors.itemDescription && "border-destructive ring-destructive/30"
+                      )}
                     />
+                    {validationErrors.itemDescription && (
+                      <p className="text-xs text-destructive flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {validationErrors.itemDescription}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -334,7 +488,10 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
 
               {/* País de Destino */}
               <div className="space-y-2 mb-3">
-                <Label className="text-xs text-muted-foreground">País de destino</Label>
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  {!canEditDestination && <Lock className="h-3 w-3" />}
+                  País de destino
+                </Label>
                 <Select 
                   value={packageDestinationCountry} 
                   onValueChange={(value) => {
@@ -343,7 +500,7 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                   }}
                   disabled={!canEditDestination}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={cn(changedClass(fieldChanged("packageDestinationCountry", packageDestinationCountry)))}>
                     <SelectValue placeholder="Selecciona el país" />
                   </SelectTrigger>
                   <SelectContent>
@@ -358,13 +515,16 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
 
               {/* Ciudad de Destino */}
               <div className="space-y-2 mb-4">
-                <Label className="text-xs text-muted-foreground">Ciudad de destino</Label>
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  {!canEditDestination && <Lock className="h-3 w-3" />}
+                  Ciudad de destino
+                </Label>
                 <Select 
                   value={packageDestination} 
                   onValueChange={setPackageDestination}
                   disabled={!canEditDestination || !packageDestinationCountry}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={cn(changedClass(fieldChanged("packageDestination", packageDestination)))}>
                     <SelectValue placeholder="Selecciona la ciudad" />
                   </SelectTrigger>
                   <SelectContent>
@@ -376,9 +536,10 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                   </SelectContent>
                 </Select>
                 {!canEditDestination && (
-                  <p className="text-xs text-muted-foreground italic">
-                    El destino no se puede cambiar porque ya hay un viaje asignado.
-                  </p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
+                    <Lock className="h-3 w-3 flex-shrink-0" />
+                    El destino no se puede cambiar porque ya hay un viaje asignado
+                  </div>
                 )}
               </div>
 
@@ -394,7 +555,8 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !deliveryDeadline && "text-muted-foreground"
+                        !deliveryDeadline && "text-muted-foreground",
+                        changedClass(deliveryDeadline?.toISOString() !== originalValues.deliveryDeadline?.toISOString())
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
@@ -416,7 +578,7 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
               </div>
 
               {/* Delivery Method */}
-              <div className="space-y-3">
+              <div className={cn("space-y-3", changedClass(fieldChanged("deliveryMethod", deliveryMethod)))}>
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
                   <Truck className="h-3 w-3" />
                   Método de entrega
@@ -498,18 +660,31 @@ export const EditPackageModal = ({ isOpen, onClose, pkg, onSave }: EditPackageMo
                 onChange={(e) => setAdditionalNotes(e.target.value)}
                 placeholder="Instrucciones especiales, detalles adicionales..."
                 rows={3}
+                className={cn(changedClass(fieldChanged("additionalNotes", additionalNotes)))}
               />
             </div>
           </div>
         </ScrollArea>
 
         <DialogFooter className="p-6 pt-4 border-t">
-          <Button variant="outline" onClick={onClose} disabled={isSaving}>
-            Cancelar
-          </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? "Guardando..." : "Guardar cambios"}
-          </Button>
+          <div className="flex w-full items-center justify-between">
+            <div>
+              {hasChanges && (
+                <Button variant="ghost" size="sm" onClick={handleResetChanges} disabled={isSaving} className="text-xs text-muted-foreground">
+                  <RotateCcw className="h-3 w-3 mr-1" />
+                  Deshacer
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onClose} disabled={isSaving}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSave} disabled={isSaving || !hasChanges}>
+                {isSaving ? "Guardando..." : "Guardar cambios"}
+              </Button>
+            </div>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

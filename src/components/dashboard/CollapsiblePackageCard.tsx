@@ -414,6 +414,24 @@ const CollapsiblePackageCard = ({
                   </div>
                 </CardDescription>
 
+                {/* Quick Edit Button for actionable states - Mobile */}
+                {viewMode === 'user' && onEditPackage && ['rejected', 'quote_rejected', 'quote_expired', 'deadline_expired'].includes(pkg.status) && (
+                  <div className="pl-5">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowEditModal(true);
+                      }}
+                      className="text-xs h-7 px-3 border-primary/30 text-primary hover:bg-primary/10"
+                    >
+                      <Edit className="h-3 w-3 mr-1.5" />
+                      Editar y reenviar
+                    </Button>
+                  </div>
+                )}
+
                 {/* Trip Change Alert Badge - Mobile (compact) */}
                 {viewMode === 'user' && pkg.matched_trip_id && ACTIVE_PACKAGE_STATUSES_FOR_ALERTS.includes(pkg.status) && (
                   <div className="pl-5">
@@ -699,6 +717,22 @@ const CollapsiblePackageCard = ({
                       </span>
                     </div>
                   </CardDescription>
+
+                  {/* Quick Edit Button for actionable states - Desktop */}
+                  {viewMode === 'user' && onEditPackage && ['rejected', 'quote_rejected', 'quote_expired', 'deadline_expired'].includes(pkg.status) && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowEditModal(true);
+                      }}
+                      className="text-xs h-7 px-3 border-primary/30 text-primary hover:bg-primary/10"
+                    >
+                      <Edit className="h-3 w-3 mr-1.5" />
+                      Editar y reenviar
+                    </Button>
+                  )}
 
                   {/* Trip Change Alert Badge - Desktop (compact) */}
                   {viewMode === 'user' && pkg.matched_trip_id && ACTIVE_PACKAGE_STATUSES_FOR_ALERTS.includes(pkg.status) && (
