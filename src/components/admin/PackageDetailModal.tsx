@@ -335,13 +335,17 @@ const [editForm, setEditForm] = useState({
                                 (pkg.traveler_rejection as any)?.rejected_by;
       if (currentRejectorId) travelerIds.add(currentRejectorId);
       
+      // From quote_rejection rejected_traveler
+      const quoteRejectionTravelerId = (pkg.quote_rejection as any)?.rejected_traveler?.traveler_id;
+      if (quoteRejectionTravelerId) travelerIds.add(quoteRejectionTravelerId);
+      
       if (travelerIds.size === 0) return;
       
       setLoadingRejectionProfiles(true);
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, first_name, last_name, username, email')
+          .select('id, first_name, last_name, username, email, phone_number, country_code')
           .in('id', Array.from(travelerIds));
         
         if (error) {
@@ -1223,6 +1227,116 @@ const [editForm, setEditForm] = useState({
                 </CardContent>
               </Card>
             )}
+
+            {/* Last Known Traveler - when no active match but history exists */}
+            {!matchedTrip && (() => {
+              // Try to get last traveler info from quote_rejection, traveler_rejection, or admin_actions_log
+              const quoteRejection = pkg.quote_rejection as any;
+              const travelerRejection = pkg.traveler_rejection as any;
+              
+              // Get traveler data from quote_rejection
+              const rejectedTraveler = quoteRejection?.rejected_traveler;
+              
+              // Get traveler ID from various sources
+              const lastTravelerId = rejectedTraveler?.traveler_id || 
+                travelerRejection?.previous_traveler_id || 
+                travelerRejection?.rejected_by ||
+                (() => {
+                  // Fallback: check admin_actions_log for last assignment
+                  if (pkg.admin_actions_log && Array.isArray(pkg.admin_actions_log)) {
+                    const logs = [...(pkg.admin_actions_log as any[])].reverse();
+                    for (const log of logs) {
+                      const tid = log.additional_data?.previous_traveler_id;
+                      if (tid) return tid;
+                    }
+                  }
+                  return null;
+                })();
+              
+              if (!rejectedTraveler && !lastTravelerId) return null;
+              
+              const profile = lastTravelerId ? rejectionProfiles[lastTravelerId] : null;
+              const travelerName = profile 
+                ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username
+                : rejectedTraveler?.traveler_name || 'Desconocido';
+              
+              return (
+                <Card className="border-dashed border-warning/50 bg-warning/5">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center space-x-2 text-lg">
+                        <User className="h-4 w-4" />
+                        <span>Último Viajero Asignado</span>
+                      </CardTitle>
+                      <Badge variant="warning" className="text-xs">Desasignado</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">Nombre</p>
+                          <p className="text-sm text-muted-foreground">{travelerName}</p>
+                        </div>
+                      </div>
+                      
+                      {profile?.username && (
+                        <div className="flex items-center space-x-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">Usuario</p>
+                            <p className="text-sm text-muted-foreground">@{profile.username}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {profile?.email && (
+                        <div className="flex items-center space-x-2">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">Email</p>
+                            <p className="text-sm text-muted-foreground">{profile.email}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {profile?.phone_number && (
+                        <div className="flex items-center space-x-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">Teléfono</p>
+                            <p className="text-sm text-muted-foreground">
+                              {profile.country_code 
+                                ? formatPhoneDisplay(profile.country_code, profile.phone_number)
+                                : profile.phone_number}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {rejectedTraveler && (
+                        <div className="bg-muted/30 rounded-lg p-3 text-sm space-y-1">
+                          <p><strong>Ruta:</strong> {rejectedTraveler.from_city} → {rejectedTraveler.to_city}</p>
+                          <p><strong>Llegada:</strong> {formatSafeDate(rejectedTraveler.arrival_date)}</p>
+                          <p><strong>Entrega:</strong> {formatSafeDate(rejectedTraveler.delivery_date)}</p>
+                        </div>
+                      )}
+                      
+                      {lastTravelerId && (
+                        <div className="flex items-center space-x-2">
+                          <Package className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">Usuario ID</p>
+                            <p className="text-sm text-muted-foreground font-mono text-xs">{lastTravelerId}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
           </div>
 
           {/* Enhanced Package Information with Detailed Products */}
