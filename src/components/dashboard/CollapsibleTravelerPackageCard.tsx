@@ -301,8 +301,8 @@ const CollapsibleTravelerPackageCard = ({
                   
                   <div className="flex items-center gap-1 flex-shrink-0 flex-wrap">
                     {isChatAvailable && (
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
-                        <MessageCircle className="h-4 w-4 text-primary" />
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
+                        <MessageCircle className="h-5 w-5 text-primary" />
                       </Button>
                     )}
                     <TravelerPackageStatusBadge status={getEffectiveStatus(pkg)} pkg={pkg} />
@@ -515,8 +515,8 @@ const CollapsibleTravelerPackageCard = ({
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {isChatAvailable && (
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
-                        <MessageCircle className="h-4 w-4 text-primary" />
+                      <Button variant="ghost" size="sm" className="h-9 w-9 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
+                        <MessageCircle className="h-5 w-5 text-primary" />
                       </Button>
                     )}
                     <div className="flex flex-col items-end text-right">
