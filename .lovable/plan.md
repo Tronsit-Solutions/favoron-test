@@ -1,23 +1,31 @@
 
 
-## Agregar icono de chat en la preview card del paquete
+## Duplicar orden 0ac04ea5 y asignarla a Anika Erichsen
 
-### Problema
-Actualmente para acceder al chat, el usuario debe expandir la card y luego navegar a la pestaña "Chat". Se quiere un acceso directo desde la card colapsada.
+### Datos encontrados
+
+- **Orden original**: `0ac04ea5` - "Es el whoop (chip y banda)" - Shopper: `97ed320e` - Status: `received_by_traveler` - Viajero actual: trip `662b8f5b`
+- **Anika Erichsen**: profile `42ff1de3`, email `anika.erichsen@icloud.com` - Trip aprobado `573209c2` (Miami -> Guatemala City, llega 2026-03-05, entrega 2026-03-06)
 
 ### Plan
 
-**Modificar `CollapsiblePackageCard.tsx`**:
+**Crear edge function temporal `duplicate-package`** que:
 
-1. Definir los estados donde el chat está disponible (post-pago): `pending_purchase`, `in_transit`, `received_by_traveler`, `pending_office_confirmation`, `delivered_to_office`, `completed`.
+1. Verifique que el caller es admin (via service role + user_roles check)
+2. Lea el paquete original `0ac04ea5`
+3. Inserte un nuevo paquete con:
+   - Mismo `user_id` (shopper original: `97ed320e`)
+   - Mismo `item_description`, `estimated_price`, `purchase_origin`, `package_destination`, `delivery_method`, `item_link`
+   - `products_data` limpio (sin metadata de recepcion/confirmacion)
+   - `matched_trip_id` = `573209c2` (trip de Anika)
+   - `status` = `matched`
+   - `delivery_deadline` = 2026-03-07 (dia despues de la entrega de Anika)
+   - Sin `quote`, `payment_receipt`, `purchase_confirmation`, `tracking_info`, `traveler_confirmation`, `office_delivery`
+   - `admin_actions_log` con entrada de "duplicado desde 0ac04ea5, asignado a Anika Erichsen"
+4. Retorne el ID del nuevo paquete
 
-2. **Desktop** (linea ~960, junto al status badge): Agregar un botón `MessageCircle` antes del badge de status. Al hacer click, expandir la card (`setIsOpen(true)`) y cambiar a tab chat (`setActiveTab("chat")`).
+**Desplegar, ejecutar, y luego eliminar** la edge function.
 
-3. **Mobile** (linea ~395, junto al notification badge): Agregar el mismo icono de chat en la esquina superior derecha de la card (al lado del badge de notificación y el menú de 3 puntos). Mismo comportamiento: expandir + ir a tab chat.
-
-El botón será un `Button ghost` con el icono `MessageCircle` y `stopPropagation` para no triggerar el collapsible.
-
-### Archivos a modificar
-- `src/components/admin/CollapsiblePackageCard.tsx` — No, es `src/components/dashboard/CollapsiblePackageCard.tsx`
-- Opcionalmente `src/components/dashboard/CollapsibleTravelerPackageCard.tsx` si el viajero también tiene tab de chat
+### Archivos
+- `supabase/functions/duplicate-package/index.ts` — Edge function temporal
 
