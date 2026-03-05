@@ -1,22 +1,26 @@
 
 
-## Agregar edición de etiquetas en la vista previa de batch
+## Problema: Historial de etiquetas inaccesible
 
-### Problema
-En el modal de "Vista previa de etiquetas" (`LabelCartBar.tsx`), no se puede editar el contenido de las etiquetas antes de imprimir. El `PackageLabelModal` ya tiene esta funcionalidad con `customDescriptions`, pero el flujo batch de operaciones no la implementa.
+El botón de "Historial" de lotes de etiquetas solo aparece como un pequeño botón flotante en la esquina inferior derecha cuando el carrito está vacío y hay historial. Esto lo hace prácticamente invisible, especialmente en la vista de Recepción donde el contenido ocupa toda la pantalla.
 
-### Plan
+## Plan
 
 **Modificar `src/components/operations/LabelCartBar.tsx`**:
 
-1. **Agregar estado para descripciones personalizadas**: `customDescriptions` como `{ [packageId: string]: { [productIndex: number]: string } }`.
+1. **Mover el acceso al historial a la barra principal**: Cuando el carrito tiene items, el botón de historial ya aparece en la barra inferior — esto está bien. El problema es cuando el carrito está vacío.
 
-2. **Agregar botón "Editar" en cada etiqueta** (icono `Edit`/`Pencil`) que aparezca al hacer hover, al lado del botón de eliminar (X). Al clickear, abrir un mini-formulario inline debajo del grid de etiquetas mostrando los campos de texto de los productos de esa etiqueta.
+2. **Reemplazar el botón flotante invisible** (líneas 53-75) por una barra fija más visible en la parte inferior, similar a la barra del carrito pero más sutil, con el botón de "Historial" centrado y prominente.
 
-3. **Panel de edición**: Cuando se selecciona una etiqueta para editar, mostrar debajo del grid un bloque con `Textarea` por cada producto (similar a `PackageLabelModal`). Botones "Aplicar" y "Cancelar".
+3. **Alternativa más robusta**: Agregar un acceso al historial directamente en la pestaña "Etiquetas" (`OperationsLabelsTab.tsx`) como un botón en el header, para que siempre sea accesible independientemente del estado del carrito. Esto es más intuitivo ya que el historial está relacionado con las etiquetas.
 
-4. **Pasar `customDescriptions`** al componente `PackageLabel` en el preview y en el `handleDownloadPDF` para que las descripciones editadas se reflejen tanto en la vista previa como en el PDF final.
+### Enfoque elegido: Ambos
+
+- En `LabelCartBar.tsx`: Hacer el botón flotante más grande y visible (pill style con fondo sólido).
+- En `OperationsLabelsTab.tsx`: Agregar un botón "Historial de lotes" junto al botón de refresh, que abra el mismo `HistoryDialog`. Esto requiere pasar `labelHistory`, `restoreFromHistory` y `deleteFromHistory` al tab de Etiquetas.
 
 ### Archivos a modificar
-- `src/components/operations/LabelCartBar.tsx` — Estado de edición, UI de edición, pasar customDescriptions a PackageLabel
+- `src/components/operations/LabelCartBar.tsx` — Mejorar visibilidad del botón flotante
+- `src/components/operations/OperationsLabelsTab.tsx` — Agregar botón de historial en el header
+- `src/pages/Operations.tsx` — Pasar props de historial al tab de Etiquetas
 
