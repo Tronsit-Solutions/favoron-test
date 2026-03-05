@@ -1,21 +1,25 @@
 
 
-## Cambiar tipo de solicitud de paquete 055f87ab a "online"
+## Crear referral completado de Q20 para admin Favorón
 
-### Datos actuales
-- **Paquete**: 055f87ab — "2 Cheirosa 62 Jelly Perfume Balm"
-- **Estado**: approved
-- **requestType actual**: `personal`
-- **requestType deseado**: `online`
+### Situación actual
+- Admin `5e3c944e-9130-4ea7-8165-b8ec9d5abf6f` tiene 2 referrals pendientes — estos NO se tocan.
+- Se necesita un nuevo registro en `referrals` con `status = 'completed'` y `reward_amount = 20`.
 
 ### Acción
 
-Desplegar una edge function temporal `admin-patch-package` que con service role actualice el campo `requestType` dentro de `products_data[0]` de `"personal"` a `"online"` para el paquete `055f87ab-9243-4e9e-a0d3-5db0ccccdfba`. Después de confirmar la ejecución, eliminar la función temporal.
+Desplegar una edge function temporal `admin-patch-package` con service role que:
 
-La función:
-1. Lee el `products_data` actual del paquete
-2. Modifica `products_data[0].requestType` a `"online"`
-3. Actualiza el registro con el nuevo `products_data`
+1. Busque cualquier usuario existente que NO sea el admin para usarlo como `referred_id` (por ejemplo, uno de los referidos actuales del admin).
+2. Inserte un nuevo registro en `referrals`:
+   - `referrer_id`: `5e3c944e-...` (admin)
+   - `referred_id`: usuario existente elegido
+   - `status`: `completed`
+   - `reward_amount`: `20`
+   - `completed_at`: `now()`
+   - `referred_reward_amount`: `0`
+   - `referred_reward_used`: `false`
+3. Eliminar la función temporal después de ejecutar.
 
-No se requieren cambios en el frontend.
+No se requieren cambios en frontend ni en esquema.
 
