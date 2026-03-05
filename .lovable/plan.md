@@ -1,30 +1,44 @@
 
 
-## Duplicar orden #b0ecfbe2 asignada al mismo viajero
+## Aplicar Códigos de Descuento desde Admin
 
-### Datos del paquete original
-- **Shopper**: be6953c9 (crema + perfume mini de Sephora)
-- **Viaje asignado**: 101c5277 (Melanie Spencer)
-- **Precio estimado**: Q41, Quote total: Q75 (tip Q50, service fee Q25, delivery Q0)
-- **Estado actual**: `received_by_traveler`
+### Contexto
+
+Actualmente los códigos de descuento solo los puede aplicar el shopper desde el `QuoteDialog` al aceptar la cotización. El admin no tiene forma de aplicar un descuento desde el panel de administración.
+
+Ya existe toda la infraestructura necesaria:
+- Tabla `discount_codes` con códigos activos
+- Tabla `discount_code_usage` para tracking
+- RPC `validate_discount_code` para validar códigos
+- El quote JSONB ya soporta campos `discountCode`, `discountCodeId`, `discountAmount`, `originalTotalPrice`, `finalTotalPrice`
+- `getQuoteValues()` ya lee y calcula estos campos automáticamente
 
 ### Plan
 
-Crear una copia del paquete usando el insert tool con los datos esenciales del original, pero **limpiando** los campos de progreso (payment_receipt, purchase_confirmation, tracking_info, traveler_confirmation, products_data receipts, etc.) para que el nuevo paquete arranque como un pedido fresco.
+**Modificar `QuoteEditModal.tsx`** para agregar una sección de código de descuento:
 
-**Campos que se copian tal cual:**
-- `user_id`, `item_description`, `estimated_price`, `products_data` (sin campos de recepción), `item_link`, `purchase_origin`, `package_destination`, `package_destination_country`, `delivery_method`, `delivery_deadline`, `matched_trip_id`, `matched_trip_dates`, `traveler_address`, `admin_assigned_tip`, `quote`, `payment_method`
+1. **Nueva sección en el modal** (debajo del delivery fee, antes del total):
+   - Input para ingresar código de descuento
+   - Botón "Aplicar" que llama a `validate_discount_code` RPC
+   - Si ya hay descuento aplicado, mostrar badge con el código y botón para removerlo
+   - Mostrar el monto del descuento y el total final ajustado
 
-**Campos que se resetean:**
-- `status` → `matched` (ya asignado al viajero)
-- `payment_receipt` → null
-- `purchase_confirmation` → null
-- `tracking_info` → null
-- `traveler_confirmation` → null
-- `admin_actions_log` → entrada indicando que es duplicado del original
-- `products_data[].receivedByTraveler` → removido
-- `products_data[].receivedAt` → removido
-- `products_data[].receivedPhoto` → removido
+2. **Lógica de validación**:
+   - Usar el mismo RPC `validate_discount_code` que ya usan los shoppers
+   - Pasar el `user_id` del shopper (dueño del paquete) para validar uso único por usuario
+   - Calcular descuento sobre el subtotal de Favorón (tip + serviceFee)
 
-**Un solo cambio**: INSERT via insert tool, sin modificaciones de código ni migraciones.
+3. **Guardar en `useQuoteManagement.tsx`**:
+   - Extender `QuoteUpdateParams` para aceptar campos de descuento opcionales (`discountCode`, `discountCodeId`, `discountAmount`, `finalTotalPrice`)
+   - Al guardar, incluir estos campos en el objeto `updatedQuote`
+   - Registrar el uso del código en `discount_code_usage` vía insert
+
+4. **Mostrar descuento en `PackageDetailModal.tsx`**:
+   - Ya existe lógica parcial en `PaymentsTab`. Agregar en la sección de cotización del admin una línea que muestre el descuento aplicado (si existe) entre el total y los demás campos.
+
+### Archivos a modificar
+
+- `src/components/admin/QuoteEditModal.tsx` — Agregar UI de código de descuento
+- `src/hooks/useQuoteManagement.tsx` — Extender para guardar datos de descuento y registrar uso
+- `src/components/admin/PackageDetailModal.tsx` — Mostrar descuento aplicado en la sección de cotización
 
