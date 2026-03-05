@@ -404,8 +404,8 @@ const CollapsiblePackageCard = ({
                   </div>
                   <div className="absolute top-1 right-9 z-20 flex items-center gap-1">
                     {isChatAvailable && (
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
-                        <MessageCircle className="h-4 w-4 text-primary" />
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
+                        <MessageCircle className="h-5 w-5 text-primary" />
                       </Button>
                     )}
                     {needsAction && (
@@ -978,8 +978,8 @@ const CollapsiblePackageCard = ({
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
-                              <MessageCircle className="h-4 w-4 text-primary" />
+                            <Button variant="ghost" size="sm" className="h-9 w-9 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
+                              <MessageCircle className="h-5 w-5 text-primary" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent side="bottom">
