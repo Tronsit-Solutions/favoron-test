@@ -640,6 +640,7 @@ export type Database = {
           quote_rejection: Json | null
           recurrente_checkout_id: string | null
           recurrente_payment_id: string | null
+          referral_credit_applied: number | null
           rejection_reason: string | null
           status: string
           tracking_info: Json | null
@@ -687,6 +688,7 @@ export type Database = {
           quote_rejection?: Json | null
           recurrente_checkout_id?: string | null
           recurrente_payment_id?: string | null
+          referral_credit_applied?: number | null
           rejection_reason?: string | null
           status?: string
           tracking_info?: Json | null
@@ -734,6 +736,7 @@ export type Database = {
           quote_rejection?: Json | null
           recurrente_checkout_id?: string | null
           recurrente_payment_id?: string | null
+          referral_credit_applied?: number | null
           rejection_reason?: string | null
           status?: string
           tracking_info?: Json | null
@@ -1112,6 +1115,7 @@ export type Database = {
           referred_reward_used: boolean | null
           referrer_id: string
           reward_amount: number
+          reward_used: boolean | null
           status: string
         }
         Insert: {
@@ -1123,6 +1127,7 @@ export type Database = {
           referred_reward_used?: boolean | null
           referrer_id: string
           reward_amount?: number
+          reward_used?: boolean | null
           status?: string
         }
         Update: {
@@ -1134,6 +1139,7 @@ export type Database = {
           referred_reward_used?: boolean | null
           referrer_id?: string
           reward_amount?: number
+          reward_used?: boolean | null
           status?: string
         }
         Relationships: [
@@ -1936,6 +1942,7 @@ export type Database = {
           referred_id: string
           referred_name: string
           reward_amount: number
+          reward_used: boolean
           status: string
         }[]
       }
@@ -2042,6 +2049,10 @@ export type Database = {
           _reason: string
           _target_user_id: string
         }
+        Returns: undefined
+      }
+      mark_referral_credit_used: {
+        Args: { p_amount: number; p_package_id: string; p_user_id: string }
         Returns: undefined
       }
       mask_account_number: {

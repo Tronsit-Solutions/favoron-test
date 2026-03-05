@@ -169,6 +169,22 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete, onPickerOpen, onPickerClo
 
       const wasAutoApproved = (updatedPackage.payment_receipt as any)?.auto_approved === true;
 
+      // If referral credit was applied in the quote, mark it as used
+      const updatedQuote = updatedPackage.quote as any;
+      if (updatedQuote?.referralCreditApplied && updatedQuote?.referralCreditAmount > 0) {
+        try {
+          await supabase.rpc('mark_referral_credit_used', {
+            p_user_id: pkg.user_id,
+            p_amount: updatedQuote.referralCreditAmount,
+            p_package_id: pkg.id,
+          });
+          console.log('✅ Referral credit marked as used:', updatedQuote.referralCreditAmount);
+        } catch (creditErr) {
+          console.error('⚠️ Error marking referral credit as used:', creditErr);
+          // Don't fail the whole flow for this
+        }
+      }
+
       // Update local state
       setConfirmedFile(updatedPackage.payment_receipt);
       setPendingFile(null);
