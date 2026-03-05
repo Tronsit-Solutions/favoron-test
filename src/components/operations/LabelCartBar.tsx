@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Tag, Printer, Trash2, Loader2, X, ChevronLeft, ChevronRight, History, RotateCcw } from 'lucide-react';
+import { Tag, Printer, Trash2, Loader2, X, ChevronLeft, ChevronRight, History, RotateCcw, Pencil, Check } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { LabelCartItem, LabelBatch } from '@/hooks/useOperationsData';
 import { PackageLabel } from '@/components/admin/PackageLabel';
 import { toast } from 'sonner';
@@ -33,6 +34,9 @@ const LabelCartBar = ({ items, onClear, onRemoveItem, labelHistory, onRestoreFro
   const [previewOpen, setPreviewOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [customDescriptions, setCustomDescriptions] = useState<{ [packageId: string]: { [productIndex: number]: string } }>({});
+  const [tempDescriptions, setTempDescriptions] = useState<{ [productIndex: number]: string }>({});
 
   const totalPages = Math.ceil(items.length / LABELS_PER_PAGE);
 
@@ -97,6 +101,34 @@ const LabelCartBar = ({ items, onClear, onRemoveItem, labelHistory, onRestoreFro
     return { tripData, pkgData, labelNumber: item.label_number ?? undefined };
   };
 
+  const startEditing = (item: LabelCartItem) => {
+    setEditingItemId(item.id);
+    const existing = customDescriptions[item.id] || {};
+    if (item.products_data && Array.isArray(item.products_data)) {
+      const descs: { [idx: number]: string } = {};
+      item.products_data.forEach((p: any, i: number) => {
+        if (!p.cancelled) {
+          descs[i] = existing[i] || p.itemDescription || '';
+        }
+      });
+      setTempDescriptions(descs);
+    } else {
+      setTempDescriptions({ 0: existing[0] || item.item_description || '' });
+    }
+  };
+
+  const applyEditing = () => {
+    if (editingItemId) {
+      setCustomDescriptions(prev => ({ ...prev, [editingItemId]: { ...tempDescriptions } }));
+      setEditingItemId(null);
+    }
+  };
+
+  const cancelEditing = () => {
+    setEditingItemId(null);
+    setTempDescriptions({});
+  };
+
   const handleDownloadPDF = async () => {
     if (items.length === 0) return;
 
@@ -151,6 +183,7 @@ const LabelCartBar = ({ items, onClear, onRemoveItem, labelHistory, onRestoreFro
               pkg: pkgData,
               trip: tripData,
               labelNumber,
+              customDescriptions: customDescriptions[item.id],
             })
           );
           setTimeout(resolve, 100);
@@ -251,14 +284,25 @@ const LabelCartBar = ({ items, onClear, onRemoveItem, labelHistory, onRestoreFro
                 const { tripData, pkgData, labelNumber } = buildLabelData(item);
                 return (
                   <div key={item.id} className="relative group">
-                    <button
-                      onClick={() => onRemoveItem(item.id)}
-                      className="absolute -top-1 -right-1 z-10 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
+                    <div className="absolute -top-1 -right-1 z-10 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => startEditing(item)}
+                        className="bg-primary text-primary-foreground rounded-full p-0.5"
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => onRemoveItem(item.id)}
+                        className="bg-destructive text-destructive-foreground rounded-full p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                    {editingItemId === item.id && (
+                      <div className="absolute inset-0 z-10 border-2 border-primary rounded pointer-events-none" />
+                    )}
                     <div style={{ transform: 'scale(1)', transformOrigin: 'top left' }}>
-                      <PackageLabel pkg={pkgData} trip={tripData} labelNumber={labelNumber} />
+                      <PackageLabel pkg={pkgData} trip={tripData} labelNumber={labelNumber} customDescriptions={customDescriptions[item.id]} />
                     </div>
                   </div>
                 );
@@ -274,6 +318,45 @@ const LabelCartBar = ({ items, onClear, onRemoveItem, labelHistory, onRestoreFro
               ))}
             </div>
           </div>
+
+          {/* Editing panel */}
+          {editingItemId && (() => {
+            const editItem = items.find(i => i.id === editingItemId);
+            if (!editItem) return null;
+            return (
+              <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Editando: {editItem.shopper_name} — {editItem.id.substring(0, 8).toUpperCase()}</span>
+                </div>
+                <div className="space-y-2">
+                  {Object.entries(tempDescriptions).map(([idx, desc]) => {
+                    const productIndex = parseInt(idx);
+                    const product = editItem.products_data?.[productIndex];
+                    return (
+                      <div key={idx}>
+                        <label className="text-xs text-muted-foreground mb-1 block">
+                          Producto {productIndex + 1}{product?.quantity && parseInt(String(product.quantity)) > 1 ? ` (${product.quantity}x)` : ''}
+                        </label>
+                        <Textarea
+                          value={desc}
+                          onChange={(e) => setTempDescriptions(prev => ({ ...prev, [productIndex]: e.target.value }))}
+                          className="min-h-[40px] text-sm"
+                          rows={2}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button size="sm" variant="outline" onClick={cancelEditing}>Cancelar</Button>
+                  <Button size="sm" onClick={applyEditing}>
+                    <Check className="h-3 w-3 mr-1" />
+                    Aplicar
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
 
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-4">
