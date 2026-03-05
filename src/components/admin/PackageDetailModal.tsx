@@ -2224,6 +2224,25 @@ const [editForm, setEditForm] = useState({
                       })()}</p>
                     </div>
                   </div>
+
+                  {/* Discount display */}
+                  {pkg.quote.discountCode && parseFloat(pkg.quote.discountAmount || '0') > 0 && (
+                    <div className="col-span-full border-t pt-3 mt-1">
+                      <div className="flex items-center justify-between bg-green-50 rounded-lg p-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-green-800">🎉 Descuento aplicado:</span>
+                          <Badge variant="secondary" className="bg-green-100 text-green-800">{pkg.quote.discountCode}</Badge>
+                        </div>
+                        <span className="text-sm font-bold text-green-700">-Q{parseFloat(pkg.quote.discountAmount).toFixed(2)}</span>
+                      </div>
+                      {pkg.quote.finalTotalPrice && (
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-sm font-medium">Total Final (con descuento):</span>
+                          <span className="text-lg font-bold text-primary">Q{parseFloat(pkg.quote.finalTotalPrice).toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {pkg.quote.message && (
@@ -2726,7 +2745,8 @@ const [editForm, setEditForm] = useState({
             profiles: pkg.profiles,
             delivery_method: pkg.delivery_method,
             confirmed_delivery_address: pkg.confirmed_delivery_address,
-            package_destination: pkg.package_destination
+            package_destination: pkg.package_destination,
+            user_id: pkg.user_id,
           }}
           tripUserId={matchedTrip?.user_id}
           onSuccess={() => {
