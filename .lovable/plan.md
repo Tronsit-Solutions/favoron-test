@@ -1,28 +1,28 @@
 
 
-## Crear orden de cobro para Alejandra De Leon Fernandez
+## Problema: Tarifa de reward incorrecta en referidos
 
-### Datos confirmados
-- **Viajera**: Alejandra De Leon Fernandez (`2622016c`)
-- **Viaje**: Miami → Guatemala City (`80f8400b`)
-- **Monto acumulado**: Q170 (2 paquetes entregados)
-- **Banco**: Industrial, Ahorros
-- **Titular**: Alejandra De Leon
-- **Cuenta**: 3707566
+### Diagnóstico
 
-### Acción
+- La tabla `app_settings` tiene `referral_reward_amount = Q20` y `referred_user_discount = Q20`.
+- Sin embargo, la columna `reward_amount` en la tabla `referrals` tiene un **default hardcoded de Q30**.
+- La función `register_referral` lee el descuento del referido desde `app_settings`, pero **no lee el reward del referidor** — usa el default de la columna (Q30).
+- Resultado: todos los referidos existentes tienen `reward_amount = 30` cuando debería ser `20`.
 
-Desplegar una edge function temporal `admin-create-payment-order` que ejecute el RPC `create_payment_order_with_snapshot` con service role, pasando:
+### Solución
 
-```
-traveler_id: 2622016c-427d-4a97-89b0-eab611d96ae8
-trip_id: 80f8400b-b527-4f1d-9c99-d1a86cd68c26
-amount: 170
-bank_name: Industrial
-bank_account_holder: Alejandra De Leon
-bank_account_number: 3707566
-bank_account_type: ahorros
-```
+1. **Actualizar la función `register_referral`** para leer `referral_reward_amount` desde `app_settings` y usarlo explícitamente en el INSERT, en lugar de depender del default de la columna.
 
-Esto creará la orden con snapshot histórico de los 2 paquetes entregados y marcará `payment_order_created = true` en el acumulador. Después de confirmar que se creó correctamente, eliminar la edge function temporal.
+2. **Cambiar el default de la columna** `referrals.reward_amount` de `30` a `20` (como fallback).
+
+3. **Corregir los registros existentes**: UPDATE los 3 referidos que tienen `reward_amount = 30` a `reward_amount = 20`.
+
+### Cambios técnicos
+
+**Migración SQL**:
+- `ALTER TABLE referrals ALTER COLUMN reward_amount SET DEFAULT 20;`
+- `UPDATE referrals SET reward_amount = 20 WHERE reward_amount = 30;`
+- Recrear `register_referral` para leer ambos valores (`reward_amount` y `referred_discount`) desde `app_settings`.
+
+No se requieren cambios en el frontend — el hook `useAdminReferrals` ya lee los valores directamente de la tabla.
 
