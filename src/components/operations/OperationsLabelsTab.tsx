@@ -10,16 +10,28 @@ import { formatDateUTC } from '@/lib/formatters';
 import { PackageLabelModal } from '@/components/admin/PackageLabelModal';
 import { PackageLabel } from '@/components/admin/PackageLabel';
 import { TripDetailModal } from '@/components/dashboard/TripDetailModal';
-import { TripWithPackages } from '@/hooks/useOperationsData';
+import { TripWithPackages, LabelBatch } from '@/hooks/useOperationsData';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { History } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface OperationsLabelsTabProps {
   trips: TripWithPackages[];
   loading: boolean;
   onRefresh: () => void;
+  labelHistory: LabelBatch[];
+  onRestoreFromHistory: (batchId: string) => void;
+  onDeleteFromHistory: (batchId: string) => void;
 }
 
 // Helper function to check if delivery is overdue
@@ -31,12 +43,13 @@ const isDeliveryOverdue = (deliveryDate: string): boolean => {
   return delivery < today;
 };
 
-const OperationsLabelsTab = ({ trips, loading, onRefresh }: OperationsLabelsTabProps) => {
+const OperationsLabelsTab = ({ trips, loading, onRefresh, labelHistory, onRestoreFromHistory, onDeleteFromHistory }: OperationsLabelsTabProps) => {
   const { toast } = useToast();
   const [selectedTrip, setSelectedTrip] = useState<TripWithPackages | null>(null);
   const [showLabelModal, setShowLabelModal] = useState(false);
   const [selectedTripDetail, setSelectedTripDetail] = useState<TripWithPackages | null>(null);
   const [generatingPDF, setGeneratingPDF] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Filter out trips already marked as delivered
   const filteredTrips = trips.filter(trip => !trip.last_mile_delivered);
@@ -231,10 +244,18 @@ const OperationsLabelsTab = ({ trips, loading, onRefresh }: OperationsLabelsTabP
                 Viajes con paquetes asignados listos para procesamiento en oficina
               </CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Actualizar
-            </Button>
+            <div className="flex items-center gap-2">
+              {labelHistory.length > 0 && (
+                <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
+                  <History className="h-4 w-4 mr-2" />
+                  Historial ({labelHistory.length})
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Actualizar
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -403,6 +424,48 @@ const OperationsLabelsTab = ({ trips, loading, onRefresh }: OperationsLabelsTabP
           packages={selectedTripDetail.packages}
         />
       )}
+      {/* History Dialog */}
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Historial de lotes
+            </DialogTitle>
+          </DialogHeader>
+          {labelHistory.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              No hay lotes anteriores
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {labelHistory.map((batch) => (
+                <div key={batch.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">
+                      {batch.items.length} etiqueta{batch.items.length !== 1 ? 's' : ''}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(batch.createdAt), "d MMM yyyy, HH:mm", { locale: es })}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {batch.items.map(i => i.shopper_name).filter((v, idx, a) => a.indexOf(v) === idx).join(', ')}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 ml-2">
+                    <Button size="sm" variant="outline" onClick={() => { onRestoreFromHistory(batch.id); setHistoryOpen(false); }}>
+                      Restaurar
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => onDeleteFromHistory(batch.id)} className="text-destructive hover:text-destructive">
+                      <Tag className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

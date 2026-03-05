@@ -166,6 +166,9 @@ const Operations = () => {
               trips={operationsData.labelsTrips}
               loading={operationsData.loading}
               onRefresh={operationsData.refresh}
+              labelHistory={operationsData.labelHistory}
+              onRestoreFromHistory={operationsData.restoreFromHistory}
+              onDeleteFromHistory={operationsData.deleteFromHistory}
             />
           </div>
 
