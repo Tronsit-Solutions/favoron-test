@@ -1,16 +1,22 @@
+import { useState, useEffect } from "react";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
 import { useAdminReferrals } from "@/hooks/useAdminReferrals";
+import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { LoadingState } from "@/components/ui/loading-state";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Users, Clock, CheckCircle, DollarSign, Gift } from "lucide-react";
+import { ArrowLeft, Users, Clock, CheckCircle, DollarSign, Gift, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { toast } from "@/hooks/use-toast";
 
 const formatName = (profile?: { first_name: string | null; last_name: string | null }) => {
   if (!profile) return "—";
@@ -19,10 +25,82 @@ const formatName = (profile?: { first_name: string | null; last_name: string | n
 
 const AdminReferrals = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     referrals, loading, totalReferrals, pendingCount, completedCount,
     totalRewardsDistributed, totalDiscountsGiven,
   } = useAdminReferrals();
+
+  const [rewardAmount, setRewardAmount] = useState<number>(20);
+  const [rewardLoading, setRewardLoading] = useState(false);
+  const [rewardSaving, setRewardSaving] = useState(false);
+  const [referredDiscount, setReferredDiscount] = useState<number>(20);
+  const [referredDiscountLoading, setReferredDiscountLoading] = useState(false);
+  const [referredDiscountSaving, setReferredDiscountSaving] = useState(false);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      setRewardLoading(true);
+      setReferredDiscountLoading(true);
+      try {
+        const { data: rewardData } = await supabase
+          .from('app_settings')
+          .select('value')
+          .eq('key', 'referral_reward_amount')
+          .maybeSingle();
+        if (rewardData?.value && typeof rewardData.value === 'object' && 'amount' in (rewardData.value as any)) {
+          setRewardAmount((rewardData.value as any).amount);
+        }
+
+        const { data: discountData } = await supabase
+          .from('app_settings')
+          .select('value')
+          .eq('key', 'referred_user_discount')
+          .maybeSingle();
+        if (discountData?.value && typeof discountData.value === 'object' && 'amount' in (discountData.value as any)) {
+          setReferredDiscount((discountData.value as any).amount);
+        }
+      } catch (err) {
+        console.error('Error loading referral settings:', err);
+      } finally {
+        setRewardLoading(false);
+        setReferredDiscountLoading(false);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  const handleSaveReward = async () => {
+    setRewardSaving(true);
+    try {
+      const { error } = await supabase
+        .from('app_settings')
+        .update({ value: { amount: rewardAmount }, updated_by: user?.id, updated_at: new Date().toISOString() })
+        .eq('key', 'referral_reward_amount');
+      if (error) throw error;
+      toast({ title: "✅ Guardado", description: `Reward actualizado a Q${rewardAmount}` });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setRewardSaving(false);
+    }
+  };
+
+  const handleSaveReferredDiscount = async () => {
+    setReferredDiscountSaving(true);
+    try {
+      const { error } = await supabase
+        .from('app_settings')
+        .update({ value: { amount: referredDiscount, enabled: true }, updated_by: user?.id, updated_at: new Date().toISOString() })
+        .eq('key', 'referred_user_discount');
+      if (error) throw error;
+      toast({ title: "✅ Guardado", description: `Descuento de referido actualizado a Q${referredDiscount}` });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setReferredDiscountSaving(false);
+    }
+  };
 
   return (
     <RequireAdmin>
@@ -34,10 +112,10 @@ const AdminReferrals = () => {
             </Button>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Gift className="h-8 w-8 text-primary" />
-              Reporte de Referidos
+              Programa de Referidos
             </h1>
             <p className="text-muted-foreground mt-1">
-              Seguimiento completo de referidos, recompensas y descuentos
+              Configuración, seguimiento de referidos, recompensas y descuentos
             </p>
           </div>
 
@@ -99,6 +177,70 @@ const AdminReferrals = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Configuration */}
+          <Card className="mb-8 border-green-200 bg-green-50/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-green-700 text-lg">
+                <Settings className="h-5 w-5" />
+                Configuración del programa
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="reward-amount" className="text-sm">Monto del reward para referidor (GTQ)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="reward-amount"
+                      type="number"
+                      min={1}
+                      value={rewardAmount}
+                      onChange={(e) => setRewardAmount(Number(e.target.value))}
+                      disabled={rewardLoading}
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="outline"
+                      className="border-green-300 text-green-700 hover:bg-green-100"
+                      onClick={handleSaveReward}
+                      disabled={rewardSaving || rewardLoading}
+                    >
+                      {rewardSaving ? "Guardando..." : "Guardar"}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Este monto se asigna al referidor cuando el referido completa su primer pedido o viaje
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="referred-discount" className="text-sm">Descuento para usuario referido (GTQ)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="referred-discount"
+                      type="number"
+                      min={0}
+                      value={referredDiscount}
+                      onChange={(e) => setReferredDiscount(Number(e.target.value))}
+                      disabled={referredDiscountLoading}
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="outline"
+                      className="border-green-300 text-green-700 hover:bg-green-100"
+                      onClick={handleSaveReferredDiscount}
+                      disabled={referredDiscountSaving || referredDiscountLoading}
+                    >
+                      {referredDiscountSaving ? "Guardando..." : "Guardar"}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Descuento automático en el primer pedido del nuevo usuario referido
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Table */}
           {loading ? (

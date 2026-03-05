@@ -6,92 +6,13 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Users, Package, TrendingUp, Settings, ClipboardList, Building2, Ticket, DollarSign, MapPin, FlaskConical, Gift, UserPlus } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Shield, Users, Package, TrendingUp, Settings, ClipboardList, Building2, Ticket, DollarSign, MapPin, FlaskConical, UserPlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const AdminControl = () => {
   const { user, profile, userRole } = useAuth();
   const [isCreatingTestPackages, setIsCreatingTestPackages] = useState(false);
-  const [rewardAmount, setRewardAmount] = useState<number>(30);
-  const [rewardLoading, setRewardLoading] = useState(false);
-  const [rewardSaving, setRewardSaving] = useState(false);
-  const [referredDiscount, setReferredDiscount] = useState<number>(15);
-  const [referredDiscountLoading, setReferredDiscountLoading] = useState(false);
-  const [referredDiscountSaving, setReferredDiscountSaving] = useState(false);
 
-  useEffect(() => {
-    const loadReward = async () => {
-      setRewardLoading(true);
-      try {
-        const { data } = await supabase
-          .from('app_settings')
-          .select('value')
-          .eq('key', 'referral_reward_amount')
-          .maybeSingle();
-        if (data?.value && typeof data.value === 'object' && 'amount' in (data.value as any)) {
-          setRewardAmount((data.value as any).amount);
-        }
-      } catch (err) {
-        console.error('Error loading reward:', err);
-      } finally {
-        setRewardLoading(false);
-      }
-    };
-    loadReward();
-
-    const loadReferredDiscount = async () => {
-      setReferredDiscountLoading(true);
-      try {
-        const { data } = await supabase
-          .from('app_settings')
-          .select('value')
-          .eq('key', 'referred_user_discount')
-          .maybeSingle();
-        if (data?.value && typeof data.value === 'object' && 'amount' in (data.value as any)) {
-          setReferredDiscount((data.value as any).amount);
-        }
-      } catch (err) {
-        console.error('Error loading referred discount:', err);
-      } finally {
-        setReferredDiscountLoading(false);
-      }
-    };
-    loadReferredDiscount();
-  }, []);
-
-  const handleSaveReward = async () => {
-    setRewardSaving(true);
-    try {
-      const { error } = await supabase
-        .from('app_settings')
-        .update({ value: { amount: rewardAmount }, updated_by: user?.id, updated_at: new Date().toISOString() })
-        .eq('key', 'referral_reward_amount');
-      if (error) throw error;
-      toast({ title: "✅ Guardado", description: `Reward actualizado a Q${rewardAmount}` });
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally {
-      setRewardSaving(false);
-    }
-  };
-
-  const handleSaveReferredDiscount = async () => {
-    setReferredDiscountSaving(true);
-    try {
-      const { error } = await supabase
-        .from('app_settings')
-        .update({ value: { amount: referredDiscount, enabled: true }, updated_by: user?.id, updated_at: new Date().toISOString() })
-        .eq('key', 'referred_user_discount');
-      if (error) throw error;
-      toast({ title: "✅ Guardado", description: `Descuento de referido actualizado a Q${referredDiscount}` });
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally {
-      setReferredDiscountSaving(false);
-    }
-  };
 
   const handleCreateTestPackagesForTrip = async () => {
     if (!user) {
@@ -382,15 +303,15 @@ const AdminControl = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <UserPlus className="h-5 w-5" />
-                  Reporte de Referidos
+                  Programa de Referidos
                 </CardTitle>
                 <CardDescription>
-                  Ver quién refirió a quién, recompensas y descuentos
+                  Configurar recompensas, descuentos y ver reporte de referidos
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button variant="outline" className="w-full">
-                  Ver Reporte
+                  Ver Programa
                 </Button>
               </CardContent>
             </Card>
@@ -412,69 +333,6 @@ const AdminControl = () => {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow border-green-200 bg-green-50/50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-700">
-                  <Gift className="h-5 w-5" />
-                  Programa de Referidos
-                </CardTitle>
-                <CardDescription>
-                  Configurar monto del reward por referido
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="reward-amount" className="text-sm">Monto del reward (GTQ)</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="reward-amount"
-                      type="number"
-                      min={1}
-                      value={rewardAmount}
-                      onChange={(e) => setRewardAmount(Number(e.target.value))}
-                      disabled={rewardLoading}
-                      className="flex-1"
-                    />
-                    <Button
-                      variant="outline"
-                      className="border-green-300 text-green-700 hover:bg-green-100"
-                      onClick={handleSaveReward}
-                      disabled={rewardSaving || rewardLoading}
-                    >
-                      {rewardSaving ? "Guardando..." : "Guardar"}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Este monto se asigna al referidor cuando el referido completa su primer pedido o viaje
-                  </p>
-                </div>
-                <div className="space-y-2 pt-3 border-t border-green-200">
-                  <Label htmlFor="referred-discount" className="text-sm">Descuento para usuario referido (GTQ)</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="referred-discount"
-                      type="number"
-                      min={0}
-                      value={referredDiscount}
-                      onChange={(e) => setReferredDiscount(Number(e.target.value))}
-                      disabled={referredDiscountLoading}
-                      className="flex-1"
-                    />
-                    <Button
-                      variant="outline"
-                      className="border-green-300 text-green-700 hover:bg-green-100"
-                      onClick={handleSaveReferredDiscount}
-                      disabled={referredDiscountSaving || referredDiscountLoading}
-                    >
-                      {referredDiscountSaving ? "Guardando..." : "Guardar"}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Descuento automático en el primer pedido del nuevo usuario referido
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
 
             <Card className="hover:shadow-lg transition-shadow border-orange-200 bg-orange-50/50">
               <CardHeader>
