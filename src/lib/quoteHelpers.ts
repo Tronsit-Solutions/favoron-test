@@ -27,6 +27,7 @@ export interface QuoteValues {
   deliveryFee: number;  // Delivery fee
   totalPrice: number;   // Total before discount
   discountAmount: number;
+  referralCreditAmount: number;
   discountCode?: string;
   finalTotalPrice: number; // Total after discount (what shopper actually pays)
   message?: string;
@@ -47,6 +48,7 @@ export const getQuoteValues = (quote: any): QuoteValues => {
       deliveryFee: 0,
       totalPrice: 0,
       discountAmount: 0,
+      referralCreditAmount: 0,
       finalTotalPrice: 0
     };
   }
@@ -55,7 +57,9 @@ export const getQuoteValues = (quote: any): QuoteValues => {
   const serviceFee = typeof quote.serviceFee === 'string' ? parseFloat(quote.serviceFee) : Number(quote.serviceFee || 0);
   const deliveryFee = typeof quote.deliveryFee === 'string' ? parseFloat(quote.deliveryFee) : Number(quote.deliveryFee || 0);
   const totalPrice = typeof quote.totalPrice === 'string' ? parseFloat(quote.totalPrice) : Number(quote.totalPrice || 0);
-  const discountAmount = typeof quote.discountAmount === 'string' ? parseFloat(quote.discountAmount) : Number(quote.discountAmount || 0);
+  const rawDiscountAmount = typeof quote.discountAmount === 'string' ? parseFloat(quote.discountAmount) : Number(quote.discountAmount || 0);
+  const referralCreditAmount = Number(quote.referralCreditAmount || 0);
+  const discountAmount = rawDiscountAmount + referralCreditAmount;
   
   // finalTotalPrice is what the shopper actually pays (total minus discount)
   const finalTotalPrice = quote.finalTotalPrice 
@@ -68,6 +72,7 @@ export const getQuoteValues = (quote: any): QuoteValues => {
     deliveryFee,
     totalPrice,
     discountAmount,
+    referralCreditAmount,
     discountCode: quote.discountCode,
     finalTotalPrice,
     message: quote.message,
