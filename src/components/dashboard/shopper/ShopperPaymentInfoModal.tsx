@@ -10,6 +10,7 @@ import { getQuoteValues } from "@/lib/quoteHelpers";
 import PaymentReceiptUpload from "./PaymentReceiptUpload";
 import PaymentMethodSelector, { PaymentMethod } from "@/components/payment/PaymentMethodSelector";
 import RecurrenteCheckout from "@/components/payment/RecurrenteCheckout";
+import ReferralCreditToggle from "@/components/payment/ReferralCreditToggle";
 import { Package } from "@/types";
 import { PartialDeliveryInfo } from "../PartialDeliveryInfo";
 
@@ -35,6 +36,8 @@ export default function ShopperPaymentInfoModal({
   const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank_transfer');
   const [currentStep, setCurrentStep] = useState<'payment-selection' | 'card-checkout'>('payment-selection');
+  const [referralCreditEnabled, setReferralCreditEnabled] = useState(() => !!(pkg.quote as any)?.referralCreditApplied);
+  const [referralCreditAmount, setReferralCreditAmount] = useState(() => (pkg.quote as any)?.referralCreditAmount || 0);
   
   // Extract quote data and check for discount - use currentPkg for dynamic updates
   const quote = currentPkg.quote as any;
@@ -53,12 +56,39 @@ export default function ShopperPaymentInfoModal({
   const quoteValues = getQuoteValues(quote);
   
   // Total amounts from DB - no recalculation
-  const totalAmount = hasDiscount 
+  const baseTotalAmount = hasDiscount 
     ? quoteValues.finalTotalPrice 
     : quoteValues.totalPrice;
+  const totalAmount = referralCreditEnabled 
+    ? Math.max(0, baseTotalAmount - referralCreditAmount)
+    : baseTotalAmount;
   const originalAmount = hasDiscount 
     ? (parseFloat(quote.originalTotalPrice) || quoteValues.totalPrice)
     : quoteValues.totalPrice;
+
+  const handleReferralCreditToggle = async (enabled: boolean, amount: number) => {
+    setReferralCreditEnabled(enabled);
+    setReferralCreditAmount(amount);
+    
+    // Save referral credit state in quote JSON
+    const { supabase } = await import('@/integrations/supabase/client');
+    const currentQuote = currentPkg.quote as any;
+    const updatedQuote = {
+      ...currentQuote,
+      referralCreditApplied: enabled,
+      referralCreditAmount: enabled ? amount : 0,
+    };
+    
+    try {
+      await supabase
+        .from('packages')
+        .update({ quote: updatedQuote })
+        .eq('id', currentPkg.id);
+      setCurrentPkg({ ...currentPkg, quote: updatedQuote });
+    } catch (err) {
+      console.error('Error saving referral credit:', err);
+    }
+  };
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -316,7 +346,20 @@ export default function ShopperPaymentInfoModal({
               amount={totalAmount}
               isEmbedded={true}
               onBack={() => setCurrentStep('payment-selection')}
-              onSuccess={() => {
+              onSuccess={async () => {
+                // Mark referral credit as used on card payment success
+                if (referralCreditEnabled && referralCreditAmount > 0) {
+                  try {
+                    const { supabase } = await import('@/integrations/supabase/client');
+                    await supabase.rpc('mark_referral_credit_used', {
+                      p_user_id: currentPkg.user_id,
+                      p_amount: referralCreditAmount,
+                      p_package_id: currentPkg.id,
+                    });
+                  } catch (err) {
+                    console.error('⚠️ Error marking referral credit:', err);
+                  }
+                }
                 handleUploadComplete({
                   ...currentPkg,
                   status: 'payment_pending_approval',
@@ -435,6 +478,16 @@ export default function ShopperPaymentInfoModal({
                   </div>
                 </>
               )}
+              
+              {/* Referral Credit Toggle */}
+              <div className="mt-3">
+                <ReferralCreditToggle
+                  enabled={referralCreditEnabled}
+                  onToggle={handleReferralCreditToggle}
+                  maxApplicable={baseTotalAmount}
+                  disabled={showSuccessState}
+                />
+              </div>
               <p className="text-sm text-muted-foreground mt-2">
                 Por el paquete: {activeProducts.length} producto{activeProducts.length !== 1 ? 's' : ''}: {activeProducts.map(p => p.itemDescription || p.item_description).join(', ')}
                 {cancelledProducts.length > 0 && (
