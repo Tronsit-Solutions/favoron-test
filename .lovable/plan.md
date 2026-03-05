@@ -1,17 +1,21 @@
 
 
-## Mover inputs del programa de referidos a AdminReferrals
+## Cambiar tipo de solicitud de paquete 055f87ab a "online"
 
-### Cambios
+### Datos actuales
+- **Paquete**: 055f87ab — "2 Cheirosa 62 Jelly Perfume Balm"
+- **Estado**: approved
+- **requestType actual**: `personal`
+- **requestType deseado**: `online`
 
-**1. `src/pages/AdminReferrals.tsx`**
-- Renombrar título de "Reporte de Referidos" a "Programa de Referidos"
-- Agregar los estados y lógica de los inputs (reward amount + referred discount) con sus funciones de carga y guardado desde `app_settings`
-- Insertar una Card de configuración entre las KPI cards y la tabla, con los dos inputs (monto reward y descuento referido) y sus botones de guardar
+### Acción
 
-**2. `src/pages/AdminControl.tsx`**
-- Eliminar toda la Card "Programa de Referidos" (líneas ~415-477) con los inputs de reward y descuento
-- Eliminar los estados asociados (`rewardAmount`, `rewardLoading`, `rewardSaving`, `referredDiscount`, `referredDiscountLoading`, `referredDiscountSaving`) y sus funciones (`handleSaveReward`, `handleSaveReferredDiscount`) y el `useEffect` que los carga
-- Eliminar imports que ya no se usen (`Gift`, `Input`, `Label`)
-- Actualizar la card de navegación "Reporte de Referidos" a "Programa de Referidos"
+Desplegar una edge function temporal `admin-patch-package` que con service role actualice el campo `requestType` dentro de `products_data[0]` de `"personal"` a `"online"` para el paquete `055f87ab-9243-4e9e-a0d3-5db0ccccdfba`. Después de confirmar la ejecución, eliminar la función temporal.
+
+La función:
+1. Lee el `products_data` actual del paquete
+2. Modifica `products_data[0].requestType` a `"online"`
+3. Actualiza el registro con el nuevo `products_data`
+
+No se requieren cambios en el frontend.
 
