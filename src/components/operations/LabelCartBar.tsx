@@ -53,15 +53,13 @@ const LabelCartBar = ({ items, onClear, onRemoveItem, labelHistory, onRestoreFro
   if (items.length === 0 && !historyOpen) {
     return labelHistory.length > 0 ? (
       <>
-        <div className="fixed bottom-4 right-4 z-50">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
           <Button
-            size="sm"
-            variant="outline"
             onClick={() => setHistoryOpen(true)}
-            className="shadow-lg"
+            className="shadow-xl rounded-full px-6 py-2 bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            <History className="h-4 w-4 mr-1" />
-            Historial ({labelHistory.length})
+            <History className="h-4 w-4 mr-2" />
+            Historial de lotes ({labelHistory.length})
           </Button>
         </div>
         <HistoryDialog
