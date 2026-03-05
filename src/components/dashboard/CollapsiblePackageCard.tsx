@@ -148,6 +148,16 @@ const CollapsiblePackageCard = ({
   const expirationInfo = getExpirationInfo(pkg);
   const isMobile = useIsMobile();
   const { companyInfo } = useFavoronCompanyInfo();
+
+  // Chat is available after payment
+  const CHAT_AVAILABLE_STATUSES = ['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
+  const isChatAvailable = CHAT_AVAILABLE_STATUSES.includes(pkg.status);
+
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsOpen(true);
+    setActiveTab("chat");
+  };
   const needsAction = viewMode === 'user' && (pkg.status === 'quote_sent' || pkg.status === 'quote_accepted' || pkg.status === 'payment_pending' || pkg.status === 'payment_pending_approval' || pkg.status === 'pending_purchase'
   // Removed: 'approved' condition - approved packages are pending traveler assignment, no shopper action needed
   );
@@ -392,11 +402,16 @@ const CollapsiblePackageCard = ({
                       {renderPackageName()}
                     </CardTitle>
                   </div>
-                  {needsAction && (
-                    <div className="absolute top-1 right-9 z-20">
+                  <div className="absolute top-1 right-9 z-20 flex items-center gap-1">
+                    {isChatAvailable && (
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
+                        <MessageCircle className="h-4 w-4 text-primary" />
+                      </Button>
+                    )}
+                    {needsAction && (
                       <NotificationBadge count={1} />
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
                 
                 {/* Timer positioned below title for better mobile layout */}
@@ -957,8 +972,22 @@ const CollapsiblePackageCard = ({
                       </Tooltip>
                     </TooltipProvider>}
 
-                  {/* Status badge aligned with action buttons */}
-                  <div className="flex items-center ml-auto flex-shrink-0">
+                  {/* Chat shortcut + Status badge aligned with action buttons */}
+                  <div className="flex items-center gap-2 ml-auto flex-shrink-0">
+                    {isChatAvailable && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
+                              <MessageCircle className="h-4 w-4 text-primary" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <p>Abrir chat</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                     {getStatusBadge(pkg.status)}
                   </div>
 

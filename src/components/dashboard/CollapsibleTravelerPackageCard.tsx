@@ -63,8 +63,19 @@ const CollapsibleTravelerPackageCard = ({
     type: 'image'
   });
   const isMobile = useIsMobile();
+  const [activeTab, setActiveTab] = useState("producto");
   
   const { user } = useAuth();
+
+  // Chat is available after payment
+  const CHAT_AVAILABLE_STATUSES = ['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
+  const isChatAvailable = CHAT_AVAILABLE_STATUSES.includes(pkg.status);
+
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsOpen(true);
+    setActiveTab("chat");
+  };
 
   // Auto-reconciliation: detect if package needs status correction
   const needsReconciliation = useMemo(() => {
@@ -288,7 +299,12 @@ const CollapsibleTravelerPackageCard = ({
                     </CardTitle>
                   </div>
                   
-                  <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                  <div className="flex items-center gap-1 flex-shrink-0 flex-wrap">
+                    {isChatAvailable && (
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
+                        <MessageCircle className="h-4 w-4 text-primary" />
+                      </Button>
+                    )}
                     <TravelerPackageStatusBadge status={getEffectiveStatus(pkg)} pkg={pkg} />
                     {confirmationProgress && (
                       <Badge className="bg-blue-50 text-blue-600 text-[10px] px-1.5 py-0.5">
@@ -498,6 +514,11 @@ const CollapsibleTravelerPackageCard = ({
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
+                    {isChatAvailable && (
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
+                        <MessageCircle className="h-4 w-4 text-primary" />
+                      </Button>
+                    )}
                     <div className="flex flex-col items-end text-right">
                       <TravelerPackageStatusBadge status={pkg.status} pkg={pkg} />
                     </div>
@@ -516,7 +537,7 @@ const CollapsibleTravelerPackageCard = ({
               // Mobile optimized content layout
               <div className="space-y-4">
                 {/* Mobile tabs - horizontal scroll for better UX */}
-                <Tabs defaultValue="producto" className="w-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-4 h-8 mb-3">
                     <TabsTrigger value="producto" className="flex items-center gap-1 text-xs px-1 py-1">
                       <Package className="h-3 w-3" />
@@ -661,7 +682,7 @@ const CollapsibleTravelerPackageCard = ({
               <div className="grid gap-4 lg:grid-cols-5">
                 {/* Left section with tabs */}
                 <div className="lg:col-span-3">
-                  <Tabs defaultValue="producto" className="w-full">
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="grid w-full grid-cols-4 mb-3">
                       <TabsTrigger value="producto" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
                         <Package className="h-3.5 w-3.5" />
