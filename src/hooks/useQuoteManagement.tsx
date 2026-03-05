@@ -17,6 +17,8 @@ interface QuoteUpdateParams {
   discountCodeId?: string;
   discountAmount?: number;
   shopperUserId?: string;
+  // Referral credit (optional)
+  referralCreditAmount?: number;
 }
 
 export const useQuoteManagement = () => {
@@ -35,7 +37,8 @@ export const useQuoteManagement = () => {
     discountCode,
     discountCodeId,
     discountAmount,
-    shopperUserId
+    shopperUserId,
+    referralCreditAmount
   }: QuoteUpdateParams): Promise<{ success: boolean; error?: string }> => {
     setIsUpdating(true);
 
@@ -56,17 +59,40 @@ export const useQuoteManagement = () => {
       };
 
       // Add discount fields if provided
+      let totalDiscount = 0;
       if (discountCode && discountCodeId && discountAmount && discountAmount > 0) {
         updatedQuote.discountCode = discountCode;
         updatedQuote.discountCodeId = discountCodeId;
         updatedQuote.discountAmount = discountAmount;
-        updatedQuote.originalTotalPrice = newTotal.toFixed(2);
-        updatedQuote.finalTotalPrice = (newTotal - discountAmount).toFixed(2);
+        totalDiscount += discountAmount;
       } else if (!discountCode && previousQuote?.discountCode) {
         // Admin removed discount
         delete updatedQuote.discountCode;
         delete updatedQuote.discountCodeId;
         delete updatedQuote.discountAmount;
+      }
+
+      // Add referral credit fields if provided
+      if (referralCreditAmount && referralCreditAmount > 0) {
+        updatedQuote.referralCreditApplied = true;
+        updatedQuote.referralCreditAmount = referralCreditAmount;
+        totalDiscount += referralCreditAmount;
+      } else if (referralCreditAmount === undefined && previousQuote?.referralCreditApplied) {
+        // Keep existing referral credit if not explicitly changed
+        if (previousQuote.referralCreditAmount) {
+          totalDiscount += parseFloat(previousQuote.referralCreditAmount);
+        }
+      } else {
+        // Admin removed referral credit
+        delete updatedQuote.referralCreditApplied;
+        delete updatedQuote.referralCreditAmount;
+      }
+
+      // Set final total price accounting for all discounts
+      if (totalDiscount > 0) {
+        updatedQuote.originalTotalPrice = newTotal.toFixed(2);
+        updatedQuote.finalTotalPrice = (newTotal - totalDiscount).toFixed(2);
+      } else {
         delete updatedQuote.originalTotalPrice;
         delete updatedQuote.finalTotalPrice;
       }
@@ -115,18 +141,41 @@ export const useQuoteManagement = () => {
       }
 
       // Update the package with new quote, products_data, and log
+      const packageUpdate: Record<string, any> = {
+        quote: updatedQuote,
+        admin_assigned_tip: newTip,
+        products_data: updatedProductsData as any,
+        admin_actions_log: [...currentLog, adminLogEntry] as any,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Set referral_credit_applied column
+      if (referralCreditAmount && referralCreditAmount > 0) {
+        packageUpdate.referral_credit_applied = referralCreditAmount;
+      } else if (referralCreditAmount !== undefined) {
+        packageUpdate.referral_credit_applied = null;
+      }
+
       const { error: updateError } = await supabase
         .from('packages')
-        .update({
-          quote: updatedQuote,
-          admin_assigned_tip: newTip,
-          products_data: updatedProductsData as any,
-          admin_actions_log: [...currentLog, adminLogEntry] as any,
-          updated_at: new Date().toISOString()
-        })
+        .update(packageUpdate)
         .eq('id', packageId);
 
       if (updateError) throw updateError;
+
+      // Mark referral credit as used if applied
+      if (referralCreditAmount && referralCreditAmount > 0 && shopperUserId) {
+        try {
+          await supabase.rpc('mark_referral_credit_used', {
+            p_user_id: shopperUserId,
+            p_amount: referralCreditAmount,
+            p_package_id: packageId,
+          });
+          console.log('✅ Referral credit marked as used');
+        } catch (rcErr) {
+          console.error('⚠️ Failed to mark referral credit as used:', rcErr);
+        }
+      }
 
       // Register discount code usage if discount was applied
       if (discountCode && discountCodeId && discountAmount && discountAmount > 0 && shopperUserId) {

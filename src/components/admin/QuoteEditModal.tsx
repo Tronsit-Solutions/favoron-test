@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, DollarSign, Save, Loader2, Package, Tag, X } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { AlertTriangle, DollarSign, Save, Loader2, Package, Tag, X, Gift } from 'lucide-react';
 import { useQuoteManagement } from '@/hooks/useQuoteManagement';
 import { useAuth } from '@/hooks/useAuth';
 import { usePlatformFeesContext } from '@/contexts/PlatformFeesContext';
@@ -83,6 +84,52 @@ const QuoteEditModal = ({
   } : null);
   const [validatingDiscount, setValidatingDiscount] = useState(false);
 
+  // Referral credit state
+  const [shopperReferralCredit, setShopperReferralCredit] = useState(0);
+  const [referralCreditLoading, setReferralCreditLoading] = useState(false);
+  const [referralCreditEnabled, setReferralCreditEnabled] = useState(
+    !!currentQuote?.referralCreditApplied
+  );
+  const [referralCreditAmount, setReferralCreditAmount] = useState(
+    parseFloat(currentQuote?.referralCreditAmount || '0')
+  );
+
+  // Fetch shopper's referral credit when modal opens
+  useEffect(() => {
+    if (!isOpen || !packageData.user_id) return;
+    const fetchShopperCredit = async () => {
+      setReferralCreditLoading(true);
+      try {
+        // Referrer balance: completed referrals not yet used
+        const { data: referrals } = await supabase
+          .from('referrals')
+          .select('reward_amount, reward_used, status')
+          .eq('referrer_id', packageData.user_id)
+          .eq('status', 'completed')
+          .eq('reward_used', false);
+
+        const referrerBalance = (referrals || []).reduce((sum, r) => sum + (r.reward_amount || 0), 0);
+
+        // Referred reward: signup discount not yet used
+        const { data: referredRows } = await supabase
+          .from('referrals')
+          .select('referred_reward_amount, referred_reward_used, status')
+          .eq('referred_id', packageData.user_id)
+          .eq('status', 'completed')
+          .eq('referred_reward_used', false);
+
+        const referredReward = (referredRows || []).reduce((sum, r) => sum + (r.referred_reward_amount || 0), 0);
+
+        setShopperReferralCredit(referrerBalance + referredReward);
+      } catch (err) {
+        console.error('Error fetching shopper referral credit:', err);
+      } finally {
+        setReferralCreditLoading(false);
+      }
+    };
+    fetchShopperCredit();
+  }, [isOpen, packageData.user_id]);
+
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -97,6 +144,8 @@ const QuoteEditModal = ({
         type: '',
         value: 0,
       } : null);
+      setReferralCreditEnabled(!!currentQuote?.referralCreditApplied);
+      setReferralCreditAmount(parseFloat(currentQuote?.referralCreditAmount || '0'));
     }
   }, [isOpen, currentTip, currentServiceFee, currentDeliveryFee]);
 
@@ -111,7 +160,21 @@ const QuoteEditModal = ({
   // Calculate total
   const totalPrice = tipValue + serviceFeeValue + deliveryFeeValue;
   const discountAmountApplied = appliedDiscount?.amount || 0;
-  const finalTotal = totalPrice - discountAmountApplied;
+  const favoronSubtotalAfterDiscount = tipValue + serviceFeeValue - discountAmountApplied;
+  const applicableReferralCredit = shopperReferralCredit > 0
+    ? Math.min(shopperReferralCredit, Math.max(0, favoronSubtotalAfterDiscount))
+    : 0;
+  const activeReferralAmount = referralCreditEnabled ? applicableReferralCredit : 0;
+  const finalTotal = totalPrice - discountAmountApplied - activeReferralAmount;
+
+  // Update referral credit amount when toggle or values change
+  useEffect(() => {
+    if (referralCreditEnabled) {
+      setReferralCreditAmount(applicableReferralCredit);
+    } else {
+      setReferralCreditAmount(0);
+    }
+  }, [referralCreditEnabled, applicableReferralCredit]);
 
   // Validate discount code
   const handleApplyDiscount = async () => {
@@ -180,6 +243,7 @@ const QuoteEditModal = ({
       discountCodeId: appliedDiscount?.codeId,
       discountAmount: appliedDiscount?.amount,
       shopperUserId: packageData.user_id,
+      referralCreditAmount: referralCreditEnabled ? activeReferralAmount : undefined,
     });
 
     if (result.success) {
@@ -406,6 +470,46 @@ const QuoteEditModal = ({
             )}
           </div>
 
+          {/* Referral Credit Section */}
+          <div className="space-y-2 border-t pt-4">
+            <Label className="flex items-center gap-1">
+              <Gift className="h-3.5 w-3.5" />
+              Crédito de Referidos del Shopper
+            </Label>
+            {referralCreditLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Consultando saldo...
+              </div>
+            ) : shopperReferralCredit > 0 ? (
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                      Q{shopperReferralCredit.toFixed(2)} disponible
+                    </p>
+                    {applicableReferralCredit < shopperReferralCredit && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        Aplica Q{applicableReferralCredit.toFixed(2)} (máx. subtotal restante)
+                      </p>
+                    )}
+                  </div>
+                  <Switch
+                    checked={referralCreditEnabled}
+                    onCheckedChange={setReferralCreditEnabled}
+                  />
+                </div>
+                {referralCreditEnabled && activeReferralAmount > 0 && (
+                  <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
+                    -Q{activeReferralAmount.toFixed(2)} aplicado al total
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Sin crédito disponible</p>
+            )}
+          </div>
+
           {/* Separator */}
           <div className="border-t pt-4 space-y-1">
             <div className="flex items-center justify-between">
@@ -416,6 +520,12 @@ const QuoteEditModal = ({
               <div className="flex items-center justify-between text-green-700">
                 <span className="text-sm">Descuento ({appliedDiscount?.code}):</span>
                 <span className="text-sm font-medium">-Q{discountAmountApplied.toFixed(2)}</span>
+              </div>
+            )}
+            {activeReferralAmount > 0 && (
+              <div className="flex items-center justify-between text-amber-700">
+                <span className="text-sm">Crédito referidos:</span>
+                <span className="text-sm font-medium">-Q{activeReferralAmount.toFixed(2)}</span>
               </div>
             )}
             <div className="flex items-center justify-between">
