@@ -12,6 +12,11 @@ interface QuoteUpdateParams {
   travelerId: string | null;
   adminId: string;
   previousQuote: any;
+  // Discount fields (optional)
+  discountCode?: string;
+  discountCodeId?: string;
+  discountAmount?: number;
+  shopperUserId?: string;
 }
 
 export const useQuoteManagement = () => {
@@ -26,7 +31,11 @@ export const useQuoteManagement = () => {
     tripId,
     travelerId,
     adminId,
-    previousQuote
+    previousQuote,
+    discountCode,
+    discountCodeId,
+    discountAmount,
+    shopperUserId
   }: QuoteUpdateParams): Promise<{ success: boolean; error?: string }> => {
     setIsUpdating(true);
 
@@ -35,7 +44,7 @@ export const useQuoteManagement = () => {
       const newTotal = newTip + newServiceFee + newDeliveryFee;
 
       // Build updated quote object
-      const updatedQuote = {
+      const updatedQuote: Record<string, any> = {
         ...previousQuote,
         price: newTip.toFixed(2),
         serviceFee: newServiceFee.toFixed(2),
@@ -45,6 +54,22 @@ export const useQuoteManagement = () => {
         edited_at: new Date().toISOString(),
         edited_by: adminId
       };
+
+      // Add discount fields if provided
+      if (discountCode && discountCodeId && discountAmount && discountAmount > 0) {
+        updatedQuote.discountCode = discountCode;
+        updatedQuote.discountCodeId = discountCodeId;
+        updatedQuote.discountAmount = discountAmount;
+        updatedQuote.originalTotalPrice = newTotal.toFixed(2);
+        updatedQuote.finalTotalPrice = (newTotal - discountAmount).toFixed(2);
+      } else if (!discountCode && previousQuote?.discountCode) {
+        // Admin removed discount
+        delete updatedQuote.discountCode;
+        delete updatedQuote.discountCodeId;
+        delete updatedQuote.discountAmount;
+        delete updatedQuote.originalTotalPrice;
+        delete updatedQuote.finalTotalPrice;
+      }
 
       // Create admin action log entry
       const adminLogEntry = {
@@ -102,6 +127,25 @@ export const useQuoteManagement = () => {
         .eq('id', packageId);
 
       if (updateError) throw updateError;
+
+      // Register discount code usage if discount was applied
+      if (discountCode && discountCodeId && discountAmount && discountAmount > 0 && shopperUserId) {
+        const { error: usageError } = await supabase
+          .from('discount_code_usage')
+          .insert({
+            discount_code_id: discountCodeId,
+            package_id: packageId,
+            user_id: shopperUserId,
+            discount_amount: discountAmount,
+          });
+        
+        if (usageError) {
+          console.error('⚠️ Failed to register discount code usage:', usageError);
+          // Don't fail the whole operation
+        } else {
+          console.log('✅ Discount code usage registered');
+        }
+      }
 
       // Recalculate trip_payment_accumulator if tripId and travelerId are present
       if (tripId && travelerId) {
