@@ -1,38 +1,22 @@
 
 
-## Agregar crédito de referidos en QuoteEditModal (admin)
+## Mostrar viajero anterior cuando la cotización fue rechazada
 
-### Situacion actual
+### Problema
+Cuando un shopper rechaza la cotización, el `matched_trip_id` se limpia a `null`. La sección "Información del Viajero" (línea 1105) solo se muestra si `matchedTrip` existe, así que desaparece completamente. La info del viajero rechazado ya se guarda en `quote_rejection.rejected_traveler` y se muestra dentro del banner de rechazo, pero de forma sutil y parcial.
 
-El `QuoteEditModal` ya tiene una seccion de "Codigo de Descuento" (lineas 361-407) donde el admin puede aplicar codigos promocionales. El credito de referidos es un mecanismo separado que actualmente solo el shopper puede activar desde `QuotePaymentStep` y `ShopperPaymentInfoModal` usando el componente `ReferralCreditToggle`.
+### Solución
 
-La infraestructura ya existe:
-- Campo `referral_credit_applied` en la tabla `packages`
-- Campos `referralCreditApplied` y `referralCreditAmount` en el quote JSONB
-- `getQuoteValues()` ya suma `referralCreditAmount` al descuento total automaticamente
-- Hook `useReferralCredit` obtiene el saldo disponible del usuario
-- RPC `mark_referral_credit_used` para marcar creditos como usados
+**Modificar `PackageDetailModal.tsx`**:
 
-### Plan
+1. Cuando `matchedTrip` es `null` pero existe `quote_rejection.rejected_traveler` o `traveler_rejection.previous_traveler_id`, mostrar una sección "Último Viajero Asignado" con los datos disponibles del viajero anterior.
 
-**Modificar `QuoteEditModal.tsx`** — Agregar seccion de credito de referidos debajo del codigo de descuento:
+2. La sección usará los datos ya almacenados en `quote_rejection.rejected_traveler` (nombre, ruta, fechas) y si tiene `traveler_id`, hará un query al perfil para obtener email/teléfono.
 
-1. Consultar el saldo de referidos del **shopper** (no del admin) usando una query directa a `get_my_referrals` y `get_my_referred_reward` con el `user_id` del paquete (ya que el hook `useReferralCredit` usa el usuario logueado, no el shopper)
-2. Si el shopper tiene credito disponible, mostrar un toggle similar al `ReferralCreditToggle` con el monto disponible y el monto aplicable
-3. El monto aplicable = `min(creditoDisponible, subtotalFavoron - descuentoCodigo)`
-4. Al guardar, incluir `referralCreditApplied: true`, `referralCreditAmount` en el quote JSONB, y actualizar `referral_credit_applied` en el paquete
+3. Se mostrará con un estilo diferenciado (borde amarillo/gris) indicando que es el viajero del intento anterior, no uno activo.
 
-**Modificar `useQuoteManagement.tsx`** — Extender `QuoteUpdateParams` para aceptar `referralCreditAmount` opcional, incluirlo en el quote JSONB y actualizar la columna `referral_credit_applied` del paquete. Llamar a `mark_referral_credit_used` si se aplico credito.
-
-### UI
-
-Debajo de la seccion de codigo de descuento, una nueva seccion con borde superior:
-- Icono Gift + "Credito de Referidos del Shopper"
-- Si tiene saldo: mostrar monto disponible + switch para activar/desactivar
-- Si no tiene saldo: texto gris "Sin credito disponible"
-- El total final se recalcula incluyendo ambos descuentos
+**Cambio concreto**: Después del bloque `{matchedTrip && (...)}` (línea 1105), agregar un bloque `{!matchedTrip && lastKnownTraveler && (...)}` que muestre la Card con título "Último Viajero Asignado" y un badge "Desasignado" para que el admin siempre pueda ver quién fue el viajero.
 
 ### Archivos a modificar
-- `src/components/admin/QuoteEditModal.tsx` — UI de credito de referidos + query de saldo del shopper
-- `src/hooks/useQuoteManagement.tsx` — Persistir referralCredit en quote y columna
+- `src/components/admin/PackageDetailModal.tsx` — Agregar sección de "Último Viajero Asignado" cuando no hay viaje activo pero hay historial
 
