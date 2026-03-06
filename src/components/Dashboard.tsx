@@ -774,172 +774,89 @@ const Dashboard = ({ user }: DashboardProps) => {
                         getStatusBadge={(status) => getStatusBadge(status, { context: 'trip' })}
                       />
                     )}
-                    <div className="grid gap-4">
+                    <div className="grid gap-6">
                       {filteredUserTrips
                         .filter(trip => !selectedTripId || trip.id === selectedTripId)
-                        .map((trip) => (
-                          <TripCard
-                            key={trip.id}
-                            trip={trip}
-                            getStatusBadge={(status) => getStatusBadge(status, { context: 'trip' })}
-                            onEditTrip={handleEditTrip}
-                            currentUser={currentUser}
-                            travelerProfile={currentUser}
-                            packages={assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id)}
-                          />
-                        ))}
-                    </div>
-                  </>
-                )}
-              </div>
+                        .map((trip) => {
+                          // Get packages assigned to this specific trip with visibility filtering
+                          const now = Date.now();
+                          const PAID_OR_POST_PAYMENT = [
+                            'pending_purchase', 'payment_pending_approval', 'paid',
+                            'shipped', 'in_transit', 'received_by_traveler',
+                            'pending_office_confirmation', 'delivered_to_office',
+                            'ready_for_pickup', 'ready_for_delivery', 'completed'
+                          ];
+                          const tripPackages = assignedPackages
+                            .filter(pkg => {
+                              if (pkg.matched_trip_id !== trip.id) return false;
+                              // Exclude packages from completed_paid trips unless incident
+                              if (trip.status === 'completed_paid' && !pkg.incident_flag) return false;
+                              const isTimerActive = (
+                                (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
+                                ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
+                              );
+                              const hasExpiredTimer = (
+                                (pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && 
+                                pkg.quote_expires_at && 
+                                new Date(pkg.quote_expires_at).getTime() <= now
+                              );
+                              const isPaidOrPostPayment = PAID_OR_POST_PAYMENT.includes(pkg.status);
+                              const isExpiredQuote = pkg.status === 'quote_expired' || hasExpiredTimer;
+                              return isTimerActive || isPaidOrPostPayment || isExpiredQuote;
+                            })
+                            .sort((a, b) => {
+                              const aPending = ['matched', 'in_transit', 'pending_office_confirmation'].includes(a.status);
+                              const bPending = ['matched', 'in_transit', 'pending_office_confirmation'].includes(b.status);
+                              if (aPending && !bPending) return -1;
+                              if (!aPending && bPending) return 1;
+                              const aCountdown = (a.status === 'quote_sent' || a.status === 'payment_pending') && a.quote_expires_at && new Date(a.quote_expires_at).getTime() > now;
+                              const bCountdown = (b.status === 'quote_sent' || b.status === 'payment_pending') && b.quote_expires_at && new Date(b.quote_expires_at).getTime() > now;
+                              if (aCountdown && !bCountdown) return -1;
+                              if (!aCountdown && bCountdown) return 1;
+                              return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                            });
 
-              {/* Assigned Packages Section */}
-              {assignedPackages.length > 0 && (
-                <div>
-                  <h4 className="text-lg font-semibold mb-4">Mis Paquetes Asignados</h4>
-                   
-                   {/* Mini resumen de paquetes asignados */}
-                   <div className="bg-gradient-to-r from-muted/40 to-muted/20 rounded-lg p-4 mb-6 border border-border/50">
-                     <div className="grid grid-cols-2 gap-4 text-center">
-                        <div>
-                           <div className="text-xl font-bold text-primary">
-                             Q{assignedPackages
-                               .filter(pkg => {
-                                 // Filter by selected trip
-                                 if (selectedTripId && pkg.matched_trip_id !== selectedTripId) {
-                                   return false;
-                                 }
-                                 // Exclude packages from completed and paid trips
-                                 const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
-                                 if (matchedTrip && matchedTrip.status === 'completed_paid') {
-                                   return false;
-                                 }
-                                 return ['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status);
-                               })
-                               .reduce((sum, pkg) => {
-                                  const tip = (pkg as any).products_data && Array.isArray((pkg as any).products_data) && (pkg as any).products_data.length > 0
-                                    ? (pkg as any).products_data.filter((product: any) => !product.cancelled).reduce((sum: number, product: any) => sum + parseFloat(String(product.adminAssignedTip || '0')), 0)
-                                   : parseFloat(String((pkg as any).admin_assigned_tip || '0'));
-                                 return sum + tip;
-                               }, 0).toFixed(2)}
-                           </div>
-                          <div className="text-xs text-muted-foreground font-medium">Tips Confirmados</div>
-                        </div>
-                        <div>
-                           <div className="text-xl font-bold text-foreground">
-                             {assignedPackages.filter(pkg => {
-                               // Filter by selected trip
-                               if (selectedTripId && pkg.matched_trip_id !== selectedTripId) {
-                                 return false;
-                               }
-                               // Exclude packages from completed and paid trips
-                               const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
-                               if (matchedTrip && matchedTrip.status === 'completed_paid') {
-                                 return false;
-                               }
-                               // Exclude expired, cancelled and rejected packages
-                               const inactiveStatuses = ['quote_expired', 'cancelled', 'rejected'];
-                               return !inactiveStatuses.includes(pkg.status);
-                             }).length}
-                           </div>
-                          <div className="text-xs text-muted-foreground font-medium">Paquetes Asignados</div>
-                        </div>
-                     </div>
-                   </div>
-                   
-                   {/* Display all assigned packages directly */}
-                   <div className="space-y-6">
-                       {assignedPackages
-                          .filter(pkg => {
-                            // First filter by selected trip
-                            if (selectedTripId && pkg.matched_trip_id !== selectedTripId) {
-                              return false;
-                            }
-                            
-                            // Exclude packages from completed and paid trips, EXCEPT those with incidents
-                           const matchedTrip = trips.find(trip => trip.id === pkg.matched_trip_id);
-                           if (matchedTrip && matchedTrip.status === 'completed_paid') {
-                             // Keep incident packages visible for tracking/resolution
-                             if (!pkg.incident_flag) {
-                               return false;
-                             }
-                           }
-                           
-                           const now = Date.now();
-                           const PAID_OR_POST_PAYMENT = [
-                             'pending_purchase',
-                             'payment_pending_approval',
-                             'paid',
-                             
-                             'shipped',
-                             'in_transit',
-                             'received_by_traveler',
-                             'pending_office_confirmation',
-                             'delivered_to_office',
-                             'ready_for_pickup',
-                             'ready_for_delivery',
-                             'completed'
-                           ];
-                            const isTimerActive = (pkg: any) => (
-                              (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
-                              ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
-                            );
-                            // Also include packages where the quote HAS expired but status hasn't been updated yet by backend
-                            const hasExpiredTimer = (pkg: any) => (
-                              (pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && 
-                              pkg.quote_expires_at && 
-                              new Date(pkg.quote_expires_at).getTime() <= now
-                            );
-                            const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
-                            // Include quote_expired packages so traveler can dismiss them (both explicit status and expired timer)
-                            const isExpiredQuote = pkg.status === 'quote_expired' || hasExpiredTimer(pkg);
-                            return isTimerActive(pkg) || isPaidOrPostPayment(pkg.status) || isExpiredQuote;
-                         })
-                        .sort((a, b) => {
-                          // Priority 1: Packages with pending actions first
-                          const aPendingAction = ['matched', 'in_transit', 'pending_office_confirmation'].includes(a.status);
-                          const bPendingAction = ['matched', 'in_transit', 'pending_office_confirmation'].includes(b.status);
-                          if (aPendingAction && !bPendingAction) return -1;
-                          if (!aPendingAction && bPendingAction) return 1;
-                          
-                          // Priority 2: Packages with countdown timers
-                          const now = Date.now();
-                          const aHasCountdown = (a.status === 'quote_sent' || a.status === 'payment_pending') && a.quote_expires_at && new Date(a.quote_expires_at).getTime() > now;
-                          const bHasCountdown = (b.status === 'quote_sent' || b.status === 'payment_pending') && b.quote_expires_at && new Date(b.quote_expires_at).getTime() > now;
-                          if (aHasCountdown && !bHasCountdown) return -1;
-                          if (!aHasCountdown && bHasCountdown) return 1;
-                          
-                          // Priority 3: Most recent first
-                          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-                        })
-                        .map(pkg => {
-                          const hasPendingAction = ['matched', 'pending_office_confirmation'].includes(pkg.status);
-                          const now = Date.now();
-                          const hasCountdown = (pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now;
-                          
                           return (
-                            <CollapsibleTravelerPackageCard
-                              key={pkg.id}
-                              pkg={pkg}
-                              getStatusBadge={getStatusBadge}
-                              onQuote={handleQuote}
-                              onConfirmReceived={handleConfirmPackageReceived}
-                              onConfirmOfficeDelivery={(packageId) => {
-                                // Solo actualizar status, sin modal bancario (se acumula automáticamente via trigger)
-                                handleConfirmOfficeReception(packageId);
-                              }}
-                              onDismissExpiredPackage={handleDismissExpiredPackage}
-                              updatePackage={updatePackage}
-                              hasPendingAction={hasPendingAction}
-                              autoExpand={false}
-                            />
+                            <div key={trip.id} className="space-y-3">
+                              <TripCard
+                                trip={trip}
+                                getStatusBadge={(status) => getStatusBadge(status, { context: 'trip' })}
+                                onEditTrip={handleEditTrip}
+                                currentUser={currentUser}
+                                travelerProfile={currentUser}
+                                packages={assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id)}
+                              />
+                              {/* Nested assigned packages for this trip */}
+                              {tripPackages.length > 0 && (
+                                <div className="ml-2 sm:ml-4 border-l-2 border-primary/20 pl-3 sm:pl-4 space-y-3">
+                                  <p className="text-sm font-medium text-muted-foreground">
+                                    📦 {tripPackages.length} paquete{tripPackages.length !== 1 ? 's' : ''} asignado{tripPackages.length !== 1 ? 's' : ''}
+                                  </p>
+                                  {tripPackages.map(pkg => {
+                                    const hasPendingAction = ['matched', 'pending_office_confirmation'].includes(pkg.status);
+                                    return (
+                                      <CollapsibleTravelerPackageCard
+                                        key={pkg.id}
+                                        pkg={pkg}
+                                        getStatusBadge={getStatusBadge}
+                                        onQuote={handleQuote}
+                                        onConfirmReceived={handleConfirmPackageReceived}
+                                        onConfirmOfficeDelivery={(packageId) => {
+                                          handleConfirmOfficeReception(packageId);
+                                        }}
+                                        onDismissExpiredPackage={handleDismissExpiredPackage}
+                                        updatePackage={updatePackage}
+                                        hasPendingAction={hasPendingAction}
+                                        autoExpand={false}
+                                      />
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
                           );
                         })}
-
-                  </div>
-                </div>
-              )}
-            </div>
+                    </div>
           </TabsContent>
 
           {isAdmin && (
