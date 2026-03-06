@@ -24,7 +24,7 @@ export const useDashboardState = (user: any) => {
   // Read initial tab from URL, fallback to "overview"
   const getInitialTab = () => {
     const tabFromUrl = searchParams.get('tab');
-    const validTabs = ['overview', 'packages', 'trips', 'admin', 'ultima-milla', 'profile'];
+    const validTabs = ['overview', 'packages', 'trips', 'admin', 'admin-dashboard', 'profile'];
     return validTabs.includes(tabFromUrl || '') ? tabFromUrl : 'overview';
   };
   
@@ -95,7 +95,7 @@ export const useDashboardState = (user: any) => {
   }, [selectedTripId, user?.id]);
 
   // Check if user is admin to decide which data hooks to use
-  const isAdminTab = activeTab === 'admin' || activeTab === 'ultima-milla';
+  const isAdminTab = activeTab === 'admin' || activeTab === 'admin-dashboard';
   const userRole = user?.userRole?.role ?? user?.role;
   
   // Mejorar detección de admin con persistencia temporal
@@ -212,7 +212,7 @@ export const useDashboardState = (user: any) => {
   // Sync tab state with URL
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab');
-    const validTabs = ['overview', 'packages', 'trips', 'admin', 'ultima-milla', 'profile'];
+    const validTabs = ['overview', 'packages', 'trips', 'admin', 'admin-dashboard', 'profile'];
     if (validTabs.includes(tabFromUrl || '') && tabFromUrl !== activeTab) {
       setActiveTab(tabFromUrl);
     }
