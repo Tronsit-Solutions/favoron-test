@@ -545,20 +545,27 @@ const Dashboard = ({ user }: DashboardProps) => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {activeTab !== 'profile' && (
             <TabsList className={cn(
-              "w-full h-auto min-h-10",
-              "flex flex-wrap sm:grid",
-              isAdminViewingAsAdmin ? "sm:grid-cols-5" : "sm:grid-cols-3",
+              "w-full h-auto min-h-10 grid",
+              isAdminViewingAsAdmin ? "grid-cols-5" : "grid-cols-3",
               "gap-1 p-1"
             )}>
+              {isAdminViewingAsAdmin && (
+                <TabsTrigger 
+                  value="admin-dashboard" 
+                  className="text-xs sm:text-sm px-2 py-2"
+                >
+                  Dashboard
+                </TabsTrigger>
+              )}
               <TabsTrigger 
                 value="overview" 
-                className="flex-1 min-w-[70px] text-xs sm:text-sm px-2 py-2"
+                className="text-xs sm:text-sm px-2 py-2"
               >
                 Home
               </TabsTrigger>
               <TabsTrigger 
                 value="packages" 
-                className="relative flex-1 min-w-[90px] text-xs sm:text-sm px-2 py-2 flex items-center justify-center gap-1"
+                className="relative text-xs sm:text-sm px-2 py-2 flex items-center justify-center gap-1"
               >
                 <span className="hidden sm:inline">Mis Pedidos</span>
                 <span className="sm:hidden">Pedidos</span>
@@ -571,7 +578,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               </TabsTrigger>
               <TabsTrigger 
                 value="trips" 
-                className="relative flex-1 min-w-[80px] text-xs sm:text-sm px-2 py-2 flex items-center justify-center gap-1"
+                className="relative text-xs sm:text-sm px-2 py-2 flex items-center justify-center gap-1"
               >
                 <span className="hidden sm:inline">Mis Viajes</span>
                 <span className="sm:hidden">Viajes</span>
@@ -585,7 +592,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               {isAdminViewingAsAdmin && (
                 <TabsTrigger 
                   value="admin" 
-                  className="relative flex-1 min-w-[70px] text-xs sm:text-sm px-2 py-2 flex items-center justify-center gap-1"
+                  className="relative text-xs sm:text-sm px-2 py-2 flex items-center justify-center gap-1"
                 >
                   Admin
                   {pendingActions.adminTotal > 0 && (
@@ -597,6 +604,14 @@ const Dashboard = ({ user }: DashboardProps) => {
                 </TabsTrigger>
               )}
             </TabsList>
+          )}
+
+          {isAdmin && (
+            <TabsContent value="admin-dashboard">
+              <div className="text-center text-muted-foreground py-12">
+                Próximamente...
+              </div>
+            </TabsContent>
           )}
 
           <TabsContent value="overview" className="space-y-6">
