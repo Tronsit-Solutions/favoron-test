@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Package } from "@/types";
 import { DollarSign, Backpack, TrendingUp, Gift } from "lucide-react";
 import FinancialTablesSection from "./FinancialTablesSection";
-import { calculateFavoronRevenue, calculateServiceFee } from '@/lib/pricing';
+import { getQuoteValues } from '@/lib/quoteHelpers';
 import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 import { supabase } from "@/integrations/supabase/client";
 
