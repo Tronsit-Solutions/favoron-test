@@ -482,6 +482,7 @@ const UserDetailModal = ({
               packages={userPackages} 
               trips={userTrips} 
               allPackages={allPackages}
+              userId={profileId}
             />
           </TabsContent>
 
