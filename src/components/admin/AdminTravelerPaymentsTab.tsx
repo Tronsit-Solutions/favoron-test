@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, XCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip, ExternalLink, Receipt, MessageSquare, Save } from "lucide-react";
+import PaymentCelebrationModal from "./PaymentCelebrationModal";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -466,6 +467,13 @@ const AdminTravelerPaymentsTab = () => {
     office_delivery?: any;
   }>>([]);
   const [packageBreakdownLoading, setPackageBreakdownLoading] = useState(false);
+  const [celebrationData, setCelebrationData] = useState<{
+    isOpen: boolean;
+    amount: number;
+    travelerName: string;
+    fromCity: string;
+    toCity: string;
+  }>({ isOpen: false, amount: 0, travelerName: '', fromCity: '', toCity: '' });
   const { toast } = useToast();
   
   const pendingOrders = orders.filter(order => order && order.status === 'pending');
@@ -577,11 +585,25 @@ const AdminTravelerPaymentsTab = () => {
       }
       
       await updatePaymentOrder(confirmDialog.order.id, updateData);
-      toast({
-        title: confirmDialog.action === 'complete' ? "Pago completado" : "Pago rechazado",
-        description: `La orden de pago ha sido ${confirmDialog.action === 'complete' ? 'completada' : 'rechazada'} exitosamente.`,
-        variant: confirmDialog.action === 'complete' ? "default" : "destructive"
-      });
+      
+      // Show celebration modal for completed payments
+      if (confirmDialog.action === 'complete') {
+        const order = confirmDialog.order;
+        setCelebrationData({
+          isOpen: true,
+          amount: order.amount || 0,
+          travelerName: `${order.profiles?.first_name || ''} ${order.profiles?.last_name || ''}`.trim() || 'Viajero',
+          fromCity: order.trips?.from_city || '?',
+          toCity: order.trips?.to_city || '?',
+        });
+      } else {
+        toast({
+          title: "Pago rechazado",
+          description: "La orden de pago ha sido rechazada exitosamente.",
+          variant: "destructive"
+        });
+      }
+      
       setConfirmDialog({
         isOpen: false,
         action: 'complete',
@@ -1056,6 +1078,15 @@ const AdminTravelerPaymentsTab = () => {
           filename={receiptPhoto?.name || 'comprobante'}
         />
       )}
+      {/* Payment Celebration Modal */}
+      <PaymentCelebrationModal
+        isOpen={celebrationData.isOpen}
+        onClose={() => setCelebrationData(prev => ({ ...prev, isOpen: false }))}
+        amount={celebrationData.amount}
+        travelerName={celebrationData.travelerName}
+        fromCity={celebrationData.fromCity}
+        toCity={celebrationData.toCity}
+      />
     </div>
   );
 };
