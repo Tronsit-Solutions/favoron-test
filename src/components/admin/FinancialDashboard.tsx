@@ -6,7 +6,6 @@ import { DollarSign, Backpack, TrendingUp, Gift } from "lucide-react";
 import FinancialTablesSection from "./FinancialTablesSection";
 import { getQuoteValues } from '@/lib/quoteHelpers';
 import { supabase } from "@/integrations/supabase/client";
-import { supabase } from "@/integrations/supabase/client";
 
 interface FinancialDashboardProps {
   packages: Package[];
