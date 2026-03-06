@@ -532,6 +532,23 @@ export const useOperationsData = () => {
     setLabelHistory(prev => prev.filter(b => b.id !== batchId));
   }, []);
 
+  const restoreItemFromHistory = useCallback((batchId: string, itemId: string) => {
+    const batch = labelHistory.find(b => b.id === batchId);
+    if (!batch) return;
+    const item = batch.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    // Add item to current cart
+    setLabelCart(prev => [...prev, item]);
+
+    // Remove item from batch; if batch becomes empty, remove batch
+    setLabelHistory(prev => {
+      return prev
+        .map(b => b.id === batchId ? { ...b, items: b.items.filter(i => i.id !== itemId) } : b)
+        .filter(b => b.items.length > 0);
+    });
+  }, [labelHistory]);
+
   // Force refresh wrapper for onClick handlers
   const refresh = useCallback(() => fetchAllData(true), [fetchAllData]);
 
@@ -568,6 +585,7 @@ export const useOperationsData = () => {
     // Label history
     labelHistory,
     restoreFromHistory,
+    restoreItemFromHistory,
     deleteFromHistory,
   };
 };
