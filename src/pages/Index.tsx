@@ -40,6 +40,7 @@ const Index = () => {
     const refCode = searchParams.get('ref');
     if (refCode) {
       localStorage.setItem('pending_referral_code', refCode);
+      localStorage.setItem('pending_referral_code_ts', String(Date.now()));
       console.log('📎 Referral code captured on landing:', refCode);
     }
   }, []);

@@ -54,6 +54,7 @@ const Auth = () => {
     const refCode = searchParams.get('ref');
     if (refCode) {
       localStorage.setItem('pending_referral_code', refCode);
+      localStorage.setItem('pending_referral_code_ts', String(Date.now()));
       console.log('📎 Referral code captured:', refCode);
     }
   }, []);
@@ -297,13 +298,20 @@ const Auth = () => {
       // Track registration in Meta Pixel
       MetaPixel.trackCompleteRegistration(data?.user?.id);
 
-      // Register referral if pending
+      // Register referral if pending (with 7-day expiration check)
       if (data?.user?.id) {
         const pendingRefCode = localStorage.getItem('pending_referral_code');
-        if (pendingRefCode) {
+        const pendingRefTs = localStorage.getItem('pending_referral_code_ts');
+        const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+        const isExpired = pendingRefTs && (Date.now() - Number(pendingRefTs)) > SEVEN_DAYS_MS;
+
+        if (pendingRefCode && !isExpired) {
           await registerReferral(data.user.id, pendingRefCode);
-          localStorage.removeItem('pending_referral_code');
+        } else if (isExpired) {
+          console.log('⏰ Referral code expired, ignoring:', pendingRefCode);
         }
+        localStorage.removeItem('pending_referral_code');
+        localStorage.removeItem('pending_referral_code_ts');
       }
 
       // Cambiar a pestaña de iniciar sesión después de 1 segundo
