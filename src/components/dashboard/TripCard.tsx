@@ -4,6 +4,7 @@ import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote, Receipt, MapPin, Us
 import { useState, useEffect } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
+import TravelerSurveyModal from "@/components/dashboard/TravelerSurveyModal";
 import { TripEditSelectionModal } from "./TripEditSelectionModal";
 import { TripPaymentSummary } from "./TripPaymentSummary";
 import { TripDetailModal } from "./TripDetailModal";
