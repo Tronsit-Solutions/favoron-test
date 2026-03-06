@@ -58,13 +58,9 @@ interface CompletedRefundOrder {
   cancelled_products: unknown;
 }
 
-interface CancelledPaidPackage {
-  id: string;
-  created_at: string;
-  updated_at: string;
-  quote: unknown;
-  payment_receipt: unknown;
-  recurrente_payment_id: string | null;
+interface ApprovedPrimeMembership {
+  amount: number;
+  approved_at: string;
 }
 
 interface KPIData {
