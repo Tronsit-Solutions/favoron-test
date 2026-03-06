@@ -187,51 +187,52 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             </div>
           </div>
 
-          {/* Tips Button + Survey + Actions */}
-          <div className="flex flex-wrap gap-2">
-            {shouldShowTipsButton && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowTipsModal(true)}
-                className="h-8 px-3 text-xs"
-              >
-                <Banknote className="h-3 w-3 mr-1" />
-                <span className="font-medium">{formatCurrency(tipsAmount)}</span>
-              </Button>
-            )}
+          {/* Survey + Delivery Actions */}
+          {(shouldShowSurveyButton || (canConfirmDelivery && travelerProfile)) && (
+            <div className="flex flex-wrap gap-2">
+              {shouldShowSurveyButton && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowSurveyModal(true)}
+                  className="h-8 px-3 text-xs"
+                >
+                  <Star className="h-3 w-3 mr-1" />
+                  Califica tu experiencia
+                </Button>
+              )}
 
-            {shouldShowSurveyButton && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowSurveyModal(true)}
-                className="h-8 px-3 text-xs"
-              >
-                <Star className="h-3 w-3 mr-1" />
-                Califica tu experiencia
-              </Button>
-            )}
+              {canConfirmDelivery && travelerProfile && (
+                <Button 
+                  size="sm"
+                  variant="default"
+                  onClick={() => setShowDeliveryModal(true)}
+                  className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 hover-scale"
+                >
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  <span className="whitespace-nowrap">Confirmar entrega</span>
+                </Button>
+              )}
+            </div>
+          )}
 
-            {canConfirmDelivery && travelerProfile && (
-              <Button 
-                size="sm"
-                variant="default"
-                onClick={() => setShowDeliveryModal(true)}
-                className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 hover-scale"
-              >
-                <CheckCircle className="h-3 w-3 mr-1" />
-                <span className="whitespace-nowrap">Confirmar entrega</span>
-              </Button>
-            )}
-          </div>
-
-          {/* Creation Date and Status Badge */}
+          {/* Creation Date, Status Badge, and Tips */}
           <div className="flex items-center justify-between">
             <div className="text-xs text-muted-foreground/70">
               Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {shouldShowTipsButton && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowTipsModal(true)}
+                  className="h-8 px-3 text-xs"
+                >
+                  <Banknote className="h-3 w-3 mr-1" />
+                  <span className="font-medium">{formatCurrency(tipsAmount)}</span>
+                </Button>
+              )}
               {getStatusBadge(trip.status)}
             </div>
           </div>
