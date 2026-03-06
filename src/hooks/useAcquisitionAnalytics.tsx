@@ -25,6 +25,7 @@ export interface AcquisitionChannelData {
   totalUsers: number;
   totalPackages: number;
   paidPackages: number;
+  monetizedUsers: number;
   conversionRate: number;
   totalServiceFee: number;
   totalRevenue: number;
