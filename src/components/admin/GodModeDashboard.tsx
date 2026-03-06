@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Settings, Check, Plus, ChevronUp, ChevronDown, X, BarChart3, Users, Package, Plane, DollarSign, TrendingUp, PieChart, Coins, Activity, Table2, Zap, Target } from "lucide-react";
+import { Settings, Check, Plus, ChevronUp, ChevronDown, X, BarChart3, Users, Package, Plane, DollarSign, TrendingUp, PieChart, Coins, Activity, Table2, Zap, Target, Star } from "lucide-react";
 import { useDynamicReports } from "@/hooks/useDynamicReports";
 import { useAcquisitionAnalytics } from "@/hooks/useAcquisitionAnalytics";
 import { useTravelerTipsReport } from "@/hooks/useTravelerTipsReport";
@@ -18,6 +18,7 @@ import { AcquisitionChart } from "./charts/AcquisitionChart";
 import { AcquisitionSurveyTable } from "./charts/AcquisitionSurveyTable";
 import { TravelerTipsCard } from "./charts/TravelerTipsCard";
 import { CACAnalysisTab } from "./cac/CACAnalysisTab";
+import PlatformRatingCard from "./charts/PlatformRatingCard";
 import GodModeWidgetPicker from "./GodModeWidgetPicker";
 import type { LucideIcon } from "lucide-react";
 
@@ -29,6 +30,7 @@ export interface WidgetDefinition {
 }
 
 const WIDGET_CATALOG: WidgetDefinition[] = [
+  { id: "platform-rating", name: "Rating Global", description: "Rating promedio de la plataforma", icon: Star },
   { id: "stats-overview", name: "Stats Overview", description: "Paquetes, viajes, matches y entregados", icon: BarChart3 },
   { id: "kpi-cards", name: "KPI Cards", description: "Revenue, GMV, tasas de crecimiento", icon: TrendingUp },
   { id: "user-growth", name: "Crecimiento Usuarios", description: "Gráfico de crecimiento mensual", icon: Users },
@@ -44,7 +46,7 @@ const WIDGET_CATALOG: WidgetDefinition[] = [
   { id: "cac-analysis", name: "Unit Economics (CAC)", description: "Análisis CAC completo", icon: Zap },
 ];
 
-const DEFAULT_WIDGETS = ["stats-overview", "kpi-cards", "user-growth", "revenue-chart"];
+const DEFAULT_WIDGETS = ["platform-rating", "stats-overview", "kpi-cards", "user-growth", "revenue-chart"];
 
 interface GodModeDashboardProps {
   packages: any[];
@@ -106,6 +108,8 @@ const GodModeDashboard = ({ packages, trips, userId }: GodModeDashboardProps) =>
 
   const renderWidget = (widgetId: string) => {
     switch (widgetId) {
+      case "platform-rating":
+        return <PlatformRatingCard />;
       case "stats-overview":
         return <AdminStatsOverview packages={packages} trips={trips} />;
       case "kpi-cards":
