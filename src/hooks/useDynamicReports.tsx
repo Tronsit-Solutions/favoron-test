@@ -86,6 +86,48 @@ export interface DynamicReportsData {
   error: Error | null;
 }
 
+const PAGE_SIZE = 1000;
+
+const toMonthKey = (value: string | null | undefined): string | null => {
+  if (!value) return null;
+  return value.substring(0, 7);
+};
+
+const hasPaymentEvidence = (pkg: CancelledPaidPackage): boolean => {
+  const receipt = pkg.payment_receipt as any;
+  const hasManualReceipt = receipt && typeof receipt === 'object' && !!receipt.filePath;
+  const hasCardPayment = !!pkg.recurrente_payment_id;
+  const hasCardReceiptEvidence = receipt && typeof receipt === 'object' &&
+    (receipt.method === 'card' || !!receipt.payment_id || receipt.provider === 'recurrente');
+
+  return hasManualReceipt || hasCardPayment || hasCardReceiptEvidence;
+};
+
+const extractRefundServiceFee = (refund: CompletedRefundOrder): number => {
+  const cancelledProducts = Array.isArray(refund.cancelled_products) ? refund.cancelled_products as any[] : [];
+
+  if (cancelledProducts.length === 0) return 0;
+
+  const explicitServiceFee = cancelledProducts.reduce((sum, product) => {
+    const value = Number(product?.serviceFee ?? 0);
+    return sum + (Number.isFinite(value) ? value : 0);
+  }, 0);
+
+  if (explicitServiceFee > 0) return explicitServiceFee;
+
+  const refundTips = cancelledProducts.reduce((sum, product) => {
+    const value = Number(product?.tip ?? product?.adminAssignedTip ?? 0);
+    return sum + (Number.isFinite(value) ? value : 0);
+  }, 0);
+
+  const refundDeliveryFee = cancelledProducts.reduce((sum, product) => {
+    const value = Number(product?.deliveryFee ?? 0);
+    return sum + (Number.isFinite(value) ? value : 0);
+  }, 0);
+
+  return Math.max(0, Number(refund.amount || 0) - refundTips - refundDeliveryFee);
+};
+
 export const useDynamicReports = (months: number = 12) => {
   // Fetch exact counts (not limited by default 1000 row limit)
   const { data: countsData, isLoading: countsLoading } = useQuery({
