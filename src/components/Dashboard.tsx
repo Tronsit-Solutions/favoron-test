@@ -39,9 +39,6 @@ import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useOptimizedRealtime } from "@/hooks/useOptimizedRealtime";
-import { useStickyState } from "@/hooks/useStickyState";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import AcquisitionSurveyModal from "./AcquisitionSurveyModal";
 import { useAcquisitionSurvey } from "@/hooks/useAcquisitionSurvey";
 import ReferralAnnouncementModal from "./dashboard/ReferralAnnouncementModal";
@@ -225,14 +222,7 @@ const Dashboard = ({ user }: DashboardProps) => {
     }
   }, [isProfileComplete, profile, showProfile, showProfileCompletionModal]);
 
-  // Filter preference for inactive trips
-  const {
-    state: hideInactiveTrips,
-    setState: setHideInactiveTrips
-  } = useStickyState({
-    key: 'dashboard-hide-inactive-trips',
-    initialState: true
-  });
+  // Inactive trips are now auto-hidden based on status + feedback
 
   // Real-time updates are now active, no manual refresh needed
 
@@ -264,14 +254,11 @@ const Dashboard = ({ user }: DashboardProps) => {
     userTripsData: userTrips.slice(0, 3)
   });
   
-  // Filter user trips based on inactive preference
+  // Auto-hide trips: rejected/cancelled always, completed/completed_paid only after feedback
   const filteredUserTrips = userTrips.filter(trip => {
-    // Filter out inactive trips if user preference is enabled
-    const inactiveStatuses = ['completed', 'rejected', 'cancelled', 'completed_paid'];
-    const isActive = !inactiveStatuses.includes(trip.status);
-    const shouldShow = !hideInactiveTrips || isActive;
-    
-    return shouldShow;
+    if (trip.status === 'rejected' || trip.status === 'cancelled') return false;
+    if ((trip.status === 'completed' || trip.status === 'completed_paid') && trip.traveler_feedback_completed) return false;
+    return true;
   });
   
   // Get packages assigned to user's trips (for traveler view)
@@ -749,18 +736,6 @@ const Dashboard = ({ user }: DashboardProps) => {
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-lg font-semibold">Mis Viajes Registrados</h4>
-                  <div className="flex items-center space-x-2 sm:space-x-3">
-                    <Switch
-                      id="hide-inactive-trips"
-                      checked={hideInactiveTrips}
-                      onCheckedChange={setHideInactiveTrips}
-                      className="scale-90 sm:scale-100"
-                    />
-                    <Label htmlFor="hide-inactive-trips" className="text-xs sm:text-sm text-muted-foreground leading-tight">
-                      <span className="hidden sm:inline">Ocultar viajes completados/rechazados</span>
-                      <span className="sm:hidden">Ocultar completados</span>
-                    </Label>
-                  </div>
                 </div>
                 {filteredUserTrips.length === 0 ? (
                   <ProtectedEmptyState type="trips" onAction={() => navigateToForm('trip')} />
