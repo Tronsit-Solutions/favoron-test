@@ -857,6 +857,10 @@ const Dashboard = ({ user }: DashboardProps) => {
                           );
                         })}
                     </div>
+                  </>
+                )}
+              </div>
+            </div>
           </TabsContent>
 
           {isAdmin && (
