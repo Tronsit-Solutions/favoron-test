@@ -1,29 +1,22 @@
 
 
-## Correcciones al sistema de referidos
+## Selector de usuarios en AddReferralDialog
 
-### Situación actual (datos reales)
-- 4 registros en `referrals`, 3 apuntan al admin como referidor (incluyendo cuentas de prueba)
-- Rocio Carrillo no aparece como referidora de nadie — el referido Rocio → Alex no existe
-- Alex Perez tiene cuenta pero no hay registro de referido para él
-- Cada usuario tiene un código único (confirmado, no hay duplicados)
+Reemplazar los inputs de texto libre por campos de búsqueda con autocompletado que muestren usuarios reales de la base de datos.
 
-### Causa raíz
-El `pending_referral_code` en `localStorage` persiste indefinidamente. Cuando se hicieron pruebas con el link del admin, ese código quedó guardado en los navegadores y se usó automáticamente en registros posteriores.
+### Cambios en `src/components/admin/referrals/AddReferralDialog.tsx`
 
-### Plan de implementación
+- Agregar un componente de búsqueda tipo "combobox" usando `cmdk` (ya instalado) + Popover de Radix
+- Cada campo (referidor y referido) tendrá un input donde el admin escribe al menos 2 caracteres
+- Se hace una búsqueda en `profiles` con `ilike` sobre `first_name`, `last_name`, o `email`
+- Los resultados se muestran en un dropdown con formato: **Nombre Apellido** + email debajo
+- Al seleccionar, se guarda el `id` del profile directamente (ya no se busca por email al crear)
+- Validación: ambos usuarios deben estar seleccionados y ser diferentes
+- El estado pasa de `referrerEmail/referredEmail` (strings) a `referrer/referred` (objetos `{id, name, email}`)
 
-**1. Expiración del código en localStorage** (`Index.tsx` + `Auth.tsx`)
-- Al guardar `pending_referral_code`, guardar también `pending_referral_code_ts` con `Date.now()`
-- En `Auth.tsx` antes de llamar `registerReferral`, verificar que el código tenga menos de 7 días. Si expiró, eliminarlo
-
-**2. Herramientas admin para corregir datos** (`AdminReferrals.tsx`)
-- Agregar políticas RLS de DELETE e INSERT para admins en la tabla `referrals`
-- Agregar columna "Acciones" con botón Eliminar (con confirmación AlertDialog)
-- Agregar botón "Agregar referido" que busca usuarios por email y crea el registro manualmente
-
-Con esto podrás:
-1. Eliminar los 3 referidos incorrectos del admin (incluyendo los de prueba)
-2. Crear manualmente el referido correcto: Rocio → Alex
-3. Prevenir que esto vuelva a pasar con la expiración de 7 días
+### UX
+- Input con debounce de 300ms para no saturar queries
+- Mostrar "Buscando..." mientras carga
+- Mostrar "No se encontraron usuarios" si no hay resultados
+- Chip/badge visible con el usuario seleccionado, con X para deseleccionar
 
