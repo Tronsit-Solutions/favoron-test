@@ -795,7 +795,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                                     📦 {tripPackages.length} paquete{tripPackages.length !== 1 ? 's' : ''} asignado{tripPackages.length !== 1 ? 's' : ''}
                                   </p>
                                   {tripPackages.map(pkg => {
-                                    const hasPendingAction = ['matched', 'pending_office_confirmation'].includes(pkg.status);
+                                    const hasPendingAction = pkg.status === 'matched';
                                     return (
                                       <CollapsibleTravelerPackageCard
                                         key={pkg.id}
