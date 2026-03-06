@@ -7,24 +7,30 @@ interface ServiceFeeGrowthChartProps {
   data: Array<{
     monthLabel: string;
     favoronRevenue: number;
+    netFavoronRevenue?: number;
   }>;
 }
 
 const chartConfig = {
-  favoronRevenue: {
-    label: "Service Fee Mensual",
+  displayRevenue: {
+    label: "Service Fee Neto Mensual",
     color: "hsl(var(--chart-3))",
   },
 };
 
 export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
-  const totalRevenue = data.reduce((sum, d) => sum + d.favoronRevenue, 0);
-  const lastMonth = data[data.length - 1]?.favoronRevenue || 0;
-  const prevMonth = data[data.length - 2]?.favoronRevenue || 0;
-  const momGrowth = prevMonth > 0 ? ((lastMonth - prevMonth) / prevMonth) * 100 : 0;
+  const chartData = data.map((item) => ({
+    ...item,
+    displayRevenue: item.netFavoronRevenue ?? item.favoronRevenue,
+  }));
+
+  const totalRevenue = chartData.reduce((sum, d) => sum + d.displayRevenue, 0);
+  const lastMonth = chartData[chartData.length - 1]?.displayRevenue || 0;
+  const prevMonth = chartData[chartData.length - 2]?.displayRevenue || 0;
+  const momGrowth = Math.abs(prevMonth) > 0 ? ((lastMonth - prevMonth) / Math.abs(prevMonth)) * 100 : 0;
   const isPositive = momGrowth >= 0;
 
-  const hasData = data.some(d => d.favoronRevenue > 0);
+  const hasData = chartData.some(d => d.displayRevenue !== 0);
 
   if (!hasData) {
     return (
@@ -49,7 +55,7 @@ export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
               <Wallet className="h-5 w-5 text-primary" />
               Crecimiento de Ingresos
             </CardTitle>
-            <CardDescription>Service fee mensual (GTQ)</CardDescription>
+            <CardDescription>Service fee neto mensual (GTQ)</CardDescription>
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold">Q{totalRevenue.toLocaleString('es-GT', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
@@ -63,7 +69,7 @@ export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
                 dataKey="monthLabel"
@@ -85,10 +91,10 @@ export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
                 }
               />
               <Bar
-                dataKey="favoronRevenue"
+                dataKey="displayRevenue"
                 fill="hsl(var(--chart-3))"
                 radius={[4, 4, 0, 0]}
-                name="Service Fee Mensual"
+                name="Service Fee Neto Mensual"
                 opacity={0.8}
               />
             </BarChart>
