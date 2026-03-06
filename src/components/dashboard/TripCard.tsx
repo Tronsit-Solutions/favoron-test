@@ -79,7 +79,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
   };
 
   // Show tips button when user is owner AND (has delivered packages OR has accumulator)
-  const shouldShowTipsButton = isOwner && (hasDeliveredPackages || !!tripPayment);
+  const shouldShowTipsButton = isOwner;
   const tipsAmount = tripPayment?.accumulated_amount ?? 0;
 
   // Show survey button when all packages delivered and feedback not completed
