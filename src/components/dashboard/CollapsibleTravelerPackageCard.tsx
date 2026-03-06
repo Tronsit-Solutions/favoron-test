@@ -532,7 +532,7 @@ const CollapsibleTravelerPackageCard = ({
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent className={`pt-0 pb-1 ${isMobile ? 'px-2' : 'px-4'}`}>
+          <div className={`pt-0 pb-2 ${isMobile ? 'px-3' : 'px-4'}`}>
 
             {isMobile ? (
               // Mobile optimized content layout
