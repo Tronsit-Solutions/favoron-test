@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 
 import { Star } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,6 +8,7 @@ import PackageRequestForm from "./PackageRequestForm";
 import TripForm from "./TripForm";
 import AddressConfirmationModal from "./AddressConfirmationModal";
 import AdminDashboard from "./AdminDashboard";
+import GodModeDashboard from "./admin/GodModeDashboard";
 
 import QuoteDialog from "./QuoteDialog";
 import UserProfile from "./UserProfile";
@@ -554,7 +555,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                   value="admin-dashboard" 
                   className="text-xs sm:text-sm px-2 py-2"
                 >
-                  Dashboard
+                  God Mode
                 </TabsTrigger>
               )}
               <TabsTrigger 
@@ -608,9 +609,11 @@ const Dashboard = ({ user }: DashboardProps) => {
 
           {isAdmin && (
             <TabsContent value="admin-dashboard">
-              <div className="text-center text-muted-foreground py-12">
-                Próximamente...
-              </div>
+              <GodModeDashboard
+                packages={packages}
+                trips={trips}
+                userId={user.id}
+              />
             </TabsContent>
           )}
 
