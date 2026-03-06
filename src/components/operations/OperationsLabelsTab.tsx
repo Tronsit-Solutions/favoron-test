@@ -426,7 +426,7 @@ const OperationsLabelsTab = ({ trips, loading, onRefresh, labelHistory, onRestor
       )}
       {/* History Dialog */}
       <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <History className="h-5 w-5" />
@@ -438,17 +438,19 @@ const OperationsLabelsTab = ({ trips, loading, onRefresh, labelHistory, onRestor
               No hay lotes anteriores
             </p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {labelHistory.map((batch) => (
-                <div key={batch.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">
-                      {batch.items.length} etiqueta{batch.items.length !== 1 ? 's' : ''}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(batch.createdAt), "d MMM yyyy, HH:mm", { locale: es })}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
+                <div key={batch.id} className="flex items-start justify-between p-4 rounded-lg border bg-card gap-4">
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium">
+                        {batch.items.length} etiqueta{batch.items.length !== 1 ? 's' : ''}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(batch.createdAt), "d MMM yyyy, HH:mm", { locale: es })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
                       {batch.items.map(i => i.shopper_name).filter((v, idx, a) => a.indexOf(v) === idx).join(', ')}
                     </p>
                   </div>
