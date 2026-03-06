@@ -6,13 +6,12 @@ import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
 import TravelerSurveyModal from "@/components/dashboard/TravelerSurveyModal";
 import { TripEditSelectionModal } from "./TripEditSelectionModal";
-import { TripPaymentSummary } from "./TripPaymentSummary";
+import { TripTipsModal } from "./TripTipsModal";
 import { TripDetailModal } from "./TripDetailModal";
 import { TripDate } from "./TripDate";
 import { ReceptionWindow } from "./ReceptionWindow";
 import { useTripPayments } from "@/hooks/useTripPayments";
 import { formatCurrency } from "@/utils/priceHelpers";
-import TripBankingConfirmationModal from "@/components/TripBankingConfirmationModal";
 import { ReceiptViewerModal } from "@/components/ui/receipt-viewer-modal";
 
 interface TripCardProps {
@@ -29,24 +28,20 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showBankingModal, setShowBankingModal] = useState(false);
+  const [showTipsModal, setShowTipsModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showEditSelectionModal, setShowEditSelectionModal] = useState(false);
   const [showSurveyModal, setShowSurveyModal] = useState(false);
   const [paymentReceipt, setPaymentReceipt] = useState<{receipt_url: string, receipt_filename?: string} | null>(null);
 
-  // Hook para obtener datos del trip payment accumulator
-  const { tripPayment, isCreating, createPaymentOrder } = useTripPayments(trip.id);
+  const { tripPayment, isCreating, createPaymentOrder, refreshTripPayment } = useTripPayments(trip.id);
 
-  // Use payment receipt from trip payment accumulator
   useEffect(() => {
     if (tripPayment?.payment_receipt_url) {
       const raw = tripPayment.payment_receipt_url;
-      // Normalize old entries that might be just filenames
       const normalized = raw && !raw.includes('/') && !raw.startsWith('http')
         ? `payment-receipts/${raw}`
         : raw;
-      
       setPaymentReceipt({
         receipt_url: normalized,
         receipt_filename: tripPayment.payment_receipt_filename
@@ -58,17 +53,16 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 
   const canEdit = ['pending_approval', 'approved'].includes(trip.status);
   
-  // Verificar si todos los paquetes del viaje están completados (comprados, recibidos, etc.)
   const allPackagesCompleted = packages.length > 0 && packages.every(pkg => 
     ['delivered_to_office', 'received_by_traveler'].includes(pkg.status)
   );
   
-  // Verificar si hay al menos 1 paquete entregado o completado
   const hasDeliveredPackages = packages.some(pkg => 
     ['delivered_to_office', 'received_by_traveler', 'completed', 'pending_office_confirmation'].includes(pkg.status)
   );
   
   const canConfirmDelivery = trip.status === 'active' && allPackagesCompleted;
+  const isOwner = currentUser?.id === trip.user_id;
 
   const handleEditSubmit = (editedData: any) => {
     if (onEditTrip) {
@@ -84,57 +78,15 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
     }
   };
 
-  const handlePaymentRequest = async (bankingInfo: any) => {
-    try {
-      await createPaymentOrder(bankingInfo);
-      setShowBankingModal(false);
-    } catch (error) {
-      console.error('Error requesting payment:', error);
-    }
-  };
-
-  // Verificar si se debe mostrar el botón de crear orden de pago
-  const shouldShowPaymentButton = tripPayment && 
-    tripPayment.all_packages_delivered && 
-    !tripPayment.payment_order_created && 
-    tripPayment.accumulated_amount > 0 &&
-    currentUser?.id === trip.user_id;
+  // Show tips button when user is owner AND (has delivered packages OR has accumulator)
+  const shouldShowTipsButton = isOwner && (hasDeliveredPackages || !!tripPayment);
+  const tipsAmount = tripPayment?.accumulated_amount ?? 0;
 
   // Show survey button when all packages delivered and feedback not completed
   const shouldShowSurveyButton = tripPayment?.all_packages_delivered && 
     tripPayment?.payment_order_created &&
     !trip.traveler_feedback_completed && 
-    currentUser?.id === trip.user_id;
-
-  // Debug log para Anika
-  if (trip.from_city === "Miami" || trip.to_city === "Guatemala City" || tripPayment?.accumulated_amount > 0) {
-    console.log('🔍 DEBUG TripCard - Anika trip check:', {
-      tripId: trip.id,
-      fromCity: trip.from_city,
-      toCity: trip.to_city,
-      tripPayment: tripPayment ? {
-        accumulated_amount: tripPayment.accumulated_amount,
-        all_packages_delivered: tripPayment.all_packages_delivered,
-        payment_order_created: tripPayment.payment_order_created,
-        delivered_packages_count: tripPayment.delivered_packages_count,
-        total_packages_count: tripPayment.total_packages_count
-      } : null,
-      packages: packages.map(pkg => ({
-        id: pkg.id,
-        status: pkg.status,
-        item_description: pkg.item_description
-      })),
-      shouldShowPaymentButton,
-      currentUserId: currentUser?.id,
-      tripUserId: trip.user_id,
-      isOwner: currentUser?.id === trip.user_id
-    });
-  }
-
-  // Filtrar paquetes completados para el desglose
-  const completedPackages = packages.filter(pkg => 
-    pkg.matched_trip_id === trip.id && pkg.status === 'completed'
-  );
+    isOwner;
 
   return (
     <>
@@ -151,7 +103,8 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
         </div>
       )}
       <CardHeader className="pb-2 md:pb-3">
-        <div className="flex flex-col gap-2">{/* Trip Route - Mobile Optimized */}
+        <div className="flex flex-col gap-2">
+          {/* Trip Route */}
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <CardTitle className="text-base md:text-lg font-semibold leading-tight break-words">
@@ -159,7 +112,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               </CardTitle>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
-              {trip.status === 'completed_paid' && paymentReceipt?.receipt_url && currentUser?.id === trip.user_id && (
+              {trip.status === 'completed_paid' && paymentReceipt?.receipt_url && isOwner && (
                 <Button
                   size="sm"
                   variant="ghost"
@@ -192,20 +145,17 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             </div>
           </div>
 
-          {/* Trip Information - Horizontal Layout - Clickable */}
+          {/* Trip Information - Clickable */}
           <div 
             onClick={() => setShowDetailModal(true)}
             className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground cursor-pointer hover:bg-muted/30 rounded-lg p-2 transition-colors"
           >
-            {/* Recipient Name */}
             {trip.package_receiving_address?.recipientName && (
               <div className="flex items-center gap-1">
                 <User className="h-3 w-3 shrink-0" />
                 <span className="font-medium">{trip.package_receiving_address.recipientName}</span>
               </div>
             )}
-            
-            {/* Address */}
             {(trip.package_receiving_address?.streetAddress || trip.package_receiving_address?.cityArea) && (
               <div className="flex items-center gap-1">
                 <MapPin className="h-3 w-3 shrink-0" />
@@ -219,16 +169,12 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
                 </span>
               </div>
             )}
-            
-            {/* Phone */}
             {trip.package_receiving_address?.contactNumber && (
               <div className="flex items-center gap-1">
                 <Phone className="h-3 w-3 shrink-0" />
                 <span>{trip.package_receiving_address.contactNumber}</span>
               </div>
             )}
-            
-            {/* Reception Window */}
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3 shrink-0" />
               <span>
@@ -241,26 +187,21 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             </div>
           </div>
 
-          {shouldShowPaymentButton && (
-            <div className="flex justify-start">
+          {/* Tips Button + Survey + Actions */}
+          <div className="flex flex-wrap gap-2">
+            {shouldShowTipsButton && (
               <Button
                 size="sm"
-                variant="default"
-                onClick={() => setShowBankingModal(true)}
-                disabled={isCreating}
-                className="h-8 px-3 text-xs bg-green-600 hover:bg-green-700 text-white hover-scale"
+                variant="outline"
+                onClick={() => setShowTipsModal(true)}
+                className="h-8 px-3 text-xs"
               >
                 <Banknote className="h-3 w-3 mr-1" />
-                <span className="font-medium">
-                  {isCreating ? 'Procesando...' : `Solicitar ${formatCurrency(tripPayment.accumulated_amount)}`}
-                </span>
+                <span className="font-medium">{formatCurrency(tipsAmount)}</span>
               </Button>
-            </div>
-          )}
+            )}
 
-          {/* Survey button */}
-          {shouldShowSurveyButton && (
-            <div className="flex justify-start">
+            {shouldShowSurveyButton && (
               <Button
                 size="sm"
                 variant="outline"
@@ -270,52 +211,32 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
                 <Star className="h-3 w-3 mr-1" />
                 Califica tu experiencia
               </Button>
-            </div>
-          )}
+            )}
 
-          {/* Action Buttons - Better organized */}
-          <div className="flex flex-wrap gap-2">
-              {/* Delivery confirmation button */}
-              {canConfirmDelivery && travelerProfile && (
-                <Button 
-                  size="sm"
-                  variant="default"
-                  onClick={() => setShowDeliveryModal(true)}
-                  className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 hover-scale"
-                >
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  <span className="whitespace-nowrap">Confirmar entrega</span>
-                </Button>
-              )}
-              
-            </div>
-
-            {/* Creation Date and Status Badge */}
-            <div className="flex items-center justify-between">
-              <div className="text-xs text-muted-foreground/70">
-                Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
-              </div>
-              <div className="flex-shrink-0">
-                {getStatusBadge(trip.status)}
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-      {hasDeliveredPackages && (
-        <CardContent className="pt-0 pb-2">
-          <div className="space-y-2">
-            {/* Mostrar resumen de pagos si el usuario es el viajero del trip */}
-            {(() => {
-              const shouldShow = currentUser?.id === trip.user_id;
-              return shouldShow;
-            })() && (
-              <div className="bg-muted/30 rounded-lg p-2 animate-fade-in">
-                <TripPaymentSummary trip={trip} userProfile={travelerProfile || currentUser} />
-              </div>
+            {canConfirmDelivery && travelerProfile && (
+              <Button 
+                size="sm"
+                variant="default"
+                onClick={() => setShowDeliveryModal(true)}
+                className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 hover-scale"
+              >
+                <CheckCircle className="h-3 w-3 mr-1" />
+                <span className="whitespace-nowrap">Confirmar entrega</span>
+              </Button>
             )}
           </div>
-        </CardContent>
-      )}
+
+          {/* Creation Date and Status Badge */}
+          <div className="flex items-center justify-between">
+            <div className="text-xs text-muted-foreground/70">
+              Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
+            </div>
+            <div className="flex-shrink-0">
+              {getStatusBadge(trip.status)}
+            </div>
+          </div>
+        </div>
+      </CardHeader>
     </Card>
 
     {/* Edit Modal */}
@@ -347,21 +268,16 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       currentUser={currentUser}
     />
     
-    <TripBankingConfirmationModal
-      isOpen={showBankingModal}
-      onClose={() => setShowBankingModal(false)}
-      onConfirm={handlePaymentRequest}
-      amount={tripPayment?.accumulated_amount || 0}
-      currentBankingInfo={{
-        bank_account_holder: currentUser?.bank_account_holder,
-        bank_name: currentUser?.bank_name,
-        bank_account_type: currentUser?.bank_account_type,
-        bank_account_number: currentUser?.bank_account_number
-      }}
-      title="Confirmar Datos Bancarios para Pago del Viaje"
-      description={`Se creará una solicitud de pago por ${formatCurrency(tripPayment?.accumulated_amount || 0)} correspondiente a los tips de todos los paquetes entregados en este viaje.`}
-      tripId={trip.id}
-      travelerId={trip.user_id}
+    {/* Tips Modal */}
+    <TripTipsModal
+      isOpen={showTipsModal}
+      onClose={() => setShowTipsModal(false)}
+      trip={trip}
+      tripPayment={tripPayment}
+      isCreating={isCreating}
+      createPaymentOrder={createPaymentOrder}
+      currentUser={currentUser}
+      refreshTripPayment={refreshTripPayment}
     />
 
     {/* Payment Receipt Modal */}
