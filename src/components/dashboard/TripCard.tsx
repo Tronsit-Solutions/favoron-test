@@ -100,6 +100,11 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
     tripPayment.accumulated_amount > 0 &&
     currentUser?.id === trip.user_id;
 
+  // Show survey button when all packages delivered and feedback not completed
+  const shouldShowSurveyButton = tripPayment?.all_packages_delivered && 
+    !trip.traveler_feedback_completed && 
+    currentUser?.id === trip.user_id;
+
   // Debug log para Anika
   if (trip.from_city === "Miami" || trip.to_city === "Guatemala City" || tripPayment?.accumulated_amount > 0) {
     console.log('🔍 DEBUG TripCard - Anika trip check:', {
