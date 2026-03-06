@@ -341,6 +341,7 @@ export const useDynamicReports = (months: number = 12) => {
         tripApprovalRate: totalTrips > 0 ? (approvedTrips / totalTrips) * 100 : 0,
         gmv,
         favoronRevenue: serviceFee,
+        netFavoronRevenue: netServiceFee,
         travelerTips,
         profitMargin: gmv > 0 ? (serviceFee / gmv) * 100 : 0,
         avgPackageValue,
