@@ -205,49 +205,61 @@ const GodModeDashboard = ({ packages, trips, userId }: GodModeDashboardProps) =>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {activeWidgets.map((widgetId, idx) => (
-            <div key={widgetId} className="relative group">
-              {editMode && (
-                <div className="absolute top-2 right-2 z-10 flex gap-1">
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="h-7 w-7"
-                    disabled={idx === 0}
-                    onClick={() => moveWidget(widgetId, -1)}
-                  >
-                    <ChevronUp className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="h-7 w-7"
-                    disabled={idx === activeWidgets.length - 1}
-                    onClick={() => moveWidget(widgetId, 1)}
-                  >
-                    <ChevronDown className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => removeWidget(widgetId)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
+        <div className="grid grid-cols-2 gap-4">
+          {activeWidgets.map((widgetId, idx) => {
+            const size = widgetSizes[widgetId] ?? "full";
+            return (
+              <div key={widgetId} className={`relative group ${size === "full" ? "col-span-2" : "col-span-2 md:col-span-1"}`}>
+                {editMode && (
+                  <div className="absolute top-2 right-2 z-10 flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      onClick={() => toggleWidgetSize(widgetId)}
+                      title={size === "full" ? "Hacer más pequeño" : "Hacer ancho completo"}
+                    >
+                      {size === "full" ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      disabled={idx === 0}
+                      onClick={() => moveWidget(widgetId, -1)}
+                    >
+                      <ChevronUp className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      disabled={idx === activeWidgets.length - 1}
+                      onClick={() => moveWidget(widgetId, 1)}
+                    >
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      onClick={() => removeWidget(widgetId)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+                {editMode && (
+                  <div className="text-xs text-muted-foreground mb-1 font-medium">
+                    {getWidgetName(widgetId)}
+                  </div>
+                )}
+                <div className={editMode ? "ring-1 ring-border rounded-lg p-1" : ""}>
+                  {renderWidget(widgetId)}
                 </div>
-              )}
-              {editMode && (
-                <div className="text-xs text-muted-foreground mb-1 font-medium">
-                  {getWidgetName(widgetId)}
-                </div>
-              )}
-              <div className={editMode ? "ring-1 ring-border rounded-lg p-1" : ""}>
-                {renderWidget(widgetId)}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
