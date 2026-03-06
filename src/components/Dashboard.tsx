@@ -225,14 +225,7 @@ const Dashboard = ({ user }: DashboardProps) => {
     }
   }, [isProfileComplete, profile, showProfile, showProfileCompletionModal]);
 
-  // Filter preference for inactive trips
-  const {
-    state: hideInactiveTrips,
-    setState: setHideInactiveTrips
-  } = useStickyState({
-    key: 'dashboard-hide-inactive-trips',
-    initialState: true
-  });
+  // Inactive trips are now auto-hidden based on status + feedback
 
   // Real-time updates are now active, no manual refresh needed
 
