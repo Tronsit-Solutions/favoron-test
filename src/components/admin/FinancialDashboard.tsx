@@ -95,14 +95,10 @@ const FinancialDashboard = ({
       return sum + discountAmount;
     }, 0);
 
-    // Ingresos Favorón (calculados con rates dinámicos desde admin)
+    // Ingresos Favorón (serviceFee del quote, igual que la tabla resumen)
     const favoronRevenueGross = completedPackages.reduce((sum, pkg) => {
-      const quote = pkg.quote as any;
-      const basePrice = parseFloat(quote?.price || '0');
-      const serviceFee = calculateServiceFee(basePrice, undefined, rates);
-      // For now, use standard rate as we don't have trust_level in Package type
-      const revenue = calculateFavoronRevenue(basePrice, serviceFee, undefined);
-      return sum + revenue;
+      const quoteValues = getQuoteValues(pkg.quote);
+      return sum + quoteValues.serviceFee;
     }, 0);
 
     // Restar descuentos de los ingresos de Favorón
