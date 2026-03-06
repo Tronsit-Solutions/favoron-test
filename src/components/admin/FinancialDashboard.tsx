@@ -1,11 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Package } from "@/types";
-import { DollarSign, Backpack, TrendingUp } from "lucide-react";
+import { DollarSign, Backpack, TrendingUp, Gift } from "lucide-react";
 import FinancialTablesSection from "./FinancialTablesSection";
 import { calculateFavoronRevenue, calculateServiceFee } from '@/lib/pricing';
 import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FinancialDashboardProps {
   packages: Package[];
@@ -20,6 +21,34 @@ const FinancialDashboard = ({
     standard: fees?.service_fee_rate_standard ?? 0.50,
     prime: fees?.service_fee_rate_prime ?? 0.25
   }), [fees]);
+
+  // Referral credits data
+  const [referralMetrics, setReferralMetrics] = useState({
+    pendingCredit: 0, pendingDiscounts: 0, distributed: 0,
+    completedCount: 0, totalCount: 0
+  });
+
+  useEffect(() => {
+    const fetchReferrals = async () => {
+      const { data, error } = await supabase.from('referrals').select('*');
+      if (error || !data) return;
+      
+      const pendingCredit = data
+        .filter(r => r.status === 'completed' && !r.reward_used)
+        .reduce((s, r) => s + (r.reward_amount || 0), 0);
+      const pendingDiscounts = data
+        .filter(r => !r.referred_reward_used && (r.referred_reward_amount || 0) > 0)
+        .reduce((s, r) => s + (r.referred_reward_amount || 0), 0);
+      const distributed = data
+        .filter(r => r.reward_used)
+        .reduce((s, r) => s + (r.reward_amount || 0), 0);
+      const completedCount = data.filter(r => r.status === 'completed').length;
+      
+      setReferralMetrics({ pendingCredit, pendingDiscounts, distributed, completedCount, totalCount: data.length });
+    };
+    fetchReferrals();
+  }, []);
+
   const [dateFilter, setDateFilter] = useState("all");
   const filteredPackages = useMemo(() => {
     if (dateFilter === "all") return packages;
@@ -232,6 +261,46 @@ const FinancialDashboard = ({
               </p>
             </div>
             
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Créditos de Referidos */}
+      <Card>
+        <CardHeader className="flex flex-row items-center gap-2">
+          <Gift className="h-5 w-5 text-amber-600" />
+          <CardTitle>Créditos de Referidos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <p className="font-medium text-amber-700">Crédito por pagar</p>
+              <p className="text-2xl font-bold text-amber-600">
+                {formatCurrencyGTQ(referralMetrics.pendingCredit)}
+              </p>
+              <p className="text-xs text-muted-foreground">Referidores pendientes</p>
+            </div>
+            <div>
+              <p className="font-medium text-amber-700">Descuentos pendientes</p>
+              <p className="text-2xl font-bold text-amber-600">
+                {formatCurrencyGTQ(referralMetrics.pendingDiscounts)}
+              </p>
+              <p className="text-xs text-muted-foreground">Referidos no usados</p>
+            </div>
+            <div>
+              <p className="font-medium text-green-700">Ya distribuido</p>
+              <p className="text-2xl font-bold text-green-600">
+                {formatCurrencyGTQ(referralMetrics.distributed)}
+              </p>
+              <p className="text-xs text-muted-foreground">Recompensas usadas</p>
+            </div>
+            <div>
+              <p className="font-medium">Referidos activos</p>
+              <p className="text-2xl font-bold text-primary">
+                {referralMetrics.completedCount} / {referralMetrics.totalCount}
+              </p>
+              <p className="text-xs text-muted-foreground">Completados / Total</p>
+            </div>
           </div>
         </CardContent>
       </Card>
