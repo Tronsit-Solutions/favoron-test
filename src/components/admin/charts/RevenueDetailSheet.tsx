@@ -57,21 +57,25 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
           .gte('created_at', startDate)
           .lt('created_at', endDate);
 
-        // 2. Cancelled/archived packages for this month (check payment evidence client-side)
+        // UTC-based range for cancellations & refunds (matches toMonthKey substring logic in chart)
+        const utcStart = `${month}-01T00:00:00.000Z`;
+        const utcEnd = `${y}-${String(m).padStart(2, '0')}-01T00:00:00.000Z`;
+
+        // 2. Cancelled/archived packages for this month — filter by updated_at (cancellation date)
         const { data: cancelledPkgs } = await supabase
           .from('packages')
           .select('id, item_description, status, quote, label_number, recurrente_payment_id, payment_receipt')
           .in('status', CANCELLED_STATUSES)
-          .gte('created_at', startDate)
-          .lt('created_at', endDate);
+          .gte('updated_at', utcStart)
+          .lt('updated_at', utcEnd);
 
-        // 3. Completed refunds with completed_at in this month
+        // 3. Completed refunds with completed_at in this month (UTC range)
         const { data: refunds } = await supabase
           .from('refund_orders')
           .select('id, package_id, amount, status, cancelled_products, reason, completed_at')
           .eq('status', 'completed')
-          .gte('completed_at', startDate)
-          .lt('completed_at', endDate);
+          .gte('completed_at', utcStart)
+          .lt('completed_at', utcEnd);
 
         const items: LineItem[] = [];
         let grossTotal = 0;
