@@ -74,7 +74,8 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
 
         // Process active packages
         (packages || []).forEach(pkg => {
-          const sf = Number(pkg.quote?.serviceFee || 0);
+          const quote = pkg.quote as Record<string, any> | null;
+          const sf = Number(quote?.serviceFee || 0);
           if (sf > 0) {
             grossTotal += sf;
             items.push({
