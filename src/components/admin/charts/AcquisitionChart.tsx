@@ -174,8 +174,9 @@ export const AcquisitionChart = ({ data, summaryKPIs }: AcquisitionChartProps) =
                 <TableRow className="bg-muted/50">
                   <TableHead>Canal</TableHead>
                   <TableHead className="text-center">Usuarios</TableHead>
-                  <TableHead className="text-center">Paquetes Pagados</TableHead>
+                  <TableHead className="text-center">Usuarios Monetizados</TableHead>
                   <TableHead className="text-center">Tasa Conversión</TableHead>
+                  <TableHead className="text-center">Paquetes Pagados</TableHead>
                   <TableHead className="text-right">Service Fee</TableHead>
                   <TableHead className="text-right">Revenue Total</TableHead>
                 </TableRow>
@@ -185,7 +186,7 @@ export const AcquisitionChart = ({ data, summaryKPIs }: AcquisitionChartProps) =
                   <TableRow key={channel.channel}>
                     <TableCell className="font-medium">{channel.channelLabel}</TableCell>
                     <TableCell className="text-center">{channel.totalUsers}</TableCell>
-                    <TableCell className="text-center">{channel.paidPackages}</TableCell>
+                    <TableCell className="text-center">{channel.monetizedUsers}</TableCell>
                     <TableCell className="text-center">
                       <Badge 
                         variant={channel.conversionRate >= 50 ? "default" : channel.conversionRate >= 25 ? "secondary" : "outline"}
@@ -194,6 +195,7 @@ export const AcquisitionChart = ({ data, summaryKPIs }: AcquisitionChartProps) =
                         {formatPercent(channel.conversionRate)}
                       </Badge>
                     </TableCell>
+                    <TableCell className="text-center">{channel.paidPackages}</TableCell>
                     <TableCell className="text-right font-mono">
                       {formatCurrency(channel.totalServiceFee)}
                     </TableCell>
