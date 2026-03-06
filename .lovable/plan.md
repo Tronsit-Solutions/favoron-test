@@ -1,19 +1,12 @@
 
 
-## Agregar comentarios a incidencias
+## Eliminar pestaña "Última Milla" del dashboard admin
 
-Permitir agregar comentarios/notas a las tarjetas de incidencias sin cambiar su estado (resolver/reabrir).
+### Cambios en `src/components/Dashboard.tsx`:
+1. Eliminar import de `LastMileTab`
+2. Eliminar el `TabsTrigger` con `value="ultima-milla"` (líneas ~599-606)
+3. Eliminar el `TabsContent` con `value="ultima-milla"` que renderiza `<LastMileTab>` (líneas ~974-981)
 
-### Cambios
-
-**`src/components/admin/IncidentReasonModal.tsx`**:
-- Agregar una nueva acción `'comment'` al tipo `IncidentAction` y al `actionConfig` con título "Agregar Comentario", placeholder apropiado, icono `MessageSquare`, y botón con variant `outline`
-
-**`src/components/operations/OperationsIncidentsTab.tsx`**:
-- En el `PackageCard`, agregar un botón "Comentar" (icono `MessageSquare`) al lado del botón de Resolver/Reabrir
-- En `handleIncidentAction`, manejar el caso `'comment'`: crear una entrada de historial con `action: 'comment'` y `note: text`, sin cambiar el `incident_status` actual del paquete
-- Solo actualizar `incident_history` en la base de datos (no modificar `incident_status`)
-
-### Resultado
-Cada tarjeta de incidencia tendrá un botón "Comentar" que abre el modal, permite escribir una nota, y la agrega al historial sin alterar el estado de la incidencia. Los comentarios aparecerán en la línea de tiempo existente (`IncidentTimeline`).
+### Archivo a eliminar (opcional):
+- `src/components/admin/LastMileTab.tsx` — ya no se usa en ningún lado
 
