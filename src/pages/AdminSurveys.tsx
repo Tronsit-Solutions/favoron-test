@@ -143,6 +143,7 @@ const AdminSurveys = () => {
           <Tabs defaultValue="acquisition" className="space-y-6">
             <TabsList>
               <TabsTrigger value="acquisition">Adquisición</TabsTrigger>
+              <TabsTrigger value="traveler-surveys">Encuesta Viajeros</TabsTrigger>
               <TabsTrigger value="traveler-ratings">Reviews Viajeros</TabsTrigger>
               <TabsTrigger value="platform-reviews">Reviews Plataforma</TabsTrigger>
             </TabsList>
