@@ -73,12 +73,6 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, la
     return '1';
   };
 
-  const getTravelerName = () => {
-    if (trip?.first_name || trip?.last_name) {
-      return `${trip.first_name || ''} ${trip.last_name || ''}`.trim();
-    }
-    return 'N/A';
-  };
 
   const getCreationDate = () => {
     if (pkg.created_at) {
@@ -129,7 +123,7 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, la
       </div>
 
       {/* Content */}
-      <div className={`${isCompact ? 'p-2 space-y-2' : 'p-4 space-y-3'} text-xs`}>
+      <div className={`${isCompact ? 'p-2 space-y-1' : 'p-2 space-y-1'} text-xs`}>
         {/* Package Info - Unified Section */}
         <div>
           <div className="font-bold mb-1">INFORMACIÓN DEL PEDIDO:</div>
@@ -150,14 +144,6 @@ export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, la
           </div>
         </div>
 
-        {/* Traveler Info */}
-        {trip && (
-          <div>
-            <div>
-              <span className="font-bold">VIAJERO:</span> {getTravelerName()}
-            </div>
-          </div>
-        )}
 
         {/* Delivery Method */}
         <div>
