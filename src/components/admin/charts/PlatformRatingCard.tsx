@@ -82,14 +82,14 @@ const PlatformRatingCard = () => {
         </CardContent>
       </Card>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Detalle de Reviews de la Plataforma</DialogTitle>
-          </DialogHeader>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="right" className="sm:max-w-5xl w-full overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Detalle de Reviews de la Plataforma</SheetTitle>
+          </SheetHeader>
           <AdminPlatformReviewsTab />
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </>
   );
 };
