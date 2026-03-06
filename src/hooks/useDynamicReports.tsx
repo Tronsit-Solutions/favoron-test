@@ -258,11 +258,33 @@ export const useDynamicReports = (months: number = 12) => {
       return { monthlyData: [], kpis: getEmptyKPIs() };
     }
 
-    // Sort months and limit to requested range
-    const sortedMonths = Array.from(allMonths).sort();
+    const refundedPackageIds = new Set(
+      completedRefundOrders.map(refund => refund.package_id).filter(Boolean)
+    );
+
+    const refundServiceFeeByMonth = completedRefundOrders.reduce((acc, refund) => {
+      const monthKey = toMonthKey(refund.completed_at || refund.created_at);
+      if (!monthKey) return acc;
+
+      const currentValue = acc.get(monthKey) || 0;
+      acc.set(monthKey, currentValue + extractRefundServiceFee(refund));
+      return acc;
+    }, new Map<string, number>());
+
+    const cancellationServiceFeeByMonth = cancelledPaidPackages.reduce((acc, pkg) => {
+      if (refundedPackageIds.has(pkg.id)) return acc;
+      if (!hasPaymentEvidence(pkg)) return acc;
+
+      const monthKey = toMonthKey(pkg.created_at);
+      if (!monthKey) return acc;
+
+      const quoteValues = getQuoteValues(pkg.quote);
+      const currentValue = acc.get(monthKey) || 0;
+      acc.set(monthKey, currentValue + quoteValues.serviceFee);
+      return acc;
+    }, new Map<string, number>());
+
     const now = new Date();
-    const currentMonth = now.toISOString().substring(0, 7);
-    
     // Generate months to display (last N months)
     const monthsToDisplay: string[] = [];
     for (let i = months - 1; i >= 0; i--) {
