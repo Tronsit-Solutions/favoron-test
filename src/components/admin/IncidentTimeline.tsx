@@ -1,13 +1,14 @@
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, CheckCircle, RotateCcw, Clock } from 'lucide-react';
+import { AlertTriangle, CheckCircle, RotateCcw, Clock, MessageSquare } from 'lucide-react';
 
 export interface IncidentHistoryEntry {
-  action: 'marked' | 'resolved' | 'reopened';
+  action: 'marked' | 'resolved' | 'reopened' | 'comment';
   timestamp: string;
   admin_id: string;
   admin_name?: string;
   reason?: string;
   resolution_notes?: string;
+  note?: string;
 }
 
 interface IncidentTimelineProps {
@@ -37,6 +38,12 @@ const actionConfig: Record<string, {
     label: 'Incidencia reabierta',
     Icon: RotateCcw,
     color: 'text-amber-600',
+    badgeVariant: 'secondary',
+  },
+  comment: {
+    label: 'Comentario',
+    Icon: MessageSquare,
+    color: 'text-blue-600',
     badgeVariant: 'secondary',
   },
 };
@@ -69,7 +76,7 @@ const IncidentTimeline = ({ history, className }: IncidentTimelineProps) => {
             )}
             {/* Dot */}
             <div className={`absolute left-0 top-1 h-[22px] w-[22px] rounded-full border-2 border-background flex items-center justify-center ${
-              entry.action === 'resolved' ? 'bg-green-100' : entry.action === 'reopened' ? 'bg-amber-100' : 'bg-red-100'
+              entry.action === 'resolved' ? 'bg-green-100' : entry.action === 'reopened' ? 'bg-amber-100' : entry.action === 'comment' ? 'bg-blue-100' : 'bg-red-100'
             }`}>
               <config.Icon className={`h-3 w-3 ${config.color}`} />
             </div>
@@ -100,6 +107,13 @@ const IncidentTimeline = ({ history, className }: IncidentTimelineProps) => {
                 <div className="bg-green-50 border border-green-200 rounded p-2 text-sm">
                   <span className="font-medium text-xs text-green-700">Resolución: </span>
                   {entry.resolution_notes}
+                </div>
+              )}
+
+              {entry.note && (
+                <div className="bg-blue-50 border border-blue-200 rounded p-2 text-sm">
+                  <span className="font-medium text-xs text-blue-700">Nota: </span>
+                  {entry.note}
                 </div>
               )}
             </div>

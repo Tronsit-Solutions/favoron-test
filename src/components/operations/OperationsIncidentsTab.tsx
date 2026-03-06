@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Package, User, Clock, Loader2, RefreshCw, CheckCircle, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, Package, User, Clock, Loader2, RefreshCw, CheckCircle, RotateCcw, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OperationsPackage } from '@/hooks/useOperationsData';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,29 +62,37 @@ const OperationsIncidentsTab = ({ packages, loading, onRefresh, onUpdateIncident
     const currentHistory: any[] = (currentPkg?.incident_history as any[]) || [];
 
     const newEntry = {
-      action: modalAction === 'resolve' ? 'resolved' : 'reopened',
+      action: modalAction === 'resolve' ? 'resolved' : modalAction === 'comment' ? 'comment' : 'reopened',
       timestamp: new Date().toISOString(),
       admin_id: user.id,
       admin_name: 'Operaciones',
-      ...(modalAction === 'resolve' ? { resolution_notes: text } : { reason: text }),
+      ...(modalAction === 'resolve' ? { resolution_notes: text } : modalAction === 'comment' ? { note: text } : { reason: text }),
     };
 
     const updatedHistory = [...currentHistory, newEntry];
-    const newStatus = modalAction === 'resolve' ? 'resolved' : 'active';
 
-    const { error } = await supabase
-      .from('packages')
-      .update({
-        incident_flag: true,
-        incident_status: newStatus,
-        incident_history: updatedHistory,
-      })
-      .eq('id', selectedPkgId);
-
-    if (error) throw error;
-
-    toast.success(modalAction === 'resolve' ? 'Incidencia resuelta' : 'Incidencia reabierta');
-    onUpdateIncidentFlag(selectedPkgId, true, newStatus, updatedHistory);
+    if (modalAction === 'comment') {
+      const { error } = await supabase
+        .from('packages')
+        .update({ incident_history: updatedHistory })
+        .eq('id', selectedPkgId);
+      if (error) throw error;
+      toast.success('Comentario agregado');
+      onUpdateIncidentFlag(selectedPkgId, true, null, updatedHistory);
+    } else {
+      const newStatus = modalAction === 'resolve' ? 'resolved' : 'active';
+      const { error } = await supabase
+        .from('packages')
+        .update({
+          incident_flag: true,
+          incident_status: newStatus,
+          incident_history: updatedHistory,
+        })
+        .eq('id', selectedPkgId);
+      if (error) throw error;
+      toast.success(modalAction === 'resolve' ? 'Incidencia resuelta' : 'Incidencia reabierta');
+      onUpdateIncidentFlag(selectedPkgId, true, newStatus, updatedHistory);
+    }
   };
 
   if (loading) {
@@ -220,6 +228,14 @@ const OperationsIncidentsTab = ({ packages, loading, onRefresh, onUpdateIncident
                 Reabrir
               </Button>
             )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => openModal(pkg.id, 'comment')}
+            >
+              <MessageSquare className="h-3.5 w-3.5 mr-1" />
+              Comentar
+            </Button>
           </div>
         </CardContent>
       </Card>
