@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Settings, Check, Plus, ChevronUp, ChevronDown, X, BarChart3, Users, Package, Plane, DollarSign, TrendingUp, PieChart, Coins, Activity, Table2, Zap, Target, Star } from "lucide-react";
+import { Settings, Check, Plus, ChevronUp, ChevronDown, X, BarChart3, Users, Package, Plane, DollarSign, TrendingUp, PieChart, Coins, Activity, Table2, Zap, Target, Star, Maximize2, Minimize2 } from "lucide-react";
 import { useDynamicReports } from "@/hooks/useDynamicReports";
 import { useAcquisitionAnalytics } from "@/hooks/useAcquisitionAnalytics";
 import { useTravelerTipsReport } from "@/hooks/useTravelerTipsReport";
@@ -48,6 +48,11 @@ const WIDGET_CATALOG: WidgetDefinition[] = [
 
 const DEFAULT_WIDGETS = ["platform-rating", "stats-overview", "kpi-cards", "user-growth", "revenue-chart"];
 
+interface SavedLayout {
+  widgets: string[];
+  sizes: Record<string, "full" | "half">;
+}
+
 interface GodModeDashboardProps {
   packages: any[];
   trips: any[];
@@ -60,9 +65,23 @@ const GodModeDashboard = ({ packages, trips, userId }: GodModeDashboardProps) =>
   const [activeWidgets, setActiveWidgets] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem(storageKey);
-      return saved ? JSON.parse(saved) : DEFAULT_WIDGETS;
+      if (!saved) return DEFAULT_WIDGETS;
+      const parsed = JSON.parse(saved);
+      // Support both old (array) and new (object) format
+      return Array.isArray(parsed) ? parsed : parsed.widgets ?? DEFAULT_WIDGETS;
     } catch {
       return DEFAULT_WIDGETS;
+    }
+  });
+
+  const [widgetSizes, setWidgetSizes] = useState<Record<string, "full" | "half">>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (!saved) return {};
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? {} : parsed.sizes ?? {};
+    } catch {
+      return {};
     }
   });
 
