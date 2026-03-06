@@ -158,7 +158,18 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
                 {trip.from_city} → {trip.to_city}
               </CardTitle>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {trip.status === 'completed_paid' && paymentReceipt?.receipt_url && currentUser?.id === trip.user_id && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowReceiptModal(true)}
+                  className="h-8 w-8 p-0 hover:bg-muted/50 text-green-600"
+                  title="Ver comprobante de pago"
+                >
+                  <Receipt className="h-4 w-4" />
+                </Button>
+              )}
               {canEdit && (
                 <Button
                   size="sm"
