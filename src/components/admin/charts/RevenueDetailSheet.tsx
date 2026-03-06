@@ -137,9 +137,9 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
           const hasPaid = pkg.recurrente_payment_id || (pkg.payment_receipt as any)?.url;
           const hasRefund = refundedPackageIds.has(pkg.id);
           if (hasPaid && !hasRefund) {
-            const sf = Number(pkg.quote?.serviceFee || 0);
+            const cq = pkg.quote as Record<string, any> | null;
+            const sf = Number(cq?.serviceFee || 0);
             if (sf > 0) {
-              // These contribute to gross but also get fully deducted
               grossTotal += sf;
               cancellationTotal += sf;
               items.push({
