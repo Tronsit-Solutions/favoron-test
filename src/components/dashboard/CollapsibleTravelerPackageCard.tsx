@@ -272,7 +272,7 @@ const CollapsibleTravelerPackageCard = ({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className={`transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden ${hasPendingAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
+      <div className={`transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden rounded-md border-l-[3px] ${hasPendingAction ? "border-l-primary bg-primary/5 ring-1 ring-primary/20" : "border-l-muted-foreground/30 bg-muted/20 hover:bg-muted/30"}`}>
         <CollapsibleTrigger asChild>
           <CardHeader className={`cursor-pointer transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden ${
             hasPendingAction 
