@@ -42,36 +42,36 @@ const PlatformRatingCard = () => {
   }
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
           Rating Global de la Plataforma
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-4 mb-4">
-          <span className="text-5xl font-bold tracking-tight">{avgRating.toFixed(1)}</span>
+      <CardContent className="flex-1 flex flex-col justify-center">
+        <div className="flex items-center gap-4 mb-6">
+          <span className="text-6xl font-bold tracking-tight">{avgRating.toFixed(1)}</span>
           <div className="flex flex-col gap-1">
             <StarRating value={Math.round(avgRating)} readonly size="lg" />
             <span className="text-sm text-muted-foreground">{total} reviews</span>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-lg bg-muted/50 p-3 text-center">
-            <MessageSquare className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-            <div className="text-2xl font-bold">{total}</div>
-            <div className="text-xs text-muted-foreground">Total</div>
+          <div className="rounded-lg bg-muted/50 p-4 text-center">
+            <MessageSquare className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+            <div className="text-3xl font-bold">{total}</div>
+            <div className="text-sm text-muted-foreground">Total</div>
           </div>
-          <div className="rounded-lg bg-muted/50 p-3 text-center">
-            <ThumbsUp className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-            <div className="text-2xl font-bold">{recommendPercent.toFixed(0)}%</div>
-            <div className="text-xs text-muted-foreground">Recomendaría</div>
+          <div className="rounded-lg bg-muted/50 p-4 text-center">
+            <ThumbsUp className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+            <div className="text-3xl font-bold">{recommendPercent.toFixed(0)}%</div>
+            <div className="text-sm text-muted-foreground">Recomendaría</div>
           </div>
-          <div className="rounded-lg bg-muted/50 p-3 text-center">
-            <RotateCcw className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-            <div className="text-2xl font-bold">{useAgainPercent.toFixed(0)}%</div>
-            <div className="text-xs text-muted-foreground">Volvería a usar</div>
+          <div className="rounded-lg bg-muted/50 p-4 text-center">
+            <RotateCcw className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+            <div className="text-3xl font-bold">{useAgainPercent.toFixed(0)}%</div>
+            <div className="text-sm text-muted-foreground">Volvería a usar</div>
           </div>
         </div>
       </CardContent>
