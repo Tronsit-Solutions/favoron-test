@@ -1,33 +1,42 @@
 
 
-## Mostrar paquetes individuales en el historial de lotes
+## Separar paquetes en cards individuales con restauración individual
 
-Actualmente el historial muestra un resumen por lote (cantidad de etiquetas + nombres de shoppers). El usuario quiere ver cada paquete individual dentro de cada lote.
+### Cambios
 
-### Cambios en `src/components/operations/LabelCartBar.tsx` y `src/components/operations/OperationsLabelsTab.tsx`
+**1. `src/hooks/useOperationsData.tsx`**
+- Agregar función `restoreItemFromHistory(batchId, itemId)` que restaura un solo item de un batch al carrito actual
+- Si después de restaurar el item el batch queda vacío, eliminarlo automáticamente del historial
 
-Refactorear el `HistoryDialog` en ambos archivos para:
+**2. `src/components/operations/LabelCartBar.tsx` — HistoryDialog**
+- Refactorear la lista de items dentro de cada batch: cada item pasa a ser un mini-card con borde, padding, y layout claro
+- Cada card muestra: número de etiqueta, nombre del shopper, descripción del producto
+- Cada card tiene su propio botón "Restaurar" individual (icono RotateCcw pequeño)
+- Mantener el botón "Restaurar todo" a nivel de lote en el header
+- Eliminar `truncate` para que el texto sea completamente visible
 
-1. **Expandir cada lote** con una lista de paquetes individuales debajo del encabezado del lote
-2. Cada paquete mostrará:
-   - ID corto del paquete (8 caracteres)
-   - Nombre del shopper
-   - Descripción del producto (primer producto o `item_description`)
-   - Número de etiqueta si existe
-3. Usar un `Collapsible` o simplemente mostrar la lista directamente debajo del header del lote
-4. Mantener los botones de Restaurar/Eliminar a nivel de lote
+**3. `src/components/operations/OperationsLabelsTab.tsx` — History Dialog inline**
+- Aplicar los mismos cambios de UI que en LabelCartBar
+- Pasar la nueva prop `onRestoreItem` para restauración individual
 
-### Estructura visual por lote
+### Estructura visual
+
 ```text
-┌─────────────────────────────────────────────────┐
-│ 6 etiquetas   6 mar 2026, 10:23    [Restaurar] │
-│                                                 │
-│  #0042  Rodrigo Noguera — iPhone 16 Pro Max     │
-│  #0043  Andrea Martinez — AirPods Pro           │
-│  #0044  Edison Castillo — MacBook Air M3        │
-│  ...                                            │
-└─────────────────────────────────────────────────┘
+┌─ Lote ──────────────────────────────────────────┐
+│ 6 etiquetas  6 mar 2026, 10:23  [Restaurar todo]│
+│                                                  │
+│ ┌──────────────────────────────────────────┐     │
+│ │ #0423  Rodrigo Noguera              [↺] │     │
+│ │ Carregador de Bateria                    │     │
+│ └──────────────────────────────────────────┘     │
+│ ┌──────────────────────────────────────────┐     │
+│ │ #0427  Andrea Nicolle Martinez      [↺] │     │
+│ │ iPhone 17 pro Max Silver 256GB           │     │
+│ └──────────────────────────────────────────┘     │
+│ ...                                              │
+└──────────────────────────────────────────────────┘
 ```
 
-Los datos ya están disponibles en `batch.items` (cada `LabelCartItem` tiene `id`, `shopper_name`, `item_description`, `products_data`, `label_number`), solo hay que renderizarlos.
+### Props nuevas
+- `onRestoreItem: (batchId: string, itemId: string) => void` se pasa desde Operations.tsx → LabelCartBar/OperationsLabelsTab → HistoryDialog
 
