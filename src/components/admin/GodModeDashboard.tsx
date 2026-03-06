@@ -93,16 +93,19 @@ const GodModeDashboard = ({ packages, trips, userId }: GodModeDashboardProps) =>
   const { acquisitionData, summaryKPIs, isLoading: acquisitionLoading } = useAcquisitionAnalytics();
   const { data: travelerTipsData, isLoading: travelerTipsLoading } = useTravelerTipsReport();
 
-  const persist = useCallback((widgets: string[]) => {
+  const persist = useCallback((widgets: string[], sizes: Record<string, "full" | "half">) => {
     setActiveWidgets(widgets);
+    setWidgetSizes(sizes);
     try {
-      localStorage.setItem(storageKey, JSON.stringify(widgets));
+      localStorage.setItem(storageKey, JSON.stringify({ widgets, sizes }));
     } catch {}
   }, [storageKey]);
 
   const removeWidget = useCallback((id: string) => {
-    persist(activeWidgets.filter(w => w !== id));
-  }, [activeWidgets, persist]);
+    const newSizes = { ...widgetSizes };
+    delete newSizes[id];
+    persist(activeWidgets.filter(w => w !== id), newSizes);
+  }, [activeWidgets, widgetSizes, persist]);
 
   const moveWidget = useCallback((id: string, direction: -1 | 1) => {
     const idx = activeWidgets.indexOf(id);
@@ -111,14 +114,20 @@ const GodModeDashboard = ({ packages, trips, userId }: GodModeDashboardProps) =>
     if (newIdx < 0 || newIdx >= activeWidgets.length) return;
     const next = [...activeWidgets];
     [next[idx], next[newIdx]] = [next[newIdx], next[idx]];
-    persist(next);
-  }, [activeWidgets, persist]);
+    persist(next, widgetSizes);
+  }, [activeWidgets, widgetSizes, persist]);
 
   const addWidget = useCallback((id: string) => {
     if (!activeWidgets.includes(id)) {
-      persist([...activeWidgets, id]);
+      persist([...activeWidgets, id], widgetSizes);
     }
-  }, [activeWidgets, persist]);
+  }, [activeWidgets, widgetSizes, persist]);
+
+  const toggleWidgetSize = useCallback((id: string) => {
+    const current = widgetSizes[id] ?? "full";
+    const newSizes = { ...widgetSizes, [id]: current === "full" ? "half" as const : "full" as const };
+    persist(activeWidgets, newSizes);
+  }, [activeWidgets, widgetSizes, persist]);
 
   const availableWidgets = useMemo(
     () => WIDGET_CATALOG.filter(w => !activeWidgets.includes(w.id)),
