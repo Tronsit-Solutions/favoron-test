@@ -61,6 +61,7 @@ interface CompletedRefundOrder {
 interface CancelledPaidPackage {
   id: string;
   created_at: string;
+  updated_at: string;
   quote: unknown;
   payment_receipt: unknown;
   recurrente_payment_id: string | null;
@@ -220,7 +221,7 @@ export const useDynamicReports = (months: number = 12) => {
       while (true) {
         const { data, error } = await supabase
           .from('packages')
-          .select('id, created_at, quote, payment_receipt, recurrente_payment_id')
+          .select('id, created_at, updated_at, quote, payment_receipt, recurrente_payment_id')
           .in('status', ['cancelled', 'archived_by_shopper'])
           .order('id', { ascending: true })
           .range(from, from + PAGE_SIZE - 1);
@@ -277,7 +278,7 @@ export const useDynamicReports = (months: number = 12) => {
       if (refundedPackageIds.has(pkg.id)) return acc;
       if (!hasPaymentEvidence(pkg)) return acc;
 
-      const monthKey = toMonthKey(pkg.created_at);
+      const monthKey = toMonthKey(pkg.updated_at);
       if (!monthKey) return acc;
 
       const quoteValues = getQuoteValues(pkg.quote);

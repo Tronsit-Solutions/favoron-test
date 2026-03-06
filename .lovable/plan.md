@@ -1,49 +1,58 @@
 
 
-## Hacer la grafica de Crecimiento de Ingresos consistente con la Tabla Resumen Financiera
+## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
 
-### Problema raiz
+### Concepto
+Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
 
-La grafica usa la funcion RPC `get_monthly_package_stats` que tiene una **lista de estados diferente** a la Tabla Resumen Financiera, y agrupa por `created_at` en UTC mientras la tabla usa la zona horaria local del navegador. Ademas, la tabla incluye reembolsos completados en un mes dado (sin importar cuando se creo el paquete), pero la grafica solo considera reembolsos por `created_at` del paquete.
+### Widgets disponibles (componentes existentes)
+Del catálogo de charts y componentes ya construidos:
+1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
+2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
+3. **UserGrowthChart** — Crecimiento de usuarios
+4. **PackagesChart** — Gráfico de paquetes por mes
+5. **TripsChart** — Gráfico de viajes
+6. **RevenueChart** — Ingresos por servicio
+7. **GMVChart** — GMV mensual
+8. **ServiceFeeGrowthChart** — Crecimiento de service fees
+9. **AvgPackageValueChart** — Valor promedio por paquete
+10. **AcquisitionChart** — Canales de adquisición
+11. **AcquisitionSurveyTable** — Tabla de encuestas
+12. **TravelerTipsCard** — Propinas de viajeros
+13. **CACKPICards** — Unit Economics KPIs
+14. **FunnelChart** — Funnel de conversión
 
-Diferencias en listas de estados:
-- **RPC incluye** pero tabla no: `payment_pending_approval`, `paid`, `payment_confirmed`
-- **Tabla incluye** pero RPC no: `purchase_confirmed`, `out_for_delivery`
+### Cambios
 
-### Solucion
+**`src/components/Dashboard.tsx`**:
+- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
+- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
 
-Dejar de usar la RPC para el calculo de service fee de la grafica y en su lugar calcular el ingreso mensual con la misma logica que la tabla, directamente en `useDynamicReports`.
+**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
+- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
+- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
+- Catálogo de widgets con id, nombre, icono, y componente React
+- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
+- **Reordenar**: botones ↑/↓ en cada widget en modo edición
+- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
+- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
+- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
+- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
 
-#### 1. Actualizar `get_monthly_package_stats` RPC (migracion SQL)
+**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
+- Modal/popover que muestra los widgets no activos del catálogo
+- Click en uno lo agrega al final de `activeWidgets`
 
-Alinear la lista de estados del CASE WHEN con la tabla:
+### UX
+- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
+- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
+- Botón "Agregar Widget" que abre el picker
+- Botón "Listo" para salir del modo edición
+- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
 
-```sql
-CASE WHEN p.status IN (
-  'pending_purchase','purchase_confirmed','shipped','in_transit',
-  'received_by_traveler','pending_office_confirmation',
-  'delivered_to_office','ready_for_pickup','ready_for_delivery',
-  'out_for_delivery','completed'
-) THEN ...
-```
-
-Esto hace que el service_fee bruto del RPC coincida con los paquetes activos que la tabla suma.
-
-#### 2. Ajustar deduccion de contrapartidas en `useDynamicReports`
-
-Actualmente las contrapartidas de cancelaciones se agrupan por `created_at` del paquete. La tabla las muestra por `updated_at` (cuando se cancelo). Cambiar el agrupamiento de contrapartidas a usar `updated_at` en lugar de `created_at`.
-
-#### 3. Ajustar deduccion de reembolsos en `useDynamicReports`
-
-Verificar que los reembolsos se agrupen por `completed_at` (o `created_at` del refund), igual que la tabla. Esto ya se hace correctamente.
-
-#### 4. Encabezado de la grafica: mostrar valor del mes actual
-
-Cambiar el numero grande arriba-derecha de la grafica para mostrar el valor del ultimo mes (barra mas reciente) en lugar de la suma acumulada de todo el periodo.
-
-### Archivos a modificar
-
-- **Nueva migracion SQL**: actualizar `get_monthly_package_stats` con estados alineados
-- **`src/hooks/useDynamicReports.tsx`**: cambiar agrupamiento de contrapartidas de `created_at` a `updated_at`; no cambios en logica de refunds
-- **`src/components/admin/charts/ServiceFeeGrowthChart.tsx`**: cambiar encabezado para mostrar solo el valor del ultimo mes
+### Consideraciones técnicas
+- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
+- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
+- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
+- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
 
