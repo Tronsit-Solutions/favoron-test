@@ -1,18 +1,36 @@
 
 
-## Mejorar modal de Historial de Lotes
+## Revertir confirmaciones de paquetes desde Preparación
 
-El problema es que el contenido se trunca con `truncate` y el modal es muy estrecho para mostrar la información. La imagen muestra que los nombres de shoppers se cortan y no hay forma de ver el detalle completo.
+### Problema
+Al confirmar un paquete por error (RPC `admin_confirm_office_delivery`), el paquete pasa a `delivered_to_office` y desaparece de Recepción. El estado anterior se guarda en `office_delivery.admin_confirmation.previous_status`, lo que permite revertir.
 
-### Cambios en ambos archivos
+### Solución
+Agregar un botón "Revertir" en cada paquete de la pestaña **Preparación** (Ready tab), que devuelve el paquete a su estado anterior.
 
-**`src/components/operations/OperationsLabelsTab.tsx`** (líneas 428-467) y **`src/components/operations/LabelCartBar.tsx`** (líneas 414-468):
+### Cambios
 
-1. Ampliar el modal de `max-w-lg` a `max-w-2xl` para dar más espacio
-2. Cambiar el `truncate` en la línea de nombres por `line-clamp-2` o `whitespace-normal` para que el texto haga wrap en lugar de cortarse
-3. Mejorar el layout de cada batch card:
-   - Mostrar el conteo de etiquetas y la fecha en una fila superior con flex
-   - Mostrar los nombres de shoppers en una lista con wrap completo (sin truncar)
-   - Agregar un poco más de padding y separación visual
-4. Añadir un badge con el número de etiquetas para mejor visibilidad
+**1. `src/components/operations/OperationsReadyTab.tsx`**
+- Agregar un botón "Revertir" (icono `Undo2`) a cada tarjeta de paquete
+- Al hacer clic, leer `office_delivery.admin_confirmation.previous_status` del paquete en DB
+- Actualizar el paquete: `status = previous_status`, limpiar `office_delivery.admin_confirmation`
+- Recalcular el `trip_payment_accumulator` (UPDATE directo restando el paquete revertido)
+- Agregar entrada al `admin_actions_log` documentando la reversión
+- Llamar `onRemovePackage` para quitarlo de la vista y `onRefresh` para que reaparezca en Recepción
+
+**2. `src/hooks/useOperationsData.tsx`**
+- Exponer `office_delivery` en `OperationsPackage` (ya se tiene `confirmed_delivery_address` pero no `office_delivery`)
+- Alternativamente, el componente puede hacer el fetch directo a DB para obtener `office_delivery` al momento de revertir (más simple, sin cambiar el hook)
+
+### Flujo de reversión
+1. Usuario presiona "Revertir" en un paquete en Preparación
+2. Se muestra un diálogo de confirmación ("¿Seguro que deseas revertir este paquete a Recepción?")
+3. Se lee `office_delivery->admin_confirmation->previous_status` de la DB
+4. Se actualiza el paquete: `status = previous_status`, se limpia la confirmación
+5. Se registra en `admin_actions_log`
+6. Se refresca la data para que el paquete reaparezca en Recepción
+
+### Notas técnicas
+- No se necesita nuevo RPC; se puede hacer con updates directos ya que operations tiene política de UPDATE en packages
+- El `previous_status` ya está almacenado por el RPC de confirmación, solo hay que leerlo
 
