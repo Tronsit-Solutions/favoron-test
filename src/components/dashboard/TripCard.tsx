@@ -225,12 +225,12 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               {shouldShowTipsButton && (
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => setShowTipsModal(true)}
-                  className="h-8 px-3 text-xs"
+                  className="h-10 px-3 bg-green-100 hover:bg-green-200 rounded-full text-xs gap-1"
                 >
-                  <Banknote className="h-3 w-3 mr-1" />
-                  <span className="font-medium">{formatCurrency(tipsAmount)}</span>
+                  <span className="text-base">🫰</span>
+                  <span className="font-medium text-green-800">{formatCurrency(tipsAmount)}</span>
                 </Button>
               )}
               {getStatusBadge(trip.status)}
