@@ -90,6 +90,7 @@ export const useAcquisitionAnalytics = () => {
     // Group users by acquisition source
     const channelMap = new Map<string, {
       users: Set<string>;
+      monetizedUsers: Set<string>;
       packages: number;
       paidPackages: number;
       serviceFee: number;
@@ -102,6 +103,7 @@ export const useAcquisitionAnalytics = () => {
       if (!channelMap.has(channel)) {
         channelMap.set(channel, {
           users: new Set(),
+          monetizedUsers: new Set(),
           packages: 0,
           paidPackages: 0,
           serviceFee: 0,
