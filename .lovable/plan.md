@@ -1,42 +1,15 @@
 
 
-## Separar paquetes en cards individuales con restauración individual
+## Fix: Paginar queries en useAcquisitionAnalytics
 
-### Cambios
+### Problema
+`useAcquisitionAnalytics.tsx` tiene el mismo problema que tenía `useCACAnalytics`: las queries a `profiles` y `packages` están limitadas a 1000 rows por el default de Supabase (`PGRST_MAX_ROWS`). Por eso solo se procesan ~1000 usuarios y ~1000 paquetes, resultando en un service fee total muy bajo.
 
-**1. `src/hooks/useOperationsData.tsx`**
-- Agregar función `restoreItemFromHistory(batchId, itemId)` que restaura un solo item de un batch al carrito actual
-- Si después de restaurar el item el batch queda vacío, eliminarlo automáticamente del historial
+### Solución
+Aplicar la misma función `fetchAllPaginated` que ya se creó en `useCACAnalytics.tsx`:
 
-**2. `src/components/operations/LabelCartBar.tsx` — HistoryDialog**
-- Refactorear la lista de items dentro de cada batch: cada item pasa a ser un mini-card con borde, padding, y layout claro
-- Cada card muestra: número de etiqueta, nombre del shopper, descripción del producto
-- Cada card tiene su propio botón "Restaurar" individual (icono RotateCcw pequeño)
-- Mantener el botón "Restaurar todo" a nivel de lote en el header
-- Eliminar `truncate` para que el texto sea completamente visible
-
-**3. `src/components/operations/OperationsLabelsTab.tsx` — History Dialog inline**
-- Aplicar los mismos cambios de UI que en LabelCartBar
-- Pasar la nueva prop `onRestoreItem` para restauración individual
-
-### Estructura visual
-
-```text
-┌─ Lote ──────────────────────────────────────────┐
-│ 6 etiquetas  6 mar 2026, 10:23  [Restaurar todo]│
-│                                                  │
-│ ┌──────────────────────────────────────────┐     │
-│ │ #0423  Rodrigo Noguera              [↺] │     │
-│ │ Carregador de Bateria                    │     │
-│ └──────────────────────────────────────────┘     │
-│ ┌──────────────────────────────────────────┐     │
-│ │ #0427  Andrea Nicolle Martinez      [↺] │     │
-│ │ iPhone 17 pro Max Silver 256GB           │     │
-│ └──────────────────────────────────────────┘     │
-│ ...                                              │
-└──────────────────────────────────────────────────┘
-```
-
-### Props nuevas
-- `onRestoreItem: (batchId: string, itemId: string) => void` se pasa desde Operations.tsx → LabelCartBar/OperationsLabelsTab → HistoryDialog
+**`src/hooks/useAcquisitionAnalytics.tsx`**
+- Copiar la función `fetchAllPaginated` (o importarla de un util compartido)
+- Refactorear ambas queries (`profiles` y `packages`) para usar `.range(from, to)` con paginación automática en bloques de 1000
+- Esto garantiza que se procesen todos los registros sin límite
 
