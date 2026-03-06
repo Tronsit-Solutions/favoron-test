@@ -1,58 +1,33 @@
 
 
-## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
+## Abrir detalle de ingresos al hacer clic en una barra de la gráfica
 
-### Concepto
-Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
+### Resumen
 
-### Widgets disponibles (componentes existentes)
-Del catálogo de charts y componentes ya construidos:
-1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
-2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
-3. **UserGrowthChart** — Crecimiento de usuarios
-4. **PackagesChart** — Gráfico de paquetes por mes
-5. **TripsChart** — Gráfico de viajes
-6. **RevenueChart** — Ingresos por servicio
-7. **GMVChart** — GMV mensual
-8. **ServiceFeeGrowthChart** — Crecimiento de service fees
-9. **AvgPackageValueChart** — Valor promedio por paquete
-10. **AcquisitionChart** — Canales de adquisición
-11. **AcquisitionSurveyTable** — Tabla de encuestas
-12. **TravelerTipsCard** — Propinas de viajeros
-13. **CACKPICards** — Unit Economics KPIs
-14. **FunnelChart** — Funnel de conversión
+Al hacer clic en una barra del gráfico "Crecimiento de Ingresos", se abrirá un Sheet (panel lateral) mostrando el detalle financiero de ese mes: service fee bruto, deducciones por reembolsos, deducciones por cancelaciones, y el neto resultante, con una lista de los paquetes involucrados.
 
 ### Cambios
 
-**`src/components/Dashboard.tsx`**:
-- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
-- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
+**1. `src/components/admin/charts/ServiceFeeGrowthChart.tsx`**
+- Agregar estado para el mes seleccionado (`selectedMonth`)
+- Agregar handler `onClick` en el `<Bar>` para capturar el mes clickeado
+- Renderizar un `<Sheet>` que se abre cuando `selectedMonth` está definido
 
-**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
-- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
-- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
-- Catálogo de widgets con id, nombre, icono, y componente React
-- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
-- **Reordenar**: botones ↑/↓ en cada widget en modo edición
-- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
-- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
-- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
-- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
+**2. Nuevo componente `src/components/admin/charts/RevenueDetailSheet.tsx`**
+- Recibe el `month` (formato YYYY-MM) y un callback `onClose`
+- Consulta los paquetes activos del mes (mismos 11 estados que la tabla financiera) agrupados por `created_at` en zona horaria Guatemala
+- Consulta reembolsos completados del mes (por `completed_at`)
+- Consulta cancelaciones pagadas sin reembolso del mes (por `updated_at`)
+- Muestra:
+  - Resumen: Service Fee Bruto, (-) Reembolsos, (-) Cancelaciones, = Neto
+  - Tabla con cada paquete/reembolso/cancelación mostrando descripción, status, service fee, y tipo (ingreso/deducción)
 
-**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
-- Modal/popover que muestra los widgets no activos del catálogo
-- Click en uno lo agrega al final de `activeWidgets`
+**3. Pasar datos necesarios al componente**
+- El `ServiceFeeGrowthChart` ya recibe `data` con `monthLabel` y `month`. El componente de detalle usará el `month` (YYYY-MM) para hacer sus propias queries a Supabase.
 
-### UX
-- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
-- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
-- Botón "Agregar Widget" que abre el picker
-- Botón "Listo" para salir del modo edición
-- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
-
-### Consideraciones técnicas
-- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
-- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
-- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
-- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
+### Flujo de interacción
+1. Usuario hace clic en barra → se guarda el `month` del datapoint
+2. Se abre Sheet desde la derecha con el detalle
+3. El Sheet hace queries independientes para mostrar el desglose exacto
+4. Usuario cierra el Sheet con X o clic fuera
 
