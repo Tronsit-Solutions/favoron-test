@@ -309,6 +309,10 @@ const AdminSurveys = () => {
               </Card>
             </TabsContent>
 
+            <TabsContent value="traveler-surveys">
+              <AdminTravelerSurveysTab />
+            </TabsContent>
+
             <TabsContent value="traveler-ratings">
               <AdminTravelerRatingsTab />
             </TabsContent>
