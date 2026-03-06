@@ -76,9 +76,9 @@ const TravelerPackagePriorityActions = ({
                     </p>
                   </div>}
                 {pkg.status === 'pending_office_confirmation' && <div>
-                    <p className="text-sm font-semibold mb-1">🔒 Entrega pendiente de confirmación</p>
+                    <p className="text-sm font-semibold mb-0.5">🔒 Entrega pendiente de confirmación</p>
                     <p className="text-xs text-muted-foreground">
-                      Has declarado la entrega. Esperando que Favorón confirme la recepción para desbloquear tu compensación.
+                      Esperando que Favorón confirme la recepción.
                     </p>
                   </div>}
               </div>
