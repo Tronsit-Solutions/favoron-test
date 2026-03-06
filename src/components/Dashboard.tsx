@@ -257,14 +257,11 @@ const Dashboard = ({ user }: DashboardProps) => {
     userTripsData: userTrips.slice(0, 3)
   });
   
-  // Filter user trips based on inactive preference
+  // Auto-hide trips: rejected/cancelled always, completed/completed_paid only after feedback
   const filteredUserTrips = userTrips.filter(trip => {
-    // Filter out inactive trips if user preference is enabled
-    const inactiveStatuses = ['completed', 'rejected', 'cancelled', 'completed_paid'];
-    const isActive = !inactiveStatuses.includes(trip.status);
-    const shouldShow = !hideInactiveTrips || isActive;
-    
-    return shouldShow;
+    if (trip.status === 'rejected' || trip.status === 'cancelled') return false;
+    if ((trip.status === 'completed' || trip.status === 'completed_paid') && trip.traveler_feedback_completed) return false;
+    return true;
   });
   
   // Get packages assigned to user's trips (for traveler view)
