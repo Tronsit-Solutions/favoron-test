@@ -57,7 +57,7 @@ export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
             <CardDescription>Service fee neto mensual (GTQ)</CardDescription>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold">Q{totalRevenue.toLocaleString('es-GT', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+            <div className="text-2xl font-bold">Q{lastMonth.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             <div className={`flex items-center gap-1 text-sm ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
               {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
               {isPositive ? '+' : ''}{momGrowth.toFixed(1)}% MoM

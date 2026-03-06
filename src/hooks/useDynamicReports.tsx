@@ -278,7 +278,7 @@ export const useDynamicReports = (months: number = 12) => {
       if (refundedPackageIds.has(pkg.id)) return acc;
       if (!hasPaymentEvidence(pkg)) return acc;
 
-      const monthKey = toMonthKey(pkg.created_at);
+      const monthKey = toMonthKey(pkg.updated_at);
       if (!monthKey) return acc;
 
       const quoteValues = getQuoteValues(pkg.quote);
