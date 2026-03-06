@@ -246,6 +246,21 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             </div>
           )}
 
+          {/* Survey button */}
+          {shouldShowSurveyButton && (
+            <div className="flex justify-start">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowSurveyModal(true)}
+                className="h-8 px-3 text-xs"
+              >
+                <Star className="h-3 w-3 mr-1" />
+                Califica tu experiencia
+              </Button>
+            </div>
+          )}
+
           {/* Action Buttons - Better organized */}
           <div className="flex flex-wrap gap-2">
               {/* Delivery confirmation button */}
