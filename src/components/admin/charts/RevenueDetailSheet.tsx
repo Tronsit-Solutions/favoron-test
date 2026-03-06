@@ -208,12 +208,12 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
   const fmt = (v: number) => `Q${Math.abs(v).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
-    <Dialog open={!!month} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="capitalize text-xl">Detalle de Ingresos — {monthLabel}</DialogTitle>
-          <DialogDescription>Desglose del service fee neto del mes</DialogDescription>
-        </DialogHeader>
+    <Sheet open={!!month} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <SheetContent side="right" className="!max-w-2xl w-full overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="capitalize text-xl">Detalle de Ingresos — {monthLabel}</SheetTitle>
+          <SheetDescription>Desglose del service fee neto del mes</SheetDescription>
+        </SheetHeader>
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
