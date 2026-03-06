@@ -257,7 +257,7 @@ export const useOperationsData = () => {
   // Reception tab: in_transit, received_by_traveler, pending_office_confirmation
   const receptionPackages = useMemo(() => 
     allPackages.filter(p => 
-      ['in_transit', 'received_by_traveler', 'pending_office_confirmation'].includes(p.status)
+      ['in_transit', 'received_by_traveler', 'pending_office_confirmation'].includes(p.status) && !p.incident_flag
     ), [allPackages]);
 
   // Ready tab: delivered_to_office
