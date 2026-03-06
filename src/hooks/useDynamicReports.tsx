@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo } from "react";
-import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { format, subMonths } from "date-fns";
 import { es } from "date-fns/locale";
+import { getQuoteValues } from "@/lib/quoteHelpers";
 
 interface MonthlyUserCount {
   month: string;
@@ -43,9 +44,26 @@ interface MonthlyDataPoint {
   tripApprovalRate: number;
   gmv: number;
   favoronRevenue: number;
+  netFavoronRevenue: number;
   travelerTips: number;
   profitMargin: number;
   avgPackageValue: number;
+}
+
+interface CompletedRefundOrder {
+  package_id: string;
+  amount: number;
+  created_at: string;
+  completed_at: string | null;
+  cancelled_products: unknown;
+}
+
+interface CancelledPaidPackage {
+  id: string;
+  created_at: string;
+  quote: unknown;
+  payment_receipt: unknown;
+  recurrente_payment_id: string | null;
 }
 
 interface KPIData {
@@ -67,6 +85,48 @@ export interface DynamicReportsData {
   isLoading: boolean;
   error: Error | null;
 }
+
+const PAGE_SIZE = 1000;
+
+const toMonthKey = (value: string | null | undefined): string | null => {
+  if (!value) return null;
+  return value.substring(0, 7);
+};
+
+const hasPaymentEvidence = (pkg: CancelledPaidPackage): boolean => {
+  const receipt = pkg.payment_receipt as any;
+  const hasManualReceipt = receipt && typeof receipt === 'object' && !!receipt.filePath;
+  const hasCardPayment = !!pkg.recurrente_payment_id;
+  const hasCardReceiptEvidence = receipt && typeof receipt === 'object' &&
+    (receipt.method === 'card' || !!receipt.payment_id || receipt.provider === 'recurrente');
+
+  return hasManualReceipt || hasCardPayment || hasCardReceiptEvidence;
+};
+
+const extractRefundServiceFee = (refund: CompletedRefundOrder): number => {
+  const cancelledProducts = Array.isArray(refund.cancelled_products) ? refund.cancelled_products as any[] : [];
+
+  if (cancelledProducts.length === 0) return 0;
+
+  const explicitServiceFee = cancelledProducts.reduce((sum, product) => {
+    const value = Number(product?.serviceFee ?? 0);
+    return sum + (Number.isFinite(value) ? value : 0);
+  }, 0);
+
+  if (explicitServiceFee > 0) return explicitServiceFee;
+
+  const refundTips = cancelledProducts.reduce((sum, product) => {
+    const value = Number(product?.tip ?? product?.adminAssignedTip ?? 0);
+    return sum + (Number.isFinite(value) ? value : 0);
+  }, 0);
+
+  const refundDeliveryFee = cancelledProducts.reduce((sum, product) => {
+    const value = Number(product?.deliveryFee ?? 0);
+    return sum + (Number.isFinite(value) ? value : 0);
+  }, 0);
+
+  return Math.max(0, Number(refund.amount || 0) - refundTips - refundDeliveryFee);
+};
 
 export const useDynamicReports = (months: number = 12) => {
   // Fetch exact counts (not limited by default 1000 row limit)
@@ -121,8 +181,66 @@ export const useDynamicReports = (months: number = 12) => {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Fetch completed refunds to net out service fee in growth chart
+  const { data: completedRefundOrders, isLoading: refundsLoading } = useQuery({
+    queryKey: ['dynamic-reports-refunds', 'v1'],
+    queryFn: async () => {
+      const allRows: CompletedRefundOrder[] = [];
+      let from = 0;
+
+      while (true) {
+        const { data, error } = await supabase
+          .from('refund_orders')
+          .select('package_id, amount, created_at, completed_at, cancelled_products')
+          .eq('status', 'completed')
+          .order('id', { ascending: true })
+          .range(from, from + PAGE_SIZE - 1);
+
+        if (error) throw error;
+
+        const batch = (data || []) as CompletedRefundOrder[];
+        allRows.push(...batch);
+
+        if (batch.length < PAGE_SIZE) break;
+        from += PAGE_SIZE;
+      }
+
+      return allRows;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch cancelled-but-paid packages to add cancellation counterparts
+  const { data: cancelledPaidPackages, isLoading: cancelledPaidLoading } = useQuery({
+    queryKey: ['dynamic-reports-cancelled-paid-packages', 'v1'],
+    queryFn: async () => {
+      const allRows: CancelledPaidPackage[] = [];
+      let from = 0;
+
+      while (true) {
+        const { data, error } = await supabase
+          .from('packages')
+          .select('id, created_at, quote, payment_receipt, recurrente_payment_id')
+          .in('status', ['cancelled', 'archived_by_shopper'])
+          .order('id', { ascending: true })
+          .range(from, from + PAGE_SIZE - 1);
+
+        if (error) throw error;
+
+        const batch = (data || []) as CancelledPaidPackage[];
+        allRows.push(...batch);
+
+        if (batch.length < PAGE_SIZE) break;
+        from += PAGE_SIZE;
+      }
+
+      return allRows;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   const processedData = useMemo(() => {
-    if (!monthlyUsersData || !monthlyPackagesData || !monthlyTripsData || !countsData) {
+    if (!monthlyUsersData || !monthlyPackagesData || !monthlyTripsData || !countsData || !completedRefundOrders || !cancelledPaidPackages) {
       return { monthlyData: [], kpis: getEmptyKPIs() };
     }
 
@@ -142,11 +260,33 @@ export const useDynamicReports = (months: number = 12) => {
       return { monthlyData: [], kpis: getEmptyKPIs() };
     }
 
-    // Sort months and limit to requested range
-    const sortedMonths = Array.from(allMonths).sort();
+    const refundedPackageIds = new Set(
+      completedRefundOrders.map(refund => refund.package_id).filter(Boolean)
+    );
+
+    const refundServiceFeeByMonth = completedRefundOrders.reduce((acc, refund) => {
+      const monthKey = toMonthKey(refund.completed_at || refund.created_at);
+      if (!monthKey) return acc;
+
+      const currentValue = acc.get(monthKey) || 0;
+      acc.set(monthKey, currentValue + extractRefundServiceFee(refund));
+      return acc;
+    }, new Map<string, number>());
+
+    const cancellationServiceFeeByMonth = cancelledPaidPackages.reduce((acc, pkg) => {
+      if (refundedPackageIds.has(pkg.id)) return acc;
+      if (!hasPaymentEvidence(pkg)) return acc;
+
+      const monthKey = toMonthKey(pkg.created_at);
+      if (!monthKey) return acc;
+
+      const quoteValues = getQuoteValues(pkg.quote);
+      const currentValue = acc.get(monthKey) || 0;
+      acc.set(monthKey, currentValue + quoteValues.serviceFee);
+      return acc;
+    }, new Map<string, number>());
+
     const now = new Date();
-    const currentMonth = now.toISOString().substring(0, 7);
-    
     // Generate months to display (last N months)
     const monthsToDisplay: string[] = [];
     for (let i = months - 1; i >= 0; i--) {
@@ -176,6 +316,9 @@ export const useDynamicReports = (months: number = 12) => {
       const gmv = pkgStats ? Number(pkgStats.gmv) : 0;
       const serviceFee = pkgStats ? Number(pkgStats.service_fee) : 0;
       const deliveryFee = pkgStats ? Number(pkgStats.delivery_fee) : 0;
+      const refundAdjustment = refundServiceFeeByMonth.get(monthKey) || 0;
+      const cancellationAdjustment = cancellationServiceFeeByMonth.get(monthKey) || 0;
+      const netServiceFee = serviceFee - refundAdjustment - cancellationAdjustment;
 
       const totalTrips = tripStats ? Number(tripStats.total_count) : 0;
       const approvedTrips = tripStats ? Number(tripStats.approved_count) : 0;
@@ -200,6 +343,7 @@ export const useDynamicReports = (months: number = 12) => {
         tripApprovalRate: totalTrips > 0 ? (approvedTrips / totalTrips) * 100 : 0,
         gmv,
         favoronRevenue: serviceFee,
+        netFavoronRevenue: netServiceFee,
         travelerTips,
         profitMargin: gmv > 0 ? (serviceFee / gmv) * 100 : 0,
         avgPackageValue,
@@ -261,9 +405,9 @@ export const useDynamicReports = (months: number = 12) => {
     };
 
     return { monthlyData, kpis };
-  }, [monthlyUsersData, monthlyPackagesData, monthlyTripsData, countsData, months]);
+  }, [monthlyUsersData, monthlyPackagesData, monthlyTripsData, countsData, completedRefundOrders, cancelledPaidPackages, months]);
 
-  const isLoading = usersLoading || packagesLoading || tripsLoading || countsLoading;
+  const isLoading = usersLoading || packagesLoading || tripsLoading || countsLoading || refundsLoading || cancelledPaidLoading;
 
   return {
     ...processedData,
