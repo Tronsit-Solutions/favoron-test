@@ -8,7 +8,7 @@ import PackageRequestForm from "./PackageRequestForm";
 import TripForm from "./TripForm";
 import AddressConfirmationModal from "./AddressConfirmationModal";
 import AdminDashboard from "./AdminDashboard";
-import LastMileTab from "./admin/LastMileTab";
+
 import QuoteDialog from "./QuoteDialog";
 import UserProfile from "./UserProfile";
 import EditProfileModal from "./profile/EditProfileModal";
@@ -596,15 +596,6 @@ const Dashboard = ({ user }: DashboardProps) => {
                   )}
                 </TabsTrigger>
               )}
-              {isAdminViewingAsAdmin && (
-                <TabsTrigger 
-                  value="ultima-milla" 
-                  className="relative flex-1 min-w-[90px] text-xs sm:text-sm px-2 py-2 flex items-center justify-center gap-1"
-                >
-                  <span className="hidden sm:inline">Última Milla</span>
-                  <span className="sm:hidden">Ú. Milla</span>
-                </TabsTrigger>
-              )}
             </TabsList>
           )}
 
@@ -971,15 +962,6 @@ const Dashboard = ({ user }: DashboardProps) => {
             </TabsContent>
           )}
 
-          {isAdmin && (
-            <TabsContent value="ultima-milla">
-              <LastMileTab 
-                trips={trips}
-                packages={packages}
-                getStatusBadge={getStatusBadge}
-              />
-            </TabsContent>
-          )}
 
           <TabsContent value="profile" className="space-y-6">
             <div className="mb-6">
