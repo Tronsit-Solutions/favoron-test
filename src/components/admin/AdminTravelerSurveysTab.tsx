@@ -55,7 +55,7 @@ const AdminTravelerSurveysTab = () => {
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data || []) as TravelerSurvey[];
+      return (data || []) as unknown as TravelerSurvey[];
     },
   });
 
