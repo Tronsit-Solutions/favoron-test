@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote, Receipt, MapPin, User, Calendar, Pencil, Star } from "lucide-react";
+import { Phone, Edit, CheckCircle, MoreHorizontal, Receipt, MapPin, User, Calendar, Pencil, Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
@@ -225,12 +225,12 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               {shouldShowTipsButton && (
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => setShowTipsModal(true)}
-                  className="h-8 px-3 text-xs"
+                  className="h-10 px-3 bg-green-100 hover:bg-green-200 rounded-full text-xs gap-1"
                 >
-                  <Banknote className="h-3 w-3 mr-1" />
-                  <span className="font-medium">{formatCurrency(tipsAmount)}</span>
+                  <span className="text-base">🫰</span>
+                  <span className="font-medium text-green-800">{formatCurrency(tipsAmount)}</span>
                 </Button>
               )}
               {getStatusBadge(trip.status)}
