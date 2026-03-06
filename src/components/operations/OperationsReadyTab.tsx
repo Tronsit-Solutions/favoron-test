@@ -4,11 +4,21 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Package, CheckCircle, Loader2, Truck, Store, ExternalLink, User, Plane, Tag, Printer, RefreshCw } from 'lucide-react';
+import { Package, CheckCircle, Loader2, Truck, Store, ExternalLink, User, Plane, Tag, Printer, RefreshCw, Undo2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDateUTC } from '@/lib/formatters';
 import { PackageLabelModal } from '@/components/admin/PackageLabelModal';
 import { OperationsPackage, ProductData } from '@/hooks/useOperationsData';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface OperationsReadyTabProps {
   packages: OperationsPackage[];
@@ -20,6 +30,8 @@ interface OperationsReadyTabProps {
 const OperationsReadyTab = ({ packages, loading, onRefresh, onRemovePackage }: OperationsReadyTabProps) => {
   const { user } = useAuth();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [revertingId, setRevertingId] = useState<string | null>(null);
+  const [confirmRevertPkg, setConfirmRevertPkg] = useState<OperationsPackage | null>(null);
   const [showLabelModal, setShowLabelModal] = useState(false);
   const [selectedPackagesForLabel, setSelectedPackagesForLabel] = useState<OperationsPackage[]>([]);
 
@@ -49,6 +61,74 @@ const OperationsReadyTab = ({ packages, loading, onRefresh, onRemovePackage }: O
       toast.error(error.message || 'Error al actualizar paquete');
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleRevertConfirmation = async (pkg: OperationsPackage) => {
+    if (!user) return;
+    setRevertingId(pkg.id);
+
+    try {
+      // 1. Read office_delivery from DB to get previous_status
+      const { data: pkgData, error: fetchError } = await supabase
+        .from('packages')
+        .select('office_delivery, admin_actions_log, matched_trip_id')
+        .eq('id', pkg.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const officeDelivery = pkgData?.office_delivery as any;
+      const previousStatus = officeDelivery?.admin_confirmation?.previous_status;
+
+      if (!previousStatus) {
+        toast.error('No se encontró el estado anterior para revertir');
+        return;
+      }
+
+      // 2. Build updated admin_actions_log
+      const existingLog = Array.isArray(pkgData?.admin_actions_log) ? pkgData.admin_actions_log : [];
+      const revertLogEntry = {
+        action: 'revert_office_confirmation',
+        by: user.id,
+        at: new Date().toISOString(),
+        from_status: 'delivered_to_office',
+        to_status: previousStatus,
+      };
+
+      // 3. Clear admin_confirmation from office_delivery but keep other fields
+      const updatedOfficeDelivery = { ...officeDelivery };
+      delete updatedOfficeDelivery.admin_confirmation;
+
+      // 4. Update package status back
+      const { error: updateError } = await supabase
+        .from('packages')
+        .update({
+          status: previousStatus,
+          office_delivery: Object.keys(updatedOfficeDelivery).length > 0 ? updatedOfficeDelivery : null,
+          admin_actions_log: [...existingLog, revertLogEntry],
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', pkg.id);
+
+      if (updateError) throw updateError;
+
+      // 5. Recalculate trip payment accumulator via edge function
+      if (pkgData?.matched_trip_id) {
+        supabase.functions.invoke('recalculate-trip-accumulator', {
+          body: { tripId: pkgData.matched_trip_id },
+        }).catch(err => console.error('Error recalculating accumulator:', err));
+      }
+
+      toast.success('Confirmación revertida. El paquete regresó a Recepción.');
+      onRemovePackage(pkg.id);
+      onRefresh();
+    } catch (error: any) {
+      console.error('Error reverting package:', error);
+      toast.error(error.message || 'Error al revertir la confirmación');
+    } finally {
+      setRevertingId(null);
+      setConfirmRevertPkg(null);
     }
   };
 
@@ -141,15 +221,30 @@ const OperationsReadyTab = ({ packages, loading, onRefresh, onRemovePackage }: O
                     {getDeliveryMethodBadge(pkg.delivery_method)}
                   </div>
                   
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openLabelModal([pkg])}
-                    className="shrink-0"
-                  >
-                    <Tag className="h-4 w-4 mr-1" />
-                    Etiqueta
-                  </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setConfirmRevertPkg(pkg)}
+                      disabled={revertingId === pkg.id}
+                      className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                    >
+                      {revertingId === pkg.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                      ) : (
+                        <Undo2 className="h-4 w-4 mr-1" />
+                      )}
+                      Revertir
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openLabelModal([pkg])}
+                    >
+                      <Tag className="h-4 w-4 mr-1" />
+                      Etiqueta
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="flex items-center gap-2 mb-3 p-3 bg-primary/10 rounded-lg border border-primary/20">
@@ -234,6 +329,27 @@ const OperationsReadyTab = ({ packages, loading, onRefresh, onRemovePackage }: O
         onClose={() => setShowLabelModal(false)}
         packages={selectedPackagesForLabel as any}
       />
+
+      <AlertDialog open={!!confirmRevertPkg} onOpenChange={(open) => !open && setConfirmRevertPkg(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Revertir confirmación?</AlertDialogTitle>
+            <AlertDialogDescription>
+              El paquete de <strong>{confirmRevertPkg?.shopper_name}</strong> regresará a la pestaña de Recepción.
+              Esta acción deshace la confirmación de entrega en oficina.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmRevertPkg && handleRevertConfirmation(confirmRevertPkg)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sí, revertir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
