@@ -222,6 +222,7 @@ export const useDynamicReports = (months: number = 12) => {
           .from('packages')
           .select('id, created_at, quote, payment_receipt, recurrente_payment_id')
           .in('status', ['cancelled', 'archived_by_shopper'])
+          .order('id', { ascending: true })
           .range(from, from + PAGE_SIZE - 1);
 
         if (error) throw error;
