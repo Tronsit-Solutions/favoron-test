@@ -429,9 +429,9 @@ const HistoryDialog = ({ open, onOpenChange, history, onRestore, onDelete }: His
             {history.map((batch) => (
               <div
                 key={batch.id}
-                className="flex items-start justify-between p-4 rounded-lg border bg-card gap-4"
+                className="p-4 rounded-lg border bg-card space-y-2"
               >
-                <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-2">
                     <span className="inline-flex items-center rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium">
                       {batch.items.length} etiqueta{batch.items.length !== 1 ? 's' : ''}
@@ -440,27 +440,39 @@ const HistoryDialog = ({ open, onOpenChange, history, onRestore, onDelete }: His
                       {format(new Date(batch.createdAt), "d MMM yyyy, HH:mm", { locale: es })}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {batch.items.map(i => i.shopper_name).filter((v, idx, a) => a.indexOf(v) === idx).join(', ')}
-                  </p>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onRestore(batch.id)}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                      Restaurar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onDelete(batch.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 ml-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onRestore(batch.id)}
-                  >
-                    <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                    Restaurar
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => onDelete(batch.id)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                <div className="space-y-1 pt-1">
+                  {batch.items.map((item) => {
+                    const desc = item.products_data?.[0]?.itemDescription || item.item_description || '';
+                    return (
+                      <div key={item.id} className="flex items-center gap-2 text-xs text-muted-foreground pl-1">
+                        {item.label_number != null && (
+                          <span className="font-mono font-medium text-foreground">#{String(item.label_number).padStart(4, '0')}</span>
+                        )}
+                        <span className="truncate">
+                          {item.shopper_name}{desc ? ` — ${desc}` : ''}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}
