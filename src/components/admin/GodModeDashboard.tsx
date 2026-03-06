@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Settings, Check, Plus, ChevronUp, ChevronDown, X, BarChart3, Users, Package, Plane, DollarSign, TrendingUp, PieChart, Coins, Activity, Table2, Zap, Target, Star } from "lucide-react";
+import { Settings, Check, Plus, ChevronUp, ChevronDown, X, BarChart3, Users, Package, Plane, DollarSign, TrendingUp, PieChart, Coins, Activity, Table2, Zap, Target, Star, Maximize2, Minimize2 } from "lucide-react";
 import { useDynamicReports } from "@/hooks/useDynamicReports";
 import { useAcquisitionAnalytics } from "@/hooks/useAcquisitionAnalytics";
 import { useTravelerTipsReport } from "@/hooks/useTravelerTipsReport";
@@ -48,6 +48,11 @@ const WIDGET_CATALOG: WidgetDefinition[] = [
 
 const DEFAULT_WIDGETS = ["platform-rating", "stats-overview", "kpi-cards", "user-growth", "revenue-chart"];
 
+interface SavedLayout {
+  widgets: string[];
+  sizes: Record<string, "full" | "half">;
+}
+
 interface GodModeDashboardProps {
   packages: any[];
   trips: any[];
@@ -60,9 +65,23 @@ const GodModeDashboard = ({ packages, trips, userId }: GodModeDashboardProps) =>
   const [activeWidgets, setActiveWidgets] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem(storageKey);
-      return saved ? JSON.parse(saved) : DEFAULT_WIDGETS;
+      if (!saved) return DEFAULT_WIDGETS;
+      const parsed = JSON.parse(saved);
+      // Support both old (array) and new (object) format
+      return Array.isArray(parsed) ? parsed : parsed.widgets ?? DEFAULT_WIDGETS;
     } catch {
       return DEFAULT_WIDGETS;
+    }
+  });
+
+  const [widgetSizes, setWidgetSizes] = useState<Record<string, "full" | "half">>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (!saved) return {};
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? {} : parsed.sizes ?? {};
+    } catch {
+      return {};
     }
   });
 
@@ -74,16 +93,19 @@ const GodModeDashboard = ({ packages, trips, userId }: GodModeDashboardProps) =>
   const { acquisitionData, summaryKPIs, isLoading: acquisitionLoading } = useAcquisitionAnalytics();
   const { data: travelerTipsData, isLoading: travelerTipsLoading } = useTravelerTipsReport();
 
-  const persist = useCallback((widgets: string[]) => {
+  const persist = useCallback((widgets: string[], sizes: Record<string, "full" | "half">) => {
     setActiveWidgets(widgets);
+    setWidgetSizes(sizes);
     try {
-      localStorage.setItem(storageKey, JSON.stringify(widgets));
+      localStorage.setItem(storageKey, JSON.stringify({ widgets, sizes }));
     } catch {}
   }, [storageKey]);
 
   const removeWidget = useCallback((id: string) => {
-    persist(activeWidgets.filter(w => w !== id));
-  }, [activeWidgets, persist]);
+    const newSizes = { ...widgetSizes };
+    delete newSizes[id];
+    persist(activeWidgets.filter(w => w !== id), newSizes);
+  }, [activeWidgets, widgetSizes, persist]);
 
   const moveWidget = useCallback((id: string, direction: -1 | 1) => {
     const idx = activeWidgets.indexOf(id);
@@ -92,14 +114,20 @@ const GodModeDashboard = ({ packages, trips, userId }: GodModeDashboardProps) =>
     if (newIdx < 0 || newIdx >= activeWidgets.length) return;
     const next = [...activeWidgets];
     [next[idx], next[newIdx]] = [next[newIdx], next[idx]];
-    persist(next);
-  }, [activeWidgets, persist]);
+    persist(next, widgetSizes);
+  }, [activeWidgets, widgetSizes, persist]);
 
   const addWidget = useCallback((id: string) => {
     if (!activeWidgets.includes(id)) {
-      persist([...activeWidgets, id]);
+      persist([...activeWidgets, id], widgetSizes);
     }
-  }, [activeWidgets, persist]);
+  }, [activeWidgets, widgetSizes, persist]);
+
+  const toggleWidgetSize = useCallback((id: string) => {
+    const current = widgetSizes[id] ?? "full";
+    const newSizes = { ...widgetSizes, [id]: current === "full" ? "half" as const : "full" as const };
+    persist(activeWidgets, newSizes);
+  }, [activeWidgets, widgetSizes, persist]);
 
   const availableWidgets = useMemo(
     () => WIDGET_CATALOG.filter(w => !activeWidgets.includes(w.id)),
@@ -177,49 +205,61 @@ const GodModeDashboard = ({ packages, trips, userId }: GodModeDashboardProps) =>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {activeWidgets.map((widgetId, idx) => (
-            <div key={widgetId} className="relative group">
-              {editMode && (
-                <div className="absolute top-2 right-2 z-10 flex gap-1">
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="h-7 w-7"
-                    disabled={idx === 0}
-                    onClick={() => moveWidget(widgetId, -1)}
-                  >
-                    <ChevronUp className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="h-7 w-7"
-                    disabled={idx === activeWidgets.length - 1}
-                    onClick={() => moveWidget(widgetId, 1)}
-                  >
-                    <ChevronDown className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => removeWidget(widgetId)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
+        <div className="grid grid-cols-2 gap-4">
+          {activeWidgets.map((widgetId, idx) => {
+            const size = widgetSizes[widgetId] ?? "full";
+            return (
+              <div key={widgetId} className={`relative group ${size === "full" ? "col-span-2" : "col-span-2 md:col-span-1"}`}>
+                {editMode && (
+                  <div className="absolute top-2 right-2 z-10 flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      onClick={() => toggleWidgetSize(widgetId)}
+                      title={size === "full" ? "Hacer más pequeño" : "Hacer ancho completo"}
+                    >
+                      {size === "full" ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      disabled={idx === 0}
+                      onClick={() => moveWidget(widgetId, -1)}
+                    >
+                      <ChevronUp className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      disabled={idx === activeWidgets.length - 1}
+                      onClick={() => moveWidget(widgetId, 1)}
+                    >
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      onClick={() => removeWidget(widgetId)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+                {editMode && (
+                  <div className="text-xs text-muted-foreground mb-1 font-medium">
+                    {getWidgetName(widgetId)}
+                  </div>
+                )}
+                <div className={editMode ? "ring-1 ring-border rounded-lg p-1" : ""}>
+                  {renderWidget(widgetId)}
                 </div>
-              )}
-              {editMode && (
-                <div className="text-xs text-muted-foreground mb-1 font-medium">
-                  {getWidgetName(widgetId)}
-                </div>
-              )}
-              <div className={editMode ? "ring-1 ring-border rounded-lg p-1" : ""}>
-                {renderWidget(widgetId)}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
