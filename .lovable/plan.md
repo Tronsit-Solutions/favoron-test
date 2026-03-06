@@ -1,45 +1,22 @@
 
 
-## Fix: Delivery fee clasificando municipios de Guatemala como "outside" (Q60 en vez de Q45)
+## Botón de chat más grande + modal de chat
 
-### Problema
-La función `getDeliveryZone` en `src/lib/pricing.ts` tiene una lista hardcoded de municipios del Departamento de Guatemala. Si el `cityArea` no coincide con ninguno de esos nombres específicos, cae al default `outside` (Q60). Pero la regla de negocio correcta es: **cualquier entrega dentro de Guatemala (país) que no sea Ciudad de Guatemala debe ser Q45**.
+### Cambios
 
-### Causa raíz
-El `getDeliveryZone` solo recibe `cityArea` (string) y no tiene contexto del país. Un municipio guatemalteco que no esté en la lista hardcoded se clasifica como `outside`.
+**Ambos archivos: `CollapsiblePackageCard.tsx` y `CollapsibleTravelerPackageCard.tsx`**:
 
-### Solución
-Cambiar la lógica del three-tier system para que considere el **país de destino**:
+1. **Agrandar el botón de chat**: Cambiar de `h-8 w-8` / `h-9 w-9` a `h-10 w-10` y el ícono de `h-5 w-5` a `h-6 w-6`. Agregar un fondo sutil (`bg-primary/10`) para que sea más visible.
 
-1. **Modificar `getDeliveryZone`** en `src/lib/pricing.ts` para aceptar un parámetro opcional `destinationCountry`. Si el país es Guatemala y el cityArea no matchea Guatemala City, clasificar como `guatemala_department` (Q45) en vez de `outside`.
+2. **Cambiar `handleChatClick`**: En vez de expandir la card y cambiar al tab "chat", abrir un **modal/dialog** con el `PackageTimeline` (el mismo componente de chat que ya se usa en las cards y en `MatchChatModal`).
 
-2. **Propagar `destinationCountry`** a todas las llamadas de `getDeliveryZone` y `getDeliveryFee`:
-   - `src/contexts/PlatformFeesContext.tsx` — `getDeliveryFeeHelper`
-   - `src/components/QuoteDialog.tsx` — pricing section
-   - `src/utils/adminQuoteGeneration.ts`
-   - `src/lib/quoteHelpers.ts` — `normalizeQuote`, `validateQuote`, etc.
-   - `src/hooks/useDashboardActions.tsx` — quote generation calls
-
-3. **Replicar la misma lógica** en las edge functions:
-   - `supabase/functions/fix-delivery-fees-v3/index.ts`
-   - `supabase/functions/intelligent-quote-backfill/index.ts`
-
-### Lógica actualizada
-```text
-getDeliveryZone(cityArea, destinationCountry?):
-  1. Si cityArea matchea GUATEMALA_DEPT_MUNICIPALITIES → guatemala_department
-  2. Si cityArea matchea GUATEMALA_CITY_PATTERNS → guatemala_city  
-  3. Si destinationCountry es "guatemala" → guatemala_department (NEW!)
-  4. Default → outside
-```
+3. **Agregar un `Dialog`** dentro de cada componente:
+   - Estado `chatModalOpen` (boolean)
+   - `handleChatClick` → setea `chatModalOpen = true` (sin expandir la card)
+   - El dialog muestra: header con nombre del paquete + `PackageTimeline` ocupando el espacio restante
+   - Mismo layout que `MatchChatModal`: `max-w-4xl h-[85vh] flex flex-col`
 
 ### Archivos a modificar
-- `src/lib/pricing.ts` — Agregar param `destinationCountry` a `getDeliveryZone` y `getDeliveryFee`
-- `src/contexts/PlatformFeesContext.tsx` — Propagar `destinationCountry` en `getDeliveryFeeHelper`
-- `src/components/QuoteDialog.tsx` — Pasar `package_destination_country` al cálculo de zona
-- `src/utils/adminQuoteGeneration.ts` — Pasar country al breakdown
-- `src/lib/quoteHelpers.ts` — Agregar country param a `normalizeQuote`, `validateQuote`, `getDisplayTotal`
-- `src/hooks/useDashboardActions.tsx` — Pasar country en las llamadas de quote
-- `supabase/functions/fix-delivery-fees-v3/index.ts` — Misma lógica con country
-- `supabase/functions/intelligent-quote-backfill/index.ts` — Misma lógica con country
+- `src/components/dashboard/CollapsiblePackageCard.tsx` — Agrandar botón, agregar chat modal
+- `src/components/dashboard/CollapsibleTravelerPackageCard.tsx` — Agrandar botón, agregar chat modal
 
