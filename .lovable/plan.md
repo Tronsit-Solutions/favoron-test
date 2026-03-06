@@ -1,58 +1,42 @@
 
 
-## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
+## Alinear la gráfica de Crecimiento de Ingresos con la Tabla Resumen Financiera
 
-### Concepto
-Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
+### Diagnóstico
 
-### Widgets disponibles (componentes existentes)
-Del catálogo de charts y componentes ya construidos:
-1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
-2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
-3. **UserGrowthChart** — Crecimiento de usuarios
-4. **PackagesChart** — Gráfico de paquetes por mes
-5. **TripsChart** — Gráfico de viajes
-6. **RevenueChart** — Ingresos por servicio
-7. **GMVChart** — GMV mensual
-8. **ServiceFeeGrowthChart** — Crecimiento de service fees
-9. **AvgPackageValueChart** — Valor promedio por paquete
-10. **AcquisitionChart** — Canales de adquisición
-11. **AcquisitionSurveyTable** — Tabla de encuestas
-12. **TravelerTipsCard** — Propinas de viajeros
-13. **CACKPICards** — Unit Economics KPIs
-14. **FunnelChart** — Funnel de conversión
+Consulté la base de datos directamente y encontré las causas raíz. Para marzo 2026:
+
+- **Gráfica muestra**: Q793.50 (gross Q1020 - Q226.50 cancellaciones)
+- **Tabla muestra**: ~Q1020 neto (cancelaciones se anulan: +sf y -sf)
+
+Hay **3 diferencias fundamentales** entre la lógica de la gráfica y la tabla:
+
+1. **Cancelaciones**: La tabla muestra paquetes cancelados-pero-pagados como ingreso positivo + contrapartida negativa = neto cero. La gráfica los resta del bruto, creando una deducción de Q226.50 que no existe en la tabla.
+
+2. **Timezone de reembolsos**: La gráfica agrupa reembolsos por UTC (`substring(0,7)`). La tabla agrupa por zona Guatemala (`new Date()` en el browser). Un reembolso completado entre medianoche y 6am UTC aparecería en meses distintos.
+
+3. **Membresías Prime**: La tabla las incluye como ingreso Favorón. La gráfica las ignora por completo.
 
 ### Cambios
 
-**`src/components/Dashboard.tsx`**:
-- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
-- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
+**`src/hooks/useDynamicReports.tsx`**:
+- Eliminar la query de `cancelledPaidPackages` y todo el procesamiento de `cancellationServiceFeeByMonth` (ya que en la tabla estas se anulan a cero)
+- Cambiar el agrupamiento de reembolsos: en lugar de `toMonthKey(completed_at)` (UTC substring), convertir a Guatemala TZ (UTC-6) antes de extraer el mes
+- Agregar una nueva query para obtener membresías Prime aprobadas por mes
+- Incluir el monto de Prime en `netFavoronRevenue` de cada mes
+- Remover las dependencias de `cancelledPaidPackages` del `useMemo`
 
-**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
-- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
-- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
-- Catálogo de widgets con id, nombre, icono, y componente React
-- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
-- **Reordenar**: botones ↑/↓ en cada widget en modo edición
-- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
-- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
-- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
-- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
+**`src/components/admin/charts/ServiceFeeGrowthChart.tsx`**:
+- Sin cambios necesarios (ya usa `netFavoronRevenue`)
 
-**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
-- Modal/popover que muestra los widgets no activos del catálogo
-- Click en uno lo agrega al final de `activeWidgets`
+**`src/components/admin/charts/RevenueDetailSheet.tsx`**:
+- Alinear la lógica del detalle: eliminar la sección de cancelaciones (ya que neto = 0) para que el desglose coincida con la barra
+- Agregar sección de membresías Prime como líneas de ingreso
+- Usar Guatemala TZ para filtrar reembolsos (en lugar de UTC)
 
-### UX
-- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
-- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
-- Botón "Agregar Widget" que abre el picker
-- Botón "Listo" para salir del modo edición
-- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
+### Resultado esperado
 
-### Consideraciones técnicas
-- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
-- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
-- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
-- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
+Para cualquier mes seleccionado:
+- El valor de la barra en la gráfica = `Ingreso Favorón` total de la tabla para ese mes
+- El detalle (Sheet) al hacer clic en la barra mostrará el mismo desglose que la tabla
 
