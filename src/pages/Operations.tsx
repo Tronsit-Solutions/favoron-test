@@ -178,6 +178,7 @@ const Operations = () => {
               onRefresh={operationsData.refresh}
               labelHistory={operationsData.labelHistory}
               onRestoreFromHistory={operationsData.restoreFromHistory}
+              onRestoreItemFromHistory={operationsData.restoreItemFromHistory}
               onDeleteFromHistory={operationsData.deleteFromHistory}
             />
           </div>
@@ -212,6 +213,7 @@ const Operations = () => {
         onRemoveItem={operationsData.removeFromLabelCart}
         labelHistory={operationsData.labelHistory}
         onRestoreFromHistory={operationsData.restoreFromHistory}
+        onRestoreItemFromHistory={operationsData.restoreItemFromHistory}
         onDeleteFromHistory={operationsData.deleteFromHistory}
       />
     </div>

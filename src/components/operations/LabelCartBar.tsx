@@ -24,12 +24,13 @@ interface LabelCartBarProps {
   onRemoveItem: (id: string) => void;
   labelHistory: LabelBatch[];
   onRestoreFromHistory: (batchId: string) => void;
+  onRestoreItemFromHistory: (batchId: string, itemId: string) => void;
   onDeleteFromHistory: (batchId: string) => void;
 }
 
 const LABELS_PER_PAGE = 4;
 
-const LabelCartBar = ({ items, onClear, onRemoveItem, labelHistory, onRestoreFromHistory, onDeleteFromHistory }: LabelCartBarProps) => {
+const LabelCartBar = ({ items, onClear, onRemoveItem, labelHistory, onRestoreFromHistory, onRestoreItemFromHistory, onDeleteFromHistory }: LabelCartBarProps) => {
   const [generating, setGenerating] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -67,6 +68,7 @@ const LabelCartBar = ({ items, onClear, onRemoveItem, labelHistory, onRestoreFro
           onOpenChange={setHistoryOpen}
           history={labelHistory}
           onRestore={onRestoreFromHistory}
+          onRestoreItem={onRestoreItemFromHistory}
           onDelete={onDeleteFromHistory}
         />
       </>
@@ -393,6 +395,7 @@ const LabelCartBar = ({ items, onClear, onRemoveItem, labelHistory, onRestoreFro
             setPreviewOpen(true);
           }, 100);
         }}
+        onRestoreItem={onRestoreItemFromHistory}
         onDelete={onDeleteFromHistory}
       />
     </>
@@ -406,10 +409,11 @@ interface HistoryDialogProps {
   onOpenChange: (open: boolean) => void;
   history: LabelBatch[];
   onRestore: (batchId: string) => void;
+  onRestoreItem: (batchId: string, itemId: string) => void;
   onDelete: (batchId: string) => void;
 }
 
-const HistoryDialog = ({ open, onOpenChange, history, onRestore, onDelete }: HistoryDialogProps) => {
+const HistoryDialog = ({ open, onOpenChange, history, onRestore, onRestoreItem, onDelete }: HistoryDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -425,11 +429,11 @@ const HistoryDialog = ({ open, onOpenChange, history, onRestore, onDelete }: His
             No hay lotes anteriores
           </p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {history.map((batch) => (
               <div
                 key={batch.id}
-                className="p-4 rounded-lg border bg-card space-y-2"
+                className="p-4 rounded-lg border bg-card space-y-3"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-2">
@@ -447,7 +451,7 @@ const HistoryDialog = ({ open, onOpenChange, history, onRestore, onDelete }: His
                       onClick={() => onRestore(batch.id)}
                     >
                       <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                      Restaurar
+                      Restaurar todo
                     </Button>
                     <Button
                       size="sm"
@@ -459,17 +463,31 @@ const HistoryDialog = ({ open, onOpenChange, history, onRestore, onDelete }: His
                     </Button>
                   </div>
                 </div>
-                <div className="space-y-1 pt-1">
+                <div className="space-y-2">
                   {batch.items.map((item) => {
                     const desc = item.products_data?.[0]?.itemDescription || item.item_description || '';
                     return (
-                      <div key={item.id} className="flex items-center gap-2 text-xs text-muted-foreground pl-1">
-                        {item.label_number != null && (
-                          <span className="font-mono font-medium text-foreground">#{String(item.label_number).padStart(4, '0')}</span>
-                        )}
-                        <span className="truncate">
-                          {item.shopper_name}{desc ? ` — ${desc}` : ''}
-                        </span>
+                      <div key={item.id} className="flex items-start justify-between gap-2 rounded-md border border-border bg-muted/30 p-2.5">
+                        <div className="min-w-0 space-y-0.5">
+                          <div className="flex items-center gap-2 text-sm">
+                            {item.label_number != null && (
+                              <span className="font-mono font-semibold text-foreground">#{String(item.label_number).padStart(4, '0')}</span>
+                            )}
+                            <span className="font-medium text-foreground">{item.shopper_name}</span>
+                          </div>
+                          {desc && (
+                            <p className="text-xs text-muted-foreground">{desc}</p>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0 shrink-0"
+                          onClick={() => onRestoreItem(batch.id, item.id)}
+                          title="Restaurar este paquete"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     );
                   })}
