@@ -111,7 +111,7 @@ const FinancialDashboard = ({
       travelerTips,
       completedOrders: completedPackages.length
     };
-  }, [filteredPackages, rates]);
+  }, [filteredPackages]);
   const formatCurrencyGTQ = (amount: number) => {
     return new Intl.NumberFormat('es-GT', {
       style: 'currency',
