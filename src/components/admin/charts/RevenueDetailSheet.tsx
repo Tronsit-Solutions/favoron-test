@@ -110,8 +110,9 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
             const allPkgs = [...(packages || []), ...(cancelledPkgs || [])];
             const origPkg = allPkgs.find(p => p.id === ref.package_id);
             if (origPkg) {
-              const totalToPay = Number(origPkg.quote?.totalToPay || 0);
-              const origSF = Number(origPkg.quote?.serviceFee || 0);
+              const oq = origPkg.quote as Record<string, any> | null;
+              const totalToPay = Number(oq?.totalToPay || 0);
+              const origSF = Number(oq?.serviceFee || 0);
               if (totalToPay > 0) {
                 refundSF = (ref.amount / totalToPay) * origSF;
               }
