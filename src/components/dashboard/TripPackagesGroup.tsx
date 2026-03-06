@@ -115,7 +115,7 @@ const TripPackagesGroup = ({
                   return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
                 })
                 .map((pkg) => {
-                  const hasPendingAction = ['matched', 'pending_office_confirmation'].includes(pkg.status);
+                  const hasPendingAction = pkg.status === 'matched';
                   return (
                     <CollapsibleTravelerPackageCard
                       key={pkg.id}
