@@ -40,12 +40,17 @@ function UserSearchField({
   const search = useCallback(async (q: string) => {
     if (q.length < 2) { setResults([]); return; }
     setLoading(true);
-    const pattern = `%${q}%`;
-    const { data } = await supabase
+    const words = q.trim().split(/\s+/).filter(Boolean);
+    let query = supabase
       .from("profiles")
-      .select("id, first_name, last_name, email")
-      .or(`first_name.ilike.${pattern},last_name.ilike.${pattern},email.ilike.${pattern}`)
-      .limit(10);
+      .select("id, first_name, last_name, email");
+    
+    for (const word of words) {
+      const pattern = `%${word}%`;
+      query = query.or(`first_name.ilike.${pattern},last_name.ilike.${pattern},email.ilike.${pattern}`);
+    }
+    
+    const { data } = await query.limit(10);
     const mapped = (data || [])
       .filter(p => p.id !== excludeId)
       .map(p => ({
