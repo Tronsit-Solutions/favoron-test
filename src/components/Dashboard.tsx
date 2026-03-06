@@ -733,10 +733,7 @@ const Dashboard = ({ user }: DashboardProps) => {
 
             {/* Show user's trips */}
             <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-lg font-semibold">Mis Viajes Registrados</h4>
-                </div>
+               <div>
                 {filteredUserTrips.length === 0 ? (
                   <ProtectedEmptyState type="trips" onAction={() => navigateToForm('trip')} />
                 ) : (
