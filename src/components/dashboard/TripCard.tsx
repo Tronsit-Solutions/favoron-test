@@ -288,18 +288,6 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
                 </Button>
               )}
               
-              {/* Payment receipt button for completed trips */}
-              {trip.status === 'completed_paid' && paymentReceipt?.receipt_url && currentUser?.id === trip.user_id && (
-                <Button 
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setShowReceiptModal(true)}
-                  className="h-8 px-3 text-xs hover-scale"
-                >
-                  <Receipt className="h-3 w-3 mr-1" />
-                  <span className="whitespace-nowrap">Ver comprobante</span>
-                </Button>
-              )}
             </div>
 
             {/* Creation Date and Status Badge */}
