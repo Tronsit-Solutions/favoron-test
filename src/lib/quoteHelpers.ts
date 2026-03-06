@@ -120,7 +120,8 @@ export const normalizeQuote = (
     delivery_fee_guatemala_department: number;
     delivery_fee_outside_city: number;
     prime_delivery_discount: number;
-  }
+  },
+  destinationCountry?: string
 ): NormalizedQuote => {
   if (!quote) {
     return {
@@ -148,7 +149,7 @@ export const normalizeQuote = (
     console.log(`✅ Preserving manually edited quote values: serviceFee=Q${serviceFee}, deliveryFee=Q${deliveryFee}`);
   } else {
     // Recalculate deliveryFee based on cityArea to ensure correctness
-    const correctDeliveryFee = getDeliveryFee(deliveryMethod, shopperTrustLevel, cityArea, fees);
+    const correctDeliveryFee = getDeliveryFee(deliveryMethod, shopperTrustLevel, cityArea, fees, destinationCountry);
     
     // Use the correct delivery fee and log if there's a discrepancy
     if (Math.abs(correctDeliveryFee - storedDeliveryFee) > 0.01) {
@@ -210,9 +211,10 @@ export const createNormalizedQuote = (
     delivery_fee_guatemala_department: number;
     delivery_fee_outside_city: number;
     prime_delivery_discount: number;
-  }
+  },
+  destinationCountry?: string
 ): NormalizedQuote => {
-  const breakdown = getPriceBreakdown(basePrice, deliveryMethod, shopperTrustLevel, cityArea, rates, fees);
+  const breakdown = getPriceBreakdown(basePrice, deliveryMethod, shopperTrustLevel, cityArea, rates, fees, destinationCountry);
 
   return {
     price: breakdown.basePrice,

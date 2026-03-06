@@ -53,6 +53,7 @@ interface QuoteDialogProps {
     additional_notes?: string;
     shopper_trust_level?: string;
     package_destination?: string;
+    package_destination_country?: string;
     cityArea?: string;
   };
   userType: 'user' | 'admin' | 'operations';
@@ -275,7 +276,7 @@ const QuoteDialog = ({
       const activeProducts = selectedProducts.filter(p => !p.excluded && !p.cancelled);
       const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
       const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
-      const breakdown = getPriceBreakdown(totalTip, selectedDeliveryMethod, packageDetails.shopper_trust_level, cityArea, rates, deliveryFees);
+      const breakdown = getPriceBreakdown(totalTip, selectedDeliveryMethod, packageDetails.shopper_trust_level, cityArea, rates, deliveryFees, packageDetails.package_destination_country);
       
       // Favorón subtotal = tip + service fee (no delivery)
       const favoronSubtotal = breakdown.basePrice + breakdown.serviceFee;
@@ -402,7 +403,7 @@ const QuoteDialog = ({
     if (activeProducts.length === 0) return 0;
     const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
     const cityArea = packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea;
-    const breakdown = getPriceBreakdown(totalTip, selectedDeliveryMethod, packageDetails.shopper_trust_level, cityArea, rates, deliveryFees);
+    const breakdown = getPriceBreakdown(totalTip, selectedDeliveryMethod, packageDetails.shopper_trust_level, cityArea, rates, deliveryFees, packageDetails.package_destination_country);
     return breakdown.totalPrice;
   };
   
@@ -517,7 +518,8 @@ const QuoteDialog = ({
           true,
           packageDetails.package_destination,
           rates,
-          deliveryFees
+          deliveryFees,
+          packageDetails.package_destination_country
         );
         submitData.recalculatedQuote = recalculatedQuote;
         
@@ -570,7 +572,8 @@ const QuoteDialog = ({
         true,
         packageDetails.package_destination,
         rates,
-        deliveryFees
+        deliveryFees,
+        packageDetails.package_destination_country
       );
       
       clearPersistedState(); // Clear form data on successful submission
@@ -587,7 +590,8 @@ const QuoteDialog = ({
         undefined,
         packageDetails.package_destination,
         rates,
-        deliveryFees
+        deliveryFees,
+        packageDetails.package_destination_country
       );
       
       // Logging for verification
@@ -1295,7 +1299,7 @@ const QuoteDialog = ({
                             const totalTip = activeProducts.reduce((sum, p) => sum + parseFloat(p.adminAssignedTip || '0'), 0);
                             const isPrime = packageDetails.shopper_trust_level === 'prime';
                             const isDelivery = selectedDeliveryMethod === 'delivery';
-                            const zone = getDeliveryZone(cityArea);
+                            const zone = getDeliveryZone(cityArea, packageDetails.package_destination_country);
                             
                             // Calculate service fees using dynamic rates from DB
                             const standardServiceFee = totalTip * rates.standard;
@@ -1303,8 +1307,8 @@ const QuoteDialog = ({
                             const serviceFeeSavings = isPrime ? standardServiceFee - primeServiceFee : 0;
                             
                             // Calculate delivery fees using context (DB-driven)
-                            const standardDeliveryFee = isDelivery ? getContextDeliveryFee('delivery', 'basic', cityArea) : 0;
-                            const primeDeliveryFee = isDelivery ? getContextDeliveryFee('delivery', 'prime', cityArea) : 0;
+                            const standardDeliveryFee = isDelivery ? getContextDeliveryFee('delivery', 'basic', cityArea, packageDetails.package_destination_country) : 0;
+                            const primeDeliveryFee = isDelivery ? getContextDeliveryFee('delivery', 'prime', cityArea, packageDetails.package_destination_country) : 0;
                             const actualDeliveryFee = isDelivery ? (isPrime ? primeDeliveryFee : standardDeliveryFee) : 0;
                             const deliverySavings = isDelivery && isPrime ? standardDeliveryFee - primeDeliveryFee : 0;
                             

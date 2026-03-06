@@ -20,12 +20,14 @@ const GUATEMALA_CITY_NAMES = ['guatemala', 'guatemala city', 'ciudad de guatemal
 
 type DeliveryZone = 'guatemala_city' | 'guatemala_department' | 'outside';
 
-function getDeliveryZone(cityArea?: string): DeliveryZone {
-  if (!cityArea) return 'outside';
-  const normalized = cityArea.toLowerCase().trim();
+function getDeliveryZone(cityArea?: string, destinationCountry?: string): DeliveryZone {
+  if (!cityArea && !destinationCountry) return 'outside';
+  const normalized = (cityArea || '').toLowerCase().trim();
   
-  if (GUATEMALA_DEPT_MUNICIPALITIES.some(m => normalized.includes(m))) return 'guatemala_department';
-  if (GUATEMALA_CITY_NAMES.some(name => normalized === name || normalized.startsWith(name + ','))) return 'guatemala_city';
+  if (normalized && GUATEMALA_DEPT_MUNICIPALITIES.some(m => normalized.includes(m))) return 'guatemala_department';
+  if (normalized && GUATEMALA_CITY_NAMES.some(name => normalized === name || normalized.startsWith(name + ','))) return 'guatemala_city';
+  // If destination country is Guatemala, classify as guatemala_department (Q45) instead of outside
+  if (destinationCountry && destinationCountry.toLowerCase().trim() === 'guatemala') return 'guatemala_department';
   return 'outside';
 }
 
@@ -33,10 +35,11 @@ function getDeliveryFee(
   deliveryMethod: string,
   trustLevel: string | undefined,
   cityArea: string | undefined,
-  fees: { city: number; dept: number; outside: number; discount: number }
+  fees: { city: number; dept: number; outside: number; discount: number },
+  destinationCountry?: string
 ): number {
   if (deliveryMethod === 'pickup') return 0;
-  const zone = getDeliveryZone(cityArea);
+  const zone = getDeliveryZone(cityArea, destinationCountry);
   
   if (zone === 'guatemala_city') return trustLevel === 'prime' ? 0 : fees.city;
   if (zone === 'guatemala_department') return trustLevel === 'prime' ? Math.max(0, fees.dept - fees.discount) : fees.dept;
@@ -101,7 +104,7 @@ serve(async (req) => {
     // Get ALL packages with quotes
     const { data: packages, error: packagesError } = await supabaseClient
       .from('packages')
-      .select(`id, user_id, created_at, quote, delivery_method, confirmed_delivery_address, profiles!packages_user_id_fkey(trust_level)`)
+      .select(`id, user_id, created_at, quote, delivery_method, confirmed_delivery_address, package_destination_country, profiles!packages_user_id_fkey(trust_level)`)
       .not('quote', 'is', null)
 
     if (packagesError) throw new Error(`Failed to get packages: ${packagesError.message}`)
@@ -123,12 +126,13 @@ serve(async (req) => {
       const currentTotalPrice = typeof quote.totalPrice === 'string' ? parseFloat(quote.totalPrice) : Number(quote.totalPrice || 0)
 
       const cityArea = (pkg.confirmed_delivery_address as any)?.cityArea
+      const destinationCountry = (pkg as any).package_destination_country
 
       const correctServiceFee = currentTrustLevel === 'prime'
         ? basePrice * serviceFeeRatePrime
         : basePrice * serviceFeeRateStandard;
       
-      const correctDeliveryFee = getDeliveryFee(pkg.delivery_method || 'pickup', currentTrustLevel, cityArea, deliveryFees);
+      const correctDeliveryFee = getDeliveryFee(pkg.delivery_method || 'pickup', currentTrustLevel, cityArea, deliveryFees, destinationCountry);
       const correctTotalPrice = basePrice + correctServiceFee + correctDeliveryFee;
 
       const needsUpdate = Math.abs(currentServiceFee - correctServiceFee) > 0.01 ||
@@ -143,7 +147,7 @@ serve(async (req) => {
           updateResults.push({ packageId: pkg.id, status: 'error', error: updateError.message });
         } else {
           updatedCount++;
-          updateResults.push({ packageId: pkg.id, status: 'updated', zone: getDeliveryZone(cityArea) });
+          updateResults.push({ packageId: pkg.id, status: 'updated', zone: getDeliveryZone(cityArea, destinationCountry) });
         }
       } else {
         skippedCount++;

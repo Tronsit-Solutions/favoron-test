@@ -15,13 +15,15 @@ export interface QuoteGenerationData {
     delivery_fee_outside_city: number;
     prime_delivery_discount: number;
   };
+  /** Destination country for accurate delivery zone classification */
+  destinationCountry?: string;
 }
 
 /**
  * Generates a quote when admin changes status from "matched" to "quote_sent"
  */
 export async function generateQuoteForAdminStatusChange(data: QuoteGenerationData) {
-  const { currentPackage, trips, adminAssignedTip, rates, fees } = data;
+  const { currentPackage, trips, adminAssignedTip, rates, fees, destinationCountry } = data;
   
   // Check if we have admin_assigned_tip
   if (!adminAssignedTip || adminAssignedTip <= 0) {
@@ -82,7 +84,8 @@ export async function generateQuoteForAdminStatusChange(data: QuoteGenerationDat
     true, // adminAssignedTipAccepted
     cityArea || currentPackage.package_destination, // Prioritize cityArea over package_destination
     rates, // Pass dynamic rates from DB
-    fees // Pass dynamic delivery fees from DB
+    fees, // Pass dynamic delivery fees from DB
+    destinationCountry || currentPackage.package_destination_country // Pass destination country
   );
 
   console.log('📊 Quote generation details:', {

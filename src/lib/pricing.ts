@@ -55,18 +55,24 @@ const GUATEMALA_CITY_PATTERNS = [
  * - guatemala_department: Other municipalities in Dept. Guatemala like Mixco, Villa Nueva (Q45)
  * - outside: Outside Department of Guatemala (Q60)
  */
-export const getDeliveryZone = (cityArea?: string): DeliveryZone => {
-  if (!cityArea) return 'outside';
-  const normalized = cityArea.toLowerCase().trim();
+export const getDeliveryZone = (cityArea?: string, destinationCountry?: string): DeliveryZone => {
+  if (!cityArea && !destinationCountry) return 'outside';
+  const normalized = (cityArea || '').toLowerCase().trim();
 
   // Check department municipalities first (Mixco, Villa Nueva, etc.)
-  if (GUATEMALA_DEPT_MUNICIPALITIES.some(m => normalized.includes(m))) {
+  if (normalized && GUATEMALA_DEPT_MUNICIPALITIES.some(m => normalized.includes(m))) {
     return 'guatemala_department';
   }
 
   // Check Guatemala City patterns
-  if (GUATEMALA_CITY_PATTERNS.some(p => p.test(normalized))) {
+  if (normalized && GUATEMALA_CITY_PATTERNS.some(p => p.test(normalized))) {
     return 'guatemala_city';
+  }
+
+  // If destination country is Guatemala but cityArea didn't match any specific pattern,
+  // classify as guatemala_department (Q45) instead of outside (Q60)
+  if (destinationCountry && destinationCountry.toLowerCase().trim() === 'guatemala') {
+    return 'guatemala_department';
   }
 
   return 'outside';
@@ -103,7 +109,8 @@ export const getDeliveryFee = (
     delivery_fee_guatemala_department: number;
     delivery_fee_outside_city: number;
     prime_delivery_discount: number;
-  }
+  },
+  destinationCountry?: string
 ): number => {
   if (deliveryMethod === 'pickup' || 
       deliveryMethod === 'return_dropoff' || 
@@ -111,7 +118,7 @@ export const getDeliveryFee = (
     return 0;
   }
   
-  const zone = getDeliveryZone(cityArea);
+  const zone = getDeliveryZone(cityArea, destinationCountry);
   
   const feeCity = fees?.delivery_fee_guatemala_city ?? PRICING_CONFIG.STANDARD_DELIVERY_FEE;
   const feeDept = fees?.delivery_fee_guatemala_department ?? PRICING_CONFIG.GUATEMALA_DEPT_DELIVERY_FEE;
@@ -201,10 +208,11 @@ export const getPriceBreakdown = (
     delivery_fee_guatemala_department: number;
     delivery_fee_outside_city: number;
     prime_delivery_discount: number;
-  }
+  },
+  destinationCountry?: string
 ) => {
   const serviceFee = calculateServiceFee(basePrice, trustLevel, rates);
-  const deliveryFee = getDeliveryFee(deliveryMethod, trustLevel, destination, fees);
+  const deliveryFee = getDeliveryFee(deliveryMethod, trustLevel, destination, fees, destinationCountry);
   const totalPrice = basePrice + serviceFee + deliveryFee;
   const favoronRevenue = calculateFavoronRevenue(basePrice, serviceFee, trustLevel);
   const travelerTip = calculateTravelerTip(totalPrice, basePrice, serviceFee, deliveryFee, trustLevel);
