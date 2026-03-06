@@ -32,6 +32,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
   const [showBankingModal, setShowBankingModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showEditSelectionModal, setShowEditSelectionModal] = useState(false);
+  const [showSurveyModal, setShowSurveyModal] = useState(false);
   const [paymentReceipt, setPaymentReceipt] = useState<{receipt_url: string, receipt_filename?: string} | null>(null);
 
   // Hook para obtener datos del trip payment accumulator
