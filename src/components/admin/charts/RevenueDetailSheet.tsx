@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { getQuoteValues } from "@/lib/quoteHelpers";
@@ -204,74 +204,74 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
   const fmt = (v: number) => `Q${Math.abs(v).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
-    <Sheet open={!!month} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle className="capitalize">Detalle de Ingresos — {monthLabel}</SheetTitle>
-          <SheetDescription>Desglose del service fee neto del mes</SheetDescription>
-        </SheetHeader>
+    <Dialog open={!!month} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="capitalize text-xl">Detalle de Ingresos — {monthLabel}</DialogTitle>
+          <DialogDescription>Desglose del service fee neto del mes</DialogDescription>
+        </DialogHeader>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div className="mt-4 space-y-6">
+          <div className="space-y-6">
             {/* Summary cards */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg border bg-card p-3">
-                <p className="text-xs text-muted-foreground">Service Fee Bruto</p>
-                <p className="text-lg font-bold text-foreground">{fmt(summary.gross)}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="rounded-lg border bg-card p-4">
+                <p className="text-sm text-muted-foreground">Service Fee Bruto</p>
+                <p className="text-xl font-bold text-foreground">{fmt(summary.gross)}</p>
               </div>
-              <div className="rounded-lg border bg-card p-3">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <TrendingDown className="h-3 w-3 text-destructive" /> Reembolsos
+              <div className="rounded-lg border bg-card p-4">
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <TrendingDown className="h-4 w-4 text-destructive" /> Reembolsos
                 </p>
-                <p className="text-lg font-bold text-destructive">-{fmt(summary.refunds)}</p>
+                <p className="text-xl font-bold text-destructive">-{fmt(summary.refunds)}</p>
               </div>
-              <div className="rounded-lg border bg-card p-3">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Minus className="h-3 w-3 text-orange-500" /> Cancelaciones
+              <div className="rounded-lg border bg-card p-4">
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <Minus className="h-4 w-4 text-orange-500" /> Cancelaciones
                 </p>
-                <p className="text-lg font-bold text-orange-500">-{fmt(summary.cancellations)}</p>
+                <p className="text-xl font-bold text-orange-500">-{fmt(summary.cancellations)}</p>
               </div>
-              <div className="rounded-lg border bg-primary/10 p-3">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3 text-primary" /> Neto
+              <div className="rounded-lg border bg-primary/10 p-4">
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <TrendingUp className="h-4 w-4 text-primary" /> Neto
                 </p>
-                <p className="text-lg font-bold text-primary">{fmt(summary.net)}</p>
+                <p className="text-xl font-bold text-primary">{fmt(summary.net)}</p>
               </div>
             </div>
 
             {/* Line items table */}
             <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">
+              <h4 className="text-sm font-medium text-muted-foreground mb-3">
                 Detalle ({lineItems.length} registros)
               </h4>
-              <div className="rounded-md border max-h-[400px] overflow-y-auto">
+              <div className="rounded-md border max-h-[50vh] overflow-y-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs">Descripción</TableHead>
-                      <TableHead className="text-xs">Tipo</TableHead>
-                      <TableHead className="text-xs text-right">Monto</TableHead>
+                      <TableHead className="text-sm">Descripción</TableHead>
+                      <TableHead className="text-sm">Tipo</TableHead>
+                      <TableHead className="text-sm text-right">Monto</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {lineItems.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center text-muted-foreground text-sm py-8">
+                        <TableCell colSpan={3} className="text-center text-muted-foreground text-sm py-12">
                           Sin registros para este mes
                         </TableCell>
                       </TableRow>
                     ) : (
                       lineItems.map((item) => (
                         <TableRow key={item.id}>
-                          <TableCell className="text-xs max-w-[200px] truncate">
+                          <TableCell className="text-sm max-w-[350px] truncate">
                             {item.labelNumber ? `#${item.labelNumber} - ` : ''}{item.description}
                           </TableCell>
                           <TableCell>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                            <span className={`text-xs px-2 py-1 rounded-full ${
                               item.type === 'income' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
                               item.type === 'refund' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
                               'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
@@ -279,7 +279,7 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
                               {item.type === 'income' ? 'Ingreso' : item.type === 'refund' ? 'Reembolso' : 'Cancelación'}
                             </span>
                           </TableCell>
-                          <TableCell className={`text-xs text-right font-mono ${
+                          <TableCell className={`text-sm text-right font-mono ${
                             item.serviceFee < 0 ? 'text-destructive' : 'text-foreground'
                           }`}>
                             {item.serviceFee < 0 ? '-' : ''}{fmt(item.serviceFee)}
@@ -293,7 +293,7 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
             </div>
           </div>
         )}
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 };
