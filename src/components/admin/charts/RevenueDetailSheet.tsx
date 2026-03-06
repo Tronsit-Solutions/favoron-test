@@ -297,7 +297,7 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
             </div>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };
