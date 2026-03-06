@@ -129,6 +129,7 @@ export const useAcquisitionAnalytics = () => {
 
       if (PAID_STATUSES.includes(pkg.status)) {
         channelData.paidPackages++;
+        channelData.monetizedUsers.add(pkg.user_id);
         
         if (pkg.quote) {
           const quote = pkg.quote as any;
