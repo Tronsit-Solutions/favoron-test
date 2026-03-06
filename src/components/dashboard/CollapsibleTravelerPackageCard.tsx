@@ -819,7 +819,7 @@ const CollapsibleTravelerPackageCard = ({
             )}
           </CardContent>
         </CollapsibleContent>
-      </Card>
+      </div>
 
       {/* Document Modal */}
       <Dialog open={documentModal.isOpen} onOpenChange={closeDocumentModal}>
