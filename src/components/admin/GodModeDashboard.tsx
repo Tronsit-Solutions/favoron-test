@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Settings, Check, Plus, ChevronUp, ChevronDown, X, BarChart3, Users, Package, Plane, DollarSign, TrendingUp, PieChart, Coins, Activity, Table2, Zap, Target } from "lucide-react";
+import { Settings, Check, Plus, ChevronUp, ChevronDown, X, BarChart3, Users, Package, Plane, DollarSign, TrendingUp, PieChart, Coins, Activity, Table2, Zap, Target, Star } from "lucide-react";
 import { useDynamicReports } from "@/hooks/useDynamicReports";
 import { useAcquisitionAnalytics } from "@/hooks/useAcquisitionAnalytics";
 import { useTravelerTipsReport } from "@/hooks/useTravelerTipsReport";
