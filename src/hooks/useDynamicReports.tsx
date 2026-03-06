@@ -44,9 +44,26 @@ interface MonthlyDataPoint {
   tripApprovalRate: number;
   gmv: number;
   favoronRevenue: number;
+  netFavoronRevenue: number;
   travelerTips: number;
   profitMargin: number;
   avgPackageValue: number;
+}
+
+interface CompletedRefundOrder {
+  package_id: string;
+  amount: number;
+  created_at: string;
+  completed_at: string | null;
+  cancelled_products: unknown;
+}
+
+interface CancelledPaidPackage {
+  id: string;
+  created_at: string;
+  quote: unknown;
+  payment_receipt: unknown;
+  recurrente_payment_id: string | null;
 }
 
 interface KPIData {
