@@ -3,9 +3,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { AlertTriangle, CheckCircle, RotateCcw, Loader2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle, RotateCcw, Loader2, MessageSquare } from 'lucide-react';
 
-export type IncidentAction = 'mark' | 'resolve' | 'reopen';
+export type IncidentAction = 'mark' | 'resolve' | 'reopen' | 'comment';
 
 interface IncidentReasonModalProps {
   isOpen: boolean;
@@ -49,6 +49,15 @@ const actionConfig: Record<IncidentAction, {
     buttonLabel: 'Reabrir Incidencia',
     buttonVariant: 'destructive',
     Icon: RotateCcw,
+  },
+  comment: {
+    title: 'Agregar Comentario',
+    description: 'Agrega una nota o comentario a esta incidencia sin cambiar su estado.',
+    placeholder: 'Ej: Se contactó al viajero, queda pendiente respuesta...',
+    label: 'Comentario',
+    buttonLabel: 'Agregar Comentario',
+    buttonVariant: 'outline',
+    Icon: MessageSquare,
   },
 };
 
