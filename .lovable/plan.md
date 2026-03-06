@@ -1,35 +1,58 @@
 
 
-## Reestructurar pestaña "Mis Viajes": paquetes anidados bajo cada viaje
+## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
 
-Actualmente la pestaña tiene dos secciones separadas: "Mis Viajes Registrados" (TripCards) y "Mis Paquetes Asignados" (lista plana de CollapsibleTravelerPackageCard). La idea es unificarlas: cada TripCard es el elemento padre y sus paquetes asignados aparecen debajo como hijos colapsables.
+### Concepto
+Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
 
-Ya existe un componente `TripPackagesGroup` que hace exactamente esto (agrupa paquetes por viaje con collapsible), pero no se usa en el Dashboard principal.
+### Widgets disponibles (componentes existentes)
+Del catálogo de charts y componentes ya construidos:
+1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
+2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
+3. **UserGrowthChart** — Crecimiento de usuarios
+4. **PackagesChart** — Gráfico de paquetes por mes
+5. **TripsChart** — Gráfico de viajes
+6. **RevenueChart** — Ingresos por servicio
+7. **GMVChart** — GMV mensual
+8. **ServiceFeeGrowthChart** — Crecimiento de service fees
+9. **AvgPackageValueChart** — Valor promedio por paquete
+10. **AcquisitionChart** — Canales de adquisición
+11. **AcquisitionSurveyTable** — Tabla de encuestas
+12. **TravelerTipsCard** — Propinas de viajeros
+13. **CACKPICards** — Unit Economics KPIs
+14. **FunnelChart** — Funnel de conversión
 
 ### Cambios
 
-**`src/components/Dashboard.tsx`** (líneas ~731-942):
+**`src/components/Dashboard.tsx`**:
+- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
+- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
 
-1. Eliminar la sección separada "Mis Paquetes Asignados" (líneas ~796-941) con su resumen de tips y la lista plana de paquetes.
+**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
+- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
+- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
+- Catálogo de widgets con id, nombre, icono, y componente React
+- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
+- **Reordenar**: botones ↑/↓ en cada widget en modo edición
+- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
+- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
+- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
+- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
 
-2. Modificar el renderizado de cada viaje para que debajo de cada `TripCard` se muestren sus paquetes asignados usando `CollapsibleTravelerPackageCard`, aplicando la misma lógica de filtrado y ordenamiento que existe actualmente.
+**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
+- Modal/popover que muestra los widgets no activos del catálogo
+- Click en uno lo agrega al final de `activeWidgets`
 
-La estructura resultante por cada viaje sería:
+### UX
+- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
+- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
+- Botón "Agregar Widget" que abre el picker
+- Botón "Listo" para salir del modo edición
+- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
 
-```text
-┌─────────────────────────────────┐
-│  TripCard (Madrid → Guatemala)  │  ← card del viaje con info, status, acciones
-│  📦 Resumen: Q220 tips · 2 pkg │  ← mini resumen de paquetes (ya existe en TripCard via TripPaymentSummary)
-├─────────────────────────────────┤
-│  ▸ Saco mujer          Pagado  │  ← CollapsibleTravelerPackageCard
-│  ▸ Zapatos             En ruta │  ← CollapsibleTravelerPackageCard
-└─────────────────────────────────┘
-```
-
-3. Mover la lógica de filtrado de paquetes (exclusión de completed_paid, timers, etc.) a cada grupo de viaje, filtrando `assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id)` y aplicando los mismos criterios de visibilidad y ordenamiento.
-
-4. Si un viaje no tiene paquetes asignados visibles, solo se muestra el TripCard sin sección de paquetes debajo.
-
-### Archivos
-- **Modificar**: `src/components/Dashboard.tsx` — reestructurar la sección trips para anidar paquetes bajo cada viaje
+### Consideraciones técnicas
+- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
+- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
+- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
+- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
 
