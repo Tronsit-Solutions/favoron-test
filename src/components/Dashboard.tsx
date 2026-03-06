@@ -27,7 +27,7 @@ import CollapsibleTravelerPackageCard from "./dashboard/CollapsibleTravelerPacka
 
 import EmptyState from "./dashboard/EmptyState";
 import ProtectedEmptyState from "./dashboard/ProtectedEmptyState";
-import { TripSelector } from "./dashboard/TripSelector";
+
 
 import AvailableTripsCard from "./AvailableTripsCard";
 import ReferralBanner from "./dashboard/ReferralBanner";
@@ -766,18 +766,8 @@ const Dashboard = ({ user }: DashboardProps) => {
                   <ProtectedEmptyState type="trips" onAction={() => navigateToForm('trip')} />
                 ) : (
                   <>
-                    {filteredUserTrips.length > 1 && (
-                      <TripSelector
-                        trips={filteredUserTrips}
-                        selectedTripId={selectedTripId}
-                        onTripSelect={setSelectedTripId}
-                        getStatusBadge={(status) => getStatusBadge(status, { context: 'trip' })}
-                      />
-                    )}
                     <div className="grid gap-6">
-                      {filteredUserTrips
-                        .filter(trip => !selectedTripId || trip.id === selectedTripId)
-                        .map((trip) => {
+                      {filteredUserTrips.map((trip) => {
                           // Get packages assigned to this specific trip with visibility filtering
                           const now = Date.now();
                           const PAID_OR_POST_PAYMENT = [
