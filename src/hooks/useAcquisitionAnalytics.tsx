@@ -25,6 +25,7 @@ export interface AcquisitionChannelData {
   totalUsers: number;
   totalPackages: number;
   paidPackages: number;
+  monetizedUsers: number;
   conversionRate: number;
   totalServiceFee: number;
   totalRevenue: number;
@@ -89,6 +90,7 @@ export const useAcquisitionAnalytics = () => {
     // Group users by acquisition source
     const channelMap = new Map<string, {
       users: Set<string>;
+      monetizedUsers: Set<string>;
       packages: number;
       paidPackages: number;
       serviceFee: number;
@@ -101,6 +103,7 @@ export const useAcquisitionAnalytics = () => {
       if (!channelMap.has(channel)) {
         channelMap.set(channel, {
           users: new Set(),
+          monetizedUsers: new Set(),
           packages: 0,
           paidPackages: 0,
           serviceFee: 0,
@@ -126,6 +129,7 @@ export const useAcquisitionAnalytics = () => {
 
       if (PAID_STATUSES.includes(pkg.status)) {
         channelData.paidPackages++;
+        channelData.monetizedUsers.add(pkg.user_id);
         
         if (pkg.quote) {
           const quote = pkg.quote as any;
@@ -146,8 +150,9 @@ export const useAcquisitionAnalytics = () => {
         totalUsers: data.users.size,
         totalPackages: data.packages,
         paidPackages: data.paidPackages,
+        monetizedUsers: data.monetizedUsers.size,
         conversionRate: data.users.size > 0 
-          ? (data.paidPackages / data.users.size) * 100 
+          ? (data.monetizedUsers.size / data.users.size) * 100 
           : 0,
         totalServiceFee: data.serviceFee,
         totalRevenue: data.revenue,
