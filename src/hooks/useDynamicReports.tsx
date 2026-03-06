@@ -314,6 +314,9 @@ export const useDynamicReports = (months: number = 12) => {
       const gmv = pkgStats ? Number(pkgStats.gmv) : 0;
       const serviceFee = pkgStats ? Number(pkgStats.service_fee) : 0;
       const deliveryFee = pkgStats ? Number(pkgStats.delivery_fee) : 0;
+      const refundAdjustment = refundServiceFeeByMonth.get(monthKey) || 0;
+      const cancellationAdjustment = cancellationServiceFeeByMonth.get(monthKey) || 0;
+      const netServiceFee = serviceFee - refundAdjustment - cancellationAdjustment;
 
       const totalTrips = tripStats ? Number(tripStats.total_count) : 0;
       const approvedTrips = tripStats ? Number(tripStats.approved_count) : 0;
