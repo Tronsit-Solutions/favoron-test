@@ -2,6 +2,27 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo } from "react";
 
+// Paginated fetch to bypass PGRST_MAX_ROWS (1000) limit
+async function fetchAllPaginated<T>(
+  queryFn: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: any }>,
+): Promise<T[]> {
+  const PAGE_SIZE = 1000;
+  let allData: T[] = [];
+  let from = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data, error } = await queryFn(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    
+    allData = allData.concat((data || []) as T[]);
+    hasMore = (data?.length || 0) === PAGE_SIZE;
+    from += PAGE_SIZE;
+  }
+
+  return allData;
+}
+
 export interface CACChannelData {
   channel: string;
   channelLabel: string;
@@ -172,13 +193,13 @@ export const useCACAnalytics = (selectedMonth?: string) => {
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['cac-users'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, acquisition_source, created_at')
-        .order('created_at', { ascending: true })
-        .limit(10000);
-      if (error) throw error;
-      return data;
+      return fetchAllPaginated((from, to) =>
+        supabase
+          .from('profiles')
+          .select('id, acquisition_source, created_at')
+          .order('created_at', { ascending: true })
+          .range(from, to)
+      );
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -186,13 +207,13 @@ export const useCACAnalytics = (selectedMonth?: string) => {
   const { data: packagesData, isLoading: packagesLoading } = useQuery({
     queryKey: ['cac-packages'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('packages')
-        .select('id, user_id, status, quote, created_at, matched_trip_id, admin_assigned_tip')
-        .order('created_at', { ascending: true })
-        .limit(20000);
-      if (error) throw error;
-      return data;
+      return fetchAllPaginated((from, to) =>
+        supabase
+          .from('packages')
+          .select('id, user_id, status, quote, created_at, matched_trip_id, admin_assigned_tip')
+          .order('created_at', { ascending: true })
+          .range(from, to)
+      );
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -200,12 +221,12 @@ export const useCACAnalytics = (selectedMonth?: string) => {
   const { data: tripsData, isLoading: tripsLoading } = useQuery({
     queryKey: ['cac-trips'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('trips')
-        .select('id, user_id, status')
-        .limit(10000);
-      if (error) throw error;
-      return data;
+      return fetchAllPaginated((from, to) =>
+        supabase
+          .from('trips')
+          .select('id, user_id, status')
+          .range(from, to)
+      );
     },
     staleTime: 5 * 60 * 1000,
   });
