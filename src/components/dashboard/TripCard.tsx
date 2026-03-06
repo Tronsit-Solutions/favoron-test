@@ -12,6 +12,7 @@ import { TripDate } from "./TripDate";
 import { ReceptionWindow } from "./ReceptionWindow";
 import { useTripPayments } from "@/hooks/useTripPayments";
 import { formatCurrency } from "@/utils/priceHelpers";
+import { getActiveTipFromPackage } from "@/utils/tipHelpers";
 import { ReceiptViewerModal } from "@/components/ui/receipt-viewer-modal";
 
 interface TripCardProps {
@@ -80,7 +81,9 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 
   // Show tips button when user is owner AND (has delivered packages OR has accumulator)
   const shouldShowTipsButton = isOwner;
-  const tipsAmount = tripPayment?.accumulated_amount ?? 0;
+  const tipsAmount = packages
+    .filter(pkg => ['paid', 'in_transit', 'delivered_to_office', 'received_by_traveler', 'pending_office_confirmation', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status))
+    .reduce((sum, pkg) => sum + getActiveTipFromPackage(pkg), 0);
 
   // Show survey button when all packages delivered and feedback not completed
   const shouldShowSurveyButton = tripPayment?.all_packages_delivered && 
