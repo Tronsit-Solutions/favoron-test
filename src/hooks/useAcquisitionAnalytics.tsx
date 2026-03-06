@@ -2,6 +2,23 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo } from "react";
 
+async function fetchAllPaginated<T>(
+  queryFn: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: any }>,
+): Promise<T[]> {
+  const PAGE_SIZE = 1000;
+  let allData: T[] = [];
+  let from = 0;
+  let hasMore = true;
+  while (hasMore) {
+    const { data, error } = await queryFn(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    allData = allData.concat((data || []) as T[]);
+    hasMore = (data?.length || 0) === PAGE_SIZE;
+    from += PAGE_SIZE;
+  }
+  return allData;
+}
+
 export interface AcquisitionChannelData {
   channel: string;
   channelLabel: string;
@@ -40,12 +57,12 @@ export const useAcquisitionAnalytics = () => {
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['acquisition-users'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, acquisition_source');
-      
-      if (error) throw error;
-      return data;
+      return fetchAllPaginated((from, to) =>
+        supabase
+          .from('profiles')
+          .select('id, acquisition_source')
+          .range(from, to)
+      );
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -54,12 +71,12 @@ export const useAcquisitionAnalytics = () => {
   const { data: packagesData, isLoading: packagesLoading } = useQuery({
     queryKey: ['acquisition-packages'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('packages')
-        .select('id, user_id, status, quote');
-      
-      if (error) throw error;
-      return data;
+      return fetchAllPaginated((from, to) =>
+        supabase
+          .from('packages')
+          .select('id, user_id, status, quote')
+          .range(from, to)
+      );
     },
     staleTime: 5 * 60 * 1000,
   });
