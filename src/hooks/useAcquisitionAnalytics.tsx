@@ -150,8 +150,9 @@ export const useAcquisitionAnalytics = () => {
         totalUsers: data.users.size,
         totalPackages: data.packages,
         paidPackages: data.paidPackages,
+        monetizedUsers: data.monetizedUsers.size,
         conversionRate: data.users.size > 0 
-          ? (data.paidPackages / data.users.size) * 100 
+          ? (data.monetizedUsers.size / data.users.size) * 100 
           : 0,
         totalServiceFee: data.serviceFee,
         totalRevenue: data.revenue,
