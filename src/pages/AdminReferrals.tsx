@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
 import { useAdminReferrals } from "@/hooks/useAdminReferrals";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +17,8 @@ import { ArrowLeft, Users, Clock, CheckCircle, DollarSign, Gift, Settings } from
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
+import { DeleteReferralDialog } from "@/components/admin/referrals/DeleteReferralDialog";
+import { AddReferralDialog } from "@/components/admin/referrals/AddReferralDialog";
 
 const formatName = (profile?: { first_name: string | null; last_name: string | null }) => {
   if (!profile) return "—";
@@ -28,8 +30,24 @@ const AdminReferrals = () => {
   const { user } = useAuth();
   const {
     referrals, loading, totalReferrals, pendingCount, completedCount,
-    totalRewardsDistributed, totalDiscountsGiven,
+    totalRewardsDistributed, totalDiscountsGiven, refetch,
   } = useAdminReferrals();
+
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    try {
+      const { error } = await supabase.from('referrals').delete().eq('id', id);
+      if (error) throw error;
+      toast({ title: "✅ Eliminado", description: "Registro de referido eliminado" });
+      refetch();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const [rewardAmount, setRewardAmount] = useState<number>(20);
   const [rewardLoading, setRewardLoading] = useState(false);
@@ -253,8 +271,9 @@ const AdminReferrals = () => {
             </Card>
           ) : (
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg">Detalle de referidos ({referrals.length})</CardTitle>
+                <AddReferralDialog onSuccess={refetch} />
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
@@ -267,6 +286,7 @@ const AdminReferrals = () => {
                       <TableHead>Descuento</TableHead>
                       <TableHead>Fecha registro</TableHead>
                       <TableHead>Fecha completado</TableHead>
+                      <TableHead className="w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -314,6 +334,14 @@ const AdminReferrals = () => {
                           {r.completed_at
                             ? format(new Date(r.completed_at), "dd MMM yyyy", { locale: es })
                             : "—"}
+                        </TableCell>
+                        <TableCell>
+                          <DeleteReferralDialog
+                            referrerName={formatName(r.referrer)}
+                            referredName={formatName(r.referred)}
+                            onConfirm={() => handleDelete(r.id)}
+                            loading={deletingId === r.id}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}

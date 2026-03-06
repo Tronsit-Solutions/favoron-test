@@ -26,9 +26,13 @@ export interface AdminReferral {
 export const useAdminReferrals = () => {
   const [referrals, setReferrals] = useState<AdminReferral[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refetch = () => setRefreshKey(k => k + 1);
 
   useEffect(() => {
     const fetch = async () => {
+      setLoading(true);
       try {
         const { data: refs, error } = await supabase
           .from('referrals')
@@ -41,10 +45,8 @@ export const useAdminReferrals = () => {
           return;
         }
 
-        // Collect unique user IDs
         const userIds = [...new Set(refs.flatMap(r => [r.referrer_id, r.referred_id]))];
 
-        // Batch fetch profiles
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
           .select('id, first_name, last_name, email, referral_code')
@@ -69,7 +71,7 @@ export const useAdminReferrals = () => {
       }
     };
     fetch();
-  }, []);
+  }, [refreshKey]);
 
   const totalReferrals = referrals.length;
   const pendingCount = referrals.filter(r => r.status === 'pending').length;
@@ -88,5 +90,6 @@ export const useAdminReferrals = () => {
     completedCount,
     totalRewardsDistributed,
     totalDiscountsGiven,
+    refetch,
   };
 };
