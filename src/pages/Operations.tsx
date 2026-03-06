@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useOperationsData } from '@/hooks/useOperationsData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, Tag, ArrowLeft, PackageCheck, LogOut, CheckCircle2, RefreshCw, Loader2, Search } from 'lucide-react';
+import { Package, Tag, ArrowLeft, PackageCheck, LogOut, CheckCircle2, RefreshCw, Loader2, Search, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import {
@@ -18,6 +18,7 @@ import OperationsLabelsTab from '@/components/operations/OperationsLabelsTab';
 import OperationsReadyTab from '@/components/operations/OperationsReadyTab';
 import OperationsCompletedTab from '@/components/operations/OperationsCompletedTab';
 import OperationsSearchTab from '@/components/operations/OperationsSearchTab';
+import OperationsIncidentsTab from '@/components/operations/OperationsIncidentsTab';
 import LabelCartBar from '@/components/operations/LabelCartBar';
 
 const Operations = () => {
@@ -101,7 +102,7 @@ const Operations = () => {
       {/* Content */}
       <main className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+          <TabsList className="grid w-full grid-cols-6 max-w-4xl">
             <TabsTrigger value="reception" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               <span className="hidden sm:inline">Recepción</span>
@@ -136,6 +137,15 @@ const Operations = () => {
             <TabsTrigger value="search" className="flex items-center gap-2">
               <Search className="h-4 w-4" />
               <span className="hidden sm:inline">Buscar</span>
+            </TabsTrigger>
+            <TabsTrigger value="incidents" className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              <span className="hidden sm:inline">Incidencias</span>
+              {operationsData.incidentPackages.length > 0 && (
+                <span className="ml-1 text-xs bg-destructive/20 text-destructive px-1.5 rounded">
+                  {operationsData.incidentPackages.length}
+                </span>
+              )}
             </TabsTrigger>
           </TabsList>
 
@@ -183,6 +193,14 @@ const Operations = () => {
 
           <div className={activeTab !== 'search' ? 'hidden' : ''}>
             <OperationsSearchTab />
+          </div>
+
+          <div className={activeTab !== 'incidents' ? 'hidden' : ''}>
+            <OperationsIncidentsTab 
+              packages={operationsData.incidentPackages}
+              loading={operationsData.loading}
+              onRefresh={operationsData.refresh}
+            />
           </div>
         </Tabs>
       </main>
