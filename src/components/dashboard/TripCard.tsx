@@ -102,6 +102,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 
   // Show survey button when all packages delivered and feedback not completed
   const shouldShowSurveyButton = tripPayment?.all_packages_delivered && 
+    tripPayment?.payment_order_created &&
     !trip.traveler_feedback_completed && 
     currentUser?.id === trip.user_id;
 
