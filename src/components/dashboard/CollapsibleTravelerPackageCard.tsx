@@ -817,7 +817,7 @@ const CollapsibleTravelerPackageCard = ({
                 </div>
               </div>
             )}
-          </CardContent>
+          </div>
         </CollapsibleContent>
       </div>
 
