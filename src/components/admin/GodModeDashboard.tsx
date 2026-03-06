@@ -108,6 +108,8 @@ const GodModeDashboard = ({ packages, trips, userId }: GodModeDashboardProps) =>
 
   const renderWidget = (widgetId: string) => {
     switch (widgetId) {
+      case "platform-rating":
+        return <PlatformRatingCard />;
       case "stats-overview":
         return <AdminStatsOverview packages={packages} trips={trips} />;
       case "kpi-cards":
