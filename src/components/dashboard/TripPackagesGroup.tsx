@@ -42,7 +42,7 @@ const TripPackagesGroup = ({
 
   const packagesWithTips = packages.filter(pkg => pkg.quote?.price).length;
   const pendingQuotes = packages.filter(pkg => pkg.status === 'matched').length;
-  const hasPendingActions = packages.some(pkg => ['matched', 'in_transit', 'pending_office_confirmation'].includes(pkg.status));
+  const hasPendingActions = packages.some(pkg => ['matched', 'in_transit'].includes(pkg.status));
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
@@ -115,7 +115,7 @@ const TripPackagesGroup = ({
                   return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
                 })
                 .map((pkg) => {
-                  const hasPendingAction = ['matched', 'pending_office_confirmation'].includes(pkg.status);
+                  const hasPendingAction = pkg.status === 'matched';
                   return (
                     <CollapsibleTravelerPackageCard
                       key={pkg.id}
