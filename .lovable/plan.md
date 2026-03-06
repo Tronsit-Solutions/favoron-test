@@ -1,22 +1,27 @@
 
 
-## Selector de usuarios en AddReferralDialog
+## Agregar sección de créditos de referidos al Dashboard Financiero
 
-Reemplazar los inputs de texto libre por campos de búsqueda con autocompletado que muestren usuarios reales de la base de datos.
+Agregar una tarjeta de resumen de referidos en el `FinancialDashboard.tsx` que muestre el estado global de créditos de referidos en la plataforma.
 
-### Cambios en `src/components/admin/referrals/AddReferralDialog.tsx`
+### Datos a consultar
 
-- Agregar un componente de búsqueda tipo "combobox" usando `cmdk` (ya instalado) + Popover de Radix
-- Cada campo (referidor y referido) tendrá un input donde el admin escribe al menos 2 caracteres
-- Se hace una búsqueda en `profiles` con `ilike` sobre `first_name`, `last_name`, o `email`
-- Los resultados se muestran en un dropdown con formato: **Nombre Apellido** + email debajo
-- Al seleccionar, se guarda el `id` del profile directamente (ya no se busca por email al crear)
-- Validación: ambos usuarios deben estar seleccionados y ser diferentes
-- El estado pasa de `referrerEmail/referredEmail` (strings) a `referrer/referred` (objetos `{id, name, email}`)
+Consulta directa a la tabla `referrals` desde el componente:
+- **Crédito pendiente total**: suma de `reward_amount` donde `status = 'completed'` y `reward_used = false` (lo que se le debe a referidores)
+- **Descuentos pendientes**: suma de `referred_reward_amount` donde `referred_reward_used = false` y `referred_reward_amount > 0`
+- **Total distribuido**: suma de `reward_amount` donde `reward_used = true`
+- **Referidos completados** vs **pendientes**: conteos por status
 
-### UX
-- Input con debounce de 300ms para no saturar queries
-- Mostrar "Buscando..." mientras carga
-- Mostrar "No se encontraron usuarios" si no hay resultados
-- Chip/badge visible con el usuario seleccionado, con X para deseleccionar
+### Cambios en `src/components/admin/FinancialDashboard.tsx`
+
+1. Agregar `useEffect` + estado para fetch de datos de referrals (query a `referrals` table)
+2. Agregar una nueva Card después del "Resumen del Período" (antes de FinancialTablesSection) con:
+   - Icono `Gift` y título "Créditos de Referidos"
+   - Grid de 4 columnas:
+     - **Crédito por pagar** (referrer rewards pendientes) — en amarillo/amber
+     - **Descuentos pendientes** (referred rewards no usados) — en amber
+     - **Ya distribuido** (reward_used = true) — en green
+     - **Referidos activos** (count completados / total)
+
+Esto le da visibilidad al admin del pasivo (liability) que representan los créditos de referidos no utilizados.
 
