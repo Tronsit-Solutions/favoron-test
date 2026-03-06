@@ -144,6 +144,17 @@ const TravelerPackagePriorityActions = ({
                     <CheckCircle className="h-3 w-3 mr-2" />
                     Confirmado por Favorón
                   </Button>}
+                {pkg.status === 'pending_office_confirmation' && (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={(e) => { e.stopPropagation(); setShowOfficeModal(true); }}
+                    className="font-medium w-full sm:w-auto h-9 text-sm"
+                  >
+                    <MapPin className="h-3 w-3 mr-2" />
+                    Ver dirección de oficina
+                  </Button>
+                )}
               </div>
             </div>
           </div>
