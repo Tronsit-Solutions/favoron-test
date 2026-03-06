@@ -1315,6 +1315,63 @@ export type Database = {
           },
         ]
       }
+      traveler_surveys: {
+        Row: {
+          consent_to_publish: boolean
+          created_at: string
+          id: string
+          process_difficulty: string
+          rating: number
+          review_text: string | null
+          tip_satisfaction: string
+          traveler_id: string
+          trip_id: string
+          would_recommend: boolean
+          would_register_again: string
+        }
+        Insert: {
+          consent_to_publish?: boolean
+          created_at?: string
+          id?: string
+          process_difficulty: string
+          rating: number
+          review_text?: string | null
+          tip_satisfaction: string
+          traveler_id: string
+          trip_id: string
+          would_recommend: boolean
+          would_register_again: string
+        }
+        Update: {
+          consent_to_publish?: boolean
+          created_at?: string
+          id?: string
+          process_difficulty?: string
+          rating?: number
+          review_text?: string | null
+          tip_satisfaction?: string
+          traveler_id?: string
+          trip_id?: string
+          would_recommend?: boolean
+          would_register_again?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "traveler_surveys_traveler_id_fkey"
+            columns: ["traveler_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "traveler_surveys_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_payment_accumulator: {
         Row: {
           accumulated_amount: number
@@ -1403,6 +1460,7 @@ export type Database = {
           status: string
           to_city: string
           to_country: string | null
+          traveler_feedback_completed: boolean
           trip_history_log: Json | null
           updated_at: string
           user_id: string
@@ -1428,6 +1486,7 @@ export type Database = {
           status?: string
           to_city: string
           to_country?: string | null
+          traveler_feedback_completed?: boolean
           trip_history_log?: Json | null
           updated_at?: string
           user_id: string
@@ -1453,6 +1512,7 @@ export type Database = {
           status?: string
           to_city?: string
           to_country?: string | null
+          traveler_feedback_completed?: boolean
           trip_history_log?: Json | null
           updated_at?: string
           user_id?: string
