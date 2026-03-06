@@ -272,13 +272,13 @@ const CollapsibleTravelerPackageCard = ({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className={`transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden ${hasPendingAction ? "ring-2 ring-primary/50 shadow-lg border-primary/20" : "hover:shadow-md"}`}>
+      <div className={`transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden rounded-md border-l-[3px] ${hasPendingAction ? "border-l-primary bg-primary/5 ring-1 ring-primary/20" : "border-l-muted-foreground/30 bg-muted/20 hover:bg-muted/30"}`}>
         <CollapsibleTrigger asChild>
-          <CardHeader className={`cursor-pointer transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden ${
+          <div className={`cursor-pointer transition-all duration-200 w-full max-w-full min-w-0 overflow-hidden rounded-t-md ${
             hasPendingAction 
-              ? "bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200" 
-              : "hover:bg-muted/30"
-          } ${isMobile ? 'px-2 py-3' : 'px-4 py-4'}`}>
+              ? "hover:bg-primary/10" 
+              : "hover:bg-muted/40"
+          } ${isMobile ? 'px-3 py-3' : 'px-4 py-4'}`}>
             
             {/* Mobile optimized header layout */}
             {isMobile ? (
@@ -528,11 +528,11 @@ const CollapsibleTravelerPackageCard = ({
                 </div>
               </>
             )}
-          </CardHeader>
+          </div>
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent className={`pt-0 pb-1 ${isMobile ? 'px-2' : 'px-4'}`}>
+          <div className={`pt-0 pb-2 ${isMobile ? 'px-3' : 'px-4'}`}>
 
             {isMobile ? (
               // Mobile optimized content layout
@@ -817,9 +817,9 @@ const CollapsibleTravelerPackageCard = ({
                 </div>
               </div>
             )}
-          </CardContent>
+          </div>
         </CollapsibleContent>
-      </Card>
+      </div>
 
       {/* Document Modal */}
       <Dialog open={documentModal.isOpen} onOpenChange={closeDocumentModal}>

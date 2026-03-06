@@ -106,7 +106,7 @@ const TripPackagesGroup = ({
             )}
 
             {/* Packages for this trip */}
-            <div className="space-y-4">
+            <div className="space-y-3 bg-muted/10 rounded-lg p-2">
               {packages
                 .sort((a, b) => {
                    const aPriority = ['matched', 'in_transit', 'pending_office_confirmation'].includes(a.status) ? 1 : 0;
