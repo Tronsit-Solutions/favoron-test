@@ -44,6 +44,7 @@ import { Badge } from "@/components/ui/badge";
 import { TripChangeAlertBadge } from "@/components/dashboard/TripChangeAlertBadge";
 import TravelerRatingModal from "@/components/dashboard/TravelerRatingModal";
 import PlatformReviewModal from "@/components/dashboard/PlatformReviewModal";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 interface CollapsiblePackageCardProps {
   pkg: PackageType;
   onQuote: (pkg: PackageType, userType: UserType) => void;
@@ -109,6 +110,7 @@ const CollapsiblePackageCard = ({
   const [isResubmitting, setIsResubmitting] = React.useState(false);
   const [showTravelerRatingFromPreview, setShowTravelerRatingFromPreview] = React.useState(false);
   const [showPlatformReviewFromPreview, setShowPlatformReviewFromPreview] = React.useState(false);
+  const [chatModalOpen, setChatModalOpen] = React.useState(false);
 
   const { data: existingRating } = useQuery({
     queryKey: ['traveler-rating', pkg.id],
@@ -155,8 +157,7 @@ const CollapsiblePackageCard = ({
 
   const handleChatClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsOpen(true);
-    setActiveTab("chat");
+    setChatModalOpen(true);
   };
   const needsAction = viewMode === 'user' && (pkg.status === 'quote_sent' || pkg.status === 'quote_accepted' || pkg.status === 'payment_pending' || pkg.status === 'payment_pending_approval' || pkg.status === 'pending_purchase'
   // Removed: 'approved' condition - approved packages are pending traveler assignment, no shopper action needed
@@ -404,8 +405,8 @@ const CollapsiblePackageCard = ({
                   </div>
                   <div className="absolute top-1 right-9 z-20 flex items-center gap-1">
                     {isChatAvailable && (
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
-                        <MessageCircle className="h-5 w-5 text-primary" />
+                      <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
+                        <MessageCircle className="h-6 w-6 text-primary" />
                       </Button>
                     )}
                     {needsAction && (
@@ -978,8 +979,8 @@ const CollapsiblePackageCard = ({
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-9 w-9 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
-                              <MessageCircle className="h-5 w-5 text-primary" />
+                            <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
+                              <MessageCircle className="h-6 w-6 text-primary" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent side="bottom">
@@ -1273,6 +1274,24 @@ const CollapsiblePackageCard = ({
           }}
         />
       )}
+
+      {/* Chat Modal */}
+      <Dialog open={chatModalOpen} onOpenChange={setChatModalOpen}>
+        <DialogContent className="max-w-4xl h-[85vh] flex flex-col overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <MessageCircle className="h-5 w-5" />
+              <span>Chat - {pkg.item_description || 'Paquete'}</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <PackageTimeline 
+              pkg={pkg} 
+              className="h-full"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

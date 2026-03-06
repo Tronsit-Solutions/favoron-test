@@ -71,10 +71,11 @@ const CollapsibleTravelerPackageCard = ({
   const CHAT_AVAILABLE_STATUSES = ['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
   const isChatAvailable = CHAT_AVAILABLE_STATUSES.includes(pkg.status);
 
+  const [chatModalOpen, setChatModalOpen] = useState(false);
+
   const handleChatClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsOpen(true);
-    setActiveTab("chat");
+    setChatModalOpen(true);
   };
 
   // Auto-reconciliation: detect if package needs status correction
@@ -301,8 +302,8 @@ const CollapsibleTravelerPackageCard = ({
                   
                   <div className="flex items-center gap-1 flex-shrink-0 flex-wrap">
                     {isChatAvailable && (
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
-                        <MessageCircle className="h-5 w-5 text-primary" />
+                      <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
+                        <MessageCircle className="h-6 w-6 text-primary" />
                       </Button>
                     )}
                     <TravelerPackageStatusBadge status={getEffectiveStatus(pkg)} pkg={pkg} />
@@ -515,8 +516,8 @@ const CollapsibleTravelerPackageCard = ({
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {isChatAvailable && (
-                      <Button variant="ghost" size="sm" className="h-9 w-9 p-0 hover:bg-muted rounded-full" onClick={handleChatClick}>
-                        <MessageCircle className="h-5 w-5 text-primary" />
+                      <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
+                        <MessageCircle className="h-6 w-6 text-primary" />
                       </Button>
                     )}
                     <div className="flex flex-col items-end text-right">
@@ -918,6 +919,24 @@ const CollapsibleTravelerPackageCard = ({
         products={pkg.products_data || []}
         onConfirmProduct={handleConfirmProduct}
       />
+
+      {/* Chat Modal */}
+      <Dialog open={chatModalOpen} onOpenChange={setChatModalOpen}>
+        <DialogContent className="max-w-4xl h-[85vh] flex flex-col overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <MessageCircle className="h-5 w-5" />
+              <span>Chat - {getPackageName()}</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <PackageTimeline 
+              pkg={pkg} 
+              className="h-full"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
       
     </Collapsible>
   );
