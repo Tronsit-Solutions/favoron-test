@@ -24,7 +24,6 @@ export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
     displayRevenue: item.netFavoronRevenue ?? item.favoronRevenue,
   }));
 
-  const totalRevenue = chartData.reduce((sum, d) => sum + d.displayRevenue, 0);
   const lastMonth = chartData[chartData.length - 1]?.displayRevenue || 0;
   const prevMonth = chartData[chartData.length - 2]?.displayRevenue || 0;
   const momGrowth = Math.abs(prevMonth) > 0 ? ((lastMonth - prevMonth) / Math.abs(prevMonth)) * 100 : 0;
