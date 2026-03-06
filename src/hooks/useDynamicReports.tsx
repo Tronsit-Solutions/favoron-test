@@ -193,6 +193,7 @@ export const useDynamicReports = (months: number = 12) => {
           .from('refund_orders')
           .select('package_id, amount, created_at, completed_at, cancelled_products')
           .eq('status', 'completed')
+          .order('id', { ascending: true })
           .range(from, from + PAGE_SIZE - 1);
 
         if (error) throw error;
