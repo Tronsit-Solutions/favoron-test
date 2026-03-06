@@ -19,6 +19,28 @@ const TravelerPackagePriorityActions = ({
   const [showDeliveryConfirmation, setShowDeliveryConfirmation] = useState(false);
   const [showOfficeModal, setShowOfficeModal] = useState(false);
   if (pkg.status !== 'matched' && pkg.status !== 'in_transit' && pkg.status !== 'received_by_traveler' && pkg.status !== 'pending_office_confirmation') return null;
+
+  // For pending_office_confirmation, render only the button without the gray container
+  if (pkg.status === 'pending_office_confirmation') {
+    return (
+      <div className="mb-3">
+        <Button 
+          size="sm" 
+          variant="outline" 
+          onClick={(e) => { e.stopPropagation(); setShowOfficeModal(true); }}
+          className="font-medium w-full sm:w-auto h-9 text-sm"
+        >
+          <MapPin className="h-3 w-3 mr-2" />
+          Ver dirección de oficina
+        </Button>
+        <OfficeAddressModal 
+          isOpen={showOfficeModal} 
+          onClose={() => setShowOfficeModal(false)} 
+        />
+      </div>
+    );
+  }
+
   return <div className="mb-3 space-y-2">
       {/* Tip/Compensation display - most important for travelers */}
       {false && <div className="bg-muted/30 border rounded-lg p-3">
