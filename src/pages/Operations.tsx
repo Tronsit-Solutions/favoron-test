@@ -200,6 +200,7 @@ const Operations = () => {
               packages={operationsData.incidentPackages}
               loading={operationsData.loading}
               onRefresh={operationsData.refresh}
+              onUpdateIncidentFlag={operationsData.updatePackageIncidentFlag}
             />
           </div>
         </Tabs>

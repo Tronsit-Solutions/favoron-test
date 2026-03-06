@@ -1,13 +1,20 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Package, User, Clock, Loader2, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Package, User, Clock, Loader2, RefreshCw, CheckCircle, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OperationsPackage } from '@/hooks/useOperationsData';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+import IncidentReasonModal, { IncidentAction } from '@/components/admin/IncidentReasonModal';
+import IncidentTimeline from '@/components/admin/IncidentTimeline';
 
 interface OperationsIncidentsTabProps {
   packages: OperationsPackage[];
   loading: boolean;
   onRefresh: () => void;
+  onUpdateIncidentFlag: (packageId: string, flag: boolean, status?: string | null, history?: any[]) => void;
 }
 
 const statusLabels: Record<string, string> = {
@@ -22,7 +29,64 @@ const statusLabels: Record<string, string> = {
   purchased: 'Comprado',
 };
 
-const OperationsIncidentsTab = ({ packages, loading, onRefresh }: OperationsIncidentsTabProps) => {
+const OperationsIncidentsTab = ({ packages, loading, onRefresh, onUpdateIncidentFlag }: OperationsIncidentsTabProps) => {
+  const { user } = useAuth();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalAction, setModalAction] = useState<IncidentAction>('resolve');
+  const [selectedPkgId, setSelectedPkgId] = useState<string | null>(null);
+  const [expandedTimelines, setExpandedTimelines] = useState<Set<string>>(new Set());
+
+  const toggleTimeline = (id: string) => {
+    setExpandedTimelines(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const openModal = (pkgId: string, action: IncidentAction) => {
+    setSelectedPkgId(pkgId);
+    setModalAction(action);
+    setModalOpen(true);
+  };
+
+  const handleIncidentAction = async (text: string) => {
+    if (!selectedPkgId || !user) return;
+
+    const { data: currentPkg } = await supabase
+      .from('packages')
+      .select('incident_history')
+      .eq('id', selectedPkgId)
+      .single();
+
+    const currentHistory: any[] = (currentPkg?.incident_history as any[]) || [];
+
+    const newEntry = {
+      action: modalAction === 'resolve' ? 'resolved' : 'reopened',
+      timestamp: new Date().toISOString(),
+      admin_id: user.id,
+      admin_name: 'Operaciones',
+      ...(modalAction === 'resolve' ? { resolution_notes: text } : { reason: text }),
+    };
+
+    const updatedHistory = [...currentHistory, newEntry];
+    const newStatus = modalAction === 'resolve' ? 'resolved' : 'active';
+
+    const { error } = await supabase
+      .from('packages')
+      .update({
+        incident_flag: true,
+        incident_status: newStatus,
+        incident_history: updatedHistory,
+      })
+      .eq('id', selectedPkgId);
+
+    if (error) throw error;
+
+    toast.success(modalAction === 'resolve' ? 'Incidencia resuelta' : 'Incidencia reabierta');
+    onUpdateIncidentFlag(selectedPkgId, true, newStatus, updatedHistory);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -62,6 +126,7 @@ const OperationsIncidentsTab = ({ packages, loading, onRefresh }: OperationsInci
           hour: '2-digit', minute: '2-digit',
         })
       : null;
+    const isTimelineExpanded = expandedTimelines.has(pkg.id);
 
     return (
       <Card className={`overflow-hidden border-l-4 ${isActive ? 'border-l-destructive' : 'border-l-warning'}`}>
@@ -82,7 +147,7 @@ const OperationsIncidentsTab = ({ packages, loading, onRefresh }: OperationsInci
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-3">
           <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
             <User className="h-4 w-4 text-primary" />
             <span className="font-semibold text-sm">{pkg.shopper_name}</span>
@@ -111,6 +176,51 @@ const OperationsIncidentsTab = ({ packages, loading, onRefresh }: OperationsInci
               </p>
             </div>
           )}
+
+          {/* Timeline toggle */}
+          {pkg.incident_history && pkg.incident_history.length > 0 && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-xs"
+                onClick={() => toggleTimeline(pkg.id)}
+              >
+                {isTimelineExpanded ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
+                {isTimelineExpanded ? 'Ocultar historial' : `Ver historial (${pkg.incident_history.length})`}
+              </Button>
+              {isTimelineExpanded && (
+                <div className="border rounded-lg p-3">
+                  <IncidentTimeline history={pkg.incident_history} />
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex gap-2 pt-1">
+            {isActive ? (
+              <Button
+                size="sm"
+                variant="default"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => openModal(pkg.id, 'resolve')}
+              >
+                <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                Resolver
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="destructive"
+                className="flex-1"
+                onClick={() => openModal(pkg.id, 'reopen')}
+              >
+                <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                Reabrir
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
@@ -155,6 +265,13 @@ const OperationsIncidentsTab = ({ packages, loading, onRefresh }: OperationsInci
           </div>
         </div>
       )}
+
+      <IncidentReasonModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onConfirm={handleIncidentAction}
+        action={modalAction}
+      />
     </div>
   );
 };
