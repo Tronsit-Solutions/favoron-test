@@ -181,8 +181,64 @@ export const useDynamicReports = (months: number = 12) => {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Fetch completed refunds to net out service fee in growth chart
+  const { data: completedRefundOrders, isLoading: refundsLoading } = useQuery({
+    queryKey: ['dynamic-reports-refunds', 'v1'],
+    queryFn: async () => {
+      const allRows: CompletedRefundOrder[] = [];
+      let from = 0;
+
+      while (true) {
+        const { data, error } = await supabase
+          .from('refund_orders')
+          .select('package_id, amount, created_at, completed_at, cancelled_products')
+          .eq('status', 'completed')
+          .range(from, from + PAGE_SIZE - 1);
+
+        if (error) throw error;
+
+        const batch = (data || []) as CompletedRefundOrder[];
+        allRows.push(...batch);
+
+        if (batch.length < PAGE_SIZE) break;
+        from += PAGE_SIZE;
+      }
+
+      return allRows;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch cancelled-but-paid packages to add cancellation counterparts
+  const { data: cancelledPaidPackages, isLoading: cancelledPaidLoading } = useQuery({
+    queryKey: ['dynamic-reports-cancelled-paid-packages', 'v1'],
+    queryFn: async () => {
+      const allRows: CancelledPaidPackage[] = [];
+      let from = 0;
+
+      while (true) {
+        const { data, error } = await supabase
+          .from('packages')
+          .select('id, created_at, quote, payment_receipt, recurrente_payment_id')
+          .in('status', ['cancelled', 'archived_by_shopper'])
+          .range(from, from + PAGE_SIZE - 1);
+
+        if (error) throw error;
+
+        const batch = (data || []) as CancelledPaidPackage[];
+        allRows.push(...batch);
+
+        if (batch.length < PAGE_SIZE) break;
+        from += PAGE_SIZE;
+      }
+
+      return allRows;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   const processedData = useMemo(() => {
-    if (!monthlyUsersData || !monthlyPackagesData || !monthlyTripsData || !countsData) {
+    if (!monthlyUsersData || !monthlyPackagesData || !monthlyTripsData || !countsData || !completedRefundOrders || !cancelledPaidPackages) {
       return { monthlyData: [], kpis: getEmptyKPIs() };
     }
 
