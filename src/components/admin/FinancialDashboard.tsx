@@ -14,13 +14,6 @@ interface FinancialDashboardProps {
 const FinancialDashboard = ({
   packages
 }: FinancialDashboardProps) => {
-  const { fees } = usePlatformFeesContext();
-  
-  // Get dynamic rates from context
-  const rates = useMemo(() => ({
-    standard: fees?.service_fee_rate_standard ?? 0.50,
-    prime: fees?.service_fee_rate_prime ?? 0.25
-  }), [fees]);
 
   // Referral credits data
   const [referralMetrics, setReferralMetrics] = useState({
