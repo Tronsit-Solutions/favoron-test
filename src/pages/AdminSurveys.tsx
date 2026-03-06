@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AcquisitionSurveyModal from "@/components/AcquisitionSurveyModal";
 import AdminTravelerRatingsTab from "@/components/admin/AdminTravelerRatingsTab";
 import AdminPlatformReviewsTab from "@/components/admin/AdminPlatformReviewsTab";
+import AdminTravelerSurveysTab from "@/components/admin/AdminTravelerSurveysTab";
 
 interface AcquisitionSurveyRow {
   id: string;
