@@ -403,7 +403,7 @@ export const useDynamicReports = (months: number = 12) => {
     };
 
     return { monthlyData, kpis };
-  }, [monthlyUsersData, monthlyPackagesData, monthlyTripsData, countsData, months]);
+  }, [monthlyUsersData, monthlyPackagesData, monthlyTripsData, countsData, completedRefundOrders, cancelledPaidPackages, months]);
 
   const isLoading = usersLoading || packagesLoading || tripsLoading || countsLoading;
 
