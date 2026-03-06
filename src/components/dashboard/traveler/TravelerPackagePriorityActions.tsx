@@ -150,19 +150,21 @@ const TravelerPackagePriorityActions = ({
           
         </div>
         
-        {/* Office Address Button - Only for received_by_traveler and later states */}
+        {/* Office Address Button - inline for pending_office_confirmation, below for others */}
         {['received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'].includes(pkg.status) && (
-          <div className="mt-3 pt-3 border-t border-muted/50">
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={() => setShowOfficeModal(true)}
-              className="w-full sm:w-auto"
-            >
-              <MapPin className="h-3 w-3 mr-2" />
-              Ver dirección de oficina
-            </Button>
-          </div>
+          pkg.status === 'pending_office_confirmation' ? null : (
+            <div className="mt-3 pt-3 border-t border-muted/50">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => setShowOfficeModal(true)}
+                className="w-full sm:w-auto"
+              >
+                <MapPin className="h-3 w-3 mr-2" />
+                Ver dirección de oficina
+              </Button>
+            </div>
+          )
         )}
       </div>
       
