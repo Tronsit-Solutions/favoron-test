@@ -167,7 +167,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
                   className="h-10 w-10 p-0 hover:bg-muted/50 text-green-600"
                   title="Ver comprobante de pago"
                 >
-                  <Receipt className="h-4 w-4" />
+                  <Receipt className="h-5 w-5" />
                 </Button>
               )}
               {canEdit && (
