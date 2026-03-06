@@ -271,6 +271,11 @@ export const useOperationsData = () => {
       ['ready_for_pickup', 'ready_for_delivery'].includes(p.status)
     ), [allPackages]);
 
+  // Incidents tab: all packages with incident_flag === true
+  const incidentPackages = useMemo(() => 
+    allPackages.filter(p => p.incident_flag === true), 
+    [allPackages]);
+
   // Labels tab: only packages in ACTIVE processing states (not completed/cancelled)
   // Fetches additional trip data from DB for last_mile_delivered status
   const [labelsTripsData, setLabelsTripsData] = useState<Map<string, { last_mile_delivered: boolean; available_space: number | null; first_day_packages: string | null; last_day_packages: string | null }>>(new Map());
@@ -544,6 +549,7 @@ export const useOperationsData = () => {
     receptionTripGroups,
     readyPackages,
     completedPackages,
+    incidentPackages,
     labelsTrips,
     
     // State mutation helpers
