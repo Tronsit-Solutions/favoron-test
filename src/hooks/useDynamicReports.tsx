@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMemo } from "react";
 import { format, subMonths } from "date-fns";
 import { es } from "date-fns/locale";
-import { getQuoteValues } from "@/lib/quoteHelpers";
 
 interface MonthlyUserCount {
   month: string;
@@ -58,13 +57,9 @@ interface CompletedRefundOrder {
   cancelled_products: unknown;
 }
 
-interface CancelledPaidPackage {
-  id: string;
-  created_at: string;
-  updated_at: string;
-  quote: unknown;
-  payment_receipt: unknown;
-  recurrente_payment_id: string | null;
+interface ApprovedPrimeMembership {
+  amount: number;
+  approved_at: string;
 }
 
 interface KPIData {
@@ -89,19 +84,15 @@ export interface DynamicReportsData {
 
 const PAGE_SIZE = 1000;
 
-const toMonthKey = (value: string | null | undefined): string | null => {
+/**
+ * Convert a UTC date string to Guatemala TZ (UTC-6) month key YYYY-MM.
+ */
+const toGuatemalaMonthKey = (value: string | null | undefined): string | null => {
   if (!value) return null;
-  return value.substring(0, 7);
-};
-
-const hasPaymentEvidence = (pkg: CancelledPaidPackage): boolean => {
-  const receipt = pkg.payment_receipt as any;
-  const hasManualReceipt = receipt && typeof receipt === 'object' && !!receipt.filePath;
-  const hasCardPayment = !!pkg.recurrente_payment_id;
-  const hasCardReceiptEvidence = receipt && typeof receipt === 'object' &&
-    (receipt.method === 'card' || !!receipt.payment_id || receipt.provider === 'recurrente');
-
-  return hasManualReceipt || hasCardPayment || hasCardReceiptEvidence;
+  const d = new Date(value);
+  // Shift to Guatemala time (UTC-6)
+  d.setHours(d.getHours() - 6);
+  return d.toISOString().substring(0, 7);
 };
 
 const extractRefundServiceFee = (refund: CompletedRefundOrder): number => {
@@ -184,7 +175,7 @@ export const useDynamicReports = (months: number = 12) => {
 
   // Fetch completed refunds to net out service fee in growth chart
   const { data: completedRefundOrders, isLoading: refundsLoading } = useQuery({
-    queryKey: ['dynamic-reports-refunds', 'v1'],
+    queryKey: ['dynamic-reports-refunds', 'v2'],
     queryFn: async () => {
       const allRows: CompletedRefundOrder[] = [];
       let from = 0;
@@ -211,37 +202,24 @@ export const useDynamicReports = (months: number = 12) => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch cancelled-but-paid packages to add cancellation counterparts
-  const { data: cancelledPaidPackages, isLoading: cancelledPaidLoading } = useQuery({
-    queryKey: ['dynamic-reports-cancelled-paid-packages', 'v1'],
+  // Fetch approved Prime memberships to include in revenue
+  const { data: approvedPrimeMemberships, isLoading: primeLoading } = useQuery({
+    queryKey: ['dynamic-reports-prime-memberships', 'v1'],
     queryFn: async () => {
-      const allRows: CancelledPaidPackage[] = [];
-      let from = 0;
+      const { data, error } = await supabase
+        .from('prime_memberships')
+        .select('amount, approved_at')
+        .eq('status', 'approved')
+        .not('approved_at', 'is', null);
 
-      while (true) {
-        const { data, error } = await supabase
-          .from('packages')
-          .select('id, created_at, updated_at, quote, payment_receipt, recurrente_payment_id')
-          .in('status', ['cancelled', 'archived_by_shopper'])
-          .order('id', { ascending: true })
-          .range(from, from + PAGE_SIZE - 1);
-
-        if (error) throw error;
-
-        const batch = (data || []) as CancelledPaidPackage[];
-        allRows.push(...batch);
-
-        if (batch.length < PAGE_SIZE) break;
-        from += PAGE_SIZE;
-      }
-
-      return allRows;
+      if (error) throw error;
+      return (data || []) as ApprovedPrimeMembership[];
     },
     staleTime: 5 * 60 * 1000,
   });
 
   const processedData = useMemo(() => {
-    if (!monthlyUsersData || !monthlyPackagesData || !monthlyTripsData || !countsData || !completedRefundOrders || !cancelledPaidPackages) {
+    if (!monthlyUsersData || !monthlyPackagesData || !monthlyTripsData || !countsData || !completedRefundOrders || !approvedPrimeMemberships) {
       return { monthlyData: [], kpis: getEmptyKPIs() };
     }
 
@@ -261,12 +239,9 @@ export const useDynamicReports = (months: number = 12) => {
       return { monthlyData: [], kpis: getEmptyKPIs() };
     }
 
-    const refundedPackageIds = new Set(
-      completedRefundOrders.map(refund => refund.package_id).filter(Boolean)
-    );
-
+    // Group refund service fees by Guatemala TZ month
     const refundServiceFeeByMonth = completedRefundOrders.reduce((acc, refund) => {
-      const monthKey = toMonthKey(refund.completed_at || refund.created_at);
+      const monthKey = toGuatemalaMonthKey(refund.completed_at || refund.created_at);
       if (!monthKey) return acc;
 
       const currentValue = acc.get(monthKey) || 0;
@@ -274,16 +249,12 @@ export const useDynamicReports = (months: number = 12) => {
       return acc;
     }, new Map<string, number>());
 
-    const cancellationServiceFeeByMonth = cancelledPaidPackages.reduce((acc, pkg) => {
-      if (refundedPackageIds.has(pkg.id)) return acc;
-      if (!hasPaymentEvidence(pkg)) return acc;
-
-      const monthKey = toMonthKey(pkg.updated_at);
+    // Group Prime membership revenue by Guatemala TZ month (approved_at)
+    const primeRevenueByMonth = approvedPrimeMemberships.reduce((acc, pm) => {
+      const monthKey = toGuatemalaMonthKey(pm.approved_at);
       if (!monthKey) return acc;
-
-      const quoteValues = getQuoteValues(pkg.quote);
       const currentValue = acc.get(monthKey) || 0;
-      acc.set(monthKey, currentValue + quoteValues.serviceFee);
+      acc.set(monthKey, currentValue + Number(pm.amount));
       return acc;
     }, new Map<string, number>());
 
@@ -318,8 +289,10 @@ export const useDynamicReports = (months: number = 12) => {
       const serviceFee = pkgStats ? Number(pkgStats.service_fee) : 0;
       const deliveryFee = pkgStats ? Number(pkgStats.delivery_fee) : 0;
       const refundAdjustment = refundServiceFeeByMonth.get(monthKey) || 0;
-      const cancellationAdjustment = cancellationServiceFeeByMonth.get(monthKey) || 0;
-      const netServiceFee = serviceFee - refundAdjustment - cancellationAdjustment;
+      const primeRevenue = primeRevenueByMonth.get(monthKey) || 0;
+      // Cancelled-but-paid packages net to zero (income + counterpart cancel out)
+      // so no cancellation adjustment is needed — aligned with FinancialSummaryTable
+      const netServiceFee = serviceFee - refundAdjustment + primeRevenue;
 
       const totalTrips = tripStats ? Number(tripStats.total_count) : 0;
       const approvedTrips = tripStats ? Number(tripStats.approved_count) : 0;
@@ -406,9 +379,9 @@ export const useDynamicReports = (months: number = 12) => {
     };
 
     return { monthlyData, kpis };
-  }, [monthlyUsersData, monthlyPackagesData, monthlyTripsData, countsData, completedRefundOrders, cancelledPaidPackages, months]);
+  }, [monthlyUsersData, monthlyPackagesData, monthlyTripsData, countsData, completedRefundOrders, approvedPrimeMemberships, months]);
 
-  const isLoading = usersLoading || packagesLoading || tripsLoading || countsLoading || refundsLoading || cancelledPaidLoading;
+  const isLoading = usersLoading || packagesLoading || tripsLoading || countsLoading || refundsLoading || primeLoading;
 
   return {
     ...processedData,

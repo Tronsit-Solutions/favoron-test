@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { getQuoteValues } from "@/lib/quoteHelpers";
-import { Loader2, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Loader2, TrendingUp, TrendingDown, Crown } from "lucide-react";
 import { format, parse } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -17,7 +17,7 @@ interface LineItem {
   description: string;
   status: string;
   serviceFee: number;
-  type: "income" | "refund" | "cancellation";
+  type: "income" | "refund" | "prime";
   labelNumber?: number | null;
 }
 
@@ -28,12 +28,10 @@ const ACTIVE_STATUSES = [
   'out_for_delivery', 'completed'
 ];
 
-const CANCELLED_STATUSES = ['cancelled', 'archived_by_shopper'];
-
 export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) => {
   const [loading, setLoading] = useState(false);
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
-  const [summary, setSummary] = useState({ gross: 0, refunds: 0, cancellations: 0, net: 0 });
+  const [summary, setSummary] = useState({ gross: 0, refunds: 0, prime: 0, net: 0 });
 
   useEffect(() => {
     if (!month) return;
@@ -49,40 +47,37 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
         if (m > 12) { m = 1; y++; }
         const endDate = `${y}-${String(m).padStart(2, '0')}-01T06:00:00.000Z`;
 
-        // 1. Active packages for this month
+        // 1. Active packages created this month (Guatemala TZ range)
         const { data: activePkgs } = await supabase
           .from('packages')
-          .select('id, item_description, status, quote, label_number, recurrente_payment_id, payment_receipt')
+          .select('id, item_description, status, quote, label_number')
           .in('status', ACTIVE_STATUSES)
           .gte('created_at', startDate)
           .lt('created_at', endDate);
 
-        // UTC-based range for cancellations & refunds (matches toMonthKey substring logic in chart)
-        const utcStart = `${month}-01T00:00:00.000Z`;
-        const utcEnd = `${y}-${String(m).padStart(2, '0')}-01T00:00:00.000Z`;
-
-        // 2. Cancelled/archived packages for this month — filter by updated_at (cancellation date)
-        const { data: cancelledPkgs } = await supabase
-          .from('packages')
-          .select('id, item_description, status, quote, label_number, recurrente_payment_id, payment_receipt')
-          .in('status', CANCELLED_STATUSES)
-          .gte('updated_at', utcStart)
-          .lt('updated_at', utcEnd);
-
-        // 3. Completed refunds with completed_at in this month (UTC range)
+        // 2. Completed refunds with completed_at in this month (Guatemala TZ range)
         const { data: refunds } = await supabase
           .from('refund_orders')
           .select('id, package_id, amount, status, cancelled_products, reason, completed_at')
           .eq('status', 'completed')
-          .gte('completed_at', utcStart)
-          .lt('completed_at', utcEnd);
+          .gte('completed_at', startDate)
+          .lt('completed_at', endDate);
+
+        // 3. Approved Prime memberships with approved_at in this month (Guatemala TZ range)
+        const { data: primeMemberships } = await supabase
+          .from('prime_memberships')
+          .select('id, amount, approved_at, user_id')
+          .eq('status', 'approved')
+          .not('approved_at', 'is', null)
+          .gte('approved_at', startDate)
+          .lt('approved_at', endDate);
 
         const items: LineItem[] = [];
         let grossTotal = 0;
         let refundTotal = 0;
-        let cancellationTotal = 0;
+        let primeTotal = 0;
 
-        // Process active packages — use getQuoteValues for consistency
+        // Process active packages
         (activePkgs || []).forEach(pkg => {
           const qv = getQuoteValues(pkg.quote);
           const sf = qv.serviceFee;
@@ -99,48 +94,10 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
           }
         });
 
-        // Process cancelled-but-paid packages (same payment evidence logic as FinancialSummaryTable)
-        const refundedPackageIds = new Set((refunds || []).map(r => r.package_id));
-        (cancelledPkgs || []).forEach(pkg => {
-          const receipt = pkg.payment_receipt as any;
-          const hasManualReceipt = receipt && typeof receipt === 'object' && receipt.filePath;
-          const hasCardPayment = !!pkg.recurrente_payment_id;
-          const hasCardReceiptEvidence = receipt && typeof receipt === 'object' &&
-            (receipt.method === 'card' || receipt.payment_id || receipt.provider === 'recurrente');
-          const hasPaid = hasManualReceipt || hasCardPayment || hasCardReceiptEvidence;
+        // Cancelled-but-paid packages net to zero (income + counterpart cancel out)
+        // so they are NOT shown — aligned with FinancialSummaryTable logic
 
-          if (!hasPaid) return;
-
-          const qv = getQuoteValues(pkg.quote);
-          const sf = qv.serviceFee;
-          if (sf <= 0) return;
-
-          // Income entry
-          grossTotal += sf;
-          items.push({
-            id: pkg.id + '-income',
-            description: pkg.item_description,
-            status: pkg.status,
-            serviceFee: sf,
-            type: "income",
-            labelNumber: pkg.label_number,
-          });
-
-          // If no refund order exists, add cancellation counterpart
-          if (!refundedPackageIds.has(pkg.id)) {
-            cancellationTotal += sf;
-            items.push({
-              id: pkg.id + '-cancel',
-              description: `Cancelación - ${pkg.item_description}`,
-              status: pkg.status,
-              serviceFee: -sf,
-              type: "cancellation",
-              labelNumber: pkg.label_number,
-            });
-          }
-        });
-
-        // Process refunds — extract serviceFee from cancelled_products metadata (same as FinancialSummaryTable)
+        // Process refunds — extract serviceFee from cancelled_products metadata
         (refunds || []).forEach(ref => {
           const cancelledProducts = Array.isArray(ref.cancelled_products) ? ref.cancelled_products : [];
 
@@ -149,7 +106,6 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
           let refundDeliveryFee = 0;
 
           if (cancelledProducts.length > 0) {
-            // Use serviceFee from metadata (correct field)
             refundSF = (cancelledProducts as any[]).reduce((sum: number, p: any) => {
               if (p.serviceFee !== undefined) return sum + (Number(p.serviceFee) || 0);
               return sum;
@@ -184,11 +140,26 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
           }
         });
 
+        // Process Prime memberships
+        (primeMemberships || []).forEach(pm => {
+          const amt = Number(pm.amount);
+          if (amt > 0) {
+            primeTotal += amt;
+            items.push({
+              id: pm.id,
+              description: `Membresía Prime`,
+              status: 'approved',
+              serviceFee: amt,
+              type: "prime",
+            });
+          }
+        });
+
         setSummary({
           gross: grossTotal,
           refunds: refundTotal,
-          cancellations: cancellationTotal,
-          net: grossTotal - refundTotal - cancellationTotal,
+          prime: primeTotal,
+          net: grossTotal - refundTotal + primeTotal,
         });
         setLineItems(items);
       } catch (err) {
@@ -212,7 +183,7 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
       <SheetContent side="right" className="!max-w-2xl w-full overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="capitalize text-xl">Detalle de Ingresos — {monthLabel}</SheetTitle>
-          <SheetDescription>Desglose del service fee neto del mes</SheetDescription>
+          <SheetDescription>Desglose del ingreso Favorón neto del mes</SheetDescription>
         </SheetHeader>
 
         {loading ? (
@@ -235,9 +206,9 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
               </div>
               <div className="rounded-lg border bg-card p-4">
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Minus className="h-4 w-4 text-orange-500" /> Cancelaciones
+                  <Crown className="h-4 w-4 text-amber-500" /> Prime
                 </p>
-                <p className="text-xl font-bold text-orange-500">-{fmt(summary.cancellations)}</p>
+                <p className="text-xl font-bold text-amber-600">+{fmt(summary.prime)}</p>
               </div>
               <div className="rounded-lg border bg-primary/10 p-4">
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -278,9 +249,9 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
                             <span className={`text-xs px-2 py-1 rounded-full ${
                               item.type === 'income' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
                               item.type === 'refund' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                              'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                              'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                             }`}>
-                              {item.type === 'income' ? 'Ingreso' : item.type === 'refund' ? 'Reembolso' : 'Cancelación'}
+                              {item.type === 'income' ? 'Ingreso' : item.type === 'refund' ? 'Reembolso' : 'Prime'}
                             </span>
                           </TableCell>
                           <TableCell className={`text-sm text-right font-mono ${
