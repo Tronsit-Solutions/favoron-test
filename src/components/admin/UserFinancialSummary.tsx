@@ -1,14 +1,90 @@
+import { useState, useEffect } from "react";
 import { Package, Trip } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, TrendingUp, Package as PackageIcon, Plane } from "lucide-react";
+import { DollarSign, TrendingUp, Package as PackageIcon, Plane, Gift } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { formatDate } from "@/utils/dateHelpers";
 
 interface UserFinancialSummaryProps {
   packages: Package[];
   trips: Trip[];
-  allPackages: Package[]; // To calculate tips earned from other users' packages
+  allPackages: Package[];
+  userId?: string;
 }
 
-const UserFinancialSummary = ({ packages, trips, allPackages }: UserFinancialSummaryProps) => {
+interface ReferralData {
+  referrerBalance: number;
+  referrerUsed: number;
+  referredDiscount: number;
+  referredUsed: boolean;
+  completedCount: number;
+  pendingCount: number;
+  referralCode: string | null;
+}
+
+const UserFinancialSummary = ({ packages, trips, allPackages, userId }: UserFinancialSummaryProps) => {
+  const [referralData, setReferralData] = useState<ReferralData>({
+    referrerBalance: 0, referrerUsed: 0, referredDiscount: 0,
+    referredUsed: false, completedCount: 0, pendingCount: 0, referralCode: null,
+  });
+  const [loadingReferrals, setLoadingReferrals] = useState(false);
+
+  // Fetch referral data for this user
+  useEffect(() => {
+    if (!userId) return;
+    const fetchReferralData = async () => {
+      setLoadingReferrals(true);
+      try {
+        // Fetch as referrer
+        const { data: asReferrer } = await supabase
+          .from('referrals')
+          .select('*')
+          .eq('referrer_id', userId);
+
+        // Fetch as referred
+        const { data: asReferred } = await supabase
+          .from('referrals')
+          .select('*')
+          .eq('referred_id', userId);
+
+        // Fetch referral code from profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('referral_code')
+          .eq('id', userId)
+          .single();
+
+        const referrerBalance = (asReferrer || [])
+          .filter(r => r.status === 'completed' && !r.reward_used)
+          .reduce((s, r) => s + (r.reward_amount || 0), 0);
+        const referrerUsed = (asReferrer || [])
+          .filter(r => r.reward_used)
+          .reduce((s, r) => s + (r.reward_amount || 0), 0);
+        const completedCount = (asReferrer || []).filter(r => r.status === 'completed').length;
+        const pendingCount = (asReferrer || []).filter(r => r.status === 'pending').length;
+
+        const referredRecord = (asReferred || [])[0];
+        const referredDiscount = referredRecord?.referred_reward_amount || 0;
+        const referredUsed = referredRecord?.referred_reward_used || false;
+
+        setReferralData({
+          referrerBalance, referrerUsed, referredDiscount, referredUsed,
+          completedCount, pendingCount, referralCode: profile?.referral_code || null,
+        });
+      } catch (err) {
+        console.error('Error fetching referral data:', err);
+      } finally {
+        setLoadingReferrals(false);
+      }
+    };
+    fetchReferralData();
+  }, [userId]);
+
+  // Packages where referral credit was applied
+  const packagesWithCredit = packages.filter(pkg => 
+    (pkg.referral_credit_applied || 0) > 0
+  );
+
   // Calculate total paid as shopper (only paid packages)
   const paidStatuses = ['pending_purchase', 'in_transit', 'delivered_to_office', 'received_by_traveler'];
   const totalPaidAsShopper = packages
@@ -74,6 +150,9 @@ const UserFinancialSummary = ({ packages, trips, allPackages }: UserFinancialSum
     }
   ];
 
+  const totalCreditAvailable = referralData.referrerBalance + 
+    (referralData.referredUsed ? 0 : referralData.referredDiscount);
+
   return (
     <div className="space-y-4">
       <Card>
@@ -103,6 +182,73 @@ const UserFinancialSummary = ({ packages, trips, allPackages }: UserFinancialSum
           </div>
         </CardContent>
       </Card>
+
+      {/* Referral Credit Section */}
+      {userId && (
+        <Card>
+          <CardHeader className="flex flex-row items-center gap-2">
+            <Gift className="h-5 w-5 text-amber-600" />
+            <CardTitle className="text-lg">Crédito de Referidos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingReferrals ? (
+              <p className="text-sm text-muted-foreground">Cargando...</p>
+            ) : (
+              <div className="space-y-4">
+                {referralData.referralCode && (
+                  <p className="text-sm">
+                    Código de referido: <span className="font-mono font-bold">{referralData.referralCode}</span>
+                  </p>
+                )}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="p-3 border rounded-lg">
+                    <p className="text-xs text-muted-foreground">Crédito disponible total</p>
+                    <p className="text-xl font-bold text-amber-600">Q{totalCreditAvailable.toFixed(2)}</p>
+                  </div>
+                  <div className="p-3 border rounded-lg">
+                    <p className="text-xs text-muted-foreground">Como referidor</p>
+                    <p className="text-xl font-bold">Q{referralData.referrerBalance.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground">{referralData.completedCount} completados, {referralData.pendingCount} pendientes</p>
+                  </div>
+                  <div className="p-3 border rounded-lg">
+                    <p className="text-xs text-muted-foreground">Descuento de registro</p>
+                    <p className="text-xl font-bold">Q{referralData.referredDiscount.toFixed(2)}</p>
+                    <p className={`text-xs ${referralData.referredUsed ? 'text-green-600' : 'text-amber-600'}`}>
+                      {referralData.referredDiscount > 0 ? (referralData.referredUsed ? 'Ya usado' : 'Disponible') : 'No aplica'}
+                    </p>
+                  </div>
+                  <div className="p-3 border rounded-lg">
+                    <p className="text-xs text-muted-foreground">Ya usado</p>
+                    <p className="text-xl font-bold text-green-600">Q{referralData.referrerUsed.toFixed(2)}</p>
+                  </div>
+                </div>
+
+                {/* Packages where credit was applied */}
+                {packagesWithCredit.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-medium mb-2">Pedidos con crédito aplicado</h4>
+                    <div className="space-y-2">
+                      {packagesWithCredit.map(pkg => (
+                        <div key={pkg.id} className="flex items-center justify-between p-2 border rounded text-sm">
+                          <div>
+                            <p className="font-medium">{pkg.item_description}</p>
+                            <p className="text-xs text-muted-foreground">{formatDate(pkg.created_at)}</p>
+                          </div>
+                          <span className="font-bold text-green-600">-Q{(pkg.referral_credit_applied || 0).toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {packagesWithCredit.length === 0 && totalCreditAvailable === 0 && referralData.referrerUsed === 0 && (
+                  <p className="text-sm text-muted-foreground">Este usuario no tiene actividad de referidos.</p>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Activity Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
