@@ -61,6 +61,7 @@ interface CompletedRefundOrder {
 interface CancelledPaidPackage {
   id: string;
   created_at: string;
+  updated_at: string;
   quote: unknown;
   payment_receipt: unknown;
   recurrente_payment_id: string | null;
