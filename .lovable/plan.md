@@ -1,22 +1,14 @@
 
 
-## Botón de chat más grande + modal de chat
-
-### Cambios
-
-**Ambos archivos: `CollapsiblePackageCard.tsx` y `CollapsibleTravelerPackageCard.tsx`**:
-
-1. **Agrandar el botón de chat**: Cambiar de `h-8 w-8` / `h-9 w-9` a `h-10 w-10` y el ícono de `h-5 w-5` a `h-6 w-6`. Agregar un fondo sutil (`bg-primary/10`) para que sea más visible.
-
-2. **Cambiar `handleChatClick`**: En vez de expandir la card y cambiar al tab "chat", abrir un **modal/dialog** con el `PackageTimeline` (el mismo componente de chat que ya se usa en las cards y en `MatchChatModal`).
-
-3. **Agregar un `Dialog`** dentro de cada componente:
-   - Estado `chatModalOpen` (boolean)
-   - `handleChatClick` → setea `chatModalOpen = true` (sin expandir la card)
-   - El dialog muestra: header con nombre del paquete + `PackageTimeline` ocupando el espacio restante
-   - Mismo layout que `MatchChatModal`: `max-w-4xl h-[85vh] flex flex-col`
+## Cambios en etiqueta: eliminar viajero + reducir espaciado
 
 ### Archivos a modificar
-- `src/components/dashboard/CollapsiblePackageCard.tsx` — Agrandar botón, agregar chat modal
-- `src/components/dashboard/CollapsibleTravelerPackageCard.tsx` — Agrandar botón, agregar chat modal
+
+**`src/components/admin/PackageLabel.tsx`**:
+
+1. **Eliminar sección VIAJERO**: Remover el bloque condicional `{trip && (...)}` que muestra "VIAJERO: nombre" (líneas ~153-160). También se puede eliminar la función `getTravelerName()` ya que no se usará.
+
+2. **Reducir espaciado entre líneas**: Cambiar `space-y-3` a `space-y-1` en el contenedor de contenido, y reducir el padding de `p-4` a `p-2` (modo normal) para que la etiqueta sea más compacta. Ajustar `space-y-1` en los sub-bloques también.
+
+Estos cambios aplican tanto a la vista previa en pantalla como al PDF generado (ya que ambos renderizan el mismo componente `PackageLabel` vía html2canvas).
 
