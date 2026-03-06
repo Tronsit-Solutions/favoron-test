@@ -4,8 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Package } from "@/types";
 import { DollarSign, Backpack, TrendingUp, Gift } from "lucide-react";
 import FinancialTablesSection from "./FinancialTablesSection";
-import { calculateFavoronRevenue, calculateServiceFee } from '@/lib/pricing';
-import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
+import { getQuoteValues } from '@/lib/quoteHelpers';
 import { supabase } from "@/integrations/supabase/client";
 
 interface FinancialDashboardProps {
@@ -14,13 +13,6 @@ interface FinancialDashboardProps {
 const FinancialDashboard = ({
   packages
 }: FinancialDashboardProps) => {
-  const { fees } = usePlatformFeesContext();
-  
-  // Get dynamic rates from context
-  const rates = useMemo(() => ({
-    standard: fees?.service_fee_rate_standard ?? 0.50,
-    prime: fees?.service_fee_rate_prime ?? 0.25
-  }), [fees]);
 
   // Referral credits data
   const [referralMetrics, setReferralMetrics] = useState({
@@ -95,14 +87,10 @@ const FinancialDashboard = ({
       return sum + discountAmount;
     }, 0);
 
-    // Ingresos Favorón (calculados con rates dinámicos desde admin)
+    // Ingresos Favorón (serviceFee del quote, igual que la tabla resumen)
     const favoronRevenueGross = completedPackages.reduce((sum, pkg) => {
-      const quote = pkg.quote as any;
-      const basePrice = parseFloat(quote?.price || '0');
-      const serviceFee = calculateServiceFee(basePrice, undefined, rates);
-      // For now, use standard rate as we don't have trust_level in Package type
-      const revenue = calculateFavoronRevenue(basePrice, serviceFee, undefined);
-      return sum + revenue;
+      const quoteValues = getQuoteValues(pkg.quote);
+      return sum + quoteValues.serviceFee;
     }, 0);
 
     // Restar descuentos de los ingresos de Favorón
@@ -122,7 +110,7 @@ const FinancialDashboard = ({
       travelerTips,
       completedOrders: completedPackages.length
     };
-  }, [filteredPackages, rates]);
+  }, [filteredPackages]);
   const formatCurrencyGTQ = (amount: number) => {
     return new Intl.NumberFormat('es-GT', {
       style: 'currency',
