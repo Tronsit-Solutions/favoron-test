@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AcquisitionSurveyModal from "@/components/AcquisitionSurveyModal";
 import AdminTravelerRatingsTab from "@/components/admin/AdminTravelerRatingsTab";
 import AdminPlatformReviewsTab from "@/components/admin/AdminPlatformReviewsTab";
+import AdminTravelerSurveysTab from "@/components/admin/AdminTravelerSurveysTab";
 
 interface AcquisitionSurveyRow {
   id: string;
@@ -142,6 +143,7 @@ const AdminSurveys = () => {
           <Tabs defaultValue="acquisition" className="space-y-6">
             <TabsList>
               <TabsTrigger value="acquisition">Adquisición</TabsTrigger>
+              <TabsTrigger value="traveler-surveys">Encuesta Viajeros</TabsTrigger>
               <TabsTrigger value="traveler-ratings">Reviews Viajeros</TabsTrigger>
               <TabsTrigger value="platform-reviews">Reviews Plataforma</TabsTrigger>
             </TabsList>
@@ -305,6 +307,10 @@ const AdminSurveys = () => {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="traveler-surveys">
+              <AdminTravelerSurveysTab />
             </TabsContent>
 
             <TabsContent value="traveler-ratings">

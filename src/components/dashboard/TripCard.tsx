@@ -1,9 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote, Receipt, MapPin, User, Calendar, Pencil } from "lucide-react";
+import { Phone, Edit, CheckCircle, MoreHorizontal, Banknote, Receipt, MapPin, User, Calendar, Pencil, Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
+import TravelerSurveyModal from "@/components/dashboard/TravelerSurveyModal";
 import { TripEditSelectionModal } from "./TripEditSelectionModal";
 import { TripPaymentSummary } from "./TripPaymentSummary";
 import { TripDetailModal } from "./TripDetailModal";
@@ -31,6 +32,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
   const [showBankingModal, setShowBankingModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showEditSelectionModal, setShowEditSelectionModal] = useState(false);
+  const [showSurveyModal, setShowSurveyModal] = useState(false);
   const [paymentReceipt, setPaymentReceipt] = useState<{receipt_url: string, receipt_filename?: string} | null>(null);
 
   // Hook para obtener datos del trip payment accumulator
@@ -96,6 +98,11 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
     tripPayment.all_packages_delivered && 
     !tripPayment.payment_order_created && 
     tripPayment.accumulated_amount > 0 &&
+    currentUser?.id === trip.user_id;
+
+  // Show survey button when all packages delivered and feedback not completed
+  const shouldShowSurveyButton = tripPayment?.all_packages_delivered && 
+    !trip.traveler_feedback_completed && 
     currentUser?.id === trip.user_id;
 
   // Debug log para Anika
@@ -239,6 +246,21 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             </div>
           )}
 
+          {/* Survey button */}
+          {shouldShowSurveyButton && (
+            <div className="flex justify-start">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowSurveyModal(true)}
+                className="h-8 px-3 text-xs"
+              >
+                <Star className="h-3 w-3 mr-1" />
+                Califica tu experiencia
+              </Button>
+            </div>
+          )}
+
           {/* Action Buttons - Better organized */}
           <div className="flex flex-wrap gap-2">
               {/* Delivery confirmation button */}
@@ -362,6 +384,14 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
         setShowEditModal(true);
       }}
       hasActivePackages={packages.length > 0}
+    />
+
+    {/* Traveler Survey Modal */}
+    <TravelerSurveyModal
+      isOpen={showSurveyModal}
+      onClose={() => setShowSurveyModal(false)}
+      tripId={trip.id}
+      onCompleted={onDeliveryConfirmed}
     />
     </>
   );

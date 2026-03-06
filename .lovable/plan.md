@@ -1,45 +1,58 @@
 
 
-## Encuesta de Satisfacción para Viajeros — Estructura de datos
+## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
 
-Correcto, debe ser una tabla separada. Los shoppers tienen `traveler_ratings` (califican al viajero) y `platform_reviews` (califican a Favorón). La encuesta de viajeros es distinta: el viajero califica a Favorón desde su perspectiva.
+### Concepto
+Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
 
-### 1. Nueva tabla `traveler_surveys`
+### Widgets disponibles (componentes existentes)
+Del catálogo de charts y componentes ya construidos:
+1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
+2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
+3. **UserGrowthChart** — Crecimiento de usuarios
+4. **PackagesChart** — Gráfico de paquetes por mes
+5. **TripsChart** — Gráfico de viajes
+6. **RevenueChart** — Ingresos por servicio
+7. **GMVChart** — GMV mensual
+8. **ServiceFeeGrowthChart** — Crecimiento de service fees
+9. **AvgPackageValueChart** — Valor promedio por paquete
+10. **AcquisitionChart** — Canales de adquisición
+11. **AcquisitionSurveyTable** — Tabla de encuestas
+12. **TravelerTipsCard** — Propinas de viajeros
+13. **CACKPICards** — Unit Economics KPIs
+14. **FunnelChart** — Funnel de conversión
 
-Tabla dedicada, separada de `platform_reviews` (que es de shoppers). Campos:
+### Cambios
 
-- `id`, `traveler_id`, `trip_id` (UNIQUE constraint en traveler_id + trip_id)
-- `rating` (1-5 estrellas)
-- `would_recommend` (boolean)
-- `process_difficulty` (enum text: very_easy, easy, normal, difficult, very_difficult)
-- `would_register_again` (enum text: yes_sure, probably_yes, not_sure, probably_no, no)
-- `tip_satisfaction` (enum text: very_satisfied, satisfied, neutral, unsatisfied, very_unsatisfied)
-- `review_text` (nullable)
-- `consent_to_publish` (boolean, default false)
-- `created_at`
+**`src/components/Dashboard.tsx`**:
+- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
+- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
 
-RLS: viajeros insertan/ven las propias, admins ven todas, público ve las consentidas.
+**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
+- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
+- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
+- Catálogo de widgets con id, nombre, icono, y componente React
+- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
+- **Reordenar**: botones ↑/↓ en cada widget en modo edición
+- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
+- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
+- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
+- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
 
-### 2. Nuevo campo `traveler_feedback_completed` en tabla `trips`
+**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
+- Modal/popover que muestra los widgets no activos del catálogo
+- Click en uno lo agrega al final de `activeWidgets`
 
-Equivalente al `feedback_completed` de packages. Se agrega como columna boolean default false en `trips`. Cuando el viajero completa o omite la encuesta, se marca true para ocultar el prompt.
+### UX
+- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
+- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
+- Botón "Agregar Widget" que abre el picker
+- Botón "Listo" para salir del modo edición
+- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
 
-### 3. Componente `TravelerSurveyModal.tsx`
-
-Modal con las 6 preguntas definidas. Al submit: inserta en `traveler_surveys` y actualiza `trips.traveler_feedback_completed = true`.
-
-### 4. Trigger en `TripCard.tsx`
-
-Cuando `all_packages_delivered = true` y `trip.traveler_feedback_completed !== true`, mostrar botón "Califica tu experiencia" que abre el modal. Opción de "Omitir" que solo marca `traveler_feedback_completed = true`.
-
-### 5. Admin: `AdminTravelerSurveysTab.tsx`
-
-Nueva pestaña en AdminSurveys con KPIs (rating promedio, % recomendaría, distribución de dificultad, satisfacción con propina) y tabla detallada.
-
-### Archivos:
-- **Migración SQL**: crear `traveler_surveys` + agregar `traveler_feedback_completed` a `trips`
-- **Crear**: `src/components/dashboard/TravelerSurveyModal.tsx`
-- **Crear**: `src/components/admin/AdminTravelerSurveysTab.tsx`
-- **Modificar**: `src/components/dashboard/TripCard.tsx` — trigger + modal
-- **Modificar**: `src/pages/AdminSurveys.tsx` — nueva pestaña
+### Consideraciones técnicas
+- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
+- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
+- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
+- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
 
