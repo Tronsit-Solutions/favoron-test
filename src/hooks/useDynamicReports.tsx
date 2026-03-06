@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo } from "react";
-import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { format, subMonths } from "date-fns";
 import { es } from "date-fns/locale";
+import { getQuoteValues } from "@/lib/quoteHelpers";
 
 interface MonthlyUserCount {
   month: string;
