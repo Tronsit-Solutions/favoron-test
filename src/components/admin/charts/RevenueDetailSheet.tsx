@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
+import { getQuoteValues } from "@/lib/quoteHelpers";
 import { Loader2, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { format, parse } from "date-fns";
 import { es } from "date-fns/locale";
@@ -27,6 +28,8 @@ const ACTIVE_STATUSES = [
   'out_for_delivery', 'completed'
 ];
 
+const CANCELLED_STATUSES = ['cancelled', 'archived_by_shopper'];
+
 export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) => {
   const [loading, setLoading] = useState(false);
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
@@ -38,44 +41,47 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        // 1. Active packages with service fee for this month (Guatemala TZ)
-        const startDate = `${month}-01T06:00:00.000Z`; // UTC equivalent of midnight Guatemala
+        // Date range for the selected month (Guatemala TZ: UTC-6)
+        const startDate = `${month}-01T06:00:00.000Z`;
         const nextMonth = month.split('-');
         let y = parseInt(nextMonth[0]);
         let m = parseInt(nextMonth[1]) + 1;
         if (m > 12) { m = 1; y++; }
         const endDate = `${y}-${String(m).padStart(2, '0')}-01T06:00:00.000Z`;
 
-        const { data: packages } = await supabase
+        // 1. Active packages for this month
+        const { data: activePkgs } = await supabase
           .from('packages')
           .select('id, item_description, status, quote, label_number, recurrente_payment_id, payment_receipt')
           .in('status', ACTIVE_STATUSES)
           .gte('created_at', startDate)
           .lt('created_at', endDate);
 
-        // 2. Completed refunds for packages created in this month
-        const { data: refunds } = await supabase
-          .from('refund_orders')
-          .select('id, package_id, amount, status, cancelled_products, reason')
-          .eq('status', 'completed');
-
-        // 3. Cancelled/archived packages with payment but no refund
+        // 2. Cancelled/archived packages for this month (check payment evidence client-side)
         const { data: cancelledPkgs } = await supabase
           .from('packages')
           .select('id, item_description, status, quote, label_number, recurrente_payment_id, payment_receipt')
-          .in('status', ['cancelled', 'archived_by_shopper'])
+          .in('status', CANCELLED_STATUSES)
           .gte('created_at', startDate)
           .lt('created_at', endDate);
+
+        // 3. Completed refunds with completed_at in this month
+        const { data: refunds } = await supabase
+          .from('refund_orders')
+          .select('id, package_id, amount, status, cancelled_products, reason, completed_at')
+          .eq('status', 'completed')
+          .gte('completed_at', startDate)
+          .lt('completed_at', endDate);
 
         const items: LineItem[] = [];
         let grossTotal = 0;
         let refundTotal = 0;
         let cancellationTotal = 0;
 
-        // Process active packages
-        (packages || []).forEach(pkg => {
-          const quote = pkg.quote as Record<string, any> | null;
-          const sf = Number(quote?.serviceFee || 0);
+        // Process active packages — use getQuoteValues for consistency
+        (activePkgs || []).forEach(pkg => {
+          const qv = getQuoteValues(pkg.quote);
+          const sf = qv.serviceFee;
           if (sf > 0) {
             grossTotal += sf;
             items.push({
@@ -89,33 +95,76 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
           }
         });
 
-        // Process refunds - find those belonging to packages in this month
-        const packageIds = new Set((packages || []).map(p => p.id));
-        const cancelledIds = new Set((cancelledPkgs || []).map(p => p.id));
+        // Process cancelled-but-paid packages (same payment evidence logic as FinancialSummaryTable)
+        const refundedPackageIds = new Set((refunds || []).map(r => r.package_id));
+        (cancelledPkgs || []).forEach(pkg => {
+          const receipt = pkg.payment_receipt as any;
+          const hasManualReceipt = receipt && typeof receipt === 'object' && receipt.filePath;
+          const hasCardPayment = !!pkg.recurrente_payment_id;
+          const hasCardReceiptEvidence = receipt && typeof receipt === 'object' &&
+            (receipt.method === 'card' || receipt.payment_id || receipt.provider === 'recurrente');
+          const hasPaid = hasManualReceipt || hasCardPayment || hasCardReceiptEvidence;
 
-        (refunds || []).forEach(ref => {
-          if (!packageIds.has(ref.package_id) && !cancelledIds.has(ref.package_id)) return;
-          
-          // Extract proportional service fee from cancelled_products metadata
-          let refundSF = 0;
-          const cp = ref.cancelled_products as any[];
-          if (Array.isArray(cp)) {
-            cp.forEach((prod: any) => {
-              refundSF += Number(prod.proportionalServiceFee || 0);
+          if (!hasPaid) return;
+
+          const qv = getQuoteValues(pkg.quote);
+          const sf = qv.serviceFee;
+          if (sf <= 0) return;
+
+          // Income entry
+          grossTotal += sf;
+          items.push({
+            id: pkg.id + '-income',
+            description: pkg.item_description,
+            status: pkg.status,
+            serviceFee: sf,
+            type: "income",
+            labelNumber: pkg.label_number,
+          });
+
+          // If no refund order exists, add cancellation counterpart
+          if (!refundedPackageIds.has(pkg.id)) {
+            cancellationTotal += sf;
+            items.push({
+              id: pkg.id + '-cancel',
+              description: `Cancelación - ${pkg.item_description}`,
+              status: pkg.status,
+              serviceFee: -sf,
+              type: "cancellation",
+              labelNumber: pkg.label_number,
             });
           }
-          // Fallback: if no proportional data, estimate from total
-          if (refundSF === 0) {
-            // Find the original package to estimate proportion
-            const allPkgs = [...(packages || []), ...(cancelledPkgs || [])];
-            const origPkg = allPkgs.find(p => p.id === ref.package_id);
-            if (origPkg) {
-              const oq = origPkg.quote as Record<string, any> | null;
-              const totalToPay = Number(oq?.totalToPay || 0);
-              const origSF = Number(oq?.serviceFee || 0);
-              if (totalToPay > 0) {
-                refundSF = (ref.amount / totalToPay) * origSF;
-              }
+        });
+
+        // Process refunds — extract serviceFee from cancelled_products metadata (same as FinancialSummaryTable)
+        (refunds || []).forEach(ref => {
+          const cancelledProducts = Array.isArray(ref.cancelled_products) ? ref.cancelled_products : [];
+
+          let refundSF = 0;
+          let refundTips = 0;
+          let refundDeliveryFee = 0;
+
+          if (cancelledProducts.length > 0) {
+            // Use serviceFee from metadata (correct field)
+            refundSF = (cancelledProducts as any[]).reduce((sum: number, p: any) => {
+              if (p.serviceFee !== undefined) return sum + (Number(p.serviceFee) || 0);
+              return sum;
+            }, 0);
+
+            refundTips = (cancelledProducts as any[]).reduce((sum: number, p: any) => {
+              if (p.tip !== undefined) return sum + (Number(p.tip) || 0);
+              if (p.adminAssignedTip !== undefined) return sum + (Number(p.adminAssignedTip) || 0);
+              return sum;
+            }, 0);
+
+            refundDeliveryFee = (cancelledProducts as any[]).reduce((sum: number, p: any) => {
+              if (p.deliveryFee !== undefined) return sum + (Number(p.deliveryFee) || 0);
+              return sum;
+            }, 0);
+
+            // Fallback for legacy records without explicit serviceFee
+            if (refundSF === 0 && refundTips > 0) {
+              refundSF = Math.max(0, ref.amount - refundTips - refundDeliveryFee);
             }
           }
 
@@ -128,37 +177,6 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
               serviceFee: -refundSF,
               type: "refund",
             });
-          }
-        });
-
-        // Process cancellations with payment but no refund
-        const refundedPackageIds = new Set((refunds || []).map(r => r.package_id));
-        (cancelledPkgs || []).forEach(pkg => {
-          const hasPaid = pkg.recurrente_payment_id || (pkg.payment_receipt as any)?.url;
-          const hasRefund = refundedPackageIds.has(pkg.id);
-          if (hasPaid && !hasRefund) {
-            const cq = pkg.quote as Record<string, any> | null;
-            const sf = Number(cq?.serviceFee || 0);
-            if (sf > 0) {
-              grossTotal += sf;
-              cancellationTotal += sf;
-              items.push({
-                id: pkg.id + '-income',
-                description: pkg.item_description,
-                status: pkg.status,
-                serviceFee: sf,
-                type: "income",
-                labelNumber: pkg.label_number,
-              });
-              items.push({
-                id: pkg.id + '-cancel',
-                description: `Cancelación - ${pkg.item_description}`,
-                status: pkg.status,
-                serviceFee: -sf,
-                type: "cancellation",
-                labelNumber: pkg.label_number,
-              });
-            }
           }
         });
 
