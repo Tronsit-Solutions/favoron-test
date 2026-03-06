@@ -1,27 +1,33 @@
 
 
-## Agregar sección de créditos de referidos al Dashboard Financiero
+## Agregar crédito de referidos al perfil financiero de cada usuario
 
-Agregar una tarjeta de resumen de referidos en el `FinancialDashboard.tsx` que muestre el estado global de créditos de referidos en la plataforma.
+Agregar una sección en `UserFinancialSummary.tsx` que muestre el crédito de referidos del usuario y en qué pedidos lo ha usado.
 
 ### Datos a consultar
 
-Consulta directa a la tabla `referrals` desde el componente:
-- **Crédito pendiente total**: suma de `reward_amount` donde `status = 'completed'` y `reward_used = false` (lo que se le debe a referidores)
-- **Descuentos pendientes**: suma de `referred_reward_amount` donde `referred_reward_used = false` y `referred_reward_amount > 0`
-- **Total distribuido**: suma de `reward_amount` donde `reward_used = true`
-- **Referidos completados** vs **pendientes**: conteos por status
+En `UserFinancialSummary.tsx`, agregar un `useEffect` que reciba el `userId` y consulte:
 
-### Cambios en `src/components/admin/FinancialDashboard.tsx`
+1. **Tabla `referrals`**: donde `referrer_id = userId` para calcular:
+   - Balance disponible: suma de `reward_amount` donde `status = 'completed'` y `reward_used = false`
+   - Recompensas ya usadas: suma donde `reward_used = true`
+   - Conteo de referidos completados/pendientes
 
-1. Agregar `useEffect` + estado para fetch de datos de referrals (query a `referrals` table)
-2. Agregar una nueva Card después del "Resumen del Período" (antes de FinancialTablesSection) con:
-   - Icono `Gift` y título "Créditos de Referidos"
-   - Grid de 4 columnas:
-     - **Crédito por pagar** (referrer rewards pendientes) — en amarillo/amber
-     - **Descuentos pendientes** (referred rewards no usados) — en amber
-     - **Ya distribuido** (reward_used = true) — en green
-     - **Referidos activos** (count completados / total)
+2. **Tabla `referrals`**: donde `referred_id = userId` para obtener:
+   - Descuento de registro (`referred_reward_amount`) y si ya fue usado (`referred_reward_used`)
 
-Esto le da visibilidad al admin del pasivo (liability) que representan los créditos de referidos no utilizados.
+3. **De los `packages` que ya se reciben como prop**: filtrar los que tienen `referral_credit_applied > 0` para mostrar en qué pedidos se usó crédito.
+
+### Cambios
+
+**`src/components/admin/UserFinancialSummary.tsx`**:
+- Agregar prop `userId: string` 
+- Agregar `useEffect` para fetch de datos de referrals
+- Agregar nueva Card "Crédito de Referidos" con:
+  - Grid mostrando: crédito disponible total, como referidor, como referido, ya usado
+  - Código de referido del usuario (de `profiles.referral_code` — se puede pasar como prop o consultar)
+- Agregar sección "Pedidos con crédito aplicado": lista de paquetes donde `referral_credit_applied > 0`, mostrando descripción del pedido, monto aplicado, y fecha
+
+**`src/components/admin/UserDetailModal.tsx`**:
+- Pasar `userId={profileId}` al componente `UserFinancialSummary`
 
