@@ -385,6 +385,14 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       }}
       hasActivePackages={packages.length > 0}
     />
+
+    {/* Traveler Survey Modal */}
+    <TravelerSurveyModal
+      isOpen={showSurveyModal}
+      onClose={() => setShowSurveyModal(false)}
+      tripId={trip.id}
+      onCompleted={onDeliveryConfirmed}
+    />
     </>
   );
 };
