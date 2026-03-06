@@ -22,7 +22,7 @@ interface PlatformFeesContextValue {
   
   getServiceFeeRate: (trustLevel?: string) => number;
   calculateServiceFee: (basePrice: number, trustLevel?: string) => number;
-  getDeliveryFee: (deliveryMethod: string, trustLevel?: string, cityArea?: string) => number;
+  getDeliveryFee: (deliveryMethod: string, trustLevel?: string, cityArea?: string, destinationCountry?: string) => number;
   
   rates: {
     standard: number;
@@ -105,11 +105,12 @@ export const PlatformFeesProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const getDeliveryFeeHelper = useCallback((
     deliveryMethod: string = 'pickup',
     trustLevel?: string,
-    cityArea?: string
+    cityArea?: string,
+    destinationCountry?: string
   ): number => {
     if (deliveryMethod === 'pickup') return 0;
     
-    const zone = getDeliveryZone(cityArea);
+    const zone = getDeliveryZone(cityArea, destinationCountry);
     const discount = fees.prime_delivery_discount;
     
     if (zone === 'guatemala_city') {

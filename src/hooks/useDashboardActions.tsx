@@ -374,7 +374,7 @@ export const useDashboardActions = (
               delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
               delivery_fee_outside_city: fees.delivery_fee_outside_city,
               prime_delivery_discount: fees.prime_delivery_discount,
-            });
+            }, selectedPackage.package_destination_country);
             await updatePackage(selectedPackage.id, {
               status: 'pending_purchase',
               quote: normalizedQuoteData,
@@ -395,7 +395,7 @@ export const useDashboardActions = (
               delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
               delivery_fee_outside_city: fees.delivery_fee_outside_city,
               prime_delivery_discount: fees.prime_delivery_discount,
-            });
+            }, selectedPackage.package_destination_country);
             await updatePackage(selectedPackage.id, {
               status: 'quote_sent',
               quote: normalizedQuoteData,
@@ -663,7 +663,7 @@ export const useDashboardActions = (
             delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
             delivery_fee_outside_city: fees.delivery_fee_outside_city,
             prime_delivery_discount: fees.prime_delivery_discount,
-          });
+          }, selectedPackage.package_destination_country);
           await updatePackage(selectedPackage.id, {
             status: 'quote_sent',
             quote: normalizedQuoteData
@@ -713,7 +713,8 @@ export const useDashboardActions = (
                 delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
                 delivery_fee_outside_city: fees.delivery_fee_outside_city,
                 prime_delivery_discount: fees.prime_delivery_discount,
-              }
+              },
+              selectedPackage.package_destination_country
             );
             
             await updatePackage(selectedPackage.id, {
@@ -1347,7 +1348,8 @@ export const useDashboardActions = (
               true, // adminAssignedTipAccepted
               cityArea || currentPackage.package_destination,
               rates,
-              fees  // pass dynamic delivery fees
+              fees,  // pass dynamic delivery fees
+              currentPackage.package_destination_country
             );
 
             // Update package with quote, address, and dates

@@ -24,20 +24,23 @@ const guatemalaCityPatterns = [
 
 type DeliveryZone = 'guatemala_city' | 'guatemala_department' | 'outside';
 
-function getDeliveryZone(cityArea?: string): DeliveryZone {
-  if (!cityArea) return 'outside';
-  const normalized = cityArea.toLowerCase().trim();
-  if (GUATEMALA_DEPT_MUNICIPALITIES.some(m => normalized.includes(m))) return 'guatemala_department';
-  if (guatemalaCityPatterns.some(p => p.test(normalized))) return 'guatemala_city';
+function getDeliveryZone(cityArea?: string, destinationCountry?: string): DeliveryZone {
+  if (!cityArea && !destinationCountry) return 'outside';
+  const normalized = (cityArea || '').toLowerCase().trim();
+  if (normalized && GUATEMALA_DEPT_MUNICIPALITIES.some(m => normalized.includes(m))) return 'guatemala_department';
+  if (normalized && guatemalaCityPatterns.some(p => p.test(normalized))) return 'guatemala_city';
+  // If destination country is Guatemala, classify as guatemala_department (Q45) instead of outside
+  if (destinationCountry && destinationCountry.toLowerCase().trim() === 'guatemala') return 'guatemala_department';
   return 'outside';
 }
 
 function getCorrectDeliveryFee(
   deliveryMethod: string, trustLevel: string | null, cityArea: string | null,
-  fees: { city: number; dept: number; outside: number; discount: number }
+  fees: { city: number; dept: number; outside: number; discount: number },
+  destinationCountry?: string | null
 ): number {
   if (deliveryMethod !== 'delivery') return 0;
-  const zone = getDeliveryZone(cityArea || undefined);
+  const zone = getDeliveryZone(cityArea || undefined, destinationCountry || undefined);
   
   if (zone === 'guatemala_city') return trustLevel === 'prime' ? 0 : fees.city;
   if (zone === 'guatemala_department') return trustLevel === 'prime' ? Math.max(0, fees.dept - fees.discount) : fees.dept;
@@ -77,7 +80,7 @@ serve(async (req) => {
 
     const { data: packages, error: packagesError } = await supabase
       .from('packages')
-      .select('id, delivery_method, quote, confirmed_delivery_address, matched_trip_id, user_id')
+      .select('id, delivery_method, quote, confirmed_delivery_address, matched_trip_id, user_id, package_destination_country')
       .eq('delivery_method', 'delivery')
       .not('quote', 'is', null);
 
@@ -102,14 +105,15 @@ serve(async (req) => {
       if (pkg.matched_trip_id && completedTripIds.has(pkg.matched_trip_id)) { results.skippedPaid++; continue; }
 
       const cityArea = (pkg.confirmed_delivery_address as any)?.cityArea || null;
+      const destinationCountry = (pkg as any).package_destination_country || null;
       const trustLevel = trustLevelMap.get(pkg.user_id) || null;
       const currentDeliveryFee = quote.deliveryFee || 0;
-      const correctDeliveryFee = getCorrectDeliveryFee('delivery', trustLevel, cityArea, deliveryFees);
+      const correctDeliveryFee = getCorrectDeliveryFee('delivery', trustLevel, cityArea, deliveryFees, destinationCountry);
 
       if (currentDeliveryFee !== correctDeliveryFee) {
         results.needsCorrection++;
         const feeDiff = correctDeliveryFee - currentDeliveryFee;
-        results.details.push({ packageId: pkg.id, cityArea, trustLevel, currentFee: currentDeliveryFee, correctFee: correctDeliveryFee, zone: getDeliveryZone(cityArea) });
+        results.details.push({ packageId: pkg.id, cityArea, destinationCountry, trustLevel, currentFee: currentDeliveryFee, correctFee: correctDeliveryFee, zone: getDeliveryZone(cityArea, destinationCountry) });
 
         if (!dryRun) {
           const { error: updateError } = await supabase.from('packages').update({ quote: { ...quote, deliveryFee: correctDeliveryFee, totalPrice: (quote.totalPrice || 0) + feeDiff } }).eq('id', pkg.id);
