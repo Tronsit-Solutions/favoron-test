@@ -6,9 +6,12 @@ import { Progress } from '@/components/ui/progress';
 import { formatCurrency } from '@/utils/priceHelpers';
 import { getActiveTipFromPackage } from '@/utils/tipHelpers';
 import { supabase } from '@/integrations/supabase/client';
-import { Banknote, Package, CheckCircle, Clock, AlertTriangle, Lock } from 'lucide-react';
+import { Banknote, Package, CheckCircle, Clock, AlertTriangle, Lock, Download, FileText } from 'lucide-react';
 import TripBankingConfirmationModal from '@/components/TripBankingConfirmationModal';
 import { TripPaymentAccumulator } from '@/hooks/useTripPayments';
+import { useSignedUrl } from '@/hooks/useSignedUrl';
+import { parseStorageRef } from '@/lib/storageUrls';
+import { toast } from 'sonner';
 
 interface TripTipsModalProps {
   isOpen: boolean;
