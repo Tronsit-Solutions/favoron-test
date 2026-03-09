@@ -74,6 +74,18 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
   const [loadingPackages, setLoadingPackages] = useState(true);
   const [totalTipsFromPackages, setTotalTipsFromPackages] = useState(0);
   const [creatingAccumulator, setCreatingAccumulator] = useState(false);
+  const [downloadingFile, setDownloadingFile] = useState(false);
+
+  // Resolve receipt URL
+  const rawReceiptUrl = tripPayment?.payment_receipt_url || null;
+  const normalizedReceiptUrl = rawReceiptUrl && !rawReceiptUrl.includes('/') && !rawReceiptUrl.startsWith('http')
+    ? `payment-receipts/${rawReceiptUrl}`
+    : rawReceiptUrl;
+  const receiptFilename = tripPayment?.payment_receipt_filename || undefined;
+  const { url: signedReceiptUrl, loading: loadingReceipt } = useSignedUrl(normalizedReceiptUrl);
+  const receiptDisplayUrl = signedReceiptUrl || normalizedReceiptUrl;
+  const isReceiptImage = receiptFilename?.match(/\.(jpg|jpeg|png|gif|webp)$/i) || normalizedReceiptUrl?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+  const isReceiptPDF = receiptFilename?.match(/\.(pdf)$/i) || normalizedReceiptUrl?.match(/\.(pdf)$/i);
 
   const fetchPackageDetails = useCallback(async () => {
     if (!isOpen || !trip.id) return;
