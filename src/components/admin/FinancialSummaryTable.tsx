@@ -618,6 +618,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     // Add totals row
     excelData.push({
       'Fecha Pago': '',
+      'ID Pedido': '',
       'Shopper': '',
       'Viajero': '',
       'ID Viaje': '',
