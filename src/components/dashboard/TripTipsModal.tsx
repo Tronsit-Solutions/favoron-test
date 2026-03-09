@@ -319,6 +319,51 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
               </>
             )}
           </div>
+
+          {/* Payment Receipt Section */}
+          {normalizedReceiptUrl && (
+            <div className="space-y-2 border-t pt-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Comprobante de pago</p>
+              {loadingReceipt ? (
+                <div className="bg-muted/30 rounded-lg p-6 text-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
+                  <p className="text-xs text-muted-foreground">Cargando comprobante...</p>
+                </div>
+              ) : receiptDisplayUrl ? (
+                <div className="space-y-2">
+                  {isReceiptImage ? (
+                    <img
+                      src={receiptDisplayUrl}
+                      alt="Comprobante de pago"
+                      className="w-full h-auto rounded-lg border border-border max-h-[300px] object-contain bg-muted/20 cursor-pointer"
+                      onClick={() => window.open(receiptDisplayUrl, '_blank')}
+                      loading="lazy"
+                    />
+                  ) : isReceiptPDF ? (
+                    <div className="bg-muted/30 rounded-lg p-4 text-center">
+                      <FileText className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground mb-2">Archivo PDF</p>
+                    </div>
+                  ) : (
+                    <div className="bg-muted/30 rounded-lg p-4 text-center">
+                      <FileText className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">Archivo adjunto</p>
+                    </div>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={handleDownloadReceipt}
+                    disabled={downloadingFile}
+                  >
+                    <Download className="h-3.5 w-3.5 mr-1.5" />
+                    {downloadingFile ? 'Descargando...' : 'Descargar comprobante'}
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
