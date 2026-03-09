@@ -87,7 +87,7 @@ const UserDashboard = ({ user, packages, trips }: UserDashboardProps) => {
       
       'in_transit': { label: 'En tránsito', variant: 'default' as const },
       'delivered': { label: 'Entregado', variant: 'default' as const },
-      'completed_paid': { label: 'Finalizado y Pagado', variant: 'default' as const },
+      'completed_paid': { label: 'Completado y pagado', variant: 'default' as const },
       'rejected': { label: 'Rechazado', variant: 'destructive' as const },
       'active': { label: 'Activo', variant: 'default' as const },
     };

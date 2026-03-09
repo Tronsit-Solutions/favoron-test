@@ -102,6 +102,7 @@ export const useStatusHelpers = () => {
       },
       active: { label: "Activo", variant: "success" as const },
       completed: { label: "Completado", variant: "success" as const },
+      completed_paid: { label: "Completado y pagado", variant: "success" as const },
       rejected: { label: "Rechazado", variant: "destructive" as const },
       cancelled: { label: "Cancelado", variant: "muted" as const },
       deadline_expired: { label: "⏰ Fecha límite vencida", variant: "warning" as const }
