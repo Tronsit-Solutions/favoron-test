@@ -576,43 +576,18 @@ const CollapsiblePackageCard = ({
                 {/* Office Pickup Address Section - Mobile */}
                 {shouldShowOfficeAddress && companyInfo && (
                   <div className="pl-5">
-                    <div className="bg-success/10 border-2 border-success/30 rounded-lg p-3">
-                      <div className="flex items-start gap-2">
-                        <MapPin className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-success text-sm mb-1">📦 Dirección de recolección:</p>
-                          <p className="text-sm text-foreground">{companyInfo.address_line_1}</p>
-                          {companyInfo.address_line_2 && (
-                            <p className="text-sm text-foreground">{companyInfo.address_line_2}</p>
-                          )}
-                          <p className="text-sm text-muted-foreground">
-                            {companyInfo.city}, {companyInfo.country} {companyInfo.postal_code}
-                          </p>
-                          {companyInfo.phone_number && (
-                            <a 
-                              href={`tel:${companyInfo.phone_number}`}
-                              className="flex items-center gap-1.5 text-sm text-primary mt-2 hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Phone className="h-3.5 w-3.5" />
-                              {companyInfo.phone_number}
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="mt-3 w-full text-xs"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowOfficeModal(true);
-                        }}
-                      >
-                        <Clock className="h-3.5 w-3.5 mr-1.5" />
-                        Ver horarios de atención
-                      </Button>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-xs border-success/30 text-success hover:bg-success/10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowOfficeModal(true);
+                      }}
+                    >
+                      <MapPin className="h-3.5 w-3.5 mr-1.5" />
+                      Ver dirección y horarios de recolección
+                    </Button>
                   </div>
                 )}
 
