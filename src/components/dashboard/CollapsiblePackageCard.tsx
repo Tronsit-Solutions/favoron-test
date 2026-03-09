@@ -396,23 +396,17 @@ const CollapsiblePackageCard = ({
               </DropdownMenu>}
             
             {/* Mobile optimized layout */}
-            {isMobile ? <div className="space-y-3 w-full max-w-full">
+            {isMobile ? <div className="flex w-full">
+              {/* Left: all content */}
+              <div className="flex-1 min-w-0 space-y-3">
                 {/* Product name and status in single row */}
-                <div className="flex items-start gap-2 w-full">
+                <div className="flex items-start gap-2 w-full pr-10">
                   <Package className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <CardTitle className="font-semibold leading-tight text-base sm:text-lg break-words line-clamp-2 text-left">
                       {renderPackageName()}
                     </CardTitle>
                   </div>
-                  {/* Chat button inline a la derecha */}
-                  {isChatAvailable && (
-                    <div className="relative flex-shrink-0 ml-auto mr-8">
-                      <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
-                        <MessageCircle className="h-6 w-6 text-primary" />
-                      </Button>
-                    </div>
-                  )}
                 </div>
                 
                 {/* Timer positioned below title for better mobile layout */}
