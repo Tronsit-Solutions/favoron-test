@@ -360,8 +360,8 @@ const CollapsiblePackageCard = ({
       <CollapsibleTrigger asChild={!(isMobile && viewMode === 'user')}>
         <CardHeader className={`w-full max-w-full min-w-0 overflow-hidden relative ${isMobile ? 'px-3 py-3 cursor-default' : 'px-4 py-4 sm:px-6 sm:py-6 cursor-pointer hover:bg-muted/50 transition-colors'}`}>
             
-            {/* Three dots menu - positioned absolutely in top-right corner */}
-            {viewMode === 'user' && <DropdownMenu>
+            {/* Three dots menu - absolutely positioned for desktop only */}
+            {viewMode === 'user' && !isMobile && <DropdownMenu>
                 <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="absolute top-2 right-2 h-7 w-7 p-0 z-20 hover:bg-muted rounded-full" onClick={e => e.stopPropagation()}>
               <MoreHorizontal className="h-4 w-4" />
@@ -400,7 +400,7 @@ const CollapsiblePackageCard = ({
               {/* Left: all content */}
               <div className="flex-1 min-w-0 space-y-3">
                 {/* Product name and status in single row */}
-                <div className="flex items-start gap-2 w-full pr-10">
+                <div className="flex items-start gap-2 w-full">
                   <Package className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <CardTitle className="font-semibold leading-tight text-base sm:text-lg break-words line-clamp-2 text-left">
