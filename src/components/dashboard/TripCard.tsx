@@ -13,8 +13,6 @@ import { ReceptionWindow } from "./ReceptionWindow";
 import { useTripPayments } from "@/hooks/useTripPayments";
 import { formatCurrency } from "@/utils/priceHelpers";
 
-import { ReceiptViewerModal } from "@/components/ui/receipt-viewer-modal";
-
 interface TripCardProps {
   trip: any;
   getStatusBadge: (status: string) => JSX.Element;
