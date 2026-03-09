@@ -553,10 +553,6 @@ const CollapsibleTravelerPackageCard = ({
                       <FileText className="h-3 w-3" />
                       <span className="hidden xs:inline">Docs</span>
                     </TabsTrigger>
-                    <TabsTrigger value="chat" className="flex items-center gap-1 text-xs px-1 py-1">
-                      <MessageCircle className="h-3 w-3" />
-                      <span className="hidden xs:inline">Chat</span>
-                    </TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="producto" className="mt-0">
@@ -660,18 +656,6 @@ const CollapsibleTravelerPackageCard = ({
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="chat" className="mt-0">
-                    {['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status) ? (
-                      <div className="bg-muted/30 rounded-lg">
-                        <PackageTimeline pkg={pkg} />
-                      </div>
-                    ) : (
-                      <div className="text-sm text-muted-foreground p-3 bg-muted/30 rounded-lg text-center">
-                        <MessageCircle className="h-6 w-6 mx-auto mb-2 text-muted-foreground/50" />
-                        <p>Chat disponible después del pago</p>
-                      </div>
-                    )}
-                  </TabsContent>
                 </Tabs>
 
                 {/* Traveler Confirmation - Mobile optimized */}
@@ -700,10 +684,6 @@ const CollapsibleTravelerPackageCard = ({
                       <TabsTrigger value="docs" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
                         <FileText className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline">Docs</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="chat" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
-                        <MessageCircle className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Chat</span>
                       </TabsTrigger>
                     </TabsList>
                     
@@ -801,16 +781,6 @@ const CollapsibleTravelerPackageCard = ({
                       </div>
                     </TabsContent>
                     
-                    <TabsContent value="chat" className="mt-0">
-                      {['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status) ? (
-                        <PackageTimeline pkg={pkg} />
-                      ) : (
-                        <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg text-center">
-                          <MessageCircle className="h-6 w-6 mx-auto mb-2 text-muted-foreground/50" />
-                          <p>El chat estará disponible una vez que el shopper realice el pago.</p>
-                        </div>
-                      )}
-                    </TabsContent>
                   </Tabs>
                 </div>
                 
