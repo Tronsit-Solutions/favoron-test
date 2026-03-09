@@ -309,7 +309,7 @@ const CollapsibleTravelerPackageCard = ({
                         <MessageCircle className="h-6 w-6 text-primary" />
                       </Button>
                     )}
-                    <TravelerPackageStatusBadge status={getEffectiveStatus(pkg)} pkg={pkg} />
+                    
                     {confirmationProgress && (
                       <Badge className="bg-blue-50 text-blue-600 text-[10px] px-1.5 py-0.5">
                         🔵 {confirmationProgress.confirmed}/{confirmationProgress.total} productos
