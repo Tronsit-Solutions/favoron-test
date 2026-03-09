@@ -221,7 +221,10 @@ const AdminTravelerSurveysTab = () => {
               {surveys.map((s) => (
                 <div key={s.id} className="p-3 border rounded-lg space-y-1">
                   <div className="flex items-center justify-between">
-                    <StarRating value={s.rating} readonly size="sm" />
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{profileMap.get(s.traveler_id) || "—"}</span>
+                      <StarRating value={s.rating} readonly size="sm" />
+                    </div>
                     <span className="text-xs text-muted-foreground">
                       {format(new Date(s.created_at), "PPp", { locale: es })}
                     </span>
