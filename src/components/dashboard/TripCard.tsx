@@ -28,10 +28,8 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showTipsModal, setShowTipsModal] = useState(false);
-  const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showEditSelectionModal, setShowEditSelectionModal] = useState(false);
   const [showSurveyModal, setShowSurveyModal] = useState(false);
-  const [paymentReceipt, setPaymentReceipt] = useState<{receipt_url: string, receipt_filename?: string} | null>(null);
 
   const { tripPayment, isCreating, createPaymentOrder, refreshTripPayment } = useTripPayments(trip.id);
 
