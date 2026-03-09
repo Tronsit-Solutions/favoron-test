@@ -16,7 +16,10 @@ const TripHistory = ({ trips, packages }: TripHistoryProps) => {
   const completedTrips = trips.filter(trip => trip.status === 'completed_paid');
 
   const getTripPackages = (tripId: string) => {
-    return packages.filter(pkg => pkg.matched_trip_id === tripId);
+    return packages.filter(pkg => 
+      pkg.matched_trip_id === tripId && 
+      ['completed', 'completed_paid', 'delivered_to_office'].includes(pkg.status)
+    );
   };
 
   const getTotalTips = (tripId: string) => {
