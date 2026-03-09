@@ -1006,7 +1006,7 @@ const CollapsiblePackageCard = ({
               {/* Left Column: Horizontal Tabs */}
               <div className="md:col-span-2 bg-muted/30 rounded-lg border border-muted/50 order-2 md:order-1 overflow-hidden min-w-0 max-w-full">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-full">
-                  <TabsList className="!grid w-full max-w-full min-w-0 grid-cols-4 bg-muted/50 rounded-none rounded-t-lg h-auto p-1 overflow-hidden">
+                  <TabsList className="!grid w-full max-w-full min-w-0 grid-cols-3 bg-muted/50 rounded-none rounded-t-lg h-auto p-1 overflow-hidden">
                     <TabsTrigger value="producto" className="flex flex-col items-center gap-1 px-2 py-2 text-xs min-w-0 !whitespace-normal text-center truncate data-[state=active]:bg-background">
                       <Package className="h-3 w-3" />
                       <span className="text-[10px]">Producto</span>

@@ -540,7 +540,7 @@ const CollapsibleTravelerPackageCard = ({
               <div className="space-y-4">
                 {/* Mobile tabs - horizontal scroll for better UX */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 h-8 mb-3">
+                  <TabsList className="grid w-full grid-cols-3 h-8 mb-3">
                     <TabsTrigger value="producto" className="flex items-center gap-1 text-xs px-1 py-1">
                       <Package className="h-3 w-3" />
                       <span className="hidden xs:inline">Producto</span>
@@ -672,7 +672,7 @@ const CollapsibleTravelerPackageCard = ({
                 {/* Left section with tabs */}
                 <div className="lg:col-span-3">
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 mb-3">
+                    <TabsList className="grid w-full grid-cols-3 mb-3">
                       <TabsTrigger value="producto" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-1.5">
                         <Package className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline">Producto</span>
