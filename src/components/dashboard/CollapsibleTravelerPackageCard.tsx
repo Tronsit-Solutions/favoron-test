@@ -722,25 +722,28 @@ const CollapsibleTravelerPackageCard = ({
                     <TabsContent value="docs" className="mt-0">
                       <div className="space-y-3">
                         {/* Comprobante de Compra */}
-                        {pkg.purchase_confirmation && (
-                          <div className="bg-card border rounded-lg p-3">
+                        {normalizeConfirmations(pkg.purchase_confirmation).map((confirmation, idx) => (
+                          <div key={idx} className="bg-card border rounded-lg p-3">
                             <div className="flex items-center gap-2 mb-2">
                               <FileText className="h-4 w-4 text-primary" />
-                              <span className="font-medium text-sm">Comprobante de Compra</span>
+                              <span className="font-medium text-sm">
+                                Comprobante de Compra{normalizeConfirmations(pkg.purchase_confirmation).length > 1 ? ` (${idx + 1})` : ''}
+                              </span>
                             </div>
                             <div className="text-xs text-muted-foreground mb-2">
-                              Archivo: {pkg.purchase_confirmation.filename || 'Comprobante subido'}
+                              Archivo: {confirmation.filename || 'Comprobante subido'}
                             </div>
-                            {pkg.purchase_confirmation.filePath && (
+                            {confirmation.filePath && (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 className="h-7 text-xs"
                                 onClick={async () => {
+                                  const bucket = confirmation.bucket || 'purchase-confirmations';
                                   try {
                                     const { data, error } = await supabase.storage
-                                      .from('purchase-confirmations')
-                                      .createSignedUrl(pkg.purchase_confirmation.filePath, 3600);
+                                      .from(bucket)
+                                      .createSignedUrl(confirmation.filePath!, 3600);
                                     if (!error && data?.signedUrl) {
                                       openDocumentModal('Comprobante de Compra', data.signedUrl, 'image');
                                     }
@@ -754,7 +757,7 @@ const CollapsibleTravelerPackageCard = ({
                               </Button>
                             )}
                           </div>
-                        )}
+                        ))}
 
                         {/* Información de Seguimiento */}
                         {pkg.tracking_info && pkg.tracking_info.trackingNumber && (
