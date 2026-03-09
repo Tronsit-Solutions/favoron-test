@@ -1,58 +1,25 @@
 
 
-## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
+## Duplicar pedido 7c3f3bf5 en estado "approved"
 
-### Concepto
-Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
+### Pedido original
+- **ID**: `7c3f3bf5-9d96-4a27-acc9-817fdce38f61`
+- **Descripción**: Pedido de 2 productos: Vermouth 1L, Gin
+- **Estado actual**: `received_by_traveler`
+- **Viaje asignado**: `e4a1ed15-ea94-4c08-9f34-5ffd66ab6168`
+- **Usuario**: `5e3c944e-9130-4ea7-8165-b8ec9d5abf6f`
 
-### Widgets disponibles (componentes existentes)
-Del catálogo de charts y componentes ya construidos:
-1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
-2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
-3. **UserGrowthChart** — Crecimiento de usuarios
-4. **PackagesChart** — Gráfico de paquetes por mes
-5. **TripsChart** — Gráfico de viajes
-6. **RevenueChart** — Ingresos por servicio
-7. **GMVChart** — GMV mensual
-8. **ServiceFeeGrowthChart** — Crecimiento de service fees
-9. **AvgPackageValueChart** — Valor promedio por paquete
-10. **AcquisitionChart** — Canales de adquisición
-11. **AcquisitionSurveyTable** — Tabla de encuestas
-12. **TravelerTipsCard** — Propinas de viajeros
-13. **CACKPICards** — Unit Economics KPIs
-14. **FunnelChart** — Funnel de conversión
+### Acción
+Crear una edge function temporal `duplicate-package` que:
 
-### Cambios
+1. Copie el registro original conservando: `user_id`, `item_description`, `estimated_price`, `delivery_deadline`, `purchase_origin`, `package_destination`, `package_destination_country`, `delivery_method`, `products_data`, `matched_trip_id`, `matched_trip_dates`
+2. Resetee campos de progreso: `quote`, `quote_expires_at`, `payment_receipt`, `purchase_confirmation`, `tracking_info`, `traveler_confirmation`, `office_delivery`, `traveler_address`, `confirmed_delivery_address`, `admin_assigned_tip`, `admin_actions_log`, `label_number`
+3. Limpie metadatos de recepción en `products_data` (adminAssignedTip)
+4. Establezca `status = 'approved'`
+5. Genere nuevo `id`, timestamps frescos
 
-**`src/components/Dashboard.tsx`**:
-- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
-- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
-
-**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
-- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
-- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
-- Catálogo de widgets con id, nombre, icono, y componente React
-- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
-- **Reordenar**: botones ↑/↓ en cada widget en modo edición
-- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
-- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
-- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
-- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
-
-**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
-- Modal/popover que muestra los widgets no activos del catálogo
-- Click en uno lo agrega al final de `activeWidgets`
-
-### UX
-- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
-- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
-- Botón "Agregar Widget" que abre el picker
-- Botón "Listo" para salir del modo edición
-- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
-
-### Consideraciones técnicas
-- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
-- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
-- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
-- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
+### Implementación
+- Edge function temporal con service role key
+- Se invoca una vez via `curl_edge_functions`
+- Se elimina después de ejecutar
 
