@@ -146,36 +146,12 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             </div>
           </div>
 
-          {/* Trip Information - Clickable */}
+          {/* Trip ID + Dates - Clickable */}
           <div 
             onClick={() => setShowDetailModal(true)}
             className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground cursor-pointer hover:bg-muted/30 rounded-lg p-2 transition-colors"
           >
-            {trip.package_receiving_address?.recipientName && (
-              <div className="flex items-center gap-1">
-                <User className="h-3 w-3 shrink-0" />
-                <span className="font-medium">{trip.package_receiving_address.recipientName}</span>
-              </div>
-            )}
-            {(trip.package_receiving_address?.streetAddress || trip.package_receiving_address?.cityArea) && (
-              <div className="flex items-center gap-1">
-                <MapPin className="h-3 w-3 shrink-0" />
-                <span>
-                  {[
-                    trip.package_receiving_address.streetAddress,
-                    trip.package_receiving_address.streetAddress2,
-                    trip.package_receiving_address.cityArea,
-                    trip.package_receiving_address.postalCode
-                  ].filter(Boolean).join(', ')}
-                </span>
-              </div>
-            )}
-            {trip.package_receiving_address?.contactNumber && (
-              <div className="flex items-center gap-1">
-                <Phone className="h-3 w-3 shrink-0" />
-                <span>{trip.package_receiving_address.contactNumber}</span>
-              </div>
-            )}
+            <span className="font-mono text-muted-foreground/70">ID: {trip.id.slice(0, 8)}</span>
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3 shrink-0" />
               <span>
