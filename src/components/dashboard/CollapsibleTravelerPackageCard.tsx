@@ -927,6 +927,20 @@ const CollapsibleTravelerPackageCard = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Status Detail Modal */}
+      <Dialog open={showStatusModal} onOpenChange={setShowStatusModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Estado del paquete</DialogTitle>
+          </DialogHeader>
+          <TravelerPackageStatusBadge 
+            status={getEffectiveStatus(pkg)} 
+            pkg={pkg}
+            showFullDescription={true}
+          />
+        </DialogContent>
+      </Dialog>
       
     </Collapsible>
   );
