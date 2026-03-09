@@ -1,64 +1,58 @@
 
 
-## Analysis: RLS Policies with `WITH CHECK (true)` on INSERT
+## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
 
-### Affected Tables
+### Concepto
+Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
 
-Four tables have overly permissive INSERT policies (`WITH CHECK (true)`) that allow **any authenticated user** to insert arbitrary rows:
+### Widgets disponibles (componentes existentes)
+Del catálogo de charts y componentes ya construidos:
+1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
+2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
+3. **UserGrowthChart** — Crecimiento de usuarios
+4. **PackagesChart** — Gráfico de paquetes por mes
+5. **TripsChart** — Gráfico de viajes
+6. **RevenueChart** — Ingresos por servicio
+7. **GMVChart** — GMV mensual
+8. **ServiceFeeGrowthChart** — Crecimiento de service fees
+9. **AvgPackageValueChart** — Valor promedio por paquete
+10. **AcquisitionChart** — Canales de adquisición
+11. **AcquisitionSurveyTable** — Tabla de encuestas
+12. **TravelerTipsCard** — Propinas de viajeros
+13. **CACKPICards** — Unit Economics KPIs
+14. **FunnelChart** — Funnel de conversión
 
-| Table | Policy Name | Risk | Who Actually Inserts |
-|-------|------------|------|---------------------|
-| `notifications` | "System can insert notifications for users" | **High** — any user can create fake notifications for other users | `create_notification` RPC (SECURITY DEFINER), edge functions |
-| `admin_profile_access_log` | "System can insert audit logs" | **Medium** — any user can insert fake audit entries, polluting the audit trail | `log_admin_profile_access` RPC (SECURITY DEFINER) |
-| `trip_payment_accumulator` | "System can insert trip payment accumulator" | **High** — any user can insert payment accumulator records for any trip | Client code in `useCreateTripPaymentAccumulator.tsx` (authenticated users) |
-| `whatsapp_notification_logs` | "System can insert whatsapp logs" | **Low** — log pollution only; inserts come from edge functions using service role which bypasses RLS anyway |
+### Cambios
 
-### Proposed Fix
+**`src/components/Dashboard.tsx`**:
+- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
+- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
 
-Replace each `WITH CHECK (true)` with a scoped condition:
+**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
+- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
+- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
+- Catálogo de widgets con id, nombre, icono, y componente React
+- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
+- **Reordenar**: botones ↑/↓ en cada widget en modo edición
+- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
+- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
+- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
+- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
 
-**1. `notifications`** — The `create_notification` RPC uses SECURITY DEFINER (bypasses RLS). No client code inserts directly. Change policy to admin-only or drop it entirely (SECURITY DEFINER functions bypass RLS):
-```sql
-DROP POLICY "System can insert notifications for users" ON notifications;
--- create_notification() already has SECURITY DEFINER, so it bypasses RLS
--- If needed, keep admin insert:
-CREATE POLICY "Admins can insert notifications" ON notifications
-  FOR INSERT TO authenticated
-  WITH CHECK (has_role(auth.uid(), 'admin'));
-```
+**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
+- Modal/popover que muestra los widgets no activos del catálogo
+- Click en uno lo agrega al final de `activeWidgets`
 
-**2. `admin_profile_access_log`** — Same pattern: `log_admin_profile_access` is SECURITY DEFINER. Drop the open policy:
-```sql
-DROP POLICY "System can insert audit logs" ON admin_profile_access_log;
--- The SECURITY DEFINER function bypasses RLS. Add admin-only fallback:
-CREATE POLICY "Only admins can insert audit logs" ON admin_profile_access_log
-  FOR INSERT TO authenticated
-  WITH CHECK (has_role(auth.uid(), 'admin'));
-```
+### UX
+- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
+- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
+- Botón "Agregar Widget" que abre el picker
+- Botón "Listo" para salir del modo edición
+- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
 
-**3. `trip_payment_accumulator`** — Client code inserts for trips the user is a traveler on. Restrict to trip owner or admin:
-```sql
-DROP POLICY "System can insert trip payment accumulator" ON trip_payment_accumulator;
-CREATE POLICY "Travelers and admins can insert trip payment accumulator" ON trip_payment_accumulator
-  FOR INSERT TO authenticated
-  WITH CHECK (
-    has_role(auth.uid(), 'admin')
-    OR (traveler_id = auth.uid() AND trip_id IN (
-      SELECT id FROM trips WHERE user_id = auth.uid()
-    ))
-  );
-```
-
-**4. `whatsapp_notification_logs`** — Edge functions use service role (bypasses RLS). Drop the open policy, add admin-only:
-```sql
-DROP POLICY "System can insert whatsapp logs" ON whatsapp_notification_logs;
-CREATE POLICY "Only admins can insert whatsapp logs" ON whatsapp_notification_logs
-  FOR INSERT TO authenticated
-  WITH CHECK (has_role(auth.uid(), 'admin'));
-```
-
-### Impact
-- No functional change: all current insert paths use either SECURITY DEFINER functions or service role (both bypass RLS)
-- Exception: `trip_payment_accumulator` — client-side inserts will now be properly scoped to the trip's traveler
-- Security finding `SUPA_rls_policy_always_true` will be resolved
+### Consideraciones técnicas
+- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
+- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
+- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
+- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
 
