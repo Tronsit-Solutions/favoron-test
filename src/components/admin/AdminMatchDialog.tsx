@@ -1553,7 +1553,17 @@ const AdminMatchDialog = ({
               {/* Traveler Profile */}
               <Card>
                 <CardHeader>
-                  <h3 className="text-lg font-semibold">Perfil del Viajero</h3>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12">
+                      {selectedTraveler.avatar_url && (
+                        <AvatarImage src={getHighResGoogleAvatar(selectedTraveler.avatar_url)} alt="Avatar" />
+                      )}
+                      <AvatarFallback className="text-lg font-medium bg-muted text-muted-foreground">
+                        {selectedTraveler.first_name?.[0] || <User className="h-5 w-5" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <h3 className="text-lg font-semibold">Perfil del Viajero</h3>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
