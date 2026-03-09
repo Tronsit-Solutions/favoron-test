@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Edit, CheckCircle, MoreHorizontal, FileText, MapPin, User, Calendar, Pencil, Star } from "lucide-react";
+import { Phone, Edit, CheckCircle, MoreHorizontal, FileText, MapPin, User, Pencil, Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
@@ -146,22 +146,12 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             </div>
           </div>
 
-          {/* Trip ID + Dates - Clickable */}
+          {/* Trip ID - Clickable */}
           <div 
             onClick={() => setShowDetailModal(true)}
-            className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground cursor-pointer hover:bg-muted/30 rounded-lg p-2 transition-colors"
+            className="flex items-center gap-3 text-xs text-muted-foreground cursor-pointer hover:bg-muted/30 rounded-lg p-2 transition-colors"
           >
             <span className="font-mono text-muted-foreground/70">ID: {trip.id.slice(0, 8)}</span>
-            <div className="flex items-center gap-1">
-              <Calendar className="h-3 w-3 shrink-0" />
-              <span>
-                {(() => {
-                  const dateFirst = new Date(trip.first_day_packages);
-                  const dateLast = new Date(trip.last_day_packages);
-                  return `${new Date(dateFirst.getUTCFullYear(), dateFirst.getUTCMonth(), dateFirst.getUTCDate()).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })} - ${new Date(dateLast.getUTCFullYear(), dateLast.getUTCMonth(), dateLast.getUTCDate()).toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })}`;
-                })()}
-              </span>
-            </div>
           </div>
 
           {/* Survey + Delivery Actions */}
@@ -193,26 +183,21 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             </div>
           )}
 
-          {/* Creation Date, Status Badge, and Tips */}
-          <div className="flex items-center justify-between">
-            <div className="text-xs text-muted-foreground/70">
-              Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {shouldShowTipsButton && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setShowTipsModal(true)}
-                  className="h-8 px-3 text-xs border-green-300 text-green-700 hover:bg-green-50 hover:border-green-400 gap-1.5"
-                  title="Ver tips acumulados"
-                >
-                  <FileText className="h-4 w-4" />
-                  <span>Tips</span>
-                </Button>
-              )}
-              {getStatusBadge(trip.status)}
-            </div>
+          {/* Status Badge and Tips */}
+          <div className="flex items-center justify-end gap-2">
+            {shouldShowTipsButton && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowTipsModal(true)}
+                className="h-8 px-3 text-xs border-green-300 text-green-700 hover:bg-green-50 hover:border-green-400 gap-1.5"
+                title="Ver tips acumulados"
+              >
+                <FileText className="h-4 w-4" />
+                <span>Tips</span>
+              </Button>
+            )}
+            {getStatusBadge(trip.status)}
           </div>
         </div>
       </CardHeader>
