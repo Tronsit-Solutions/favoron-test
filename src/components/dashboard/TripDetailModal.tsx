@@ -59,28 +59,9 @@ export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, package
 
   if (!trip) return null;
   
-  const [showSelectionModal, setShowSelectionModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showReceivingWindowModal, setShowReceivingWindowModal] = useState(false);
-  const [showDeliveryDateModal, setShowDeliveryDateModal] = useState(false);
-  const [showAddressModal, setShowAddressModal] = useState(false);
-  const [hasActivePackages, setHasActivePackages] = useState(false);
-  
   const address = trip.package_receiving_address;
   const canEdit = ['pending_approval', 'approved'].includes(trip.status);
   const isOwner = currentUser?.id === trip.user_id;
-
-  useEffect(() => {
-    const checkPackages = async () => {
-      if (trip?.id) {
-        const hasActive = await checkActivePackages(trip.id);
-        setHasActivePackages(hasActive);
-      }
-    };
-    if (isOpen) {
-      checkPackages();
-    }
-  }, [isOpen, trip?.id]);
 
   const handleEditOptionSelect = (option: 'receiving_window' | 'delivery_date' | 'address' | 'other') => {
     setShowSelectionModal(false);
