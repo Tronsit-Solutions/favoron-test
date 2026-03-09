@@ -79,7 +79,7 @@ export const useStatusHelpers = () => {
       },
       matched: { label: "Emparejado", variant: "success" as const },
       quote_sent: { label: "Cotización Enviada", variant: "warning" as const },
-      quote_accepted: { label: "Cotización Aceptada - Pendiente Pago", variant: "destructive" as const },
+      quote_accepted: { label: "Pendiente Pago", variant: "destructive" as const },
       quote_rejected: { 
         label: pkg?.quote_rejection ? "Cotización Rechazada por Shopper" : 
                pkg?.traveler_rejection ? "Cotización Rechazada por Viajero" : 
