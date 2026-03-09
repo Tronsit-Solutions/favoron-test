@@ -468,7 +468,34 @@ const AdminMatchDialog = ({
 
   const handleTravelerClick = async (trip: any) => {
     const profile = travelerProfiles[trip.user_id];
-    setSelectedTraveler({ ...profile, trip });
+    setSelectedTraveler({ ...profile, trip, referral: null });
+
+    // Fetch referral info for this traveler
+    try {
+      const { data: referralData } = await supabase
+        .from('referrals')
+        .select('referrer_id, status')
+        .eq('referred_id', trip.user_id)
+        .maybeSingle();
+
+      if (referralData) {
+        const { data: referrerProfile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('id', referralData.referrer_id)
+          .single();
+
+        setSelectedTraveler(prev => prev ? ({
+          ...prev,
+          referral: {
+            referrerName: referrerProfile ? `${referrerProfile.first_name || ''} ${referrerProfile.last_name || ''}`.trim() || 'Desconocido' : 'Desconocido',
+            status: referralData.status,
+          }
+        }) : prev);
+      }
+    } catch (err) {
+      console.error('Error fetching traveler referral:', err);
+    }
 
     // Fetch and filter packages for this trip: only with active timers or with shopper-paid statuses
     try {
