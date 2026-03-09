@@ -47,17 +47,32 @@ const tipSatisfactionLabels: Record<string, string> = {
 };
 
 const AdminTravelerSurveysTab = () => {
-  const { data: surveys, isLoading } = useQuery<TravelerSurvey[]>({
+  const { data, isLoading } = useQuery({
     queryKey: ["admin-traveler-surveys"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: rawSurveys, error } = await supabase
         .from("traveler_surveys" as any)
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data || []) as unknown as TravelerSurvey[];
+
+      const surveys = (rawSurveys || []) as unknown as TravelerSurvey[];
+      const travelerIds = [...new Set(surveys.map((s) => s.traveler_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .in("id", travelerIds);
+
+      const profileMap = new Map(
+        profiles?.map((p) => [p.id, `${p.first_name || ""} ${p.last_name || ""}`.trim()]) || []
+      );
+
+      return { surveys, profileMap };
     },
   });
+
+  const surveys = data?.surveys || [];
+  const profileMap = data?.profileMap || new Map();
 
   const total = surveys?.length || 0;
   const avgRating = total > 0 ? surveys!.reduce((s, r) => s + r.rating, 0) / total : 0;
