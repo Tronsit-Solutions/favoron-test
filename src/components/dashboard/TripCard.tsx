@@ -198,7 +198,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
                   size="sm"
                   variant="outline"
                   onClick={() => setShowSurveyModal(true)}
-                  className="h-8 px-3 text-xs"
+                  className="h-8 px-3 text-xs bg-yellow-400 text-yellow-900 hover:bg-yellow-500 border-yellow-400"
                 >
                   <Star className="h-3 w-3 mr-1" />
                   Califica tu experiencia
