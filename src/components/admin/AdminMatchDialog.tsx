@@ -982,9 +982,14 @@ const AdminMatchDialog = ({
                             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
                                {/* Traveler */}
                                <div className="flex items-center space-x-2 max-w-[200px] sm:max-w-[220px]">
-                                 <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
-                                   {trip.user_id?.toString().slice(-2) || '00'}
-                                 </div>
+                                  <Avatar className="h-8 w-8 flex-shrink-0">
+                                    {travelerProfiles[trip.user_id]?.avatar_url && (
+                                      <AvatarImage src={getHighResGoogleAvatar(travelerProfiles[trip.user_id].avatar_url)} alt="Avatar" />
+                                    )}
+                                    <AvatarFallback className="text-xs font-medium bg-muted text-muted-foreground">
+                                      {travelerProfiles[trip.user_id]?.first_name?.[0] || trip.user_id?.toString().slice(-2) || '00'}
+                                    </AvatarFallback>
+                                  </Avatar>
                                   <div className="min-w-0">
                                     <Tooltip>
                                       <TooltipTrigger asChild>
