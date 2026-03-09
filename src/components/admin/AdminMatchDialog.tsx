@@ -49,6 +49,14 @@ const AdminMatchDialog = ({
   const [selectedTraveler, setSelectedTraveler] = useState<any>(null);
   const [travelerPackages, setTravelerPackages] = useState<any[]>([]);
   const [adminTip, setAdminTip] = useState<string>('');
+  const [avatarViewerOpen, setAvatarViewerOpen] = useState(false);
+  const [avatarViewerUrl, setAvatarViewerUrl] = useState('');
+
+  const handleAvatarClick = (avatarUrl: string | null | undefined) => {
+    if (!avatarUrl) return;
+    setAvatarViewerUrl(avatarUrl);
+    setAvatarViewerOpen(true);
+  };
   const [showProductTipModal, setShowProductTipModal] = useState(false);
   const [assignedProductsWithTips, setAssignedProductsWithTips] = useState<any[]>([]);
   const [showAllTrips, setShowAllTrips] = useState(false);
