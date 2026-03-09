@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { formatCurrency } from '@/utils/priceHelpers';
 import { getActiveTipFromPackage } from '@/utils/tipHelpers';
 import { supabase } from '@/integrations/supabase/client';
-import { Banknote, Package, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { Banknote, Package, CheckCircle, Clock, AlertTriangle, Lock } from 'lucide-react';
 import TripBankingConfirmationModal from '@/components/TripBankingConfirmationModal';
 import { TripPaymentAccumulator } from '@/hooks/useTripPayments';
 
@@ -29,6 +29,32 @@ interface PackageTipInfo {
   hasIncident: boolean;
 }
 
+const ALL_ACTIVE_STATUSES = [
+  'quote_sent', 'payment_pending', 'quote_accepted', 'paid',
+  'pending_purchase', 'purchase_confirmed', 'shipped',
+  'in_transit', 'received_by_traveler', 'pending_office_confirmation',
+  'delivered_to_office', 'completed', 'ready_for_pickup', 'ready_for_delivery',
+];
+
+const DELIVERED_STATUSES = ['completed', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'];
+
+const STATUS_LABELS: Record<string, string> = {
+  quote_sent: 'Cotización enviada',
+  payment_pending: 'Pago pendiente',
+  quote_accepted: 'Cotización aceptada',
+  paid: 'Pagado',
+  pending_purchase: 'Pendiente de compra',
+  purchase_confirmed: 'Compra confirmada',
+  shipped: 'Enviado',
+  in_transit: 'En tránsito',
+  received_by_traveler: 'Recibido por viajero',
+  pending_office_confirmation: 'Pendiente oficina',
+  delivered_to_office: 'En oficina',
+  completed: 'Completado',
+  ready_for_pickup: 'Listo para recoger',
+  ready_for_delivery: 'Listo para entrega',
+};
+
 export const TripTipsModal: React.FC<TripTipsModalProps> = ({
   isOpen,
   onClose,
@@ -43,19 +69,18 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
   const [packageDetails, setPackageDetails] = useState<PackageTipInfo[]>([]);
   const [packageCounts, setPackageCounts] = useState({ total: 0, delivered: 0, withIncident: 0 });
   const [loadingPackages, setLoadingPackages] = useState(true);
-
-  const deliveredStatuses = ['completed', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery'];
+  const [totalTipsFromPackages, setTotalTipsFromPackages] = useState(0);
+  const [creatingAccumulator, setCreatingAccumulator] = useState(false);
 
   const fetchPackageDetails = useCallback(async () => {
     if (!isOpen || !trip.id) return;
     setLoadingPackages(true);
     try {
-      const eligibleStatuses = ['in_transit', 'received_by_traveler', 'delivered_to_office', 'completed', 'delivered', 'ready_for_pickup', 'ready_for_delivery', 'pending_office_confirmation'];
       const { data, error } = await supabase
         .from('packages')
         .select('id, item_description, quote, status, admin_assigned_tip, incident_flag, products_data, office_delivery')
         .eq('matched_trip_id', trip.id)
-        .in('status', eligibleStatuses);
+        .in('status', ALL_ACTIVE_STATUSES);
 
       if (error) throw error;
 
@@ -70,9 +95,11 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
         hasIncident: false,
       }));
 
-      const deliveredCount = pkgsWithoutIncident.filter(p => deliveredStatuses.includes(p.status)).length;
+      const totalTips = details.reduce((sum, pkg) => sum + pkg.tip, 0);
+      const deliveredCount = pkgsWithoutIncident.filter(p => DELIVERED_STATUSES.includes(p.status)).length;
 
       setPackageDetails(details);
+      setTotalTipsFromPackages(totalTips);
       setPackageCounts({
         total: pkgsWithoutIncident.length,
         delivered: deliveredCount,
@@ -89,17 +116,23 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
     fetchPackageDetails();
   }, [fetchPackageDetails]);
 
-  const handleCreateAccumulator = async () => {
-    try {
-      const { createOrUpdateTripPaymentAccumulator } = await import('@/hooks/useCreateTripPaymentAccumulator');
-      const result = await createOrUpdateTripPaymentAccumulator(trip.id, currentUser.id);
-      if (result.success) {
-        refreshTripPayment();
-        fetchPackageDetails();
+  const handleRequestPayment = async () => {
+    // If no accumulator exists, create one first
+    if (!tripPayment) {
+      setCreatingAccumulator(true);
+      try {
+        const { createOrUpdateTripPaymentAccumulator } = await import('@/hooks/useCreateTripPaymentAccumulator');
+        const result = await createOrUpdateTripPaymentAccumulator(trip.id, currentUser.id);
+        if (result.success) {
+          refreshTripPayment();
+        }
+      } catch (error) {
+        console.error('Error creating accumulator:', error);
+      } finally {
+        setCreatingAccumulator(false);
       }
-    } catch (error) {
-      console.error('Error creating accumulator:', error);
     }
+    setShowBankingModal(true);
   };
 
   const handlePaymentRequest = async (bankingInfo: any) => {
@@ -111,26 +144,15 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
     }
   };
 
-  const isAllDelivered = tripPayment?.all_packages_delivered === true;
+  const isAllDelivered = packageCounts.total > 0 && packageCounts.delivered === packageCounts.total;
   const hasAccumulator = !!tripPayment;
-  const accumulatedAmount = tripPayment?.accumulated_amount ?? 0;
-  const canRequestPayment = hasAccumulator && isAllDelivered && !tripPayment.payment_order_created && accumulatedAmount > 0;
+  const accumulatedAmount = tripPayment?.accumulated_amount ?? totalTipsFromPackages;
+  const paymentAlreadyRequested = tripPayment?.payment_order_created === true;
+  const canRequestPayment = isAllDelivered && totalTipsFromPackages > 0 && !paymentAlreadyRequested;
   const progressPercent = packageCounts.total > 0 ? (packageCounts.delivered / packageCounts.total) * 100 : 0;
+  const pendingCount = packageCounts.total - packageCounts.delivered;
 
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      completed: 'Completado',
-      delivered_to_office: 'En oficina',
-      ready_for_pickup: 'Listo para recoger',
-      ready_for_delivery: 'Listo para entrega',
-      in_transit: 'En tránsito',
-      received_by_traveler: 'Recibido',
-      pending_office_confirmation: 'Pendiente oficina',
-    };
-    return labels[status] || status;
-  };
-
-  const isDelivered = (status: string) => deliveredStatuses.includes(status);
+  const isDelivered = (status: string) => DELIVERED_STATUSES.includes(status);
 
   return (
     <>
@@ -146,15 +168,15 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
             </DialogDescription>
           </DialogHeader>
 
-          {/* Accumulated Total */}
+          {/* Total tips from shoppers */}
           <div className="bg-muted/40 rounded-lg p-4 text-center">
-            <p className="text-xs text-muted-foreground mb-1">Total acumulado</p>
-            <p className="text-2xl font-bold text-foreground">{formatCurrency(accumulatedAmount)}</p>
+            <p className="text-xs text-muted-foreground mb-1">Total tips de shoppers</p>
+            <p className="text-2xl font-bold text-foreground">{formatCurrency(totalTipsFromPackages)}</p>
             {tripPayment?.payment_status === 'completed' && (
               <Badge className="mt-1 bg-green-600 text-white">Pagado</Badge>
             )}
             {tripPayment?.payment_status === 'pending' && (
-              <Badge className="mt-1" variant="default">Solicitado</Badge>
+              <Badge className="mt-1" variant="default">Cobro solicitado</Badge>
             )}
           </div>
 
@@ -179,7 +201,7 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
           {/* Package Breakdown */}
           {!loadingPackages && packageDetails.length > 0 && (
             <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Desglose por paquete</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Paquetes asignados</p>
               <div className="divide-y divide-border rounded-lg border overflow-hidden">
                 {packageDetails.map((pkg) => (
                   <div key={pkg.id} className="flex items-center justify-between p-2.5 text-sm">
@@ -194,7 +216,7 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
                         ) : (
                           <Clock className="h-2.5 w-2.5 mr-0.5" />
                         )}
-                        {getStatusLabel(pkg.status)}
+                        {STATUS_LABELS[pkg.status] || pkg.status}
                       </Badge>
                     </div>
                     <span className={`font-medium whitespace-nowrap ${isDelivered(pkg.status) ? 'text-foreground' : 'text-muted-foreground'}`}>
@@ -206,30 +228,37 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
             </div>
           )}
 
-          {/* Action Section */}
+          {/* Action Section - Always visible */}
           <div className="pt-2 space-y-2">
-            {!hasAccumulator && packageCounts.delivered > 0 && (
-              <Button onClick={handleCreateAccumulator} className="w-full" size="sm">
-                Inicializar pagos
-              </Button>
-            )}
-
-            {canRequestPayment && (
-              <Button
-                onClick={() => setShowBankingModal(true)}
-                disabled={isCreating}
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Banknote className="h-4 w-4 mr-2" />
-                {isCreating ? 'Procesando...' : `Solicitar cobro ${formatCurrency(accumulatedAmount)}`}
-              </Button>
-            )}
-
-            {hasAccumulator && !isAllDelivered && accumulatedAmount > 0 && !tripPayment.payment_order_created && (
-              <div className="flex items-center gap-2 text-amber-600 text-xs justify-center">
-                <Clock className="h-3.5 w-3.5" />
-                <span>Podrás solicitar el cobro cuando todos los paquetes estén entregados en oficina</span>
+            {paymentAlreadyRequested ? (
+              <div className="text-center text-sm text-muted-foreground">
+                Ya se solicitó el cobro de este viaje.
               </div>
+            ) : (
+              <>
+                <Button
+                  onClick={handleRequestPayment}
+                  disabled={!canRequestPayment || isCreating || creatingAccumulator}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
+                >
+                  {!canRequestPayment && <Lock className="h-4 w-4 mr-2" />}
+                  {canRequestPayment && <Banknote className="h-4 w-4 mr-2" />}
+                  {isCreating || creatingAccumulator
+                    ? 'Procesando...'
+                    : `Solicitar cobro ${formatCurrency(totalTipsFromPackages)}`}
+                </Button>
+
+                {!isAllDelivered && packageCounts.total > 0 && (
+                  <div className="flex items-center gap-2 text-amber-600 text-xs justify-center">
+                    <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span>
+                      {pendingCount === 1
+                        ? 'Falta 1 paquete por entregar en oficina'
+                        : `Faltan ${pendingCount} paquetes por entregar en oficina`}
+                    </span>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </DialogContent>
