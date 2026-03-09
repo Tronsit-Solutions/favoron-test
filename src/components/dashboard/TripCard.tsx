@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Edit, CheckCircle, MoreHorizontal, FileText, MapPin, User, Pencil, Star } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Phone, Edit, CheckCircle, MoreHorizontal, MapPin, User, Pencil, Star, FileText } from "lucide-react";
+import { useState } from "react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
 import TravelerSurveyModal from "@/components/dashboard/TravelerSurveyModal";
@@ -12,8 +12,6 @@ import { TripDate } from "./TripDate";
 import { ReceptionWindow } from "./ReceptionWindow";
 import { useTripPayments } from "@/hooks/useTripPayments";
 import { formatCurrency } from "@/utils/priceHelpers";
-
-import { ReceiptViewerModal } from "@/components/ui/receipt-viewer-modal";
 
 interface TripCardProps {
   trip: any;
@@ -30,27 +28,11 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showTipsModal, setShowTipsModal] = useState(false);
-  const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showEditSelectionModal, setShowEditSelectionModal] = useState(false);
   const [showSurveyModal, setShowSurveyModal] = useState(false);
-  const [paymentReceipt, setPaymentReceipt] = useState<{receipt_url: string, receipt_filename?: string} | null>(null);
 
   const { tripPayment, isCreating, createPaymentOrder, refreshTripPayment } = useTripPayments(trip.id);
 
-  useEffect(() => {
-    if (tripPayment?.payment_receipt_url) {
-      const raw = tripPayment.payment_receipt_url;
-      const normalized = raw && !raw.includes('/') && !raw.startsWith('http')
-        ? `payment-receipts/${raw}`
-        : raw;
-      setPaymentReceipt({
-        receipt_url: normalized,
-        receipt_filename: tripPayment.payment_receipt_filename
-      });
-    } else {
-      setPaymentReceipt(null);
-    }
-  }, [tripPayment]);
 
   const canEdit = ['pending_approval', 'approved'].includes(trip.status);
   
@@ -112,18 +94,6 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               </CardTitle>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
-              {trip.status === 'completed_paid' && paymentReceipt?.receipt_url && isOwner && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setShowReceiptModal(true)}
-                  className="h-8 px-3 text-xs border-green-300 text-green-700 hover:bg-green-50 hover:border-green-400 gap-1.5"
-                  title="Ver comprobante de pago"
-                >
-                  <FileText className="h-4 w-4" />
-                  <span className="hidden sm:inline">Comprobante</span>
-                </Button>
-              )}
               {canEdit && (
                 <Button
                   size="sm"
@@ -244,16 +214,6 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       refreshTripPayment={refreshTripPayment}
     />
 
-    {/* Payment Receipt Modal */}
-    {paymentReceipt?.receipt_url && (
-      <ReceiptViewerModal
-        isOpen={showReceiptModal}
-        onClose={() => setShowReceiptModal(false)}
-        receiptUrl={paymentReceipt.receipt_url}
-        title="Comprobante de Pago"
-        filename={paymentReceipt.receipt_filename}
-      />
-    )}
 
     {/* Trip Edit Selection Modal */}
     <TripEditSelectionModal

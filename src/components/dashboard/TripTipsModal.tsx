@@ -6,9 +6,12 @@ import { Progress } from '@/components/ui/progress';
 import { formatCurrency } from '@/utils/priceHelpers';
 import { getActiveTipFromPackage } from '@/utils/tipHelpers';
 import { supabase } from '@/integrations/supabase/client';
-import { Banknote, Package, CheckCircle, Clock, AlertTriangle, Lock } from 'lucide-react';
+import { Banknote, Package, CheckCircle, Clock, AlertTriangle, Lock, Download, FileText } from 'lucide-react';
 import TripBankingConfirmationModal from '@/components/TripBankingConfirmationModal';
 import { TripPaymentAccumulator } from '@/hooks/useTripPayments';
+import { useSignedUrl } from '@/hooks/useSignedUrl';
+import { parseStorageRef } from '@/lib/storageUrls';
+import { toast } from 'sonner';
 
 interface TripTipsModalProps {
   isOpen: boolean;
@@ -71,6 +74,18 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
   const [loadingPackages, setLoadingPackages] = useState(true);
   const [totalTipsFromPackages, setTotalTipsFromPackages] = useState(0);
   const [creatingAccumulator, setCreatingAccumulator] = useState(false);
+  const [downloadingFile, setDownloadingFile] = useState(false);
+
+  // Resolve receipt URL
+  const rawReceiptUrl = tripPayment?.payment_receipt_url || null;
+  const normalizedReceiptUrl = rawReceiptUrl && !rawReceiptUrl.includes('/') && !rawReceiptUrl.startsWith('http')
+    ? `payment-receipts/${rawReceiptUrl}`
+    : rawReceiptUrl;
+  const receiptFilename = tripPayment?.payment_receipt_filename || undefined;
+  const { url: signedReceiptUrl, loading: loadingReceipt } = useSignedUrl(normalizedReceiptUrl);
+  const receiptDisplayUrl = signedReceiptUrl || normalizedReceiptUrl;
+  const isReceiptImage = receiptFilename?.match(/\.(jpg|jpeg|png|gif|webp)$/i) || normalizedReceiptUrl?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+  const isReceiptPDF = receiptFilename?.match(/\.(pdf)$/i) || normalizedReceiptUrl?.match(/\.(pdf)$/i);
 
   const fetchPackageDetails = useCallback(async () => {
     if (!isOpen || !trip.id) return;
@@ -154,6 +169,41 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
     }
   };
 
+  const handleDownloadReceipt = async () => {
+    if (!normalizedReceiptUrl) return;
+    setDownloadingFile(true);
+    try {
+      let blob: Blob | null = null;
+      const effectiveUrl = signedReceiptUrl || receiptDisplayUrl;
+      if (effectiveUrl && /^https?:\/\//i.test(effectiveUrl)) {
+        const response = await fetch(effectiveUrl, { cache: 'no-store' });
+        if (response.ok) blob = await response.blob();
+      }
+      if (!blob) {
+        const ref = parseStorageRef(normalizedReceiptUrl);
+        if (ref) {
+          const { data, error } = await supabase.storage.from(ref.bucket).download(ref.filePath);
+          if (!error && data) blob = data;
+        }
+      }
+      if (!blob) throw new Error('No se pudo obtener el archivo');
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = receiptFilename || 'comprobante';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      toast.success("Archivo descargado exitosamente");
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      toast.error("Error al descargar el archivo");
+    } finally {
+      setDownloadingFile(false);
+    }
+  };
+
   const isAllDelivered = packageCounts.total > 0 && packageCounts.delivered === packageCounts.total;
   const hasAccumulator = !!tripPayment;
   const accumulatedAmount = tripPayment?.accumulated_amount ?? totalTipsFromPackages;
@@ -161,7 +211,6 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
   const canRequestPayment = isAllDelivered && totalTipsFromPackages > 0 && !paymentAlreadyRequested;
   const progressPercent = packageCounts.total > 0 ? (packageCounts.delivered / packageCounts.total) * 100 : 0;
   const pendingCount = packageCounts.total - packageCounts.delivered;
-
   const isDelivered = (status: string) => DELIVERED_STATUSES.includes(status);
 
   return (
@@ -271,6 +320,51 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
               </>
             )}
           </div>
+
+          {/* Payment Receipt Section */}
+          {normalizedReceiptUrl && (
+            <div className="space-y-2 border-t pt-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Comprobante de pago</p>
+              {loadingReceipt ? (
+                <div className="bg-muted/30 rounded-lg p-6 text-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
+                  <p className="text-xs text-muted-foreground">Cargando comprobante...</p>
+                </div>
+              ) : receiptDisplayUrl ? (
+                <div className="space-y-2">
+                  {isReceiptImage ? (
+                    <img
+                      src={receiptDisplayUrl}
+                      alt="Comprobante de pago"
+                      className="w-full h-auto rounded-lg border border-border max-h-[300px] object-contain bg-muted/20 cursor-pointer"
+                      onClick={() => window.open(receiptDisplayUrl, '_blank')}
+                      loading="lazy"
+                    />
+                  ) : isReceiptPDF ? (
+                    <div className="bg-muted/30 rounded-lg p-4 text-center">
+                      <FileText className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground mb-2">Archivo PDF</p>
+                    </div>
+                  ) : (
+                    <div className="bg-muted/30 rounded-lg p-4 text-center">
+                      <FileText className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">Archivo adjunto</p>
+                    </div>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={handleDownloadReceipt}
+                    disabled={downloadingFile}
+                  >
+                    <Download className="h-3.5 w-3.5 mr-1.5" />
+                    {downloadingFile ? 'Descargando...' : 'Descargar comprobante'}
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
