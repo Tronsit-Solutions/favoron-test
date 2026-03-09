@@ -516,7 +516,7 @@ const QuoteDialog = ({
           packageDetails.shopper_trust_level,
           existingQuote.message,
           true,
-          packageDetails.package_destination,
+          packageDetails.cityArea || packageDetails.deliveryAddress?.cityArea || packageDetails.package_destination,
           rates,
           deliveryFees,
           packageDetails.package_destination_country
