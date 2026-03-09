@@ -686,14 +686,51 @@ const CollapsiblePackageCard = ({
                 </div>
                 )}
               </div>
-              {/* Right: chat button centered vertically */}
-              {isChatAvailable && (
-                <div className="flex flex-col items-center justify-center flex-shrink-0 ml-2 mr-6">
+              {/* Right column: menu + chat */}
+              <div className="flex flex-col items-center flex-shrink-0 ml-2" style={{ justifyContent: isChatAvailable ? 'space-between' : 'flex-start' }}>
+                {/* Three dots at top */}
+                {viewMode === 'user' && <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 z-20 hover:bg-muted rounded-full" onClick={e => e.stopPropagation()}>
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Opciones del paquete</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg z-50" onClick={e => e.stopPropagation()}>
+                    {onEditPackage && ['pending_approval', 'approved', 'matched', 'quote_sent', 'quote_rejected', 'quote_expired', 'rejected'].includes(pkg.status) && <DropdownMenuItem onClick={() => setShowEditModal(true)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Editar pedido
+                      </DropdownMenuItem>}
+                    {onDeletePackage && canDeleteSimple && !needsRefund && <DropdownMenuItem onClick={e => {
+                      e.stopPropagation();
+                      setShowDeleteDialog(true);
+                    }} className="text-destructive focus:text-destructive">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Cancelar pedido
+                    </DropdownMenuItem>}
+                    {onDeletePackage && needsRefund && canDeleteWithRefund && <DropdownMenuItem onClick={e => {
+                      e.stopPropagation();
+                      setShowCancellationModal(true);
+                    }} className="text-destructive focus:text-destructive">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Cancelar con reembolso
+                    </DropdownMenuItem>}
+                    {onDeletePackage && !canDelete && <DropdownMenuItem disabled className="opacity-50">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Cancelar pedido
+                      <span className="ml-2 text-xs">(No disponible)</span>
+                    </DropdownMenuItem>}
+                  </DropdownMenuContent>
+                </DropdownMenu>}
+                {/* Chat centered */}
+                {isChatAvailable && (
                   <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
                     <MessageCircle className="h-6 w-6 text-primary" />
                   </Button>
-                </div>
-              )}
+                )}
+                {/* Spacer to balance centering */}
+                {isChatAvailable && <div className="h-7" />}
+              </div>
               </div> :
           // Desktop layout (original)
           <div className="flex flex-col gap-2 w-full min-w-0 overflow-hidden">
