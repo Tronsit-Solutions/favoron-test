@@ -42,7 +42,7 @@ export const MobileTabs = ({ value, onValueChange, tabs, className }: MobileTabs
             );
           })}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 };
