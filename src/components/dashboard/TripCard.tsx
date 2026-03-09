@@ -85,43 +85,41 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
           </div>
         </div>
       )}
-      <CardHeader className="pb-2 md:pb-3">
+      <CardHeader className="pb-2 md:pb-3 relative">
+        {/* Three dots menu - absolute top right */}
+        <div className="absolute top-2 right-2 z-10">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 hover:bg-muted/50"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {canEdit && (
+                <DropdownMenuItem onClick={() => setShowEditSelectionModal(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Editar viaje
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => setShowDetailModal(true)}>
+                <Eye className="h-4 w-4 mr-2" />
+                Ver detalle
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
         <div className="flex flex-row gap-2">
           {/* Left column: main content */}
-          <div className="flex flex-col gap-2 flex-1 min-w-0">
+          <div className="flex flex-col gap-2 flex-1 min-w-0 pr-8">
             {/* Trip Route */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <CardTitle className="text-base md:text-lg font-semibold leading-tight break-words">
-                  {trip.from_city} → {trip.to_city}
-                </CardTitle>
-              </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0 hover:bg-muted/50"
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {canEdit && (
-                      <DropdownMenuItem onClick={() => setShowEditSelectionModal(true)}>
-                        <Pencil className="h-4 w-4 mr-2" />
-                        Editar viaje
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={() => setShowDetailModal(true)}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      Ver detalle
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
+            <CardTitle className="text-base md:text-lg font-semibold leading-tight break-words">
+              {trip.from_city} → {trip.to_city}
+            </CardTitle>
 
             {/* Trip ID - Clickable */}
             <div 
@@ -160,7 +158,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               </div>
             )}
 
-            {/* Status Badge */}
+            {/* Status Badge - aligned right */}
             <div className="flex items-center justify-end">
               {getStatusBadge(trip.status)}
             </div>
@@ -168,7 +166,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 
           {/* Right column: Tips button floating */}
           {shouldShowTipsButton && (
-            <div className="flex-shrink-0 flex items-center">
+            <div className="flex-shrink-0 flex items-end pb-1">
               <Button
                 size="sm"
                 variant="outline"
