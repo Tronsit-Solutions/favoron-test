@@ -89,7 +89,7 @@ export const useStatusHelpers = () => {
       quote_expired: { label: "⏰ Cotización Expirada", variant: "destructive" as const },
       payment_pending_approval: { label: "Pago Pendiente de Aprobación", variant: "warning" as const },
       payment_pending: { label: "Pago Pendiente", variant: "warning" as const },
-      pending_purchase: { label: "Pago Confirmado - Compra Pendiente", variant: "success" as const },
+      pending_purchase: { label: "Cotización Pagada", variant: "success" as const },
       in_transit: { label: "En Tránsito", variant: "warning" as const },
       received_by_traveler: { label: "Recibido por viajero", variant: "success" as const },
       pending_office_confirmation: { label: "🔒 Esperando confirmación", variant: "warning" as const },
