@@ -86,94 +86,101 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
         </div>
       )}
       <CardHeader className="pb-2 md:pb-3">
-        <div className="flex flex-col gap-2">
-          {/* Trip Route */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-base md:text-lg font-semibold leading-tight break-words">
-                {trip.from_city} → {trip.to_city}
-              </CardTitle>
+        <div className="flex flex-row gap-2">
+          {/* Left column: main content */}
+          <div className="flex flex-col gap-2 flex-1 min-w-0">
+            {/* Trip Route */}
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-base md:text-lg font-semibold leading-tight break-words">
+                  {trip.from_city} → {trip.to_city}
+                </CardTitle>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 hover:bg-muted/50"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {canEdit && (
+                      <DropdownMenuItem onClick={() => setShowEditSelectionModal(true)}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Editar viaje
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={() => setShowDetailModal(true)}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      Ver detalle
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+
+            {/* Trip ID - Clickable */}
+            <div 
+              onClick={() => setShowDetailModal(true)}
+              className="flex items-center gap-3 text-xs text-muted-foreground cursor-pointer hover:bg-muted/30 rounded-lg p-2 transition-colors"
+            >
+              <span className="font-mono text-muted-foreground/70">ID: {trip.id.slice(0, 8)}</span>
+            </div>
+
+            {/* Survey + Delivery Actions */}
+            {(shouldShowSurveyButton || (canConfirmDelivery && travelerProfile)) && (
+              <div className="flex flex-wrap gap-2">
+                {shouldShowSurveyButton && (
                   <Button
                     size="sm"
-                    variant="ghost"
-                    className="h-8 w-8 p-0 hover:bg-muted/50"
+                    variant="outline"
+                    onClick={() => setShowSurveyModal(true)}
+                    className="h-8 px-3 text-xs bg-yellow-400 text-yellow-900 hover:bg-yellow-500 border-yellow-400"
                   >
-                    <MoreHorizontal className="h-4 w-4" />
+                    <Star className="h-3 w-3 mr-1" />
+                    Califica tu experiencia
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {canEdit && (
-                    <DropdownMenuItem onClick={() => setShowEditSelectionModal(true)}>
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Editar viaje
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={() => setShowDetailModal(true)}>
-                    <Eye className="h-4 w-4 mr-2" />
-                    Ver detalle
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                )}
+
+                {canConfirmDelivery && travelerProfile && (
+                  <Button 
+                    size="sm"
+                    variant="default"
+                    onClick={() => setShowDeliveryModal(true)}
+                    className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 hover-scale"
+                  >
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    <span className="whitespace-nowrap">Confirmar entrega</span>
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Status Badge */}
+            <div className="flex items-center justify-end">
+              {getStatusBadge(trip.status)}
             </div>
           </div>
 
-          {/* Trip ID - Clickable */}
-          <div 
-            onClick={() => setShowDetailModal(true)}
-            className="flex items-center gap-3 text-xs text-muted-foreground cursor-pointer hover:bg-muted/30 rounded-lg p-2 transition-colors"
-          >
-            <span className="font-mono text-muted-foreground/70">ID: {trip.id.slice(0, 8)}</span>
-          </div>
-
-          {/* Survey + Delivery Actions */}
-          {(shouldShowSurveyButton || (canConfirmDelivery && travelerProfile)) && (
-            <div className="flex flex-wrap gap-2">
-              {shouldShowSurveyButton && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setShowSurveyModal(true)}
-                  className="h-8 px-3 text-xs bg-yellow-400 text-yellow-900 hover:bg-yellow-500 border-yellow-400"
-                >
-                  <Star className="h-3 w-3 mr-1" />
-                  Califica tu experiencia
-                </Button>
-              )}
-
-              {canConfirmDelivery && travelerProfile && (
-                <Button 
-                  size="sm"
-                  variant="default"
-                  onClick={() => setShowDeliveryModal(true)}
-                  className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 hover-scale"
-                >
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  <span className="whitespace-nowrap">Confirmar entrega</span>
-                </Button>
-              )}
-            </div>
-          )}
-
-          {/* Status Badge and Tips */}
-          <div className="flex items-center justify-end gap-2">
-            {shouldShowTipsButton && (
+          {/* Right column: Tips button floating */}
+          {shouldShowTipsButton && (
+            <div className="flex-shrink-0 flex items-center">
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => setShowTipsModal(true)}
-                className="h-8 px-3 text-xs border-green-300 text-green-700 hover:bg-green-50 hover:border-green-400 gap-1.5"
+                className="h-auto px-2.5 py-3 text-xs border-green-300 text-green-700 hover:bg-green-50 hover:border-green-400 flex flex-col gap-1.5 items-center"
                 title="Ver tips acumulados"
               >
                 <FileText className="h-4 w-4" />
-                <span>Tips</span>
+                <span className="text-[10px] leading-tight">Tips</span>
               </Button>
-            )}
-            {getStatusBadge(trip.status)}
-          </div>
+            </div>
+          )}
         </div>
       </CardHeader>
     </Card>
