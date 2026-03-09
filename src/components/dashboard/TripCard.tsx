@@ -1,7 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Edit, CheckCircle, MoreHorizontal, FileText, MapPin, User, Pencil, Star } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Phone, Edit, CheckCircle, MoreHorizontal, MapPin, User, Pencil, Star, FileText } from "lucide-react";
 import EditTripModal from "@/components/EditTripModal";
 import TravelerDeliveryConfirmationModal from "@/components/TravelerDeliveryConfirmationModal";
 import TravelerSurveyModal from "@/components/dashboard/TravelerSurveyModal";
