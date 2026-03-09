@@ -355,7 +355,7 @@ const CollapsiblePackageCard = ({
   
   // Card content wrapper
   const cardContent = (
-    <Card className={`relative transition-all duration-200 w-full max-w-full min-w-0 ${isMobile && viewMode === 'user' ? '' : 'overflow-hidden'} hover:shadow-md ${pkg.status === 'delivered_to_office' ? 'bg-green-50 border-2 border-green-500 ring-2 ring-green-200 shadow-lg' : ''} ${isCancelledPackage ? 'bg-muted/50 border-destructive/30 opacity-80' : ''}`}>
+    <Card className={`relative transition-all duration-200 w-full max-w-full min-w-0 overflow-visible hover:shadow-md ${pkg.status === 'delivered_to_office' ? 'bg-green-50 border-2 border-green-500 ring-2 ring-green-200 shadow-lg' : ''} ${isCancelledPackage ? 'bg-muted/50 border-destructive/30 opacity-80' : ''}`}>
       {needsAction && <NotificationBadge count={1} className="absolute -top-2 -left-2 z-10" />}
       <CollapsibleTrigger asChild={!(isMobile && viewMode === 'user')}>
         <CardHeader className={`w-full max-w-full min-w-0 overflow-hidden relative ${isMobile ? 'px-3 py-3 cursor-default' : 'px-4 py-4 sm:px-6 sm:py-6 cursor-pointer hover:bg-muted/50 transition-colors'}`}>
@@ -396,23 +396,17 @@ const CollapsiblePackageCard = ({
               </DropdownMenu>}
             
             {/* Mobile optimized layout */}
-            {isMobile ? <div className="space-y-3 w-full max-w-full">
+            {isMobile ? <div className="flex w-full">
+              {/* Left: all content */}
+              <div className="flex-1 min-w-0 space-y-3">
                 {/* Product name and status in single row */}
-                <div className="flex items-start gap-2 w-full">
+                <div className="flex items-start gap-2 w-full pr-10">
                   <Package className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <CardTitle className="font-semibold leading-tight text-base sm:text-lg break-words line-clamp-2 text-left">
                       {renderPackageName()}
                     </CardTitle>
                   </div>
-                  {/* Chat button inline a la derecha */}
-                  {isChatAvailable && (
-                    <div className="relative flex-shrink-0 ml-auto mr-8">
-                      <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
-                        <MessageCircle className="h-6 w-6 text-primary" />
-                      </Button>
-                    </div>
-                  )}
                 </div>
                 
                 {/* Timer positioned below title for better mobile layout */}
@@ -691,6 +685,15 @@ const CollapsiblePackageCard = ({
                   )}
                 </div>
                 )}
+              </div>
+              {/* Right: chat button centered vertically */}
+              {isChatAvailable && (
+                <div className="flex flex-col items-center justify-center flex-shrink-0 ml-2 mr-6">
+                  <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
+                    <MessageCircle className="h-6 w-6 text-primary" />
+                  </Button>
+                </div>
+              )}
               </div> :
           // Desktop layout (original)
           <div className="flex flex-col gap-2 w-full min-w-0 overflow-hidden">
