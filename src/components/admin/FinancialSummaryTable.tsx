@@ -637,6 +637,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     if (totals.totalRefunds > 0) {
       excelData.push({
         'Fecha Pago': '',
+        'ID Pedido': '',
         'Shopper': '',
         'Viajero': '',
         'ID Viaje': '',
