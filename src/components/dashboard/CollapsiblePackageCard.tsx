@@ -404,19 +404,18 @@ const CollapsiblePackageCard = ({
                       {renderPackageName()}
                     </CardTitle>
                   </div>
+                  {/* Chat button inline a la derecha */}
+                  {isChatAvailable && (
+                    <div className="relative flex-shrink-0 ml-auto mr-8">
+                      <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
+                        <MessageCircle className="h-6 w-6 text-primary" />
+                      </Button>
+                      {needsAction && (
+                        <NotificationBadge count={1} className="absolute -top-1 -right-1" />
+                      )}
+                    </div>
+                  )}
                 </div>
-
-                {/* Chat button fixed to the right */}
-                {isChatAvailable && (
-                  <div className="absolute top-3 right-10 z-20 flex items-center gap-1">
-                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
-                      <MessageCircle className="h-6 w-6 text-primary" />
-                    </Button>
-                    {needsAction && (
-                      <NotificationBadge count={1} className="absolute -top-1 -right-1" />
-                    )}
-                  </div>
-                )}
                 
                 {/* Timer positioned below title for better mobile layout */}
                 {pkg.quote_expires_at && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status) && new Date(pkg.quote_expires_at) > new Date() && (
