@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Star, XCircle, Phone, Globe, X, ExternalLink } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { getHighResGoogleAvatar } from "@/lib/storageUrls";
 import { useState, useEffect } from "react";
 import { getStatusLabel, formatFullName, formatDateUTC } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
@@ -409,7 +411,7 @@ const AdminMatchDialog = ({
           // Try to fetch profiles directly from the profiles table
           const { data, error } = await supabase
             .from('profiles')
-            .select('id, first_name, last_name, username, email, country_code, phone_number')
+            .select('id, first_name, last_name, username, email, country_code, phone_number, avatar_url')
             .in('id', userIds);
           
           if (error) {
@@ -980,9 +982,14 @@ const AdminMatchDialog = ({
                             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
                                {/* Traveler */}
                                <div className="flex items-center space-x-2 max-w-[200px] sm:max-w-[220px]">
-                                 <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0" style={{ backgroundColor: '#a0a0a0', color: 'white' }}>
-                                   {trip.user_id?.toString().slice(-2) || '00'}
-                                 </div>
+                                  <Avatar className="h-8 w-8 flex-shrink-0">
+                                    {travelerProfiles[trip.user_id]?.avatar_url && (
+                                      <AvatarImage src={getHighResGoogleAvatar(travelerProfiles[trip.user_id].avatar_url)} alt="Avatar" />
+                                    )}
+                                    <AvatarFallback className="text-xs font-medium bg-muted text-muted-foreground">
+                                      {travelerProfiles[trip.user_id]?.first_name?.[0] || trip.user_id?.toString().slice(-2) || '00'}
+                                    </AvatarFallback>
+                                  </Avatar>
                                   <div className="min-w-0">
                                     <Tooltip>
                                       <TooltipTrigger asChild>
@@ -1205,9 +1212,14 @@ const AdminMatchDialog = ({
                               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
                                 {/* Traveler */}
                                 <div className="flex items-center space-x-2 min-w-fit">
-                                  <div className="w-8 h-8 bg-amber-200 rounded-full flex items-center justify-center text-xs font-medium text-amber-800">
-                                    {trip.user_id?.toString().slice(-2) || '00'}
-                                  </div>
+                                  <Avatar className="h-8 w-8 flex-shrink-0">
+                                    {travelerProfiles[trip.user_id]?.avatar_url && (
+                                      <AvatarImage src={getHighResGoogleAvatar(travelerProfiles[trip.user_id].avatar_url)} alt="Avatar" />
+                                    )}
+                                    <AvatarFallback className="text-xs font-medium bg-amber-200 text-amber-800">
+                                      {travelerProfiles[trip.user_id]?.first_name?.[0] || trip.user_id?.toString().slice(-2) || '00'}
+                                    </AvatarFallback>
+                                  </Avatar>
                                   <div>
                                     <p 
                                       className="font-medium text-sm text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
@@ -1334,9 +1346,14 @@ const AdminMatchDialog = ({
                               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
                                 {/* Traveler */}
                                 <div className="flex items-center space-x-2 min-w-fit">
-                                  <div className="w-8 h-8 bg-orange-200 rounded-full flex items-center justify-center text-xs font-medium text-orange-800">
-                                    {trip.user_id?.toString().slice(-2) || '00'}
-                                  </div>
+                                  <Avatar className="h-8 w-8 flex-shrink-0">
+                                    {travelerProfiles[trip.user_id]?.avatar_url && (
+                                      <AvatarImage src={getHighResGoogleAvatar(travelerProfiles[trip.user_id].avatar_url)} alt="Avatar" />
+                                    )}
+                                    <AvatarFallback className="text-xs font-medium bg-orange-200 text-orange-800">
+                                      {travelerProfiles[trip.user_id]?.first_name?.[0] || trip.user_id?.toString().slice(-2) || '00'}
+                                    </AvatarFallback>
+                                  </Avatar>
                                   <div>
                                     <p 
                                       className="font-medium text-sm text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
@@ -1536,7 +1553,17 @@ const AdminMatchDialog = ({
               {/* Traveler Profile */}
               <Card>
                 <CardHeader>
-                  <h3 className="text-lg font-semibold">Perfil del Viajero</h3>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12">
+                      {selectedTraveler.avatar_url && (
+                        <AvatarImage src={getHighResGoogleAvatar(selectedTraveler.avatar_url)} alt="Avatar" />
+                      )}
+                      <AvatarFallback className="text-lg font-medium bg-muted text-muted-foreground">
+                        {selectedTraveler.first_name?.[0] || <User className="h-5 w-5" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <h3 className="text-lg font-semibold">Perfil del Viajero</h3>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
