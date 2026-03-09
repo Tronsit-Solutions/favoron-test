@@ -410,9 +410,6 @@ const CollapsiblePackageCard = ({
                       <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
                         <MessageCircle className="h-6 w-6 text-primary" />
                       </Button>
-                      {needsAction && (
-                        <NotificationBadge count={1} className="absolute -top-1 -right-1" />
-                      )}
                     </div>
                   )}
                 </div>
