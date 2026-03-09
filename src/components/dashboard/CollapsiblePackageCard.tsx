@@ -404,17 +404,19 @@ const CollapsiblePackageCard = ({
                       {renderPackageName()}
                     </CardTitle>
                   </div>
-                  <div className="absolute top-1 right-9 z-20 flex items-center gap-1">
-                    {isChatAvailable && (
-                      <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
-                        <MessageCircle className="h-6 w-6 text-primary" />
-                      </Button>
-                    )}
+                </div>
+
+                {/* Chat button fixed to the right */}
+                {isChatAvailable && (
+                  <div className="absolute top-3 right-10 z-20 flex items-center gap-1">
+                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
+                      <MessageCircle className="h-6 w-6 text-primary" />
+                    </Button>
                     {needsAction && (
-                      <NotificationBadge count={1} />
+                      <NotificationBadge count={1} className="absolute -top-1 -right-1" />
                     )}
                   </div>
-                </div>
+                )}
                 
                 {/* Timer positioned below title for better mobile layout */}
                 {pkg.quote_expires_at && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status) && new Date(pkg.quote_expires_at) > new Date() && (
@@ -423,10 +425,10 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
 
-                {/* Description */}
+                {/* Package ID */}
                 <CardDescription className="text-xs leading-tight text-muted-foreground max-w-full text-left">
                   <div className="space-y-1 max-w-full pl-5">
-                    <span className="block break-words max-w-full">{getPackageDescription()}</span>
+                    <span className="block break-words max-w-full text-muted-foreground">ID: {pkg.id.substring(0, 8)}</span>
                   </div>
                 </CardDescription>
                 <div className="pl-5">
