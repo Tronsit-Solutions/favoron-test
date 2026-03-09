@@ -169,6 +169,41 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
     }
   };
 
+  const handleDownloadReceipt = async () => {
+    if (!normalizedReceiptUrl) return;
+    setDownloadingFile(true);
+    try {
+      let blob: Blob | null = null;
+      const effectiveUrl = signedReceiptUrl || receiptDisplayUrl;
+      if (effectiveUrl && /^https?:\/\//i.test(effectiveUrl)) {
+        const response = await fetch(effectiveUrl, { cache: 'no-store' });
+        if (response.ok) blob = await response.blob();
+      }
+      if (!blob) {
+        const ref = parseStorageRef(normalizedReceiptUrl);
+        if (ref) {
+          const { data, error } = await supabase.storage.from(ref.bucket).download(ref.filePath);
+          if (!error && data) blob = data;
+        }
+      }
+      if (!blob) throw new Error('No se pudo obtener el archivo');
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = receiptFilename || 'comprobante';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      toast.success("Archivo descargado exitosamente");
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+      toast.error("Error al descargar el archivo");
+    } finally {
+      setDownloadingFile(false);
+    }
+  };
+
   const isAllDelivered = packageCounts.total > 0 && packageCounts.delivered === packageCounts.total;
   const hasAccumulator = !!tripPayment;
   const accumulatedAmount = tripPayment?.accumulated_amount ?? totalTipsFromPackages;
@@ -176,8 +211,6 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
   const canRequestPayment = isAllDelivered && totalTipsFromPackages > 0 && !paymentAlreadyRequested;
   const progressPercent = packageCounts.total > 0 ? (packageCounts.delivered / packageCounts.total) * 100 : 0;
   const pendingCount = packageCounts.total - packageCounts.delivered;
-
-  const isDelivered = (status: string) => DELIVERED_STATUSES.includes(status);
 
   return (
     <>
