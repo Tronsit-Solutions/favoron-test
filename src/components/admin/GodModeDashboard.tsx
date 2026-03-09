@@ -46,7 +46,7 @@ const WIDGET_CATALOG: WidgetDefinition[] = [
   { id: "cac-analysis", name: "Unit Economics (CAC)", description: "Análisis CAC completo", icon: Zap },
 ];
 
-const DEFAULT_WIDGETS = ["platform-rating", "stats-overview", "kpi-cards", "user-growth", "revenue-chart"];
+const DEFAULT_WIDGETS = ["combined-rating", "stats-overview", "kpi-cards", "user-growth", "revenue-chart"];
 
 interface SavedLayout {
   widgets: string[];
