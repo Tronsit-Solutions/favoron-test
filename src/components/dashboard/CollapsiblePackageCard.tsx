@@ -440,7 +440,6 @@ const CollapsiblePackageCard = ({
                     {getStatusBadge(pkg.status, { pkg, isQuoteExpired: !!expirationInfo })}
                     <span>Ver detalle</span>
                   </Button>
-                  {needsAction && <NotificationBadge count={1} />}
                 </div>
 
                 {/* Quick Edit Button for actionable states - Mobile */}
