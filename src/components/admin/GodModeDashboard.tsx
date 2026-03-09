@@ -18,8 +18,7 @@ import { AcquisitionChart } from "./charts/AcquisitionChart";
 import { AcquisitionSurveyTable } from "./charts/AcquisitionSurveyTable";
 import { TravelerTipsCard } from "./charts/TravelerTipsCard";
 import { CACAnalysisTab } from "./cac/CACAnalysisTab";
-import PlatformRatingCard from "./charts/PlatformRatingCard";
-import TravelerRatingCard from "./charts/TravelerRatingCard";
+import CombinedRatingCard from "./charts/CombinedRatingCard";
 import GodModeWidgetPicker from "./GodModeWidgetPicker";
 import type { LucideIcon } from "lucide-react";
 
@@ -31,8 +30,7 @@ export interface WidgetDefinition {
 }
 
 const WIDGET_CATALOG: WidgetDefinition[] = [
-  { id: "platform-rating", name: "Rating Shoppers", description: "Rating de shoppers sobre la plataforma", icon: Star },
-  { id: "traveler-rating", name: "Rating Viajeros", description: "Rating de viajeros sobre la plataforma", icon: Plane },
+  { id: "combined-rating", name: "Ratings Plataforma", description: "Ratings de shoppers y viajeros combinados", icon: Star },
   { id: "stats-overview", name: "Stats Overview", description: "Paquetes, viajes, matches y entregados", icon: BarChart3 },
   { id: "kpi-cards", name: "KPI Cards", description: "Revenue, GMV, tasas de crecimiento", icon: TrendingUp },
   { id: "user-growth", name: "Crecimiento Usuarios", description: "Gráfico de crecimiento mensual", icon: Users },
@@ -48,7 +46,7 @@ const WIDGET_CATALOG: WidgetDefinition[] = [
   { id: "cac-analysis", name: "Unit Economics (CAC)", description: "Análisis CAC completo", icon: Zap },
 ];
 
-const DEFAULT_WIDGETS = ["platform-rating", "stats-overview", "kpi-cards", "user-growth", "revenue-chart"];
+const DEFAULT_WIDGETS = ["combined-rating", "stats-overview", "kpi-cards", "user-growth", "revenue-chart"];
 
 interface SavedLayout {
   widgets: string[];
@@ -138,10 +136,8 @@ const GodModeDashboard = ({ packages, trips, userId }: GodModeDashboardProps) =>
 
   const renderWidget = (widgetId: string) => {
     switch (widgetId) {
-      case "platform-rating":
-        return <PlatformRatingCard />;
-      case "traveler-rating":
-        return <TravelerRatingCard />;
+      case "combined-rating":
+        return <CombinedRatingCard />;
       case "stats-overview":
         return <AdminStatsOverview packages={packages} trips={trips} />;
       case "kpi-cards":
