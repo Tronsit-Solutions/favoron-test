@@ -1,4 +1,3 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 interface MobileTabsProps {
@@ -19,8 +18,8 @@ interface MobileTabsProps {
 export const MobileTabs = ({ value, onValueChange, tabs, className }: MobileTabsProps) => {
   return (
     <div className={cn("w-full bg-background border-b", className)}>
-      <ScrollArea className="w-full">
-        <div className="flex w-full h-auto p-1 gap-1 bg-muted/30 rounded-none overflow-x-auto">
+      <div className="w-full overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex w-max h-auto p-1 gap-1 bg-muted/30 rounded-none">
           {tabs.map((tab) => {
             const isActive = value === tab.value;
             return (
@@ -43,7 +42,7 @@ export const MobileTabs = ({ value, onValueChange, tabs, className }: MobileTabs
             );
           })}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 };
