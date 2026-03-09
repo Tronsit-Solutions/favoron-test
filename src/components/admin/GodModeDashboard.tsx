@@ -18,8 +18,7 @@ import { AcquisitionChart } from "./charts/AcquisitionChart";
 import { AcquisitionSurveyTable } from "./charts/AcquisitionSurveyTable";
 import { TravelerTipsCard } from "./charts/TravelerTipsCard";
 import { CACAnalysisTab } from "./cac/CACAnalysisTab";
-import PlatformRatingCard from "./charts/PlatformRatingCard";
-import TravelerRatingCard from "./charts/TravelerRatingCard";
+import CombinedRatingCard from "./charts/CombinedRatingCard";
 import GodModeWidgetPicker from "./GodModeWidgetPicker";
 import type { LucideIcon } from "lucide-react";
 
