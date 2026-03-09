@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Star, XCircle, Phone, Globe, X, ExternalLink } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getHighResGoogleAvatar } from "@/lib/storageUrls";
+import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
 import { useState, useEffect } from "react";
 import { getStatusLabel, formatFullName, formatDateUTC } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +49,14 @@ const AdminMatchDialog = ({
   const [selectedTraveler, setSelectedTraveler] = useState<any>(null);
   const [travelerPackages, setTravelerPackages] = useState<any[]>([]);
   const [adminTip, setAdminTip] = useState<string>('');
+  const [avatarViewerOpen, setAvatarViewerOpen] = useState(false);
+  const [avatarViewerUrl, setAvatarViewerUrl] = useState('');
+
+  const handleAvatarClick = (avatarUrl: string | null | undefined) => {
+    if (!avatarUrl) return;
+    setAvatarViewerUrl(avatarUrl);
+    setAvatarViewerOpen(true);
+  };
   const [showProductTipModal, setShowProductTipModal] = useState(false);
   const [assignedProductsWithTips, setAssignedProductsWithTips] = useState<any[]>([]);
   const [showAllTrips, setShowAllTrips] = useState(false);
@@ -982,7 +991,7 @@ const AdminMatchDialog = ({
                             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
                                {/* Traveler */}
                                <div className="flex items-center space-x-2 max-w-[200px] sm:max-w-[220px]">
-                                  <Avatar className="h-8 w-8 flex-shrink-0">
+                                   <Avatar className="h-8 w-8 flex-shrink-0 cursor-pointer" onClick={() => handleAvatarClick(travelerProfiles[trip.user_id]?.avatar_url)}>
                                     {travelerProfiles[trip.user_id]?.avatar_url && (
                                       <AvatarImage src={getHighResGoogleAvatar(travelerProfiles[trip.user_id].avatar_url)} alt="Avatar" />
                                     )}
@@ -1212,7 +1221,7 @@ const AdminMatchDialog = ({
                               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
                                 {/* Traveler */}
                                 <div className="flex items-center space-x-2 min-w-fit">
-                                  <Avatar className="h-8 w-8 flex-shrink-0">
+                                   <Avatar className="h-8 w-8 flex-shrink-0 cursor-pointer" onClick={() => handleAvatarClick(travelerProfiles[trip.user_id]?.avatar_url)}>
                                     {travelerProfiles[trip.user_id]?.avatar_url && (
                                       <AvatarImage src={getHighResGoogleAvatar(travelerProfiles[trip.user_id].avatar_url)} alt="Avatar" />
                                     )}
@@ -1346,7 +1355,7 @@ const AdminMatchDialog = ({
                               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
                                 {/* Traveler */}
                                 <div className="flex items-center space-x-2 min-w-fit">
-                                  <Avatar className="h-8 w-8 flex-shrink-0">
+                                   <Avatar className="h-8 w-8 flex-shrink-0 cursor-pointer" onClick={() => handleAvatarClick(travelerProfiles[trip.user_id]?.avatar_url)}>
                                     {travelerProfiles[trip.user_id]?.avatar_url && (
                                       <AvatarImage src={getHighResGoogleAvatar(travelerProfiles[trip.user_id].avatar_url)} alt="Avatar" />
                                     )}
@@ -1554,7 +1563,7 @@ const AdminMatchDialog = ({
               <Card>
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
+                    <Avatar className="h-12 w-12 cursor-pointer" onClick={() => handleAvatarClick(selectedTraveler.avatar_url)}>
                       {selectedTraveler.avatar_url && (
                         <AvatarImage src={getHighResGoogleAvatar(selectedTraveler.avatar_url)} alt="Avatar" />
                       )}
@@ -1792,6 +1801,14 @@ const AdminMatchDialog = ({
         onSave={handleProductTipSave}
         products={getProductsForModal()}
         packageId={selectedPackage?.id || ''}
+      />
+
+      <ImageViewerModal
+        isOpen={avatarViewerOpen}
+        onClose={() => setAvatarViewerOpen(false)}
+        imageUrl={avatarViewerUrl}
+        title="Foto de perfil"
+        filename="avatar.jpg"
       />
     </Dialog>
   );
