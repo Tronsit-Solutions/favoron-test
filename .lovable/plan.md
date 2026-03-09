@@ -1,18 +1,21 @@
 
 
-## Fix: Move `pg_net` Extension from `public` to `extensions` Schema
+## Filtrar solo paquetes completados en detalles del historial de viajes
 
-### Finding
-The `pg_net` extension is installed in the `public` schema. Supabase recommends installing extensions in the `extensions` schema to avoid polluting the public namespace and reduce attack surface.
+### Cambio
+En `src/components/profile/TripHistory.tsx`, la función `getTripPackages` actualmente retorna todos los paquetes asociados al viaje sin filtrar por estado. Se debe agregar un filtro para mostrar solo paquetes con status `completed` (o `completed_paid`/`delivered_to_office` si aplica).
 
-### Migration
+### Archivo: `src/components/profile/TripHistory.tsx`
 
-```sql
--- Move pg_net from public to extensions schema
-ALTER EXTENSION pg_net SET SCHEMA extensions;
+**1. Función `getTripPackages` (~línea 21):** Agregar filtro de estado completado:
+```tsx
+const getTripPackages = (tripId: string) => {
+  return packages.filter(pkg => 
+    pkg.matched_trip_id === tripId && 
+    ['completed', 'completed_paid', 'delivered_to_office'].includes(pkg.status)
+  );
+};
 ```
 
-### Risk
-- **Low risk**: `pg_net` is used internally by Supabase for webhooks/cron. Moving it to `extensions` is the recommended pattern and Supabase already includes `extensions` in the default search path, so existing functionality will continue working.
-- No application code changes needed — this extension is not referenced directly in client code.
+Esto afectará automáticamente las métricas (conteo de paquetes, total de tips) y la lista de paquetes en los detalles, ya que todas usan `getTripPackages`.
 
