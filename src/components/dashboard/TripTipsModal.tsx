@@ -78,14 +78,24 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
     try {
       const { data, error } = await supabase
         .from('packages')
-        .select('id, item_description, quote, status, admin_assigned_tip, incident_flag, products_data, office_delivery')
+        .select('id, item_description, quote, status, admin_assigned_tip, incident_flag, products_data, office_delivery, quote_expires_at')
         .eq('matched_trip_id', trip.id)
         .in('status', ALL_ACTIVE_STATUSES);
 
       if (error) throw error;
 
-      const pkgsWithoutIncident = (data || []).filter(p => !p.incident_flag);
-      const pkgsWithIncident = (data || []).filter(p => p.incident_flag);
+      const PRE_PAYMENT_STATUSES = ['quote_sent', 'quote_accepted', 'payment_pending'];
+      const now = new Date();
+      const activeData = (data || []).filter(p => {
+        // Exclude packages with expired quotes in pre-payment states
+        if (PRE_PAYMENT_STATUSES.includes(p.status) && p.quote_expires_at && new Date(p.quote_expires_at) < now) {
+          return false;
+        }
+        return true;
+      });
+
+      const pkgsWithoutIncident = activeData.filter(p => !p.incident_flag);
+      const pkgsWithIncident = activeData.filter(p => p.incident_flag);
 
       const details: PackageTipInfo[] = pkgsWithoutIncident.map((pkg: any) => ({
         id: pkg.id,
