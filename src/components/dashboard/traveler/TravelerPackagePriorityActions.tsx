@@ -46,7 +46,7 @@ const TravelerPackagePriorityActions = ({
         </div>}
 
       {/* Action section */}
-      <div className="p-3 bg-muted/30 border rounded-lg">
+      <div className="">
         {/* Mobile-first vertical layout */}
         <div className="space-y-3">
           {/* Status message section */}
