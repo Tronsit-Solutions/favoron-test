@@ -214,16 +214,6 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
       refreshTripPayment={refreshTripPayment}
     />
 
-    {/* Payment Receipt Modal */}
-    {paymentReceipt?.receipt_url && (
-      <ReceiptViewerModal
-        isOpen={showReceiptModal}
-        onClose={() => setShowReceiptModal(false)}
-        receiptUrl={paymentReceipt.receipt_url}
-        title="Comprobante de Pago"
-        filename={paymentReceipt.receipt_filename}
-      />
-    )}
 
     {/* Trip Edit Selection Modal */}
     <TripEditSelectionModal
