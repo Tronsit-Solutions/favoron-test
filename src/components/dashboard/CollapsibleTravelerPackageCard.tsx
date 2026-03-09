@@ -22,6 +22,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { usePackageActions } from "@/hooks/usePackageActions";
+import { normalizeConfirmations } from "@/utils/confirmationHelpers";
 
 interface CollapsibleTravelerPackageCardProps {
   pkg: any;
