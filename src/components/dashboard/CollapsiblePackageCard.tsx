@@ -431,7 +431,7 @@ const CollapsiblePackageCard = ({
                     <span className="block break-words max-w-full text-muted-foreground">ID: {pkg.id.substring(0, 8)}</span>
                   </div>
                 </CardDescription>
-                <div className="pl-5">
+                <div className="pl-5 flex justify-start">
                   <Button
                     variant="outline"
                     size="sm"
