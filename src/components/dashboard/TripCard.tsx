@@ -95,25 +95,29 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               </CardTitle>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
-              {canEdit && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setShowEditSelectionModal(true)}
-                  className="h-8 w-8 p-0 hover:bg-muted/50"
-                  title="Editar viaje"
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-              )}
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setShowDetailModal(true)}
-                className="h-8 w-8 p-0 hover:bg-muted/50"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 hover:bg-muted/50"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {canEdit && (
+                    <DropdownMenuItem onClick={() => setShowEditSelectionModal(true)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Editar viaje
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => setShowDetailModal(true)}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Ver detalle
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
