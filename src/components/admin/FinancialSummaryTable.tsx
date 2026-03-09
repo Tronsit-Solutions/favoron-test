@@ -764,6 +764,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
             <TableHeader>
               <TableRow>
                 <TableHead>Fecha Pago</TableHead>
+                <TableHead>ID Pedido</TableHead>
                 <TableHead>
                   <ColumnFilter title="Shopper" options={uniqueShoppers} selectedValues={shopperFilter} onSelectionChange={setShopperFilter} showSearch />
                 </TableHead>
