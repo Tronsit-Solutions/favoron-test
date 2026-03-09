@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Zap, ChevronDown, ChevronRight, User, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Star, XCircle, Phone, Globe, X, ExternalLink } from "lucide-react";
+import { Zap, ChevronDown, ChevronRight, User, Users, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Star, XCircle, Phone, Globe, X, ExternalLink } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getHighResGoogleAvatar } from "@/lib/storageUrls";
 import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
@@ -468,7 +468,34 @@ const AdminMatchDialog = ({
 
   const handleTravelerClick = async (trip: any) => {
     const profile = travelerProfiles[trip.user_id];
-    setSelectedTraveler({ ...profile, trip });
+    setSelectedTraveler({ ...profile, trip, referral: null });
+
+    // Fetch referral info for this traveler
+    try {
+      const { data: referralData } = await supabase
+        .from('referrals')
+        .select('referrer_id, status')
+        .eq('referred_id', trip.user_id)
+        .maybeSingle();
+
+      if (referralData) {
+        const { data: referrerProfile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('id', referralData.referrer_id)
+          .single();
+
+        setSelectedTraveler(prev => prev ? ({
+          ...prev,
+          referral: {
+            referrerName: referrerProfile ? `${referrerProfile.first_name || ''} ${referrerProfile.last_name || ''}`.trim() || 'Desconocido' : 'Desconocido',
+            status: referralData.status,
+          }
+        }) : prev);
+      }
+    } catch (err) {
+      console.error('Error fetching traveler referral:', err);
+    }
 
     // Fetch and filter packages for this trip: only with active timers or with shopper-paid statuses
     try {
@@ -1631,6 +1658,21 @@ const AdminMatchDialog = ({
                         </p>
                       </div>
                     </div>
+
+                    {selectedTraveler.referral && (
+                      <div className="flex items-center space-x-2">
+                        <Users className="h-4 w-4 text-green-500" />
+                        <div>
+                          <p className="text-sm font-medium">Referido por</p>
+                          <p className="text-sm text-green-600 font-semibold">
+                            {selectedTraveler.referral.referrerName}
+                            {selectedTraveler.referral.status === 'completed' && (
+                              <Badge variant="outline" className="ml-2 text-xs border-green-500 text-green-600">Completado</Badge>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
