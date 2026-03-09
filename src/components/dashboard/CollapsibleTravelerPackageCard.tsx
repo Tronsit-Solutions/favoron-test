@@ -335,7 +335,7 @@ const CollapsibleTravelerPackageCard = ({
                     >
                       <span>{statusConfig.emoji}</span>
                       <span className="truncate">{statusConfig.label}</span>
-                      <span className="ml-auto text-muted-foreground">Ver detalle →</span>
+                      <span className="ml-auto text-muted-foreground">Ver detalle</span>
                     </Button>
                   );
                 })()}
