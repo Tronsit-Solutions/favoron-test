@@ -12,7 +12,7 @@ import { TripDate } from "./TripDate";
 import { ReceptionWindow } from "./ReceptionWindow";
 import { useTripPayments } from "@/hooks/useTripPayments";
 import { formatCurrency } from "@/utils/priceHelpers";
-import { getActiveTipFromPackage } from "@/utils/tipHelpers";
+
 import { ReceiptViewerModal } from "@/components/ui/receipt-viewer-modal";
 
 interface TripCardProps {
@@ -81,9 +81,6 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 
   // Show tips button when user is owner AND (has delivered packages OR has accumulator)
   const shouldShowTipsButton = isOwner;
-  const tipsAmount = packages
-    .filter(pkg => ['pending_purchase', 'payment_pending_approval', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'].includes(pkg.status))
-    .reduce((sum, pkg) => sum + getActiveTipFromPackage(pkg), 0);
 
   // Show survey button when all packages delivered and feedback not completed
   const shouldShowSurveyButton = tripPayment?.all_packages_delivered && 
@@ -230,10 +227,10 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
                   size="sm"
                   variant="ghost"
                   onClick={() => setShowTipsModal(true)}
-                  className="h-10 px-3 bg-green-100 hover:bg-green-200 rounded-full text-xs gap-1"
+                  className="h-10 w-10 p-0 bg-green-100 hover:bg-green-200 rounded-full"
+                  title="Ver tips acumulados"
                 >
-                  <span className="text-base">🫰</span>
-                  <span className="font-medium text-green-800">{formatCurrency(tipsAmount)}</span>
+                  <span className="text-lg">🫰</span>
                 </Button>
               )}
               {getStatusBadge(trip.status)}
