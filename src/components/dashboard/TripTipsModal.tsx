@@ -210,7 +210,7 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
   const paymentAlreadyRequested = tripPayment?.payment_order_created === true;
   const canRequestPayment = isAllDelivered && totalTipsFromPackages > 0 && !paymentAlreadyRequested;
   const progressPercent = packageCounts.total > 0 ? (packageCounts.delivered / packageCounts.total) * 100 : 0;
-  const pendingCount = packageCounts.total - packageCounts.delivered;
+  const isDelivered = (status: string) => DELIVERED_STATUSES.includes(status);
 
   return (
     <>
