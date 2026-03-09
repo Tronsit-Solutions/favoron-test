@@ -31,7 +31,8 @@ export interface WidgetDefinition {
 }
 
 const WIDGET_CATALOG: WidgetDefinition[] = [
-  { id: "platform-rating", name: "Rating Global", description: "Rating promedio de la plataforma", icon: Star },
+  { id: "platform-rating", name: "Rating Shoppers", description: "Rating de shoppers sobre la plataforma", icon: Star },
+  { id: "traveler-rating", name: "Rating Viajeros", description: "Rating de viajeros sobre la plataforma", icon: Plane },
   { id: "stats-overview", name: "Stats Overview", description: "Paquetes, viajes, matches y entregados", icon: BarChart3 },
   { id: "kpi-cards", name: "KPI Cards", description: "Revenue, GMV, tasas de crecimiento", icon: TrendingUp },
   { id: "user-growth", name: "Crecimiento Usuarios", description: "Gráfico de crecimiento mensual", icon: Users },
