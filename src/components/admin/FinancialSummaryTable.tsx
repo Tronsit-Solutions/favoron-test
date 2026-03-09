@@ -800,6 +800,9 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                   }
                 >
                   <TableCell className="text-sm">{item.paymentDate}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground font-mono">
+                    {item.package.id.slice(0, 8)}...
+                  </TableCell>
                   <TableCell className="font-medium">
                     {item.shopperName}
                     {(item.isPrimeMembership || item.isFromPrimeShopper) && (
