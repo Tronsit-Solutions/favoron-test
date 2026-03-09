@@ -600,6 +600,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
   const handleDownloadExcel = () => {
     const excelData = filteredData.map(item => ({
       'Fecha Pago': item.paymentDate,
+      'ID Pedido': item.package.id,
       'Shopper': item.shopperName,
       'Viajero': item.travelerName,
       'ID Viaje': item.tripId || '-',
