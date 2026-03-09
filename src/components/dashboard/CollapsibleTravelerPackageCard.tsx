@@ -553,10 +553,6 @@ const CollapsibleTravelerPackageCard = ({
                       <FileText className="h-3 w-3" />
                       <span className="hidden xs:inline">Docs</span>
                     </TabsTrigger>
-                    <TabsTrigger value="chat" className="flex items-center gap-1 text-xs px-1 py-1">
-                      <MessageCircle className="h-3 w-3" />
-                      <span className="hidden xs:inline">Chat</span>
-                    </TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="producto" className="mt-0">
