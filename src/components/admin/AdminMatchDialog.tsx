@@ -991,7 +991,7 @@ const AdminMatchDialog = ({
                             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
                                {/* Traveler */}
                                <div className="flex items-center space-x-2 max-w-[200px] sm:max-w-[220px]">
-                                  <Avatar className="h-8 w-8 flex-shrink-0">
+                                   <Avatar className="h-8 w-8 flex-shrink-0 cursor-pointer" onClick={() => handleAvatarClick(travelerProfiles[trip.user_id]?.avatar_url)}>
                                     {travelerProfiles[trip.user_id]?.avatar_url && (
                                       <AvatarImage src={getHighResGoogleAvatar(travelerProfiles[trip.user_id].avatar_url)} alt="Avatar" />
                                     )}
