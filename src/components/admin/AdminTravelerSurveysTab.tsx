@@ -47,17 +47,32 @@ const tipSatisfactionLabels: Record<string, string> = {
 };
 
 const AdminTravelerSurveysTab = () => {
-  const { data: surveys, isLoading } = useQuery<TravelerSurvey[]>({
+  const { data, isLoading } = useQuery({
     queryKey: ["admin-traveler-surveys"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: rawSurveys, error } = await supabase
         .from("traveler_surveys" as any)
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data || []) as unknown as TravelerSurvey[];
+
+      const surveys = (rawSurveys || []) as unknown as TravelerSurvey[];
+      const travelerIds = [...new Set(surveys.map((s) => s.traveler_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .in("id", travelerIds);
+
+      const profileMap = new Map(
+        profiles?.map((p) => [p.id, `${p.first_name || ""} ${p.last_name || ""}`.trim()]) || []
+      );
+
+      return { surveys, profileMap };
     },
   });
+
+  const surveys = data?.surveys || [];
+  const profileMap = data?.profileMap || new Map();
 
   const total = surveys?.length || 0;
   const avgRating = total > 0 ? surveys!.reduce((s, r) => s + r.rating, 0) / total : 0;
@@ -206,7 +221,10 @@ const AdminTravelerSurveysTab = () => {
               {surveys.map((s) => (
                 <div key={s.id} className="p-3 border rounded-lg space-y-1">
                   <div className="flex items-center justify-between">
-                    <StarRating value={s.rating} readonly size="sm" />
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{profileMap.get(s.traveler_id) || "—"}</span>
+                      <StarRating value={s.rating} readonly size="sm" />
+                    </div>
                     <span className="text-xs text-muted-foreground">
                       {format(new Date(s.created_at), "PPp", { locale: es })}
                     </span>
