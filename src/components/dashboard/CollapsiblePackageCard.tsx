@@ -111,6 +111,7 @@ const CollapsiblePackageCard = ({
   const [showTravelerRatingFromPreview, setShowTravelerRatingFromPreview] = React.useState(false);
   const [showPlatformReviewFromPreview, setShowPlatformReviewFromPreview] = React.useState(false);
   const [chatModalOpen, setChatModalOpen] = React.useState(false);
+  const [showStatusModal, setShowStatusModal] = React.useState(false);
 
   const { data: existingRating } = useQuery({
     queryKey: ['traveler-rating', pkg.id],
@@ -426,9 +427,22 @@ const CollapsiblePackageCard = ({
                 <CardDescription className="text-xs leading-tight text-muted-foreground max-w-full text-left">
                   <div className="space-y-1 max-w-full pl-5">
                     <span className="block break-words max-w-full">{getPackageDescription()}</span>
-                    <span className="block break-words max-w-full">{getStatusDescription(pkg)}</span>
                   </div>
                 </CardDescription>
+                <div className="pl-5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowStatusModal(true);
+                    }}
+                    className="text-xs h-7 px-2 gap-1 border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
+                  >
+                    {getStatusBadge(pkg.status, { pkg, isQuoteExpired: !!expirationInfo })}
+                    <span>Ver detalle</span>
+                  </Button>
+                </div>
 
                 {/* Quick Edit Button for actionable states - Mobile */}
                 {viewMode === 'user' && onEditPackage && ['rejected', 'quote_rejected', 'quote_expired', 'deadline_expired'].includes(pkg.status) && (
@@ -1275,6 +1289,20 @@ const CollapsiblePackageCard = ({
               pkg={pkg} 
               className="h-full"
             />
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Status Detail Modal (Mobile) */}
+      <Dialog open={showStatusModal} onOpenChange={setShowStatusModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">Estado del paquete</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              {getStatusBadge(pkg.status, { pkg, isQuoteExpired: !!expirationInfo })}
+            </div>
+            <p className="text-sm text-muted-foreground">{getStatusDescription(pkg)}</p>
           </div>
         </DialogContent>
       </Dialog>
