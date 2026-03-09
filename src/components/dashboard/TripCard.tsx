@@ -183,26 +183,21 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
             </div>
           )}
 
-          {/* Creation Date, Status Badge, and Tips */}
-          <div className="flex items-center justify-between">
-            <div className="text-xs text-muted-foreground/70">
-              Registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')}
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {shouldShowTipsButton && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setShowTipsModal(true)}
-                  className="h-8 px-3 text-xs border-green-300 text-green-700 hover:bg-green-50 hover:border-green-400 gap-1.5"
-                  title="Ver tips acumulados"
-                >
-                  <FileText className="h-4 w-4" />
-                  <span>Tips</span>
-                </Button>
-              )}
-              {getStatusBadge(trip.status)}
-            </div>
+          {/* Status Badge and Tips */}
+          <div className="flex items-center justify-end gap-2">
+            {shouldShowTipsButton && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowTipsModal(true)}
+                className="h-8 px-3 text-xs border-green-300 text-green-700 hover:bg-green-50 hover:border-green-400 gap-1.5"
+                title="Ver tips acumulados"
+              >
+                <FileText className="h-4 w-4" />
+                <span>Tips</span>
+              </Button>
+            )}
+            {getStatusBadge(trip.status)}
           </div>
         </div>
       </CardHeader>
