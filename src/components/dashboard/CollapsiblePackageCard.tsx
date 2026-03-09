@@ -1019,10 +1019,6 @@ const CollapsiblePackageCard = ({
                       <FileText className="h-3 w-3" />
                       <span className="text-[10px]">Docs</span>
                     </TabsTrigger>
-                    <TabsTrigger value="chat" className="flex flex-col items-center gap-1 px-2 py-2 text-xs min-w-0 !whitespace-normal text-center truncate data-[state=active]:bg-background">
-                      <MessageCircle className="h-3 w-3" />
-                      <span className="text-[10px]">Chat</span>
-                    </TabsTrigger>
                   </TabsList>
                   
                   <div className="p-3 max-h-64 overflow-y-auto max-w-full min-w-0 overflow-x-hidden">
