@@ -656,7 +656,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                 onAction={() => navigateToForm('package')}
               />
             ) : (
-              <div className="grid gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-visible px-0">
+              <div className="grid gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-visible pl-2 pr-0 sm:px-0">
                  {userPackages.filter(pkg => {
                    // Excluir paquetes archivados y cancelados del dashboard activo
                     if (pkg.status === 'archived_by_shopper' || pkg.status === 'cancelled') return false;
