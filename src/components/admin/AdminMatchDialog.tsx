@@ -1802,6 +1802,14 @@ const AdminMatchDialog = ({
         products={getProductsForModal()}
         packageId={selectedPackage?.id || ''}
       />
+
+      <ImageViewerModal
+        isOpen={avatarViewerOpen}
+        onClose={() => setAvatarViewerOpen(false)}
+        imageUrl={avatarViewerUrl}
+        title="Foto de perfil"
+        filename="avatar.jpg"
+      />
     </Dialog>
   );
 };
