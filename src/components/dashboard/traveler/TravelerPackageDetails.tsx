@@ -122,10 +122,6 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
           </div>
         </div>
         
-        <div className="mt-2 bg-card/50 border border-border/50 rounded p-1.5">
-          <p className="text-xs text-muted-foreground">Resumen del pedido</p>
-          <p className="text-xs font-medium text-foreground">{getTotalProducts()} producto(s) • Total: ${getTotalValue()}</p>
-        </div>
       </div>
 
       {/* Product Details - shown directly */}
