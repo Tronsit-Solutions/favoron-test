@@ -56,8 +56,8 @@ export const useStatusHelpers = () => {
     let effectiveStatus = status;
     
     if (pkg) {
-      const expirationInfo = getExpirationInfo(pkg);
-      if (expirationInfo?.type === 'quote_expired') {
+      if (pkg.quote_expires_at && new Date(pkg.quote_expires_at) < new Date() &&
+          ['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status)) {
         effectiveStatus = 'quote_expired';
       }
     } else if (status === 'quote_sent' && isQuoteExpiredFlag) {
