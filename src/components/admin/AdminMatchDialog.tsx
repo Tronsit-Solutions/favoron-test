@@ -1563,7 +1563,7 @@ const AdminMatchDialog = ({
               <Card>
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
+                    <Avatar className="h-12 w-12 cursor-pointer" onClick={() => handleAvatarClick(selectedTraveler.avatar_url)}>
                       {selectedTraveler.avatar_url && (
                         <AvatarImage src={getHighResGoogleAvatar(selectedTraveler.avatar_url)} alt="Avatar" />
                       )}
