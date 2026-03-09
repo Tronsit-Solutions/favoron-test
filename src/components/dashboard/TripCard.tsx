@@ -12,7 +12,7 @@ import { TripDate } from "./TripDate";
 import { ReceptionWindow } from "./ReceptionWindow";
 import { useTripPayments } from "@/hooks/useTripPayments";
 import { formatCurrency } from "@/utils/priceHelpers";
-import { getActiveTipFromPackage } from "@/utils/tipHelpers";
+
 import { ReceiptViewerModal } from "@/components/ui/receipt-viewer-modal";
 
 interface TripCardProps {
