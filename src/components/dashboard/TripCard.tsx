@@ -33,20 +33,6 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 
   const { tripPayment, isCreating, createPaymentOrder, refreshTripPayment } = useTripPayments(trip.id);
 
-  useEffect(() => {
-    if (tripPayment?.payment_receipt_url) {
-      const raw = tripPayment.payment_receipt_url;
-      const normalized = raw && !raw.includes('/') && !raw.startsWith('http')
-        ? `payment-receipts/${raw}`
-        : raw;
-      setPaymentReceipt({
-        receipt_url: normalized,
-        receipt_filename: tripPayment.payment_receipt_filename
-      });
-    } else {
-      setPaymentReceipt(null);
-    }
-  }, [tripPayment]);
 
   const canEdit = ['pending_approval', 'approved'].includes(trip.status);
   
