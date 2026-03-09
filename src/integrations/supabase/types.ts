@@ -1857,6 +1857,7 @@ export type Database = {
       expire_approved_deadlines: { Args: never; Returns: Json }
       expire_old_quotes: { Args: never; Returns: undefined }
       expire_prime_memberships: { Args: never; Returns: undefined }
+      expire_trips_without_paid_packages: { Args: never; Returns: Json }
       expire_unresponded_assignments: { Args: never; Returns: undefined }
       get_admin_trips_with_user: {
         Args: never
