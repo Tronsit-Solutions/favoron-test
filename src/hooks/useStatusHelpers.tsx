@@ -12,7 +12,7 @@ export const useStatusHelpers = () => {
   const getExpirationInfo = (pkg: any) => {
     const quoteExp = isQuoteExpired(pkg);
     
-    if (quoteExp && pkg.status === 'quote_sent') {
+    if (quoteExp && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status)) {
       const expiredAt = new Date(pkg.quote_expires_at);
       const hoursAgo = Math.floor((Date.now() - expiredAt.getTime()) / (1000 * 60 * 60));
       return {
