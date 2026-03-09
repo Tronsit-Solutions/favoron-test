@@ -52,6 +52,7 @@ const CollapsibleTravelerPackageCard = ({
   const [isOpen, setIsOpen] = useState(autoExpand);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showProductConfirmationModal, setShowProductConfirmationModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   const [documentModal, setDocumentModal] = useState<{
     isOpen: boolean;
     title: string;
