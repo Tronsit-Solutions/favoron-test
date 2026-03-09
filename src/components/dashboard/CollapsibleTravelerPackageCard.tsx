@@ -319,14 +319,25 @@ const CollapsibleTravelerPackageCard = ({
                 </div>
 
 
-                {/* Status message - mobile optimized */}
-                <div className="text-xs w-full">
-                  <TravelerPackageStatusBadge 
-                    status={getEffectiveStatus(pkg)} 
-                    pkg={pkg}
-                    showFullDescription={true}
-                  />
-                </div>
+                {/* Status button - opens modal with full description */}
+                {(() => {
+                  const statusConfig = getTravelerStatusConfig(getEffectiveStatus(pkg));
+                  return (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start text-xs gap-1.5 h-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowStatusModal(true);
+                      }}
+                    >
+                      <span>{statusConfig.emoji}</span>
+                      <span className="truncate">{statusConfig.label}</span>
+                      <span className="ml-auto text-muted-foreground">Ver detalle →</span>
+                    </Button>
+                  );
+                })()}
 
                 {/* Dismiss button for expired quotes - mobile */}
                 {isQuoteExpired(pkg) && onDismissExpiredPackage && (
