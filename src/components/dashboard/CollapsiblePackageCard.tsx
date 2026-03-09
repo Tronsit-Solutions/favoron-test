@@ -685,6 +685,15 @@ const CollapsiblePackageCard = ({
                   )}
                 </div>
                 )}
+              </div>
+              {/* Right: chat button centered vertically */}
+              {isChatAvailable && (
+                <div className="flex flex-col items-center justify-center flex-shrink-0 ml-2 mr-6">
+                  <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
+                    <MessageCircle className="h-6 w-6 text-primary" />
+                  </Button>
+                </div>
+              )}
               </div> :
           // Desktop layout (original)
           <div className="flex flex-col gap-2 w-full min-w-0 overflow-hidden">
