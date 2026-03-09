@@ -1,58 +1,21 @@
 
 
-## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
+## Mantener la misma altura de la tarjeta en estado `in_transit` vs `pending_purchase`
 
-### Concepto
-Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
+### Problema
+Cuando un paquete está en `in_transit`, el componente `TravelerPackagePriorityActions` agrega contenido vertical adicional (icono + texto "¿Ya recibiste el paquete?" + botón "Confirmar recibido") que agranda la tarjeta colapsada. En `pending_purchase` este componente retorna `null`, dejando la tarjeta compacta.
 
-### Widgets disponibles (componentes existentes)
-Del catálogo de charts y componentes ya construidos:
-1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
-2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
-3. **UserGrowthChart** — Crecimiento de usuarios
-4. **PackagesChart** — Gráfico de paquetes por mes
-5. **TripsChart** — Gráfico de viajes
-6. **RevenueChart** — Ingresos por servicio
-7. **GMVChart** — GMV mensual
-8. **ServiceFeeGrowthChart** — Crecimiento de service fees
-9. **AvgPackageValueChart** — Valor promedio por paquete
-10. **AcquisitionChart** — Canales de adquisición
-11. **AcquisitionSurveyTable** — Tabla de encuestas
-12. **TravelerTipsCard** — Propinas de viajeros
-13. **CACKPICards** — Unit Economics KPIs
-14. **FunnelChart** — Funnel de conversión
+### Solución
+Hacer el bloque de acción prioritaria más compacto en el estado `in_transit` dentro de la vista colapsada (preview card), manteniendo la misma estructura pero en una sola fila horizontal:
 
-### Cambios
+**Cambios en `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`**:
+- En el layout desktop (línea ~376), el `TravelerPackagePriorityActions` ya tiene su propio `mb-3` wrapper. Mover el botón "Confirmar recibido" al área derecha junto al badge de status (línea ~510-530) en vez de mostrarlo como bloque separado debajo del título. Esto lo alinea horizontalmente como en la imagen de referencia de `pending_purchase`.
 
-**`src/components/Dashboard.tsx`**:
-- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
-- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
+**Cambios en `src/components/dashboard/traveler/TravelerPackagePriorityActions.tsx`**:
+- Para `in_transit`: Eliminar el icono circular y reducir el wrapper. Poner el texto y el botón en una sola fila usando `flex items-center justify-between` en vez del layout vertical actual con `space-y-3`.
+- Quitar el padding extra del contenedor (`gap-3`, `space-y-3`) y el icono circular decorativo (líneas 53-56).
+- Mantener la hint de multi-producto pero más compacta (inline con el texto principal).
 
-**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
-- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
-- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
-- Catálogo de widgets con id, nombre, icono, y componente React
-- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
-- **Reordenar**: botones ↑/↓ en cada widget en modo edición
-- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
-- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
-- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
-- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
-
-**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
-- Modal/popover que muestra los widgets no activos del catálogo
-- Click en uno lo agrega al final de `activeWidgets`
-
-### UX
-- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
-- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
-- Botón "Agregar Widget" que abre el picker
-- Botón "Listo" para salir del modo edición
-- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
-
-### Consideraciones técnicas
-- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
-- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
-- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
-- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
+### Resultado
+La tarjeta en `in_transit` tendrá la misma altura que en `pending_purchase`: una fila con el nombre del producto, el mensaje de estado, y el botón de acción alineado a la derecha.
 
