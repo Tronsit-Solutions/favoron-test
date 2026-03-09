@@ -1212,9 +1212,14 @@ const AdminMatchDialog = ({
                               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
                                 {/* Traveler */}
                                 <div className="flex items-center space-x-2 min-w-fit">
-                                  <div className="w-8 h-8 bg-amber-200 rounded-full flex items-center justify-center text-xs font-medium text-amber-800">
-                                    {trip.user_id?.toString().slice(-2) || '00'}
-                                  </div>
+                                  <Avatar className="h-8 w-8 flex-shrink-0">
+                                    {travelerProfiles[trip.user_id]?.avatar_url && (
+                                      <AvatarImage src={getHighResGoogleAvatar(travelerProfiles[trip.user_id].avatar_url)} alt="Avatar" />
+                                    )}
+                                    <AvatarFallback className="text-xs font-medium bg-amber-200 text-amber-800">
+                                      {travelerProfiles[trip.user_id]?.first_name?.[0] || trip.user_id?.toString().slice(-2) || '00'}
+                                    </AvatarFallback>
+                                  </Avatar>
                                   <div>
                                     <p 
                                       className="font-medium text-sm text-blue-600 hover:text-blue-800 cursor-pointer hover:underline"
