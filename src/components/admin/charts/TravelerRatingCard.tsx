@@ -3,21 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Skeleton } from "@/components/ui/skeleton";
 import StarRating from "@/components/ui/star-rating";
-import { Star, ThumbsUp, RotateCcw, MessageSquare } from "lucide-react";
-import AdminPlatformReviewsTab from "@/components/admin/AdminPlatformReviewsTab";
+import { Plane, ThumbsUp, RotateCcw, MessageSquare } from "lucide-react";
+import AdminTravelerSurveysTab from "@/components/admin/AdminTravelerSurveysTab";
 
-const PlatformRatingCard = () => {
+const TravelerRatingCard = () => {
   const [open, setOpen] = useState(false);
   const { data, isLoading } = useQuery({
-    queryKey: ["platform-rating-widget"],
+    queryKey: ["traveler-rating-widget"],
     queryFn: async () => {
-      const { data: reviews, error } = await supabase
-        .from("platform_reviews")
-        .select("rating, would_recommend, would_use_again");
+      const { data: surveys, error } = await supabase
+        .from("traveler_surveys")
+        .select("rating, would_recommend, would_register_again");
       if (error) throw error;
-      return reviews || [];
+      return surveys || [];
     },
   });
 
@@ -28,8 +27,8 @@ const PlatformRatingCard = () => {
   const recommendPercent = total > 0
     ? (data!.filter((r) => r.would_recommend).length / total) * 100
     : 0;
-  const useAgainPercent = total > 0
-    ? (data!.filter((r) => r.would_use_again === "yes").length / total) * 100
+  const registerAgainPercent = total > 0
+    ? (data!.filter((r) => r.would_register_again === "yes_sure" || r.would_register_again === "probably_yes").length / total) * 100
     : 0;
 
   if (isLoading) {
@@ -50,8 +49,8 @@ const PlatformRatingCard = () => {
       <Card className="h-full flex flex-col cursor-pointer hover:shadow-md transition-shadow" onClick={() => setOpen(true)}>
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-            Rating Shoppers
+            <Plane className="h-5 w-5 text-sky-500" />
+            Rating Viajeros
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col justify-center">
@@ -59,7 +58,7 @@ const PlatformRatingCard = () => {
             <span className="text-6xl font-bold tracking-tight">{avgRating.toFixed(1)}</span>
             <div className="flex flex-col gap-1">
               <StarRating value={Math.round(avgRating)} readonly size="lg" />
-              <span className="text-sm text-muted-foreground">{total} reviews</span>
+              <span className="text-sm text-muted-foreground">{total} encuestas</span>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
@@ -75,8 +74,8 @@ const PlatformRatingCard = () => {
             </div>
             <div className="rounded-lg bg-muted/50 p-4 text-center">
               <RotateCcw className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
-              <div className="text-3xl font-bold">{useAgainPercent.toFixed(0)}%</div>
-              <div className="text-sm text-muted-foreground">Volvería a usar</div>
+              <div className="text-3xl font-bold">{registerAgainPercent.toFixed(0)}%</div>
+              <div className="text-sm text-muted-foreground">Volvería a viajar</div>
             </div>
           </div>
         </CardContent>
@@ -85,13 +84,13 @@ const PlatformRatingCard = () => {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right" className="sm:max-w-5xl w-full overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>Detalle de Reviews de la Plataforma</SheetTitle>
+            <SheetTitle>Detalle de Encuestas de Viajeros</SheetTitle>
           </SheetHeader>
-          <AdminPlatformReviewsTab />
+          <AdminTravelerSurveysTab />
         </SheetContent>
       </Sheet>
     </>
   );
 };
 
-export default PlatformRatingCard;
+export default TravelerRatingCard;
