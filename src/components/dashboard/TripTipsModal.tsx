@@ -78,7 +78,7 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
     try {
       const { data, error } = await supabase
         .from('packages')
-        .select('id, item_description, quote, status, admin_assigned_tip, incident_flag, products_data, office_delivery')
+        .select('id, item_description, quote, status, admin_assigned_tip, incident_flag, products_data, office_delivery, quote_expires_at')
         .eq('matched_trip_id', trip.id)
         .in('status', ALL_ACTIVE_STATUSES);
 
