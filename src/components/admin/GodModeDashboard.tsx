@@ -62,13 +62,15 @@ interface GodModeDashboardProps {
 const GodModeDashboard = ({ packages, trips, userId }: GodModeDashboardProps) => {
   const storageKey = `god_mode_widgets_${userId}`;
 
+  const validIds = new Set(WIDGET_CATALOG.map(w => w.id));
+
   const [activeWidgets, setActiveWidgets] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem(storageKey);
       if (!saved) return DEFAULT_WIDGETS;
       const parsed = JSON.parse(saved);
-      // Support both old (array) and new (object) format
-      return Array.isArray(parsed) ? parsed : parsed.widgets ?? DEFAULT_WIDGETS;
+      const arr: string[] = Array.isArray(parsed) ? parsed : parsed.widgets ?? DEFAULT_WIDGETS;
+      return arr.filter(id => validIds.has(id));
     } catch {
       return DEFAULT_WIDGETS;
     }
