@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { getTravelerStatusConfig } from "./traveler/TravelerPackageStatusBadge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock, ExternalLink, CreditCard, Trash2 } from "lucide-react";
