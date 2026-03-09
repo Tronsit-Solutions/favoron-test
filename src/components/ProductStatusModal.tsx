@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,32 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Package } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { resolveSignedUrl } from "@/lib/storageUrls";
+
+const ProductPhotoLink = ({ photoRef }: { photoRef: string }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      const url = await resolveSignedUrl(photoRef);
+      if (url) window.open(url, "_blank");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={loading}
+      className="text-primary hover:underline flex items-center gap-1"
+    >
+      📷 {loading ? "Cargando..." : "Ver foto"}
+    </button>
+  );
+};
+
 
 interface ProductData {
   description: string;
@@ -122,12 +148,7 @@ export const ProductStatusModal = ({
                           })}
                         </p>
                         {product.receivedPhoto && (
-                          <button
-                            onClick={() => window.open(product.receivedPhoto, "_blank")}
-                            className="text-primary hover:underline flex items-center gap-1"
-                          >
-                            📷 Ver foto
-                          </button>
+                          <ProductPhotoLink photoRef={product.receivedPhoto} />
                         )}
                       </div>
                     )}
