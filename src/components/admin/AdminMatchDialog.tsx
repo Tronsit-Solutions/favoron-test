@@ -1658,6 +1658,21 @@ const AdminMatchDialog = ({
                         </p>
                       </div>
                     </div>
+
+                    {selectedTraveler.referral && (
+                      <div className="flex items-center space-x-2">
+                        <Users className="h-4 w-4 text-green-500" />
+                        <div>
+                          <p className="text-sm font-medium">Referido por</p>
+                          <p className="text-sm text-green-600 font-semibold">
+                            {selectedTraveler.referral.referrerName}
+                            {selectedTraveler.referral.status === 'completed' && (
+                              <Badge variant="outline" className="ml-2 text-xs border-green-500 text-green-600">Completado</Badge>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
