@@ -77,12 +77,8 @@ export const ProductConfirmationItem = ({
         throw error;
       }
       
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('product-receipts')
-        .getPublicUrl(data.path);
-      
-      return urlData.publicUrl;
+      // Return storage path (bucket/filePath) for signed URL resolution
+      return `product-receipts/${data.path}`;
     } catch (error) {
       console.error('Error uploading photo to storage:', error);
       return null;

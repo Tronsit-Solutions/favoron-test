@@ -122,12 +122,7 @@ export const ProductStatusModal = ({
                           })}
                         </p>
                         {product.receivedPhoto && (
-                          <button
-                            onClick={() => window.open(product.receivedPhoto, "_blank")}
-                            className="text-primary hover:underline flex items-center gap-1"
-                          >
-                            📷 Ver foto
-                          </button>
+                          <ProductPhotoLink photoRef={product.receivedPhoto} />
                         )}
                       </div>
                     )}
