@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { getTravelerStatusConfig } from "./traveler/TravelerPackageStatusBadge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock, ExternalLink, CreditCard, Trash2 } from "lucide-react";
@@ -51,6 +52,7 @@ const CollapsibleTravelerPackageCard = ({
   const [isOpen, setIsOpen] = useState(autoExpand);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [showProductConfirmationModal, setShowProductConfirmationModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   const [documentModal, setDocumentModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -318,14 +320,25 @@ const CollapsibleTravelerPackageCard = ({
                 </div>
 
 
-                {/* Status message - mobile optimized */}
-                <div className="text-xs w-full">
-                  <TravelerPackageStatusBadge 
-                    status={getEffectiveStatus(pkg)} 
-                    pkg={pkg}
-                    showFullDescription={true}
-                  />
-                </div>
+                {/* Status button - opens modal with full description */}
+                {(() => {
+                  const statusConfig = getTravelerStatusConfig(getEffectiveStatus(pkg));
+                  return (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start text-xs gap-1.5 h-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowStatusModal(true);
+                      }}
+                    >
+                      <span>{statusConfig.emoji}</span>
+                      <span className="truncate">{statusConfig.label}</span>
+                      <span className="ml-auto text-muted-foreground">Ver detalle →</span>
+                    </Button>
+                  );
+                })()}
 
                 {/* Dismiss button for expired quotes - mobile */}
                 {isQuoteExpired(pkg) && onDismissExpiredPackage && (
@@ -912,6 +925,20 @@ const CollapsibleTravelerPackageCard = ({
               className="h-full"
             />
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Status Detail Modal */}
+      <Dialog open={showStatusModal} onOpenChange={setShowStatusModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Estado del paquete</DialogTitle>
+          </DialogHeader>
+          <TravelerPackageStatusBadge 
+            status={getEffectiveStatus(pkg)} 
+            pkg={pkg}
+            showFullDescription={true}
+          />
         </DialogContent>
       </Dialog>
       
