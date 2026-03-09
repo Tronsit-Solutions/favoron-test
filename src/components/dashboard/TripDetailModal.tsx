@@ -36,9 +36,28 @@ interface TripDetailModalProps {
 }
 
 export const TripDetailModal = ({ isOpen, onClose, trip, getStatusBadge, packages = [], onEditTrip, currentUser }: TripDetailModalProps) => {
-  if (!trip) return null;
-
   const { hasActivePackages: checkActivePackages } = useTripEditNotifications();
+  
+  const [showSelectionModal, setShowSelectionModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showReceivingWindowModal, setShowReceivingWindowModal] = useState(false);
+  const [showDeliveryDateModal, setShowDeliveryDateModal] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [hasActivePackages, setHasActivePackages] = useState(false);
+
+  useEffect(() => {
+    const checkPackages = async () => {
+      if (trip?.id) {
+        const hasActive = await checkActivePackages(trip.id);
+        setHasActivePackages(hasActive);
+      }
+    };
+    if (isOpen) {
+      checkPackages();
+    }
+  }, [isOpen, trip?.id]);
+
+  if (!trip) return null;
   
   const [showSelectionModal, setShowSelectionModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
