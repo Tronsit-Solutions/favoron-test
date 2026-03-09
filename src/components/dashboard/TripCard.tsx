@@ -227,10 +227,10 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
                   size="sm"
                   variant="ghost"
                   onClick={() => setShowTipsModal(true)}
-                  className="h-10 px-3 bg-green-100 hover:bg-green-200 rounded-full text-xs gap-1"
+                  className="h-10 w-10 p-0 bg-green-100 hover:bg-green-200 rounded-full"
+                  title="Ver tips acumulados"
                 >
-                  <span className="text-base">🫰</span>
-                  <span className="font-medium text-green-800">{formatCurrency(tipsAmount)}</span>
+                  <span className="text-lg">🫰</span>
                 </Button>
               )}
               {getStatusBadge(trip.status)}
