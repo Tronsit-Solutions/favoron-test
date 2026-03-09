@@ -256,7 +256,7 @@ const Dashboard = ({ user }: DashboardProps) => {
   
   // Auto-hide trips: rejected/cancelled always, completed/completed_paid only after feedback
   const filteredUserTrips = userTrips.filter(trip => {
-    if (trip.status === 'rejected' || trip.status === 'cancelled') return false;
+    if (trip.status === 'rejected' || trip.status === 'cancelled' || trip.status === 'expired') return false;
     if ((trip.status === 'completed' || trip.status === 'completed_paid') && trip.traveler_feedback_completed) return false;
     return true;
   });

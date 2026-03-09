@@ -33,6 +33,7 @@ export const getStatusBadge = (status: string) => {
     completed: { label: 'Completado', variant: 'default' },
     completed_paid: { label: 'Completado y pagado', variant: 'default' },
     archived_by_shopper: { label: 'Archivado', variant: 'secondary' },
+    expired: { label: 'Expirado', variant: 'secondary' },
   } as const;
 
   const config = (statusConfig as any)[status] || { 

@@ -105,7 +105,8 @@ export const useStatusHelpers = () => {
       completed_paid: { label: "Completado y pagado", variant: "success" as const },
       rejected: { label: "Rechazado", variant: "destructive" as const },
       cancelled: { label: "Cancelado", variant: "muted" as const },
-      deadline_expired: { label: "⏰ Fecha límite vencida", variant: "warning" as const }
+      deadline_expired: { label: "⏰ Fecha límite vencida", variant: "warning" as const },
+      expired: { label: "Expirado", variant: "secondary" as const }
     };
 
     const config = statusConfig[effectiveStatus as keyof typeof statusConfig] || 

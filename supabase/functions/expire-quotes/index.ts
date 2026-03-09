@@ -46,12 +46,21 @@ serve(async (req) => {
       console.log('✅ Quote reminders executed successfully');
     }
 
+    // Expire trips without paid packages past their reception window
+    const { data: tripsData, error: tripsError } = await supabase.rpc('expire_trips_without_paid_packages');
+    if (tripsError) {
+      console.error('❌ Error expiring trips:', tripsError);
+    } else {
+      console.log('✅ Trip expiration completed:', tripsData);
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: 'Quote expiration check completed',
         expiredCount: data?.expired_count || 0,
         deadlineExpiredCount: deadlineData?.expired_count || 0,
+        tripsExpiredCount: tripsData?.expired_count || 0,
         remindersTriggered: true
       }),
       {
