@@ -12,7 +12,7 @@ export const useStatusHelpers = () => {
   const getExpirationInfo = (pkg: any) => {
     const quoteExp = isQuoteExpired(pkg);
     
-    if (quoteExp && pkg.status === 'quote_sent') {
+    if (quoteExp && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status)) {
       const expiredAt = new Date(pkg.quote_expires_at);
       const hoursAgo = Math.floor((Date.now() - expiredAt.getTime()) / (1000 * 60 * 60));
       return {
@@ -56,8 +56,8 @@ export const useStatusHelpers = () => {
     let effectiveStatus = status;
     
     if (pkg) {
-      const expirationInfo = getExpirationInfo(pkg);
-      if (expirationInfo?.type === 'quote_expired') {
+      if (pkg.quote_expires_at && new Date(pkg.quote_expires_at) < new Date() &&
+          ['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status)) {
         effectiveStatus = 'quote_expired';
       }
     } else if (status === 'quote_sent' && isQuoteExpiredFlag) {
@@ -79,7 +79,7 @@ export const useStatusHelpers = () => {
       },
       matched: { label: "Emparejado", variant: "success" as const },
       quote_sent: { label: "Cotización Enviada", variant: "warning" as const },
-      quote_accepted: { label: "Cotización Aceptada - Pendiente Pago", variant: "destructive" as const },
+      quote_accepted: { label: "Pendiente Pago", variant: "destructive" as const },
       quote_rejected: { 
         label: pkg?.quote_rejection ? "Cotización Rechazada por Shopper" : 
                pkg?.traveler_rejection ? "Cotización Rechazada por Viajero" : 
@@ -89,7 +89,7 @@ export const useStatusHelpers = () => {
       quote_expired: { label: "⏰ Cotización Expirada", variant: "destructive" as const },
       payment_pending_approval: { label: "Pago Pendiente de Aprobación", variant: "warning" as const },
       payment_pending: { label: "Pago Pendiente", variant: "warning" as const },
-      pending_purchase: { label: "Pago Confirmado - Compra Pendiente", variant: "success" as const },
+      pending_purchase: { label: "Cotización Pagada", variant: "success" as const },
       in_transit: { label: "En Tránsito", variant: "warning" as const },
       received_by_traveler: { label: "Recibido por viajero", variant: "success" as const },
       pending_office_confirmation: { label: "🔒 Esperando confirmación", variant: "warning" as const },
