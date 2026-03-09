@@ -662,7 +662,7 @@ const CollapsiblePackageCard = ({
                 )}
               </div>
               {/* Right column: menu + chat */}
-              <div className="flex flex-col items-center flex-shrink-0 ml-2" style={{ justifyContent: isChatAvailable ? 'space-between' : 'flex-start' }}>
+              <div className="flex flex-col items-center flex-shrink-0 ml-2 gap-3">
                 {/* Three dots at top */}
                 {viewMode === 'user' && <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -697,14 +697,12 @@ const CollapsiblePackageCard = ({
                     </DropdownMenuItem>}
                   </DropdownMenuContent>
                 </DropdownMenu>}
-                {/* Chat centered */}
+                {/* Chat button */}
                 {isChatAvailable && (
                   <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
                     <MessageCircle className="h-6 w-6 text-primary" />
                   </Button>
                 )}
-                {/* Spacer to balance centering */}
-                {isChatAvailable && <div className="h-7" />}
               </div>
               </div> :
           // Desktop layout (original)
