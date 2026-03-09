@@ -656,18 +656,6 @@ const CollapsibleTravelerPackageCard = ({
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="chat" className="mt-0">
-                    {['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'out_for_delivery', 'completed'].includes(pkg.status) ? (
-                      <div className="bg-muted/30 rounded-lg">
-                        <PackageTimeline pkg={pkg} />
-                      </div>
-                    ) : (
-                      <div className="text-sm text-muted-foreground p-3 bg-muted/30 rounded-lg text-center">
-                        <MessageCircle className="h-6 w-6 mx-auto mb-2 text-muted-foreground/50" />
-                        <p>Chat disponible después del pago</p>
-                      </div>
-                    )}
-                  </TabsContent>
                 </Tabs>
 
                 {/* Traveler Confirmation - Mobile optimized */}
