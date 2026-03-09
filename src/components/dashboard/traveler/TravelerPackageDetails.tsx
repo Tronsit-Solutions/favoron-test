@@ -41,67 +41,49 @@ const TravelerPackageDetails = ({ pkg }: TravelerPackageDetailsProps) => {
     const isCancelled = product.cancelled === true;
 
     return (
-      <div key={index} className={`bg-muted/30 border border-border/50 rounded p-2 ${isCancelled ? 'opacity-60 bg-destructive/5' : ''}`}>
-        <div className="flex items-start justify-between mb-1">
+      <div key={index} className={`bg-muted/30 border border-border/50 rounded-lg p-3 ${isCancelled ? 'opacity-60 bg-destructive/5' : ''}`}>
+        <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
-            <p className={`text-xs font-medium text-foreground ${isCancelled ? 'line-through' : ''}`}>
+            <p className={`text-sm font-semibold text-foreground ${isCancelled ? 'line-through' : ''}`}>
               Producto {index + 1}
               {isCancelled && (
-                <span className="ml-2 text-destructive no-underline font-normal">(cancelado)</span>
+                <span className="ml-2 text-destructive no-underline font-normal text-sm">(cancelado)</span>
               )}
             </p>
-            <p className={`text-xs text-muted-foreground ${isCancelled ? 'line-through' : ''}`}>{product.itemDescription}</p>
-            <div className="mt-1 space-y-1">
-              <p className="text-xs text-muted-foreground">
-                <strong>Cantidad:</strong> {quantity} unidad{quantity !== 1 ? 'es' : ''}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                <strong>Precio unitario:</strong> ${unitPrice.toFixed(2)}
-              </p>
-              {quantity > 1 && (
-                <p className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded">
-                  💰 <strong>Total:</strong> ${unitPrice.toFixed(2)} × {quantity} = <strong>${totalPrice.toFixed(2)}</strong>
-                </p>
-              )}
-              {tipAmount > 0 && (
-                <p className={`text-xs font-medium ${isCancelled ? 'text-muted-foreground line-through' : 'text-green-600'}`}>
-                  💵 <strong>Tu tip:</strong> Q{tipAmount.toFixed(2)}
-                  {isCancelled && <span className="ml-1 text-destructive no-underline">(no aplica)</span>}
-                </p>
-              )}
-            </div>
+            <p className={`text-sm text-muted-foreground ${isCancelled ? 'line-through' : ''}`}>{product.itemDescription}</p>
           </div>
-          <div className="text-right">
-            <p className={`text-xs font-bold ${isCancelled ? 'text-muted-foreground line-through' : 'text-primary'}`}>
-              ${quantity > 1 ? totalPrice.toFixed(2) : unitPrice.toFixed(2)}
-            </p>
-            {quantity > 1 && (
-              <p className="text-xs text-muted-foreground">Total</p>
-            )}
-          </div>
+          <p className={`text-sm font-bold ${isCancelled ? 'text-muted-foreground line-through' : 'text-primary'}`}>
+            ${quantity > 1 ? totalPrice.toFixed(2) : unitPrice.toFixed(2)}
+          </p>
         </div>
-        {product.itemLink && (
-          <a 
-            href={product.itemLink} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className={`text-xs hover:underline flex items-center gap-1 ${isCancelled ? 'text-muted-foreground' : 'text-primary'}`}
-          >
-            <ExternalLink className="h-3 w-3" />
-            Ver producto
-          </a>
-        )}
-        <p className={`text-xs px-2 py-1 rounded mt-1 flex items-center gap-1 ${
+
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+          <span>{quantity} unidad{quantity !== 1 ? 'es' : ''} · ${unitPrice.toFixed(2)} c/u</span>
+          {tipAmount > 0 && (
+            <span className={`font-medium ${isCancelled ? 'line-through' : 'text-green-600'}`}>
+              💵 Tip: Q{tipAmount.toFixed(2)}
+              {isCancelled && <span className="ml-1 text-destructive no-underline">(no aplica)</span>}
+            </span>
+          )}
+          {product.itemLink && (
+            <a 
+              href={product.itemLink} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className={`hover:underline flex items-center gap-1 ${isCancelled ? 'text-muted-foreground' : 'text-primary'}`}
+            >
+              <ExternalLink className="h-3 w-3" />
+              Ver producto
+            </a>
+          )}
+        </div>
+
+        <p className={`text-sm px-2 py-1 rounded mt-2 ${
           product.needsOriginalPackaging 
             ? 'text-amber-600 bg-amber-50' 
             : 'text-muted-foreground bg-muted/30'
         }`}>
-          📦 {product.needsOriginalPackaging ? 'Conservar empaque original del producto' : 'No requiere empaque original'}
-          <span className="block text-[10px] text-muted-foreground font-normal ml-5">
-            {product.needsOriginalPackaging 
-              ? 'Se refiere al empaque de la marca, no a la caja de cartón del envío/delivery.' 
-              : 'Puedes descartar el empaque de la marca y enviar solo el producto.'}
-          </span>
+          📦 {product.needsOriginalPackaging ? 'Conservar empaque original' : 'No requiere empaque original'}
         </p>
       </div>
     );
