@@ -1,58 +1,25 @@
 
 
-## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
+## Rediseño del TripTipsModal
 
-### Concepto
-Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
+### Estructura nueva del modal (de arriba a abajo)
 
-### Widgets disponibles (componentes existentes)
-Del catálogo de charts y componentes ya construidos:
-1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
-2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
-3. **UserGrowthChart** — Crecimiento de usuarios
-4. **PackagesChart** — Gráfico de paquetes por mes
-5. **TripsChart** — Gráfico de viajes
-6. **RevenueChart** — Ingresos por servicio
-7. **GMVChart** — GMV mensual
-8. **ServiceFeeGrowthChart** — Crecimiento de service fees
-9. **AvgPackageValueChart** — Valor promedio por paquete
-10. **AcquisitionChart** — Canales de adquisición
-11. **AcquisitionSurveyTable** — Tabla de encuestas
-12. **TravelerTipsCard** — Propinas de viajeros
-13. **CACKPICards** — Unit Economics KPIs
-14. **FunnelChart** — Funnel de conversión
+1. **Header** -- "Tips del Viaje" + ruta (sin cambios)
 
-### Cambios
+2. **Total de tips pagados por shoppers** -- Suma de los tips (`getActiveTipFromPackage`) de TODOS los paquetes asignados al viaje (no solo los entregados). Esto reemplaza el "Total acumulado" actual que muestra el monto del acumulador (que puede ser Q0 si no se ha inicializado).
 
-**`src/components/Dashboard.tsx`**:
-- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
-- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
+3. **Progreso de entrega** -- Barra de progreso (sin cambios significativos)
 
-**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
-- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
-- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
-- Catálogo de widgets con id, nombre, icono, y componente React
-- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
-- **Reordenar**: botones ↑/↓ en cada widget en modo edición
-- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
-- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
-- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
-- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
+4. **Listado de paquetes** -- Expandir la query para incluir TODOS los estados activos del viaje: `quote_sent`, `payment_pending`, `quote_accepted`, `paid`, `pending_purchase`, `purchase_confirmed`, `shipped`, `in_transit`, `received_by_traveler`, `delivered_to_office`, `completed`, `ready_for_pickup`, `ready_for_delivery`, `pending_office_confirmation`. Usar `getStatusLabel` del proyecto para las etiquetas de estado.
 
-**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
-- Modal/popover que muestra los widgets no activos del catálogo
-- Click en uno lo agrega al final de `activeWidgets`
+5. **Botón "Solicitar cobro"** -- Siempre visible al fondo. **Deshabilitado** (con tooltip/mensaje) hasta que todos los paquetes estén entregados. Eliminar la lógica que oculta el botón y la de "Inicializar pagos" -- el acumulador se creará automáticamente al solicitar cobro si no existe.
 
-### UX
-- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
-- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
-- Botón "Agregar Widget" que abre el picker
-- Botón "Listo" para salir del modo edición
-- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
+### Cambios en archivo
 
-### Consideraciones técnicas
-- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
-- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
-- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
-- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
+**`src/components/dashboard/TripTipsModal.tsx`**
+- Calcular `totalTips` sumando `getActiveTipFromPackage` de todos los paquetes (no del acumulador)
+- Ampliar `eligibleStatuses` para incluir todos los estados activos
+- Agregar más estados al mapa `getStatusLabel`
+- Botón siempre renderizado con `disabled={!isAllDelivered || accumulatedAmount <= 0}` y crear acumulador on-the-fly si no existe al hacer click
+- Mostrar mensaje debajo del botón deshabilitado explicando por qué está bloqueado
 
