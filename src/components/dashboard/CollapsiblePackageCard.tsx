@@ -427,7 +427,7 @@ const CollapsiblePackageCard = ({
                     <span className="block break-words max-w-full text-muted-foreground">ID: {pkg.id.substring(0, 8)}</span>
                   </div>
                 </CardDescription>
-                <div className="pl-5 flex justify-start">
+                <div className="pl-5 flex items-center gap-2 justify-start">
                   <Button
                     variant="outline"
                     size="sm"
@@ -440,6 +440,7 @@ const CollapsiblePackageCard = ({
                     {getStatusBadge(pkg.status, { pkg, isQuoteExpired: !!expirationInfo })}
                     <span>Ver detalle</span>
                   </Button>
+                  {needsAction && <NotificationBadge count={1} />}
                 </div>
 
                 {/* Quick Edit Button for actionable states - Mobile */}
