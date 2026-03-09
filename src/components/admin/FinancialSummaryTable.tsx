@@ -600,6 +600,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
   const handleDownloadExcel = () => {
     const excelData = filteredData.map(item => ({
       'Fecha Pago': item.paymentDate,
+      'ID Pedido': item.package.id,
       'Shopper': item.shopperName,
       'Viajero': item.travelerName,
       'ID Viaje': item.tripId || '-',
@@ -617,6 +618,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     // Add totals row
     excelData.push({
       'Fecha Pago': '',
+      'ID Pedido': '',
       'Shopper': '',
       'Viajero': '',
       'ID Viaje': '',
@@ -635,6 +637,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
     if (totals.totalRefunds > 0) {
       excelData.push({
         'Fecha Pago': '',
+        'ID Pedido': '',
         'Shopper': '',
         'Viajero': '',
         'ID Viaje': '',
@@ -761,6 +764,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
             <TableHeader>
               <TableRow>
                 <TableHead>Fecha Pago</TableHead>
+                <TableHead>ID Pedido</TableHead>
                 <TableHead>
                   <ColumnFilter title="Shopper" options={uniqueShoppers} selectedValues={shopperFilter} onSelectionChange={setShopperFilter} showSearch />
                 </TableHead>
@@ -796,6 +800,9 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                   }
                 >
                   <TableCell className="text-sm">{item.paymentDate}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground font-mono">
+                    {item.package.id.slice(0, 8)}...
+                  </TableCell>
                   <TableCell className="font-medium">
                     {item.shopperName}
                     {(item.isPrimeMembership || item.isFromPrimeShopper) && (
