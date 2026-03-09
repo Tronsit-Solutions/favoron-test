@@ -1292,6 +1292,20 @@ const CollapsiblePackageCard = ({
           </div>
         </DialogContent>
       </Dialog>
+      {/* Status Detail Modal (Mobile) */}
+      <Dialog open={showStatusModal} onOpenChange={setShowStatusModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">Estado del paquete</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              {getStatusBadge(pkg.status, { pkg, isQuoteExpired: !!expirationInfo })}
+            </div>
+            <p className="text-sm text-muted-foreground">{getStatusDescription(pkg)}</p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
