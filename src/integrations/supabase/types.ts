@@ -2165,6 +2165,13 @@ export type Database = {
         Args: { _account_number: string }
         Returns: string
       }
+      profile_update_allowed: {
+        Args: {
+          _row: Database["public"]["Tables"]["profiles"]["Row"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       refresh_platform_stats: { Args: never; Returns: undefined }
       register_referral: {
         Args: { p_referral_code: string; p_referred_id: string }
