@@ -21,16 +21,14 @@ interface PurchaseConfirmationViewerProps {
   onDelete?: () => void;
 }
 
-const DEFAULT_BUCKETS_ORDER = ['purchase-confirmations', 'payment-receipts'] as const;
+const DEFAULT_BUCKETS_ORDER = ['purchase-confirmations', 'payment-receipts', 'product-receipts'] as const;
 
 const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className, onDelete }: PurchaseConfirmationViewerProps) => {
   const [showModal, setShowModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
-  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [loadingPdf, setLoadingPdf] = useState(false);
   const { toast } = useToast();
 
   const isImage = purchaseConfirmation.filename?.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/);
@@ -44,53 +42,6 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signedUrl]);
 
-  // Load PDF as blob when modal opens
-  useEffect(() => {
-    if (showModal && isPDF && !pdfBlobUrl) {
-      loadPdfAsBlob();
-    }
-    return () => {
-      if (pdfBlobUrl) {
-        URL.revokeObjectURL(pdfBlobUrl);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showModal, isPDF]);
-
-  const loadPdfAsBlob = async () => {
-    setLoadingPdf(true);
-    try {
-      let filePath: string;
-      if ('filePath' in purchaseConfirmation && purchaseConfirmation.filePath) {
-        filePath = purchaseConfirmation.filePath;
-      } else {
-        filePath = `${packageId}/${purchaseConfirmation.filename}`;
-      }
-
-      const bucketsToTry = resolveBuckets();
-      for (const bucket of bucketsToTry) {
-        const { data, error } = await supabase.storage
-          .from(bucket)
-          .download(filePath);
-
-        if (!error && data) {
-          // Ensure the blob has the correct MIME type for PDF rendering
-          const pdfBlob = data instanceof Blob && data.type === 'application/pdf'
-            ? data
-            : new Blob([data], { type: 'application/pdf' });
-          const url = URL.createObjectURL(pdfBlob);
-          setPdfBlobUrl(url);
-          console.log('PDF blob URL created from bucket:', bucket);
-          return;
-        }
-      }
-      console.error('Failed to load PDF as blob from any bucket');
-    } catch (error) {
-      console.error('Error loading PDF as blob:', error);
-    } finally {
-      setLoadingPdf(false);
-    }
-  };
 
   const resolveBuckets = (): string[] => {
     // Si viene bucket en el objeto, lo usamos primero; luego fallback al orden por defecto
@@ -279,20 +230,20 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
               />
             )}
             {isPDF && (
-              loadingPdf ? (
-                <div className="w-full h-[70vh] bg-gray-100 rounded-lg border flex items-center justify-center">
-                  <p className="text-gray-500">Cargando PDF...</p>
-                </div>
-              ) : pdfBlobUrl ? (
+              signedUrl ? (
                 <iframe
-                  src={pdfBlobUrl}
+                  src={signedUrl}
                   title="Comprobante de compra"
                   className="w-full h-[70vh] rounded-lg border"
                 />
+              ) : loading ? (
+                <div className="w-full h-[70vh] bg-muted/30 rounded-lg border flex items-center justify-center">
+                  <p className="text-muted-foreground">Cargando PDF...</p>
+                </div>
               ) : (
-                <div className="w-full h-[70vh] bg-gray-100 rounded-lg border flex flex-col items-center justify-center">
-                  <FileText className="h-16 w-16 mb-4 text-gray-400" />
-                  <p className="text-gray-500 mb-4">No se pudo cargar el PDF</p>
+                <div className="w-full h-[70vh] bg-muted/30 rounded-lg border flex flex-col items-center justify-center gap-4">
+                  <FileText className="h-12 w-12 text-muted-foreground" />
+                  <p className="text-muted-foreground">No se pudo cargar el PDF</p>
                   <Button variant="outline" onClick={handleDownload}>
                     <Download className="h-4 w-4 mr-1" /> Descargar
                   </Button>
