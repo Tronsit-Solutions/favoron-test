@@ -6,7 +6,7 @@ import { LabelCartItem, LabelBatch } from '@/hooks/useOperationsData';
 import { PackageLabel } from '@/components/admin/PackageLabel';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { drawLabelToPDF, preloadLabelAssets } from '@/lib/pdfLabelDrawer';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -134,9 +134,7 @@ const LabelCartBar = ({ items, onClear, onRemoveItem, labelHistory, onRestoreFro
 
     try {
       setGenerating(true);
-
-      const React = await import('react');
-      const ReactDOM = await import('react-dom/client');
+      await preloadLabelAssets();
 
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -162,49 +160,14 @@ const LabelCartBar = ({ items, onClear, onRemoveItem, labelHistory, onRestoreFro
           pdf.addPage();
         }
 
-        const tempContainer = document.createElement('div');
-        tempContainer.style.position = 'absolute';
-        tempContainer.style.left = '-9999px';
-        tempContainer.style.top = '0';
-        tempContainer.style.width = `${labelW}px`;
-        tempContainer.style.height = `${labelH}px`;
-        tempContainer.style.backgroundColor = '#ffffff';
-        document.body.appendChild(tempContainer);
-
-        const reactContainer = document.createElement('div');
-        tempContainer.appendChild(reactContainer);
-
-        const { tripData, pkgData, labelNumber } = buildLabelData(item);
-
-        const root = ReactDOM.createRoot(reactContainer);
-        await new Promise<void>((resolve) => {
-          root.render(
-            React.createElement(PackageLabel, {
-              pkg: pkgData,
-              trip: tripData,
-              labelNumber,
-              customDescriptions: customDescriptions[item.id],
-            })
-          );
-          setTimeout(resolve, 100);
-        });
-
-        const canvas = await html2canvas(tempContainer, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          width: labelW,
-          height: labelH,
-          windowWidth: labelW,
-          windowHeight: labelH,
-        });
-
-        root.unmount();
-        document.body.removeChild(tempContainer);
-
+        const { pkgData, labelNumber } = buildLabelData(item);
         const pos = positions[posIndex];
-        const imgData = canvas.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', pos.x, pos.y, labelW, labelH);
+
+        await drawLabelToPDF(pdf, pkgData, pos.x, pos.y, labelW, labelH, {
+          customDescriptions: customDescriptions[item.id],
+          labelNumber,
+          compact: true,
+        });
       }
 
       const fileName = `etiquetas_recepcion_${new Date().toISOString().split('T')[0]}.pdf`;
