@@ -15,7 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { History } from 'lucide-react';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { drawLabelToPDF, preloadLabelAssets } from '@/lib/pdfLabelDrawer';
 import {
   Dialog,
   DialogContent,
