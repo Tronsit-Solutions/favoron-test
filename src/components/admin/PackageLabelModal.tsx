@@ -1,12 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PackageLabel } from './PackageLabel';
 import { Download, Printer, X, ChevronLeft, ChevronRight, Edit } from 'lucide-react';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { drawLabelToPDF, preloadLabelAssets } from '@/lib/pdfLabelDrawer';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
