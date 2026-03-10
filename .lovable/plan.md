@@ -1,40 +1,58 @@
 
 
-## Plan: Diagnosticar y corregir paquetes no visibles bajo viajes
+## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
 
-### Problema identificado
+### Concepto
+Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
 
-El paquete "crox" (id: `6f0bd6ae`, status: `completed`) asignado al viaje `0da7b8c8` **sí se carga correctamente** (aparece en el modal de Tips), pero no se muestra como tarjeta anidada bajo el viaje en la pestaña "Viajes".
+### Widgets disponibles (componentes existentes)
+Del catálogo de charts y componentes ya construidos:
+1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
+2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
+3. **UserGrowthChart** — Crecimiento de usuarios
+4. **PackagesChart** — Gráfico de paquetes por mes
+5. **TripsChart** — Gráfico de viajes
+6. **RevenueChart** — Ingresos por servicio
+7. **GMVChart** — GMV mensual
+8. **ServiceFeeGrowthChart** — Crecimiento de service fees
+9. **AvgPackageValueChart** — Valor promedio por paquete
+10. **AcquisitionChart** — Canales de adquisición
+11. **AcquisitionSurveyTable** — Tabla de encuestas
+12. **TravelerTipsCard** — Propinas de viajeros
+13. **CACKPICards** — Unit Economics KPIs
+14. **FunnelChart** — Funnel de conversión
 
-El filtro `tripPackages` en Dashboard.tsx (líneas 751-767) DEBERÍA incluirlo ya que `completed` está en `PAID_OR_POST_PAYMENT`. Sin embargo, hay un posible bug sutil:
+### Cambios
 
-### Causa probable: Race condition del cache
+**`src/components/Dashboard.tsx`**:
+- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
+- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
 
-Cuando un admin navega al tab "Viajes", los datos de paquetes cambian de `adminData.packages` a `regularPackagesData.packages`. El hook `useCachedData` tiene un `minRefetchInterval` de 60 segundos que podría estar impidiendo la carga. Además, `fetchFn` no está en las dependencias del `useEffect`, lo que podría causar que se use una función stale.
+**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
+- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
+- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
+- Catálogo de widgets con id, nombre, icono, y componente React
+- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
+- **Reordenar**: botones ↑/↓ en cada widget en modo edición
+- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
+- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
+- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
+- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
 
-### Corrección propuesta
+**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
+- Modal/popover que muestra los widgets no activos del catálogo
+- Click en uno lo agrega al final de `activeWidgets`
 
-1. **Agregar debug logging temporal** al filtro `tripPackages` para confirmar exactamente qué se filtra y por qué
+### UX
+- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
+- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
+- Botón "Agregar Widget" que abre el picker
+- Botón "Listo" para salir del modo edición
+- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
 
-2. **Asegurar que `fetchFn` se use correctamente** en `useCachedData` — agregar `fetchFn` como ref para evitar closures stale:
-
-```typescript
-// En useCachedData.tsx - usar ref para fetchFn
-const fetchFnRef = useRef(fetchFn);
-fetchFnRef.current = fetchFn;
-
-// En fetchData, usar fetchFnRef.current en lugar de fetchFn
-const result = await fetchFnRef.current();
-```
-
-3. **Verificar el `minRefetchInterval` por key** — actualmente `lastFetchRef` es compartido entre keys, lo que podría bloquear fetches legítimos cuando cambia el key:
-
-```typescript
-// Cambiar lastFetchRef de un single number a un map por key
-const lastFetchRef = useRef<Map<string, number>>(new Map());
-```
-
-### Archivos a modificar
-- `src/hooks/useCachedData.tsx` — corregir race condition con fetchFn ref y lastFetch por key
-- `src/components/Dashboard.tsx` — agregar logging temporal para debug (se puede remover después)
+### Consideraciones técnicas
+- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
+- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
+- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
+- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
 
