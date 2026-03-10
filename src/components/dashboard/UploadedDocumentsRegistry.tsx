@@ -229,7 +229,11 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
                 </div>
               </div>
             ) : modalImage && (
-              <img src={modalImage.url} alt={modalImage.title} className="max-w-full max-h-[70vh] object-contain" />
+              modalImage.mimeType?.includes('pdf') ? (
+                <iframe src={modalImage.url} title={modalImage.title} className="w-full h-[70vh]" />
+              ) : (
+                <img src={modalImage.url} alt={modalImage.title} className="max-w-full max-h-[70vh] object-contain" />
+              )
             )}
           </div>
         </DialogContent>
