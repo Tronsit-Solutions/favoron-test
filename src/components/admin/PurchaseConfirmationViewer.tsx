@@ -21,7 +21,7 @@ interface PurchaseConfirmationViewerProps {
   onDelete?: () => void;
 }
 
-const DEFAULT_BUCKETS_ORDER = ['purchase-confirmations', 'payment-receipts'] as const;
+const DEFAULT_BUCKETS_ORDER = ['purchase-confirmations', 'payment-receipts', 'product-receipts'] as const;
 
 const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className, onDelete }: PurchaseConfirmationViewerProps) => {
   const [showModal, setShowModal] = useState(false);
