@@ -27,6 +27,7 @@ import AdminWhatsApp from "./pages/AdminWhatsApp";
 import AdminReferrals from "./pages/AdminReferrals";
 import Operations from "./pages/Operations";
 import AvisoLegal from "./pages/AvisoLegal";
+import WorkWithUs from "./pages/WorkWithUs";
 import PaymentCallback from "./pages/PaymentCallback";
 import SupportBubble from "./components/SupportBubble";
 
