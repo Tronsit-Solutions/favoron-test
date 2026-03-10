@@ -42,53 +42,6 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signedUrl]);
 
-  // Load PDF as blob when modal opens
-  useEffect(() => {
-    if (showModal && isPDF && !pdfBlobUrl) {
-      loadPdfAsBlob();
-    }
-    return () => {
-      if (pdfBlobUrl) {
-        URL.revokeObjectURL(pdfBlobUrl);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showModal, isPDF]);
-
-  const loadPdfAsBlob = async () => {
-    setLoadingPdf(true);
-    try {
-      let filePath: string;
-      if ('filePath' in purchaseConfirmation && purchaseConfirmation.filePath) {
-        filePath = purchaseConfirmation.filePath;
-      } else {
-        filePath = `${packageId}/${purchaseConfirmation.filename}`;
-      }
-
-      const bucketsToTry = resolveBuckets();
-      for (const bucket of bucketsToTry) {
-        const { data, error } = await supabase.storage
-          .from(bucket)
-          .download(filePath);
-
-        if (!error && data) {
-          // Ensure the blob has the correct MIME type for PDF rendering
-          const pdfBlob = data instanceof Blob && data.type === 'application/pdf'
-            ? data
-            : new Blob([data], { type: 'application/pdf' });
-          const url = URL.createObjectURL(pdfBlob);
-          setPdfBlobUrl(url);
-          console.log('PDF blob URL created from bucket:', bucket);
-          return;
-        }
-      }
-      console.error('Failed to load PDF as blob from any bucket');
-    } catch (error) {
-      console.error('Error loading PDF as blob:', error);
-    } finally {
-      setLoadingPdf(false);
-    }
-  };
 
   const resolveBuckets = (): string[] => {
     // Si viene bucket en el objeto, lo usamos primero; luego fallback al orden por defecto
