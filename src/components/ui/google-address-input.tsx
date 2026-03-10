@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 import React, { useRef, useEffect } from 'react';
 import Autocomplete from 'react-google-autocomplete';
 import { cn } from '@/lib/utils';
