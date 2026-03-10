@@ -277,20 +277,20 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
               />
             )}
             {isPDF && (
-              loadingPdf ? (
-                <div className="w-full h-[70vh] bg-gray-100 rounded-lg border flex items-center justify-center">
-                  <p className="text-gray-500">Cargando PDF...</p>
-                </div>
-              ) : pdfBlobUrl ? (
+              signedUrl ? (
                 <iframe
-                  src={pdfBlobUrl}
+                  src={signedUrl}
                   title="Comprobante de compra"
                   className="w-full h-[70vh] rounded-lg border"
                 />
+              ) : loading ? (
+                <div className="w-full h-[70vh] bg-muted/30 rounded-lg border flex items-center justify-center">
+                  <p className="text-muted-foreground">Cargando PDF...</p>
+                </div>
               ) : (
-                <div className="w-full h-[70vh] bg-gray-100 rounded-lg border flex flex-col items-center justify-center">
-                  <FileText className="h-16 w-16 mb-4 text-gray-400" />
-                  <p className="text-gray-500 mb-4">No se pudo cargar el PDF</p>
+                <div className="w-full h-[70vh] bg-muted/30 rounded-lg border flex flex-col items-center justify-center gap-4">
+                  <FileText className="h-12 w-12 text-muted-foreground" />
+                  <p className="text-muted-foreground">No se pudo cargar el PDF</p>
                   <Button variant="outline" onClick={handleDownload}>
                     <Download className="h-4 w-4 mr-1" /> Descargar
                   </Button>
