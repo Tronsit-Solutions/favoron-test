@@ -571,7 +571,7 @@ const AdminDashboard = ({
         ) : (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <TabsList className="grid w-full grid-cols-6">
+                <TabsList className="grid w-full grid-cols-7">
                   {adminTabs.map((tab) => (
                     <TabsTrigger
                       key={tab.value}
