@@ -56,7 +56,7 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
           toast({ title: "Error", description: "No se pudo acceder al comprobante de compra", variant: "destructive" });
           return;
         }
-        setModalImage({ url: data.signedUrl, title: "Confirmación de compra" });
+        setModalImage({ url: data.signedUrl, title: "Confirmación de compra", mimeType: confirmationData.mimeType });
         setModalOpen(true);
       } catch (error) {
         toast({ title: "Error", description: "Ocurrió un error al cargar el archivo", variant: "destructive" });
