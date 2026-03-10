@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface CacheEntry<T> {
   data: T;
@@ -22,9 +22,13 @@ export const useCachedData = <T,>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const cacheRef = useRef<Map<string, CacheEntry<T>>>(new Map());
-  const lastFetchRef = useRef<number>(0);
+  // Track last fetch time PER KEY to avoid blocking fetches when key changes
+  const lastFetchRef = useRef<Map<string, number>>(new Map());
+  // Use ref for fetchFn to avoid stale closures
+  const fetchFnRef = useRef(fetchFn);
+  fetchFnRef.current = fetchFn;
 
-  const fetchData = async (forceRefresh = false) => {
+  const fetchData = useCallback(async (forceRefresh = false) => {
     if (!enabled && !forceRefresh) {
       console.log(`⏭️ Cache disabled for key: ${key}`);
       setLoading(false);
@@ -34,9 +38,10 @@ export const useCachedData = <T,>(
     const cache = cacheRef.current;
     const cachedEntry = cache.get(key);
     const now = Date.now();
+    const lastFetchForKey = lastFetchRef.current.get(key) || 0;
 
     // Prevent refetch if too recent (protects against tab-switch spam)
-    if (!forceRefresh && data && (now - lastFetchRef.current) < minRefetchInterval) {
+    if (!forceRefresh && data && (now - lastFetchForKey) < minRefetchInterval) {
       setLoading(false);
       return data;
     }
@@ -52,15 +57,15 @@ export const useCachedData = <T,>(
       // Don't reset data to null - keep previous data visible during refresh
       setLoading(true);
       setError(null);
-      const result = await fetchFn();
+      const result = await fetchFnRef.current();
       
-      // Cache the result and update last fetch time
+      // Cache the result and update last fetch time for this key
       cache.set(key, {
         data: result,
         timestamp: now,
         ttl
       });
-      lastFetchRef.current = now;
+      lastFetchRef.current.set(key, now);
       
       setData(result);
       return result;
@@ -70,13 +75,14 @@ export const useCachedData = <T,>(
     } finally {
       setLoading(false);
     }
-  };
+  }, [key, enabled, minRefetchInterval, ttl, data]);
 
-  const invalidateCache = () => {
+  const invalidateCache = useCallback(() => {
     cacheRef.current.delete(key);
-  };
+    lastFetchRef.current.delete(key);
+  }, [key]);
 
-  const refreshData = () => fetchData(true);
+  const refreshData = useCallback(() => fetchData(true), [fetchData]);
 
   useEffect(() => {
     if (enabled) {
