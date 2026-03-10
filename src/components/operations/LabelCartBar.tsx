@@ -6,7 +6,7 @@ import { LabelCartItem, LabelBatch } from '@/hooks/useOperationsData';
 import { PackageLabel } from '@/components/admin/PackageLabel';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { drawLabelToPDF, preloadLabelAssets } from '@/lib/pdfLabelDrawer';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
