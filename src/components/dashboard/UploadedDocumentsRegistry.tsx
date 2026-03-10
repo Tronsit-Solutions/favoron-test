@@ -26,7 +26,7 @@ interface DocumentData {
 const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedDocumentsRegistryProps) => {
   const { toast } = useToast();
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalImage, setModalImage] = useState<{ url: string; title: string } | null>(null);
+  const [modalImage, setModalImage] = useState<{ url: string; title: string; mimeType?: string } | null>(null);
 
   const viewPaymentReceipt = async (paymentData: DocumentData) => {
     if (paymentData.filePath) {
