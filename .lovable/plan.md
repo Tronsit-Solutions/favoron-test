@@ -1,58 +1,67 @@
 
 
-## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
+## Plan: Fix privilege escalation on profiles table
 
-### Concepto
-Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
+### Problem
+The UPDATE policies on `profiles` only check `auth.uid() = id` but don't restrict which columns can be modified. Any user can set `prime_expires_at`, `trust_level`, `is_banned`, rating fields, etc.
 
-### Widgets disponibles (componentes existentes)
-Del catálogo de charts y componentes ya construidos:
-1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
-2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
-3. **UserGrowthChart** — Crecimiento de usuarios
-4. **PackagesChart** — Gráfico de paquetes por mes
-5. **TripsChart** — Gráfico de viajes
-6. **RevenueChart** — Ingresos por servicio
-7. **GMVChart** — GMV mensual
-8. **ServiceFeeGrowthChart** — Crecimiento de service fees
-9. **AvgPackageValueChart** — Valor promedio por paquete
-10. **AcquisitionChart** — Canales de adquisición
-11. **AcquisitionSurveyTable** — Tabla de encuestas
-12. **TravelerTipsCard** — Propinas de viajeros
-13. **CACKPICards** — Unit Economics KPIs
-14. **FunnelChart** — Funnel de conversión
+### Solution
+Drop the two existing UPDATE policies and replace them with two new ones:
 
-### Cambios
+1. **Non-admin users** can update their own row BUT a `WITH CHECK` constraint ensures sensitive fields remain unchanged (comparing `OLD` vs `NEW` values via a trigger-free approach using subquery against the current row).
 
-**`src/components/Dashboard.tsx`**:
-- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
-- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
+2. **Admin users** can update any profile without column restrictions.
 
-**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
-- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
-- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
-- Catálogo de widgets con id, nombre, icono, y componente React
-- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
-- **Reordenar**: botones ↑/↓ en cada widget en modo edición
-- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
-- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
-- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
-- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
+### Migration SQL
 
-**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
-- Modal/popover que muestra los widgets no activos del catálogo
-- Click en uno lo agrega al final de `activeWidgets`
+```sql
+-- Drop existing permissive UPDATE policies
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can update own profile (strict)" ON profiles;
 
-### UX
-- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
-- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
-- Botón "Agregar Widget" que abre el picker
-- Botón "Listo" para salir del modo edición
-- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
+-- Create security definer function to check if sensitive fields changed
+CREATE OR REPLACE FUNCTION public.profile_update_allowed(_user_id uuid, _row profiles)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT 
+    -- Admins can change anything
+    has_role(_user_id, 'admin'::user_role)
+    OR
+    -- Non-admins: ensure sensitive fields match current values
+    (
+      SELECT 
+        _row.prime_expires_at IS NOT DISTINCT FROM p.prime_expires_at
+        AND _row.trust_level IS NOT DISTINCT FROM p.trust_level
+        AND _row.is_banned IS NOT DISTINCT FROM p.is_banned
+        AND _row.banned_at IS NOT DISTINCT FROM p.banned_at
+        AND _row.banned_until IS NOT DISTINCT FROM p.banned_until
+        AND _row.ban_reason IS NOT DISTINCT FROM p.ban_reason
+        AND _row.banned_by IS NOT DISTINCT FROM p.banned_by
+        AND _row.traveler_avg_rating IS NOT DISTINCT FROM p.traveler_avg_rating
+        AND _row.traveler_ontime_rate IS NOT DISTINCT FROM p.traveler_ontime_rate
+        AND _row.traveler_total_ratings IS NOT DISTINCT FROM p.traveler_total_ratings
+        AND _row.ab_test_group IS NOT DISTINCT FROM p.ab_test_group
+        AND _row.acquisition_source IS NOT DISTINCT FROM p.acquisition_source
+      FROM profiles p
+      WHERE p.id = _row.id
+    )
+$$;
 
-### Consideraciones técnicas
-- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
-- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
-- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
-- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
+-- Policy: Users can update own non-sensitive fields
+CREATE POLICY "Users can update own profile safe"
+ON profiles FOR UPDATE
+TO authenticated
+USING (auth.uid() = id)
+WITH CHECK (
+  profile_update_allowed(auth.uid(), profiles)
+);
+```
+
+This uses a `SECURITY DEFINER` function that compares the new row values against current DB values for the 12 sensitive fields. Non-admins are rejected if any sensitive field differs. Admins pass unconditionally.
+
+No code changes needed — admin operations already use RPC functions (`admin_update_trust_level`, `admin_assign_prime_membership`) or edge functions (`ban-user`) which run with elevated privileges.
 
