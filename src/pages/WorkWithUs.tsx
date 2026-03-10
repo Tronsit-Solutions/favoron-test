@@ -123,7 +123,7 @@ const WorkWithUs = () => {
     <div className="min-h-screen flex flex-col bg-muted/30">
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4">
-          <Link to="/" className="text-2xl font-bold text-primary">Favoron</Link>
+          <Link to="/"><img src="/lovable-uploads/b4ea91c2-1974-4a3d-b9b6-c538aa52daa7.png" alt="Favorón" className="h-8 sm:h-10 w-auto" /></Link>
         </div>
       </header>
 
