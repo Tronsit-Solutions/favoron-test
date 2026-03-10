@@ -25,6 +25,7 @@ import AdminReports from "./pages/AdminReports";
 import AdminDeliveryPoints from "./pages/AdminDeliveryPoints";
 import AdminWhatsApp from "./pages/AdminWhatsApp";
 import AdminReferrals from "./pages/AdminReferrals";
+import AdminApplications from "./pages/AdminApplications";
 import Operations from "./pages/Operations";
 import AvisoLegal from "./pages/AvisoLegal";
 import WorkWithUs from "./pages/WorkWithUs";
@@ -108,6 +109,11 @@ const App = () => {
             <Route path="/admin/referrals" element={
               <RequireAuth>
                 <AdminReferrals />
+              </RequireAuth>
+            } />
+            <Route path="/admin/applications" element={
+              <RequireAuth>
+                <AdminApplications />
               </RequireAuth>
             } />
             <Route path="/operations" element={

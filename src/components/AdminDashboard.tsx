@@ -27,7 +27,7 @@ import MonthlyReportsTab from "./admin/MonthlyReportsTab";
 import AdminSupportTab from "./admin/AdminSupportTab";
 import PendingOfficeConfirmationsTab from "./admin/PendingOfficeConfirmationsTab";
 import AdminPaymentsUnifiedTab from "./admin/AdminPaymentsUnifiedTab";
-import AdminApplicationsTab from "./admin/AdminApplicationsTab";
+
 
 import AdminMatchDialog from "./admin/AdminMatchDialog";
 import AdminActionsModal from "./admin/AdminActionsModal";
@@ -542,11 +542,6 @@ const AdminDashboard = ({
       label: "Reportes",
       badge: undefined
     },
-    {
-      value: "applications",
-      label: "Aplicaciones",
-      badge: undefined
-    }
   ];
   
 
@@ -661,9 +656,6 @@ const AdminDashboard = ({
           <MonthlyReportsTab />
         </TabsContent>
 
-        <TabsContent value="applications" className="space-y-4">
-          <AdminApplicationsTab />
-        </TabsContent>
 
       </Tabs>
 
