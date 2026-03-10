@@ -27,6 +27,7 @@ import MonthlyReportsTab from "./admin/MonthlyReportsTab";
 import AdminSupportTab from "./admin/AdminSupportTab";
 import PendingOfficeConfirmationsTab from "./admin/PendingOfficeConfirmationsTab";
 import AdminPaymentsUnifiedTab from "./admin/AdminPaymentsUnifiedTab";
+import AdminApplicationsTab from "./admin/AdminApplicationsTab";
 
 import AdminMatchDialog from "./admin/AdminMatchDialog";
 import AdminActionsModal from "./admin/AdminActionsModal";
