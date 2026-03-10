@@ -2202,6 +2202,10 @@ export type Database = {
       }
       send_assignment_warnings: { Args: never; Returns: undefined }
       send_quote_reminders: { Args: never; Returns: undefined }
+      submit_acquisition_survey: {
+        Args: { _referrer_name?: string; _source: string }
+        Returns: undefined
+      }
       traveler_dismiss_package: {
         Args: { _package_id: string }
         Returns: undefined

@@ -48,14 +48,10 @@ export const useAcquisitionSurvey = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          acquisition_source: source,
-          acquisition_source_answered_at: new Date().toISOString(),
-          referrer_name: referrerName || null
-        } as any) // Type assertion needed until types are regenerated
-        .eq('id', profile.id);
+      const { error } = await (supabase.rpc as any)('submit_acquisition_survey', {
+        _source: source,
+        _referrer_name: referrerName || null
+      });
 
       if (error) throw error;
 
