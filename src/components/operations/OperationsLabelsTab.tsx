@@ -128,8 +128,7 @@ const OperationsLabelsTab = ({ trips, loading, onRefresh, labelHistory, onRestor
         }
       }
       
-      const React = await import('react');
-      const ReactDOM = await import('react-dom/client');
+      await preloadLabelAssets();
       
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -137,59 +136,22 @@ const OperationsLabelsTab = ({ trips, loading, onRefresh, labelHistory, onRestor
         format: 'letter'
       });
 
+      const labelW = 288;
+      const labelH = 432;
+      const centerX = (612 - labelW) / 2;
+      const centerY = (792 - labelH) / 2;
+
       for (let i = 0; i < trip.packages.length; i++) {
         const pkg = trip.packages[i];
         const labelNumber = labelNumbers[i];
-        
-        const tempContainer = document.createElement('div');
-        tempContainer.style.position = 'absolute';
-        tempContainer.style.left = '-9999px';
-        tempContainer.style.top = '0';
-        tempContainer.style.width = '288px';
-        tempContainer.style.height = '432px';
-        tempContainer.style.backgroundColor = '#ffffff';
-        document.body.appendChild(tempContainer);
-
-        const reactContainer = document.createElement('div');
-        tempContainer.appendChild(reactContainer);
-
-        // Prepare trip data for PackageLabel
-        const tripData = {
-          id: trip.id,
-          from_city: trip.from_city,
-          to_city: trip.to_city,
-          arrival_date: trip.arrival_date,
-          delivery_date: trip.delivery_date,
-        };
-
-        const root = ReactDOM.createRoot(reactContainer);
-        await new Promise<void>((resolve) => {
-          root.render(React.createElement(PackageLabel, { pkg, trip: tripData, labelNumber }));
-          setTimeout(resolve, 100);
-        });
-
-        const canvas = await html2canvas(tempContainer, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          width: 288,
-          height: 432,
-          windowWidth: 288,
-          windowHeight: 432
-        });
-
-        root.unmount();
-        document.body.removeChild(tempContainer);
 
         if (i > 0) {
           pdf.addPage();
         }
 
-        const centerX = (612 - 288) / 2;
-        const centerY = (792 - 432) / 2;
-
-        const imgData = canvas.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', centerX, centerY, 288, 432);
+        await drawLabelToPDF(pdf, pkg, centerX, centerY, labelW, labelH, {
+          labelNumber,
+        });
       }
 
       const tripId = trip.id ? trip.id.substring(0, 8) : 'viaje';

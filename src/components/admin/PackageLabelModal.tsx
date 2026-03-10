@@ -121,7 +121,6 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
 
     try {
       setIsGeneratingLabels(true);
-      // Generate label numbers only when actually downloading
       console.log('🏷️ Generating label numbers for PDF download...');
       const newLabelNumbers = await generateLabelNumbers();
       
@@ -130,80 +129,28 @@ export const PackageLabelModal = ({ isOpen, onClose, pkg, packages }: PackageLab
         description: `Se asignaron ${packageList.length} número(s) de etiqueta`,
       });
 
-      // Create PDF with letter size (8.5" x 11") - 612x792 points at 72 DPI
+      await preloadLabelAssets();
+
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'pt',
         format: 'letter'
       });
 
-      // Label dimensions (4x6 inches = 288x432 points)
       const labelWidth = 288;
       const labelHeight = 432;
-      
-      let isFirstPage = true;
+      const x = (612 - labelWidth) / 2;
+      const y = (792 - labelHeight) / 2;
 
       for (let i = 0; i < packageList.length; i++) {
-        const packageItem = packageList[i];
-        
-        // Add new page for each label (except the first one)
-        if (!isFirstPage) {
-          pdf.addPage();
-        }
-        isFirstPage = false;
+        if (i > 0) pdf.addPage();
 
-        // Calculate position to center the label on the page
-        const x = (612 - labelWidth) / 2; // Center horizontally
-        const y = (792 - labelHeight) / 2; // Center vertically
-
-        // Create a temporary container for rendering (hidden off-screen)
-        const tempContainer = document.createElement('div');
-        tempContainer.style.position = 'absolute';
-        tempContainer.style.left = '-9999px';
-        tempContainer.style.top = '0';
-        tempContainer.style.width = `${labelWidth}px`;
-        tempContainer.style.height = `${labelHeight}px`;
-        tempContainer.style.backgroundColor = '#ffffff';
-        document.body.appendChild(tempContainer);
-
-        // Create a new PackageLabel component for this package
-        const tempLabelContainer = document.createElement('div');
-        tempLabelContainer.style.width = `${labelWidth}px`;
-        tempLabelContainer.style.height = `${labelHeight}px`;
-        tempContainer.appendChild(tempLabelContainer);
-
-        // Render PackageLabel component with correct index
-        const root = ReactDOM.createRoot(tempLabelContainer);
-        await new Promise<void>((resolve) => {
-          root.render(React.createElement(PackageLabel, { 
-            pkg: packageItem, 
-            customDescriptions: customDescriptions[i],
-            labelNumber: newLabelNumbers[i]
-          }));
-          setTimeout(resolve, 100);
+        await drawLabelToPDF(pdf, packageList[i], x, y, labelWidth, labelHeight, {
+          customDescriptions: customDescriptions[i],
+          labelNumber: newLabelNumbers[i],
         });
-
-        // Use html2canvas to capture the element
-        const canvas = await html2canvas(tempContainer, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          width: labelWidth,
-          height: labelHeight,
-          windowWidth: labelWidth,
-          windowHeight: labelHeight
-        });
-
-        // Clean up temporary element
-        root.unmount();
-        document.body.removeChild(tempContainer);
-
-        // Convert canvas to image and add to PDF
-        const imgData = canvas.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', x, y, labelWidth, labelHeight);
       }
 
-      // Generate filename and save
       const fileName = packageList.length === 1 
         ? `etiqueta_${packageList[0].id ? packageList[0].id.substring(0, 8) : 'package'}_${new Date().toISOString().split('T')[0]}.pdf`
         : `etiquetas_unificadas_${packageList.length}_paquetes_${new Date().toISOString().split('T')[0]}.pdf`;
