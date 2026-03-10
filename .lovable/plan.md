@@ -1,58 +1,50 @@
 
 
-## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
+## Plan: "Trabaja con nosotros" — Formulario público + Sección admin
 
-### Concepto
-Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
-
-### Widgets disponibles (componentes existentes)
-Del catálogo de charts y componentes ya construidos:
-1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
-2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
-3. **UserGrowthChart** — Crecimiento de usuarios
-4. **PackagesChart** — Gráfico de paquetes por mes
-5. **TripsChart** — Gráfico de viajes
-6. **RevenueChart** — Ingresos por servicio
-7. **GMVChart** — GMV mensual
-8. **ServiceFeeGrowthChart** — Crecimiento de service fees
-9. **AvgPackageValueChart** — Valor promedio por paquete
-10. **AcquisitionChart** — Canales de adquisición
-11. **AcquisitionSurveyTable** — Tabla de encuestas
-12. **TravelerTipsCard** — Propinas de viajeros
-13. **CACKPICards** — Unit Economics KPIs
-14. **FunnelChart** — Funnel de conversión
+### Resumen
+Agregar un botón "Trabaja con nosotros" en el footer y/o navbar del landing page que abra una página pública donde cualquier persona pueda enviar su información (nombre, email, teléfono, CV/documentos, tipo de interés: talento o colaborador, mensaje). Los datos y archivos se guardan en Supabase y se visualizan en una nueva sección del panel admin.
 
 ### Cambios
 
-**`src/components/Dashboard.tsx`**:
-- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
-- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
+#### 1. Base de datos
+- **Nueva tabla `job_applications`**: `id`, `full_name`, `email`, `phone`, `interest_type` (enum: 'talent', 'collaborator'), `message`, `resume_url`, `resume_filename`, `status` ('pending', 'reviewed', 'contacted', 'rejected'), `admin_notes`, `created_at`, `updated_at`
+- **RLS**: INSERT público (anon + authenticated), SELECT/UPDATE solo admins
+- **Storage bucket `job-applications`**: público para upload, lectura solo admin
 
-**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
-- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
-- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
-- Catálogo de widgets con id, nombre, icono, y componente React
-- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
-- **Reordenar**: botones ↑/↓ en cada widget en modo edición
-- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
-- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
-- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
-- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
+#### 2. Página pública `/trabaja-con-nosotros`
+- Nueva página `src/pages/WorkWithUs.tsx` con formulario:
+  - Nombre completo, email, teléfono
+  - Tipo de interés: "Quiero trabajar en Favorón" / "Quiero colaborar con Favorón"
+  - Mensaje / carta de presentación (textarea)
+  - Upload de CV/documentos (PDF, imagen)
+  - Botón enviar con validación zod
+- NavBar + Footer incluidos, no requiere autenticación
 
-**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
-- Modal/popover que muestra los widgets no activos del catálogo
-- Click en uno lo agrega al final de `activeWidgets`
+#### 3. Ruta en App.tsx
+- Agregar `<Route path="/trabaja-con-nosotros" element={<WorkWithUs />} />`
 
-### UX
-- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
-- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
-- Botón "Agregar Widget" que abre el picker
-- Botón "Listo" para salir del modo edición
-- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
+#### 4. Botón en Footer
+- Agregar link "Trabaja con nosotros" en la sección "Enlaces útiles" del Footer
 
-### Consideraciones técnicas
-- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
-- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
-- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
-- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
+#### 5. Sección admin — `AdminApplicationsTab.tsx`
+- Nueva pestaña "Aplicaciones" en el `AdminDashboard` (7mo tab)
+- Tabla con: nombre, email, tipo, fecha, status badge
+- Click para ver detalle: mensaje completo, descargar CV, cambiar status, agregar notas admin
+- Filtros por tipo de interés y status
+
+#### Archivos a crear
+- `src/pages/WorkWithUs.tsx`
+- `src/components/admin/AdminApplicationsTab.tsx`
+- `src/components/admin/ApplicationDetailModal.tsx`
+
+#### Archivos a modificar
+- `src/App.tsx` — nueva ruta
+- `src/components/Footer.tsx` — link "Trabaja con nosotros"
+- `src/components/AdminDashboard.tsx` — nueva pestaña "Aplicaciones"
+
+#### Migración SQL
+- Crear tabla `job_applications`
+- Crear bucket `job-applications`
+- RLS policies
 
