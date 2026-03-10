@@ -18,6 +18,7 @@ interface DocumentData {
   filename?: string;
   uploadedAt?: string;
   filePath?: string;
+  mimeType?: string;
   trackingNumber?: string;
   trackingUrl?: string;
   timestamp?: string;
@@ -26,7 +27,7 @@ interface DocumentData {
 const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedDocumentsRegistryProps) => {
   const { toast } = useToast();
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalImage, setModalImage] = useState<{ url: string; title: string } | null>(null);
+  const [modalImage, setModalImage] = useState<{ url: string; title: string; mimeType?: string } | null>(null);
 
   const viewPaymentReceipt = async (paymentData: DocumentData) => {
     if (paymentData.filePath) {
@@ -38,7 +39,7 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
           toast({ title: "Error", description: "No se pudo acceder al comprobante de pago", variant: "destructive" });
           return;
         }
-        setModalImage({ url: data.signedUrl, title: "Comprobante de pago" });
+        setModalImage({ url: data.signedUrl, title: "Comprobante de pago", mimeType: paymentData.mimeType });
         setModalOpen(true);
       } catch (error) {
         toast({ title: "Error", description: "Ocurrió un error al cargar el archivo", variant: "destructive" });
@@ -56,7 +57,7 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
           toast({ title: "Error", description: "No se pudo acceder al comprobante de compra", variant: "destructive" });
           return;
         }
-        setModalImage({ url: data.signedUrl, title: "Confirmación de compra" });
+        setModalImage({ url: data.signedUrl, title: "Confirmación de compra", mimeType: confirmationData.mimeType });
         setModalOpen(true);
       } catch (error) {
         toast({ title: "Error", description: "Ocurrió un error al cargar el archivo", variant: "destructive" });
@@ -228,7 +229,11 @@ const UploadedDocumentsRegistry = ({ pkg, className, onEditDocument }: UploadedD
                 </div>
               </div>
             ) : modalImage && (
-              <img src={modalImage.url} alt={modalImage.title} className="max-w-full max-h-[70vh] object-contain" />
+              modalImage.mimeType?.includes('pdf') ? (
+                <iframe src={modalImage.url} title={modalImage.title} className="w-full h-[70vh]" />
+              ) : (
+                <img src={modalImage.url} alt={modalImage.title} className="max-w-full max-h-[70vh] object-contain" />
+              )
             )}
           </div>
         </DialogContent>
