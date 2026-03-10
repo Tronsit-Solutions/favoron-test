@@ -1,26 +1,40 @@
 
 
-## Plan: Cambiar frecuencia del cron de expiración de viajes a 1 vez al día
+## Plan: Diagnosticar y corregir paquetes no visibles bajo viajes
 
-La expiración de viajes se basa en fechas (no horas), así que ejecutarlo una vez al día al inicio es suficiente.
+### Problema identificado
 
-### Cambio
+El paquete "crox" (id: `6f0bd6ae`, status: `completed`) asignado al viaje `0da7b8c8` **sí se carga correctamente** (aparece en el modal de Tips), pero no se muestra como tarjeta anidada bajo el viaje en la pestaña "Viajes".
 
-Ejecutar un SQL para actualizar el cron job existente de `expire-quotes` de cada hora (`0 * * * *`) a una vez al día a medianoche (`0 0 * * *`):
+El filtro `tripPackages` en Dashboard.tsx (líneas 751-767) DEBERÍA incluirlo ya que `completed` está en `PAID_OR_POST_PAYMENT`. Sin embargo, hay un posible bug sutil:
 
-```sql
-SELECT cron.schedule(
-  'invoke-expire-quotes',
-  '0 0 * * *',
-  $$
-  SELECT net.http_post(
-    url:='https://dfhoduirmqbarjnspbdh.supabase.co/functions/v1/expire-quotes',
-    headers:='{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmaG9kdWlybXFiYXJqbnNwYmRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNTE4NjYsImV4cCI6MjA2NzYyNzg2Nn0.w1PWz_sugNUIlOfVb1dqKFulcDVPiKb_0SdkhUho8wY"}'::jsonb,
-    body:='{}'::jsonb
-  ) as request_id;
-  $$
-);
+### Causa probable: Race condition del cache
+
+Cuando un admin navega al tab "Viajes", los datos de paquetes cambian de `adminData.packages` a `regularPackagesData.packages`. El hook `useCachedData` tiene un `minRefetchInterval` de 60 segundos que podría estar impidiendo la carga. Además, `fetchFn` no está en las dependencias del `useEffect`, lo que podría causar que se use una función stale.
+
+### Corrección propuesta
+
+1. **Agregar debug logging temporal** al filtro `tripPackages` para confirmar exactamente qué se filtra y por qué
+
+2. **Asegurar que `fetchFn` se use correctamente** en `useCachedData` — agregar `fetchFn` como ref para evitar closures stale:
+
+```typescript
+// En useCachedData.tsx - usar ref para fetchFn
+const fetchFnRef = useRef(fetchFn);
+fetchFnRef.current = fetchFn;
+
+// En fetchData, usar fetchFnRef.current en lugar de fetchFn
+const result = await fetchFnRef.current();
 ```
 
-**Nota importante**: Este cambio también afecta la frecuencia de expiración de cotizaciones y deadlines que corren en la misma función. Si esas necesitan seguir ejecutándose cada hora, habría que separarlas. ¿Te parece bien que todo corra una vez al día, o solo los viajes deberían ser diarios?
+3. **Verificar el `minRefetchInterval` por key** — actualmente `lastFetchRef` es compartido entre keys, lo que podría bloquear fetches legítimos cuando cambia el key:
+
+```typescript
+// Cambiar lastFetchRef de un single number a un map por key
+const lastFetchRef = useRef<Map<string, number>>(new Map());
+```
+
+### Archivos a modificar
+- `src/hooks/useCachedData.tsx` — corregir race condition con fetchFn ref y lastFetch por key
+- `src/components/Dashboard.tsx` — agregar logging temporal para debug (se puede remover después)
 
