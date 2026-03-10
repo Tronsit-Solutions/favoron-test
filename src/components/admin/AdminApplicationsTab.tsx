@@ -125,6 +125,7 @@ const AdminApplicationsTab = () => {
                     <TableHead>Nombre</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Tipo</TableHead>
+                    <TableHead>Mensaje</TableHead>
                     <TableHead>Fecha</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="w-[60px]"></TableHead>
