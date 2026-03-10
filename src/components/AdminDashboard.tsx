@@ -661,6 +661,10 @@ const AdminDashboard = ({
           <MonthlyReportsTab />
         </TabsContent>
 
+        <TabsContent value="applications" className="space-y-4">
+          <AdminApplicationsTab />
+        </TabsContent>
+
       </Tabs>
 
         <AdminMatchDialog
