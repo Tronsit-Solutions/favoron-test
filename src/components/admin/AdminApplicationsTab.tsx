@@ -125,6 +125,7 @@ const AdminApplicationsTab = () => {
                     <TableHead>Nombre</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Tipo</TableHead>
+                    <TableHead>Mensaje</TableHead>
                     <TableHead>Fecha</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="w-[60px]"></TableHead>
@@ -137,6 +138,9 @@ const AdminApplicationsTab = () => {
                       <TableCell className="text-sm">{app.email}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{interestLabels[app.interest_type] || app.interest_type}</Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
+                        {app.message || "—"}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {format(new Date(app.created_at), "dd MMM yyyy", { locale: es })}
