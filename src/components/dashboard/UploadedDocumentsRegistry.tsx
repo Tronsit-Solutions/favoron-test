@@ -18,6 +18,7 @@ interface DocumentData {
   filename?: string;
   uploadedAt?: string;
   filePath?: string;
+  mimeType?: string;
   trackingNumber?: string;
   trackingUrl?: string;
   timestamp?: string;
