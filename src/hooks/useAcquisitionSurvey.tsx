@@ -48,10 +48,10 @@ export const useAcquisitionSurvey = () => {
     }
 
     try {
-      const { error } = await supabase.rpc('submit_acquisition_survey', {
+      const { error } = await (supabase.rpc as any)('submit_acquisition_survey', {
         _source: source,
         _referrer_name: referrerName || null
-      } as any);
+      });
 
       if (error) throw error;
 
