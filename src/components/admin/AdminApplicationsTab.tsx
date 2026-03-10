@@ -139,6 +139,9 @@ const AdminApplicationsTab = () => {
                       <TableCell>
                         <Badge variant="outline">{interestLabels[app.interest_type] || app.interest_type}</Badge>
                       </TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
+                        {app.message || "—"}
+                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {format(new Date(app.created_at), "dd MMM yyyy", { locale: es })}
                       </TableCell>
