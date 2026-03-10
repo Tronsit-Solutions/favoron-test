@@ -541,6 +541,11 @@ const AdminDashboard = ({
       value: "reports",
       label: "Reportes",
       badge: undefined
+    },
+    {
+      value: "applications",
+      label: "Aplicaciones",
+      badge: undefined
     }
   ];
   
