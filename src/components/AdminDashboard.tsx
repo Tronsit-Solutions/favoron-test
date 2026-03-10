@@ -27,6 +27,7 @@ import MonthlyReportsTab from "./admin/MonthlyReportsTab";
 import AdminSupportTab from "./admin/AdminSupportTab";
 import PendingOfficeConfirmationsTab from "./admin/PendingOfficeConfirmationsTab";
 import AdminPaymentsUnifiedTab from "./admin/AdminPaymentsUnifiedTab";
+import AdminApplicationsTab from "./admin/AdminApplicationsTab";
 
 import AdminMatchDialog from "./admin/AdminMatchDialog";
 import AdminActionsModal from "./admin/AdminActionsModal";
@@ -540,6 +541,11 @@ const AdminDashboard = ({
       value: "reports",
       label: "Reportes",
       badge: undefined
+    },
+    {
+      value: "applications",
+      label: "Aplicaciones",
+      badge: undefined
     }
   ];
   
@@ -565,7 +571,7 @@ const AdminDashboard = ({
         ) : (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <TabsList className="grid w-full grid-cols-6">
+                <TabsList className="grid w-full grid-cols-7">
                   {adminTabs.map((tab) => (
                     <TabsTrigger
                       key={tab.value}
@@ -653,6 +659,10 @@ const AdminDashboard = ({
 
         <TabsContent value="reports" className="space-y-4">
           <MonthlyReportsTab />
+        </TabsContent>
+
+        <TabsContent value="applications" className="space-y-4">
+          <AdminApplicationsTab />
         </TabsContent>
 
       </Tabs>

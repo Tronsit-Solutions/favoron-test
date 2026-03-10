@@ -77,6 +77,12 @@ const Footer = () => {
               >
                 Aviso Legal
               </Link>
+              <Link 
+                to="/trabaja-con-nosotros"
+                className="block text-gray-300 hover:text-primary transition-colors text-sm"
+              >
+                Trabaja con nosotros
+              </Link>
             </div>
           </div>
         </div>

@@ -443,6 +443,51 @@ export type Database = {
         }
         Relationships: []
       }
+      job_applications: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          interest_type: string
+          message: string | null
+          phone: string | null
+          resume_filename: string | null
+          resume_url: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          interest_type?: string
+          message?: string | null
+          phone?: string | null
+          resume_filename?: string | null
+          resume_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          interest_type?: string
+          message?: string | null
+          phone?: string | null
+          resume_filename?: string | null
+          resume_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       label_counter: {
         Row: {
           created_at: string | null
