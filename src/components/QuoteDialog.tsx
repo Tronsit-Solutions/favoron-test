@@ -459,11 +459,13 @@ const QuoteDialog = ({
     if (isShopperViewingQuote && existingQuote) {
       // Shopper sees quote total recalculated with shopper trust level
       const base = parseFloat(existingQuote.price || String(adminTipAmount || '0')) || 0;
-      return calculateQuoteTotal(base, selectedDeliveryMethod, packageDetails.shopper_trust_level, packageDetails.package_destination);
+      const cityArea = packageDetails.cityArea || (packageDetails.deliveryAddress as any)?.cityArea;
+      return calculateQuoteTotal(base, selectedDeliveryMethod, packageDetails.shopper_trust_level, packageDetails.package_destination, cityArea, undefined, undefined, packageDetails.package_destination_country);
     }
     if (adminTipAmount && isShopperViewingQuote) {
       // If shopper is viewing admin assigned tip as quote, calculate total using centralized logic
-      return calculateQuoteTotal(adminTipAmount, selectedDeliveryMethod, packageDetails.shopper_trust_level, packageDetails.package_destination);
+      const cityArea = packageDetails.cityArea || (packageDetails.deliveryAddress as any)?.cityArea;
+      return calculateQuoteTotal(adminTipAmount, selectedDeliveryMethod, packageDetails.shopper_trust_level, packageDetails.package_destination, cityArea, undefined, undefined, packageDetails.package_destination_country);
     }
     return adminTipAmount;
   };

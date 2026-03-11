@@ -161,10 +161,19 @@ export const calculateQuoteTotal = (
   basePrice: number,
   deliveryMethod: string = 'pickup',
   trustLevel?: TrustLevel | string,
-  destination?: string
+  destination?: string,
+  cityArea?: string,
+  rates?: { standard: number; prime: number },
+  fees?: {
+    delivery_fee_guatemala_city: number;
+    delivery_fee_guatemala_department: number;
+    delivery_fee_outside_city: number;
+    prime_delivery_discount: number;
+  },
+  destinationCountry?: string
 ): number => {
-  const serviceFee = calculateServiceFee(basePrice, trustLevel);
-  const deliveryFee = getDeliveryFee(deliveryMethod, trustLevel, destination);
+  const serviceFee = calculateServiceFee(basePrice, trustLevel, rates);
+  const deliveryFee = getDeliveryFee(deliveryMethod, trustLevel, cityArea || destination, fees, destinationCountry);
   return basePrice + serviceFee + deliveryFee;
 };
 
