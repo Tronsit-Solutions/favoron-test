@@ -821,7 +821,7 @@ export const useDashboardActions = (
               });
               
               await updatePackage(selectedPackage.id, {
-                quote: recalculatedQuote
+                quote: finalQuote
               });
             }
           }
