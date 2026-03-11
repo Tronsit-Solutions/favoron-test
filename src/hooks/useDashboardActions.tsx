@@ -804,12 +804,13 @@ export const useDashboardActions = (
               );
               
               // Preserve any existing discount data
+              const finalQuote: any = { ...recalculatedQuote };
               if (currentQuote.discountCode) {
-                recalculatedQuote.discountCode = currentQuote.discountCode;
-                recalculatedQuote.discountCodeId = currentQuote.discountCodeId;
-                recalculatedQuote.discountAmount = currentQuote.discountAmount;
-                recalculatedQuote.originalTotalPrice = currentQuote.originalTotalPrice;
-                recalculatedQuote.finalTotalPrice = currentQuote.finalTotalPrice;
+                finalQuote.discountCode = currentQuote.discountCode;
+                finalQuote.discountCodeId = currentQuote.discountCodeId;
+                finalQuote.discountAmount = currentQuote.discountAmount;
+                finalQuote.originalTotalPrice = currentQuote.originalTotalPrice;
+                finalQuote.finalTotalPrice = currentQuote.finalTotalPrice;
               }
               
               console.log('🔧 Recalculated quote on acceptance to fix delivery fee:', {
