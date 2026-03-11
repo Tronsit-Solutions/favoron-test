@@ -778,6 +778,52 @@ export const useDashboardActions = (
             await updatePackage(selectedPackage.id, {
               quote: quoteWithDiscount
             });
+          } else if (!quoteData.deliveryMethodChange && !quoteData.updatedProducts) {
+            // No delivery method change or product exclusions — recalculate delivery fee
+            // to fix any inconsistency from admin quote generation
+            const currentQuote = selectedPackage.quote || {};
+            const basePrice = parseFloat(currentQuote.price || '0');
+            const cityArea = (selectedPackage.confirmed_delivery_address as any)?.cityArea;
+            
+            if (basePrice > 0) {
+              const recalculatedQuote = createNormalizedQuote(
+                basePrice,
+                selectedPackage.delivery_method || 'pickup',
+                selectedPackage.profiles?.trust_level || 'basic',
+                currentQuote.message || '',
+                true,
+                cityArea || selectedPackage.package_destination,
+                rates,
+                {
+                  delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+                  delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
+                  delivery_fee_outside_city: fees.delivery_fee_outside_city,
+                  prime_delivery_discount: fees.prime_delivery_discount,
+                },
+                selectedPackage.package_destination_country
+              );
+              
+              // Preserve any existing discount data
+              const finalQuote: any = { ...recalculatedQuote };
+              if (currentQuote.discountCode) {
+                finalQuote.discountCode = currentQuote.discountCode;
+                finalQuote.discountCodeId = currentQuote.discountCodeId;
+                finalQuote.discountAmount = currentQuote.discountAmount;
+                finalQuote.originalTotalPrice = currentQuote.originalTotalPrice;
+                finalQuote.finalTotalPrice = currentQuote.finalTotalPrice;
+              }
+              
+              console.log('🔧 Recalculated quote on acceptance to fix delivery fee:', {
+                oldDeliveryFee: currentQuote.deliveryFee,
+                newDeliveryFee: recalculatedQuote.deliveryFee,
+                cityArea,
+                destination: selectedPackage.package_destination
+              });
+              
+              await updatePackage(selectedPackage.id, {
+                quote: finalQuote
+              });
+            }
           }
           
           const { error } = await supabase.rpc('accept_quote', {
