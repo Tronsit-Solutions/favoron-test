@@ -665,7 +665,10 @@ const AdminMatchDialog = ({
                 <div className="flex flex-col gap-3 flex-1">
                   <div className="flex items-center gap-3">
                     <span className="text-blue-900 font-medium text-sm">📦 Solicitud:</span>
-                    <span className="font-medium text-gray-900 text-sm">
+                    <span 
+                      className="font-medium text-gray-900 text-sm truncate max-w-[280px] sm:max-w-[400px]" 
+                      title={selectedPackage.item_description}
+                    >
                       {selectedPackage.item_description}
                     </span>
                   </div>
