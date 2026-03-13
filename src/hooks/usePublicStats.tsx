@@ -11,10 +11,10 @@ export interface PublicStats {
 export const usePublicStats = () => {
   // Fallback values in case the cached stats can't be loaded
   const FALLBACK_STATS: PublicStats = {
-    total_users: 1255,
-    total_trips: 220,
-    total_packages_completed: 520,
-    total_tips_distributed: 85000
+    total_users: 1876,
+    total_trips: 351,
+    total_packages_completed: 412,
+    total_tips_distributed: 40539
   };
 
   const CACHE_KEY = 'public_stats_cache';

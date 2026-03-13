@@ -1,0 +1,1 @@
+UPDATE platform_stats_snapshot SET total_users = 1876, total_trips = 351, total_packages_completed = 412, total_tips_distributed = 40539, updated_at = now() WHERE id = 'ff400448-7fae-43d7-be82-c9146a13e396';
