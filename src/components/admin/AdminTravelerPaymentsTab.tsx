@@ -851,7 +851,8 @@ const AdminTravelerPaymentsTab = () => {
                                 </span>
                               </div>
                             );
-                          })}
+                          });
+                          })()}
                           {productsArray.filter((product: any) => product.cancelled).map((product: any, prodIndex: number) => {
                             const productDesc = product.itemDescription || product.item_description || product.description || `Producto ${prodIndex + 1}`;
                             return (
