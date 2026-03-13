@@ -298,20 +298,16 @@ const Auth = () => {
       // Track registration in Meta Pixel
       MetaPixel.trackCompleteRegistration(data?.user?.id);
 
-      // Register referral if pending (with 7-day expiration check)
+      // Register referral if pending (with retry logic)
       if (data?.user?.id) {
-        const pendingRefCode = localStorage.getItem('pending_referral_code');
-        const pendingRefTs = localStorage.getItem('pending_referral_code_ts');
-        const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-        const isExpired = pendingRefTs && (Date.now() - Number(pendingRefTs)) > SEVEN_DAYS_MS;
-
-        if (pendingRefCode && !isExpired) {
-          await registerReferral(data.user.id, pendingRefCode);
-        } else if (isExpired) {
-          console.log('⏰ Referral code expired, ignoring:', pendingRefCode);
+        const pending = getPendingReferral();
+        if (pending && !pending.isExpired) {
+          // Fire-and-forget with retries — don't block signup flow
+          attemptReferralRegistration(data.user.id, pending.code, { initialDelayMs: 1500 });
+        } else if (pending?.isExpired) {
+          console.log('⏰ Referral code expired, clearing:', pending.code);
+          clearPendingReferral();
         }
-        localStorage.removeItem('pending_referral_code');
-        localStorage.removeItem('pending_referral_code_ts');
       }
 
       // Cambiar a pestaña de iniciar sesión después de 1 segundo
