@@ -98,15 +98,20 @@ export const useReferredReward = () => {
 
 export const registerReferral = async (referredUserId: string, referralCode: string) => {
   try {
+    console.log('[Referral] Registering referral:', { referredUserId, referralCode });
     const { data, error } = await supabase.rpc('register_referral', {
       p_referred_id: referredUserId,
       p_referral_code: referralCode,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('[Referral] RPC error:', error.message, error.details, error.hint);
+      throw error;
+    }
+    console.log('[Referral] Registration result:', data);
     return { success: !!data };
-  } catch (err) {
-    console.error('Error registering referral:', err);
+  } catch (err: any) {
+    console.error('[Referral] Error registering referral:', err?.message || err);
     return { success: false };
   }
 };
