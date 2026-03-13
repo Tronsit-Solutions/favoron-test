@@ -13,6 +13,20 @@ import { NotificationBadge } from "@/components/ui/notification-badge";
 const AdminControl = () => {
   const { user, profile, userRole } = useAuth();
   const [isCreatingTestPackages, setIsCreatingTestPackages] = useState(false);
+  const [pendingReferrals, setPendingReferrals] = useState(0);
+  const [pendingApplications, setPendingApplications] = useState(0);
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      const [refRes, appRes] = await Promise.all([
+        supabase.from('referrals').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('job_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      ]);
+      setPendingReferrals(refRes.count ?? 0);
+      setPendingApplications(appRes.count ?? 0);
+    };
+    fetchCounts();
+  }, []);
 
 
   const handleCreateTestPackagesForTrip = async () => {
