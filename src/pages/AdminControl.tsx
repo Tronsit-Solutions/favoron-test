@@ -319,6 +319,7 @@ const AdminControl = () => {
                 <CardTitle className="flex items-center gap-2">
                   <UserPlus className="h-5 w-5" />
                   Programa de Referidos
+                  <NotificationBadge count={pendingReferrals} />
                 </CardTitle>
                 <CardDescription>
                   Configurar recompensas, descuentos y ver reporte de referidos
