@@ -337,6 +337,7 @@ const AdminControl = () => {
                 <CardTitle className="flex items-center gap-2">
                   <Briefcase className="h-5 w-5" />
                   Aplicaciones
+                  <NotificationBadge count={pendingApplications} />
                 </CardTitle>
                 <CardDescription>
                   Gestionar solicitudes de "Trabaja con nosotros"
