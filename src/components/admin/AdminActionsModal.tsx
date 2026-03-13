@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { generateQuoteForAdminStatusChange } from "@/utils/adminQuoteGeneration";
+import { createNormalizedQuote } from "@/lib/quoteHelpers";
 import { 
   Settings, 
   FileText, 
