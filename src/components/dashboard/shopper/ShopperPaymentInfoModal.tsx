@@ -385,6 +385,11 @@ export default function ShopperPaymentInfoModal({
         <>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
+            {onBackToQuote && (
+              <Button variant="ghost" size="icon" className="h-7 w-7 -ml-1" onClick={onBackToQuote}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
             <CreditCard className="h-5 w-5" />
             Información de Pago
           </DialogTitle>
