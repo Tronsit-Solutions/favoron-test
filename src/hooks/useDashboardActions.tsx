@@ -763,16 +763,50 @@ export const useDashboardActions = (
               console.log('📧 Products removed notification would go to traveler');
             }
           } else if (quoteData.discountCodeId && quoteData.discountAmount > 0) {
-            // Existing discount-only logic (no products removed)
-            console.log('💳 Discount code present, updating quote with discount data');
+            // Discount-only logic — also recalculate delivery fee to fix any admin quote inconsistency
+            console.log('💳 Discount code present, recalculating delivery fee and updating quote with discount data');
+            
+            const currentQuote = selectedPackage.quote || {};
+            const basePrice = parseFloat(currentQuote.price || '0');
+            const cityArea = (selectedPackage.confirmed_delivery_address as any)?.cityArea;
+            
+            let baseQuote = { ...currentQuote };
+            
+            // Recalculate delivery fee if we have a valid base price
+            if (basePrice > 0) {
+              const recalculatedQuote = createNormalizedQuote(
+                basePrice,
+                selectedPackage.delivery_method || 'pickup',
+                selectedPackage.profiles?.trust_level || 'basic',
+                currentQuote.message || '',
+                true,
+                cityArea || selectedPackage.package_destination,
+                rates,
+                {
+                  delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+                  delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
+                  delivery_fee_outside_city: fees.delivery_fee_outside_city,
+                  prime_delivery_discount: fees.prime_delivery_discount,
+                },
+                selectedPackage.package_destination_country
+              );
+              
+              console.log('🔧 Recalculated delivery fee in discount branch:', {
+                oldDeliveryFee: currentQuote.deliveryFee,
+                newDeliveryFee: recalculatedQuote.deliveryFee,
+                cityArea,
+              });
+              
+              baseQuote = { ...recalculatedQuote };
+            }
             
             const quoteWithDiscount = {
-              ...selectedPackage.quote,
+              ...baseQuote,
               discountCode: quoteData.discountCode,
               discountCodeId: quoteData.discountCodeId,
               discountAmount: quoteData.discountAmount,
-              originalTotalPrice: quoteData.originalTotalPrice,
-              finalTotalPrice: quoteData.finalTotalPrice
+              originalTotalPrice: baseQuote.totalPrice || quoteData.originalTotalPrice,
+              finalTotalPrice: (baseQuote.totalPrice || quoteData.originalTotalPrice) - quoteData.discountAmount
             };
             
             await updatePackage(selectedPackage.id, {

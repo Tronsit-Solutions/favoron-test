@@ -1,33 +1,58 @@
 
 
-## Bug: Delivery fee always defaults to Q60 for non-Guatemala City areas
+## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
 
-### Root Cause Found
+### Concepto
+Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
 
-After extensive investigation, the systemic pattern is clear from the database:
-- **Villa Canales** → Q60 (should be Q45)
-- **Santa Catarina Pinula** → Q60 (should be Q45)
-- **Mixco** → Q60 (should be Q45)
-- **"Guatemala "** (with trailing space) → Q60 (should be Q25)
+### Widgets disponibles (componentes existentes)
+Del catálogo de charts y componentes ya construidos:
+1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
+2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
+3. **UserGrowthChart** — Crecimiento de usuarios
+4. **PackagesChart** — Gráfico de paquetes por mes
+5. **TripsChart** — Gráfico de viajes
+6. **RevenueChart** — Ingresos por servicio
+7. **GMVChart** — GMV mensual
+8. **ServiceFeeGrowthChart** — Crecimiento de service fees
+9. **AvgPackageValueChart** — Valor promedio por paquete
+10. **AcquisitionChart** — Canales de adquisición
+11. **AcquisitionSurveyTable** — Tabla de encuestas
+12. **TravelerTipsCard** — Propinas de viajeros
+13. **CACKPICards** — Unit Economics KPIs
+14. **FunnelChart** — Funnel de conversión
 
-The zone classification logic in `getDeliveryZone()` is correct, AND the acceptance recalculation in `useDashboardActions.tsx` (lines 781-826) is correct. The problem is that the **admin quote generation flow** in `AdminActionsModal.tsx` does NOT pass `destinationCountry` to `generateQuoteForAdminStatusChange()`. While `adminQuoteGeneration.ts` has a fallback (`destinationCountry || currentPackage.package_destination_country`), there may be cases where `confirmed_delivery_address` was not yet populated when the admin changed status to `quote_sent`, AND the shopper acceptance recalculation was bypassed (e.g., admin moved status directly to `payment_pending`).
+### Cambios
 
-Additionally, if the shopper accepts with a discount code applied, the branch at line 765 saves discount data but does **NOT** recalculate the delivery fee — skipping the fix entirely.
+**`src/components/Dashboard.tsx`**:
+- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
+- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
 
-### Fix Plan
+**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
+- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
+- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
+- Catálogo de widgets con id, nombre, icono, y componente React
+- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
+- **Reordenar**: botones ↑/↓ en cada widget en modo edición
+- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
+- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
+- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
+- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
 
-**File: `src/components/admin/AdminActionsModal.tsx`** (~line 177)
-- Pass `destinationCountry` to `generateQuoteForAdminStatusChange`:
-```typescript
-destinationCountry: pkg.package_destination_country
-```
+**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
+- Modal/popover que muestra los widgets no activos del catálogo
+- Click en uno lo agrega al final de `activeWidgets`
 
-**File: `src/hooks/useDashboardActions.tsx`** (~line 765-780)
-- In the discount-only branch (`else if (quoteData.discountCodeId && ...)`), add delivery fee recalculation before saving the discount, using the same `createNormalizedQuote` logic from the no-change branch (lines 789-825). This ensures the delivery fee is corrected even when a discount is applied.
+### UX
+- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
+- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
+- Botón "Agregar Widget" que abre el picker
+- Botón "Listo" para salir del modo edición
+- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
 
-**File: `src/hooks/useDashboardActions.tsx`** (~line 170, admin status change handler)
-- When admin changes status directly to `payment_pending` (bypassing shopper acceptance), add a recalculation guard that normalizes the quote with the correct `cityArea` before saving.
-
-### Immediate Data Fix
-- Use an edge function to correct the 3+ packages currently in active statuses with wrong delivery fees (Villa Canales Q60→Q45, Santa Catarina Pinula Q60→Q45, Mixco Q60→Q45, etc.).
+### Consideraciones técnicas
+- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
+- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
+- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
+- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
 

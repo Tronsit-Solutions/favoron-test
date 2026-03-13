@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { generateQuoteForAdminStatusChange } from "@/utils/adminQuoteGeneration";
+import { createNormalizedQuote } from "@/lib/quoteHelpers";
 import { 
   Settings, 
   FileText, 
@@ -188,13 +189,58 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
             delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
             delivery_fee_outside_city: fees.delivery_fee_outside_city,
             prime_delivery_discount: fees.prime_delivery_discount,
-          } : undefined
+          } : undefined,
+          destinationCountry: pkg.package_destination_country
         });
 
         updateData = {
           status: newStatus,
           ...quoteData
         };
+      }
+
+      // Guard: When admin moves to payment_pending, recalculate delivery fee if quote exists
+      if (newStatus === 'payment_pending' && pkg.quote && pkg.status !== 'matched') {
+        const currentQuote = pkg.quote as any;
+        const basePrice = parseFloat(currentQuote.price || '0');
+        const cityArea = (pkg.confirmed_delivery_address as any)?.cityArea;
+        
+        if (basePrice > 0) {
+          const recalculatedQuote = createNormalizedQuote(
+            basePrice,
+            pkg.delivery_method || 'pickup',
+            currentQuote.trustLevel || 'basic',
+            currentQuote.message || '',
+            true,
+            cityArea || pkg.package_destination,
+            fees ? { standard: fees.service_fee_rate_standard, prime: fees.service_fee_rate_prime } : undefined,
+            fees ? {
+              delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+              delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
+              delivery_fee_outside_city: fees.delivery_fee_outside_city,
+              prime_delivery_discount: fees.prime_delivery_discount,
+            } : undefined,
+            pkg.package_destination_country
+          );
+          
+          // Preserve discount data if present
+          const finalQuote: any = { ...recalculatedQuote };
+          if (currentQuote.discountCode) {
+            finalQuote.discountCode = currentQuote.discountCode;
+            finalQuote.discountCodeId = currentQuote.discountCodeId;
+            finalQuote.discountAmount = currentQuote.discountAmount;
+            finalQuote.originalTotalPrice = recalculatedQuote.totalPrice;
+            finalQuote.finalTotalPrice = recalculatedQuote.totalPrice - (currentQuote.discountAmount || 0);
+          }
+          
+          console.log('🔧 Admin→payment_pending: recalculated delivery fee', {
+            oldFee: currentQuote.deliveryFee,
+            newFee: recalculatedQuote.deliveryFee,
+            cityArea,
+          });
+          
+          updateData.quote = finalQuote;
+        }
       }
 
       const { error } = await supabase
