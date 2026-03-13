@@ -8,10 +8,25 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Users, Package, TrendingUp, Settings, ClipboardList, Building2, Ticket, DollarSign, MapPin, FlaskConical, UserPlus, Briefcase } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { NotificationBadge } from "@/components/ui/notification-badge";
 
 const AdminControl = () => {
   const { user, profile, userRole } = useAuth();
   const [isCreatingTestPackages, setIsCreatingTestPackages] = useState(false);
+  const [pendingReferrals, setPendingReferrals] = useState(0);
+  const [pendingApplications, setPendingApplications] = useState(0);
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      const [refRes, appRes] = await Promise.all([
+        supabase.from('referrals').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('job_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      ]);
+      setPendingReferrals(refRes.count ?? 0);
+      setPendingApplications(appRes.count ?? 0);
+    };
+    fetchCounts();
+  }, []);
 
 
   const handleCreateTestPackagesForTrip = async () => {
@@ -304,6 +319,7 @@ const AdminControl = () => {
                 <CardTitle className="flex items-center gap-2">
                   <UserPlus className="h-5 w-5" />
                   Programa de Referidos
+                  <NotificationBadge count={pendingReferrals} />
                 </CardTitle>
                 <CardDescription>
                   Configurar recompensas, descuentos y ver reporte de referidos
@@ -321,6 +337,7 @@ const AdminControl = () => {
                 <CardTitle className="flex items-center gap-2">
                   <Briefcase className="h-5 w-5" />
                   Aplicaciones
+                  <NotificationBadge count={pendingApplications} />
                 </CardTitle>
                 <CardDescription>
                   Gestionar solicitudes de "Trabaja con nosotros"
