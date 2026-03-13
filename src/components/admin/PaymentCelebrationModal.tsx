@@ -72,7 +72,7 @@ const PaymentCelebrationModal = ({
                   Pago completado
                 </p>
                 <h2 className="text-white text-lg font-bold mt-1">
-                  ¡Gracias por traer nuestros Favorones! 🧳
+                  ¡Gracias por traer Favorones! 🧳
                 </h2>
               </div>
 
