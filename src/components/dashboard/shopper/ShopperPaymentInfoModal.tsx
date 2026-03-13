@@ -19,13 +19,15 @@ interface ShopperPaymentInfoModalProps {
   onClose: () => void;
   pkg: Package;
   onUploadComplete: (updatedPkg: Package) => void;
+  onBackToQuote?: () => void;
 }
 
 export default function ShopperPaymentInfoModal({ 
   isOpen, 
   onClose, 
   pkg, 
-  onUploadComplete 
+  onUploadComplete,
+  onBackToQuote
 }: ShopperPaymentInfoModalProps) {
   const { toast } = useToast();
   const { account: bankAccount, loading: bankLoading } = useFavoronBankingInfo(pkg.id);
