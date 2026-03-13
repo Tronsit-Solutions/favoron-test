@@ -188,7 +188,8 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
             delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
             delivery_fee_outside_city: fees.delivery_fee_outside_city,
             prime_delivery_discount: fees.prime_delivery_discount,
-          } : undefined
+          } : undefined,
+          destinationCountry: pkg.package_destination_country
         });
 
         updateData = {
