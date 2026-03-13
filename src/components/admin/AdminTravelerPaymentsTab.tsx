@@ -822,14 +822,19 @@ const AdminTravelerPaymentsTab = () => {
                             <Package className="h-3 w-3" />
                             <span className="truncate flex-1">{pkg.item_description}</span>
                           </div>
-                          {productsArray.filter((product: any) => !product.cancelled).map((product: any, prodIndex: number) => {
+                          {(() => {
+                            const officeDelivery = pkg.office_delivery as any;
+                            const postOfficeStatuses = ['completed', 'ready_for_pickup', 'ready_for_delivery', 'out_for_delivery'];
+                            const packageConfirmed = postOfficeStatuses.includes(pkg.status || '') || 
+                              (pkg.status === 'delivered_to_office' && officeDelivery?.admin_confirmation);
+                            return productsArray.filter((product: any) => !product.cancelled).map((product: any, prodIndex: number) => {
                             const productTip = product.adminAssignedTip || 0;
                             const productDesc = product.itemDescription || product.item_description || product.description || `Producto ${prodIndex + 1}`;
                             
                             return (
                               <div key={`${pkg.id}-${prodIndex}`} className="flex justify-between items-center text-xs py-1 px-2 pl-4 bg-white/50 rounded border-b border-muted/20 last:border-b-0">
                                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                                  {product.receivedAtOffice ? (
+                                  {(product.receivedAtOffice || packageConfirmed) ? (
                                     <span title="Recibido en oficina"><CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0" /></span>
                                   ) : product.notArrived ? (
                                     <span title="No llegó"><XCircle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" /></span>
@@ -846,7 +851,8 @@ const AdminTravelerPaymentsTab = () => {
                                 </span>
                               </div>
                             );
-                          })}
+                          });
+                          })()}
                           {productsArray.filter((product: any) => product.cancelled).map((product: any, prodIndex: number) => {
                             const productDesc = product.itemDescription || product.item_description || product.description || `Producto ${prodIndex + 1}`;
                             return (
