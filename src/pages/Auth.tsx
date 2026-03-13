@@ -416,6 +416,8 @@ const Auth = () => {
       if (error) throw error;
       
       if (data.user) {
+        // Retry any pending referral before redirecting
+        retryPendingReferral(data.user.id);
         // Always redirect to production dashboard
         window.location.href = `${APP_URL}/dashboard`;
       }
