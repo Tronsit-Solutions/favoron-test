@@ -1072,11 +1072,11 @@ const Auth = () => {
                   <Label htmlFor="document-type">Tipo de documento</Label>
                   <Select onValueChange={setDocumentType}>
                     <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="DPI" />
+                      <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="DPI">DPI (Guatemala)</SelectItem>
-                      {/* Add more document types as needed */}
+                      <SelectItem value="ID">Documento de Identidad</SelectItem>
+                      <SelectItem value="Pasaporte">Pasaporte</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -324,7 +324,7 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="idNumber">DPI o Pasaporte *</Label>
+                <Label htmlFor="idNumber">Documento de identidad *</Label>
                 <div className="relative">
                   <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
