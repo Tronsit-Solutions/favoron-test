@@ -96,7 +96,7 @@ export const useReferredReward = () => {
   return { reward, loading };
 };
 
-export const registerReferral = async (referredUserId: string, referralCode: string) => {
+export const registerReferral = async (referredUserId: string, referralCode: string): Promise<{ success: boolean; error?: string; shouldRetry: boolean }> => {
   try {
     console.log('[Referral] Registering referral:', { referredUserId, referralCode });
     const { data, error } = await supabase.rpc('register_referral', {
@@ -106,12 +106,18 @@ export const registerReferral = async (referredUserId: string, referralCode: str
 
     if (error) {
       console.error('[Referral] RPC error:', error.message, error.details, error.hint);
-      throw error;
+      const isNetworkError = error.message?.includes('Load failed') || 
+                             error.message?.includes('Failed to fetch') ||
+                             error.message?.includes('NetworkError');
+      return { success: false, error: error.message, shouldRetry: isNetworkError };
     }
     console.log('[Referral] Registration result:', data);
-    return { success: !!data };
+    return { success: !!data, shouldRetry: false };
   } catch (err: any) {
     console.error('[Referral] Error registering referral:', err?.message || err);
-    return { success: false };
+    const isNetworkError = err?.message?.includes('Load failed') || 
+                           err?.message?.includes('Failed to fetch') ||
+                           err?.message?.includes('NetworkError');
+    return { success: false, error: err?.message, shouldRetry: isNetworkError };
   }
 };

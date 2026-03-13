@@ -1,32 +1,58 @@
 
 
-## Analysis
+## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
 
-**What happened with Larias Fucas**: Registered at 11:06 UTC. The `register_referral` function at that time still had the broken `(value)::numeric` cast (the fix migration was applied at 11:09). So the RPC crashed silently, no referral was created, and the frontend deleted the pending code from localStorage — no retry possible.
+### Concepto
+Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
 
-The DB function is now fixed and live. The problem is purely **frontend resilience**: if the RPC fails, the referral code is lost forever.
+### Widgets disponibles (componentes existentes)
+Del catálogo de charts y componentes ya construidos:
+1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
+2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
+3. **UserGrowthChart** — Crecimiento de usuarios
+4. **PackagesChart** — Gráfico de paquetes por mes
+5. **TripsChart** — Gráfico de viajes
+6. **RevenueChart** — Ingresos por servicio
+7. **GMVChart** — GMV mensual
+8. **ServiceFeeGrowthChart** — Crecimiento de service fees
+9. **AvgPackageValueChart** — Valor promedio por paquete
+10. **AcquisitionChart** — Canales de adquisición
+11. **AcquisitionSurveyTable** — Tabla de encuestas
+12. **TravelerTipsCard** — Propinas de viajeros
+13. **CACKPICards** — Unit Economics KPIs
+14. **FunnelChart** — Funnel de conversión
 
-**Larias's `referrer_name` = "luxi"** came from the acquisition survey (`submit_acquisition_survey`), not from the referral system. No referral record exists.
+### Cambios
 
-## Plan: Blindar el flujo de referidos
+**`src/components/Dashboard.tsx`**:
+- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
+- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
 
-### 1. Don't delete referral code on failure (`src/pages/Auth.tsx`)
-Currently lines 308-314: the code calls `registerReferral`, ignores the result, and always removes the localStorage keys. Change to:
-- Only remove `pending_referral_code` if `registerReferral` returns `{ success: true }`
-- If it fails, keep the code in localStorage for retry on next login
+**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
+- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
+- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
+- Catálogo de widgets con id, nombre, icono, y componente React
+- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
+- **Reordenar**: botones ↑/↓ en cada widget en modo edición
+- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
+- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
+- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
+- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
 
-### 2. Retry on login and dashboard load
-- **Auth.tsx `handleSignIn`**: After successful login, check for `pending_referral_code` in localStorage and attempt `registerReferral` again
-- **Dashboard or useAuth hook**: On app load with authenticated user, check for `pending_referral_code` and retry. This catches cases where user closes browser after failed signup referral and comes back later
+**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
+- Modal/popover que muestra los widgets no activos del catálogo
+- Click en uno lo agrega al final de `activeWidgets`
 
-### 3. Add retry with delay in signup flow (`src/pages/Auth.tsx`)
-After signup, wait 1-2 seconds before calling `registerReferral` (in case of any async profile creation timing). If it fails, retry once more after 3 seconds. Only clear localStorage on success.
+### UX
+- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
+- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
+- Botón "Agregar Widget" que abre el picker
+- Botón "Listo" para salir del modo edición
+- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
 
-### 4. Better error feedback in `registerReferral` (`src/hooks/useReferrals.tsx`)
-Return more detail: `{ success, error, shouldRetry }` so callers can decide whether to keep the code for later.
-
-### Files to modify
-- `src/pages/Auth.tsx` — signup handler (retry logic), signin handler (retry on login)
-- `src/hooks/useReferrals.tsx` — enhanced return type for `registerReferral`
-- Create a small utility `src/lib/referralRetry.ts` with the retry-with-delay logic, shared between signup and login flows
+### Consideraciones técnicas
+- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
+- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
+- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
+- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
 
