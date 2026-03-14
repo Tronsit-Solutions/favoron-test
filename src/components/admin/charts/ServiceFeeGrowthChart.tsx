@@ -85,6 +85,9 @@ export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
                 {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                 {isPositive ? '+' : ''}{momGrowth.toFixed(1)}% MoM
               </div>
+              <div className="text-xs text-muted-foreground">
+                ~{avgMomGrowth >= 0 ? '+' : ''}{avgMomGrowth.toFixed(1)}% Avg MoM
+              </div>
             </div>
           </div>
         </CardHeader>
