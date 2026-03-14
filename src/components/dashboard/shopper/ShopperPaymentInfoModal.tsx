@@ -541,7 +541,7 @@ export default function ShopperPaymentInfoModal({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => copyToClipboard(bankAccount.bank_name, "Nombre del banco")}
+                            onClick={() => handleCopyToClipboard(bankAccount.bank_name, "Nombre del banco")}
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
