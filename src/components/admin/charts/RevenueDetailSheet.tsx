@@ -17,7 +17,7 @@ interface LineItem {
   description: string;
   status: string;
   serviceFee: number;
-  type: "income" | "refund" | "prime";
+  type: "income" | "refund" | "prime" | "cancelled";
   labelNumber?: number | null;
 }
 
@@ -47,11 +47,11 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
         if (m > 12) { m = 1; y++; }
         const endDate = `${y}-${String(m).padStart(2, '0')}-01T06:00:00.000Z`;
 
-        // 1. Active packages created this month (Guatemala TZ range)
+        // 1. Active packages + cancelled/archived (for alignment with FinancialSummaryTable)
         const { data: activePkgs } = await supabase
           .from('packages')
-          .select('id, item_description, status, quote, label_number')
-          .in('status', ACTIVE_STATUSES)
+          .select('id, item_description, status, quote, label_number, payment_receipt, recurrente_payment_id')
+          .in('status', [...ACTIVE_STATUSES, 'cancelled', 'archived_by_shopper'])
           .gte('created_at', startDate)
           .lt('created_at', endDate);
 
@@ -79,6 +79,25 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
 
         // Process active packages
         (activePkgs || []).forEach(pkg => {
+          const isCancelled = pkg.status === 'cancelled' || pkg.status === 'archived_by_shopper';
+
+          if (isCancelled) {
+            // Only include cancelled packages with payment evidence (aligned with FinancialSummaryTable)
+            const receipt = pkg.payment_receipt as any;
+            const hasPaymentEvidence = !!(receipt?.receipt_url || pkg.recurrente_payment_id);
+            if (hasPaymentEvidence) {
+              items.push({
+                id: pkg.id,
+                description: pkg.item_description,
+                status: pkg.status,
+                serviceFee: 0,
+                type: "cancelled",
+                labelNumber: pkg.label_number,
+              });
+            }
+            return;
+          }
+
           const qv = getQuoteValues(pkg.quote);
           const sf = qv.serviceFee;
           if (sf > 0) {
@@ -249,9 +268,10 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
                             <span className={`text-xs px-2 py-1 rounded-full ${
                               item.type === 'income' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
                               item.type === 'refund' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                              item.type === 'cancelled' ? 'bg-gray-100 text-gray-500 dark:bg-gray-800/30 dark:text-gray-400' :
                               'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                             }`}>
-                              {item.type === 'income' ? 'Ingreso' : item.type === 'refund' ? 'Reembolso' : 'Prime'}
+                              {item.type === 'income' ? 'Ingreso' : item.type === 'refund' ? 'Reembolso' : item.type === 'cancelled' ? 'Cancelado' : 'Prime'}
                             </span>
                           </TableCell>
                           <TableCell className={`text-sm text-right font-mono ${
