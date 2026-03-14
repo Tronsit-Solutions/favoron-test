@@ -55,7 +55,7 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
   const isPrimeUser = user?.trustLevel === 'prime' || user?.trust_level === 'prime';
 
   return (
-    <header className="border-b bg-white sticky top-0 z-50" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+    <header className="border-b bg-background sticky top-0 z-50" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <div className="w-full px-4 py-3 sm:py-4 lg:px-8 xl:px-12 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <img 
