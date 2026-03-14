@@ -46,7 +46,7 @@ const TripPackagesGroup = ({
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-      <Card className={hasPendingActions ? "ring-1 ring-primary/30 shadow-md" : ""}>
+      <Card className={`w-full max-w-full min-w-0 box-border overflow-hidden ${hasPendingActions ? "ring-1 ring-inset ring-primary/30 shadow-md" : ""}`}>
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors pb-3">
             <div className="flex justify-between items-start">
