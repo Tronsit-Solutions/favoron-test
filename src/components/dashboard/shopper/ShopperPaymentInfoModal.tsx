@@ -13,6 +13,7 @@ import RecurrenteCheckout from "@/components/payment/RecurrenteCheckout";
 import ReferralCreditToggle from "@/components/payment/ReferralCreditToggle";
 import { Package } from "@/types";
 import { PartialDeliveryInfo } from "../PartialDeliveryInfo";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface ShopperPaymentInfoModalProps {
   isOpen: boolean;
@@ -92,13 +93,11 @@ export default function ShopperPaymentInfoModal({
     }
   };
 
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      toast({
-        title: "Copiado",
-        description: `${label} copiado al portapapeles`,
-      });
-    });
+  const handleCopyToClipboard = async (text: string, label: string) => {
+    const success = await copyToClipboard(text);
+    if (success) {
+      toast({ title: "Copiado", description: `${label} copiado al portapapeles` });
+    }
   };
 
   const handleUploadComplete = (updatedPkg: Package) => {
@@ -542,7 +541,7 @@ export default function ShopperPaymentInfoModal({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => copyToClipboard(bankAccount.bank_name, "Nombre del banco")}
+                            onClick={() => handleCopyToClipboard(bankAccount.bank_name, "Nombre del banco")}
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
@@ -556,7 +555,7 @@ export default function ShopperPaymentInfoModal({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => copyToClipboard(bankAccount.account_number, "Número de cuenta")}
+                            onClick={() => handleCopyToClipboard(bankAccount.account_number, "Número de cuenta")}
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
@@ -572,7 +571,7 @@ export default function ShopperPaymentInfoModal({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => copyToClipboard(bankAccount.account_holder, "Titular de la cuenta")}
+                            onClick={() => handleCopyToClipboard(bankAccount.account_holder, "Titular de la cuenta")}
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
@@ -586,7 +585,7 @@ export default function ShopperPaymentInfoModal({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => copyToClipboard(bankAccount.account_type, "Tipo de cuenta")}
+                            onClick={() => handleCopyToClipboard(bankAccount.account_type, "Tipo de cuenta")}
                           >
                             <Copy className="h-4 w-4" />
                           </Button>

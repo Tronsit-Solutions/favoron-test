@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { logAuthError, getEmailDomain } from "@/lib/authErrorLogger";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { APP_URL } from "@/lib/constants";
+import { copyToClipboard } from "@/lib/clipboard";
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -230,10 +231,10 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
 
   const handleCopyDetails = async () => {
     if (authError?.details) {
-      try {
-        await navigator.clipboard.writeText(authError.details);
+      const success = await copyToClipboard(authError.details);
+      if (success) {
         toast({ title: 'Copiado', description: 'Detalles copiados al portapapeles' });
-      } catch {}
+      }
     }
   };
 

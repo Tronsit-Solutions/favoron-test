@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, FileImage, X, CreditCard, Copy, CheckCircle } from "lucide-react";
 import { usePrimeMembership } from "@/hooks/usePrimeMembership";
 import { usePlatformFees } from "@/hooks/usePlatformFees";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface PrimePaymentModalProps {
   isOpen: boolean;
@@ -79,12 +80,11 @@ export default function PrimePaymentModal({ isOpen, onClose, onSuccess }: PrimeP
     }
   };
 
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: "Copiado",
-      description: `${label} copiado al portapapeles`,
-    });
+  const handleCopyToClipboard = async (text: string, label: string) => {
+    const success = await copyToClipboard(text);
+    if (success) {
+      toast({ title: "Copiado", description: `${label} copiado al portapapeles` });
+    }
   };
 
   const removeFile = () => {
@@ -125,7 +125,7 @@ export default function PrimePaymentModal({ isOpen, onClose, onSuccess }: PrimeP
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(favoronAccount.bank_name, "Banco")}
+                      onClick={() => handleCopyToClipboard(favoronAccount.bank_name, "Banco")}
                       className="h-6 w-8 p-0"
                     >
                       <Copy className="h-2.5 w-2.5" />
@@ -140,7 +140,7 @@ export default function PrimePaymentModal({ isOpen, onClose, onSuccess }: PrimeP
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(favoronAccount.account_holder, "Titular")}
+                      onClick={() => handleCopyToClipboard(favoronAccount.account_holder, "Titular")}
                       className="h-6 w-8 p-0"
                     >
                       <Copy className="h-2.5 w-2.5" />
@@ -155,7 +155,7 @@ export default function PrimePaymentModal({ isOpen, onClose, onSuccess }: PrimeP
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(favoronAccount.account_number, "Número de cuenta")}
+                      onClick={() => handleCopyToClipboard(favoronAccount.account_number, "Número de cuenta")}
                       className="h-6 w-8 p-0"
                     >
                       <Copy className="h-2.5 w-2.5" />
