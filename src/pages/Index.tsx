@@ -1,7 +1,8 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { Suspense, lazy, ComponentType, useEffect } from "react";
+import { Suspense, lazy, ComponentType, useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
@@ -33,6 +34,21 @@ const CTASection = lazyWithRetry(() => import("@/components/CTASection"));
 const Index = () => {
   const { user, profile, userRole, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const [nativeRedirecting, setNativeRedirecting] = useState(false);
+
+  // On native Capacitor app, skip landing page entirely
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      if (!loading) {
+        setNativeRedirecting(true);
+        if (user && profile) {
+          navigate('/dashboard', { replace: true });
+        } else {
+          navigate('/auth', { replace: true });
+        }
+      }
+    }
+  }, [user, profile, loading, navigate]);
 
   // Capture referral code immediately on landing
   useEffect(() => {
@@ -53,6 +69,11 @@ const Index = () => {
 
   // No blocking on auth - landing page renders immediately
   // User-specific content (NavBar, HeroSection) handles its own loading state
+
+  // On native, show nothing while redirecting
+  if (nativeRedirecting || (Capacitor.isNativePlatform() && loading)) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
