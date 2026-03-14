@@ -73,7 +73,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 
   return (
     <>
-    <Card key={trip.id} className="max-w-full overflow-hidden">
+    <Card key={trip.id} className="w-full max-w-full min-w-0 box-border overflow-hidden">
       {/* Rejection Reason Display */}
       {trip.status === 'rejected' && trip.rejection_reason && (
         <div className="bg-red-50 border-b border-red-200 px-4 py-3">

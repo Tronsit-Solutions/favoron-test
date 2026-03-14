@@ -1,50 +1,58 @@
 
-Objetivo: corregir de forma definitiva el overflow lateral (derecha) en tarjetas de pedidos/viajes en móvil, incluyendo el “borde” que se sale o se recorta.
 
-1) Diagnóstico (por qué sigue pasando)
-- El fix anterior se enfocó en `overflow-x-hidden` en contenedores padre y `px-0`, lo cual evita scroll horizontal pero también puede recortar bordes/rings.
-- En `CollapsiblePackageCard` hay estados con `ring-2` (ring externo) que visualmente parecen “overflow de borde” en pantallas estrechas.
-- Hay layouts móviles con columnas internas (`flex + ml + botones`) que todavía pueden empujar contenido al límite derecho.
+## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
 
-2) Cambios a implementar
+### Concepto
+Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
 
-A) `src/components/Dashboard.tsx`
-- En la sección de `packages` (y paralelo en `trips`), mantener ancho completo pero evitar clipping agresivo:
-  - Reemplazar `overflow-x-hidden` en wrappers de tabs/lista por una estrategia de contención sin recortar bordes (ajustar a `overflow-visible`/`overflow-x-clip` según el bloque).
-  - Añadir padding horizontal móvil consistente en el contenedor de lista (no `px-0` puro) para que el borde no toque el borde físico del viewport.
-  - Aplicar utilidades de safe-area horizontal (`mobile-safe-padding` o equivalente) en el contenedor de tarjetas.
+### Widgets disponibles (componentes existentes)
+Del catálogo de charts y componentes ya construidos:
+1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
+2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
+3. **UserGrowthChart** — Crecimiento de usuarios
+4. **PackagesChart** — Gráfico de paquetes por mes
+5. **TripsChart** — Gráfico de viajes
+6. **RevenueChart** — Ingresos por servicio
+7. **GMVChart** — GMV mensual
+8. **ServiceFeeGrowthChart** — Crecimiento de service fees
+9. **AvgPackageValueChart** — Valor promedio por paquete
+10. **AcquisitionChart** — Canales de adquisición
+11. **AcquisitionSurveyTable** — Tabla de encuestas
+12. **TravelerTipsCard** — Propinas de viajeros
+13. **CACKPICards** — Unit Economics KPIs
+14. **FunnelChart** — Funnel de conversión
 
-B) `src/components/dashboard/CollapsiblePackageCard.tsx`
-- Forzar caja segura móvil en raíz de la tarjeta:
-  - `w-full max-w-full min-w-0 box-border overflow-hidden`.
-- Corregir el “borde con overflow” en estados destacados:
-  - Cambiar rings externos a internos (`ring-inset`) en la variante verde (`delivered_to_office`), manteniendo el estilo visual sin desbordar.
-- Reforzar contenedores móviles internos críticos (header/acciones) con `min-w-0 max-w-full` para evitar empujes laterales por contenido largo.
+### Cambios
 
-C) Componentes similares (auditoría y ajuste)
-- `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`
-  - Mantener `w-full`, `box-border`, `overflow-hidden`.
-  - Cambiar `ring-1` a `ring-1 ring-inset` donde aplique.
-- `src/components/dashboard/TripCard.tsx`
-  - Asegurar `w-full min-w-0 box-border overflow-hidden` en card raíz.
-- Revisar cualquier card “highlighted” con ring en dashboard y unificar patrón “inset + full width + box-border”.
+**`src/components/Dashboard.tsx`**:
+- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
+- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
 
-3) Detalle técnico (resumen)
-- Patrón estándar para cards móviles:
-  - `w-full max-w-full min-w-0 box-border overflow-hidden`
-  - Sin widths fijos en móvil.
-  - Rings de énfasis con `ring-inset` para evitar “borde que se sale”.
-- Patrón de contenedor:
-  - Padding horizontal móvil consistente + safe area.
-  - Evitar depender solo de `overflow-x-hidden` para “ocultar” problemas.
+**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
+- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
+- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
+- Catálogo de widgets con id, nombre, icono, y componente React
+- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
+- **Reordenar**: botones ↑/↓ en cada widget en modo edición
+- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
+- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
+- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
+- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
 
-4) Validación (E2E)
-- Probar en viewport 390x797 (`/dashboard?tab=packages`) con:
-  - Tarjeta normal
-  - Tarjeta destacada en verde (`delivered_to_office`)
-  - Tarjeta con textos largos/estatus largo
-  - Menú de 3 puntos abierto/cerrado
-- Confirmar:
-  - No recorte del borde derecho
-  - No scroll horizontal
-  - Todo dentro del safe area
+**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
+- Modal/popover que muestra los widgets no activos del catálogo
+- Click en uno lo agrega al final de `activeWidgets`
+
+### UX
+- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
+- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
+- Botón "Agregar Widget" que abre el picker
+- Botón "Listo" para salir del modo edición
+- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
+
+### Consideraciones técnicas
+- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
+- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
+- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
+- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
+
