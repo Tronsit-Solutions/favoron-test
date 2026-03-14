@@ -17,7 +17,7 @@ interface LineItem {
   description: string;
   status: string;
   serviceFee: number;
-  type: "income" | "refund" | "prime";
+  type: "income" | "refund" | "prime" | "cancelled";
   labelNumber?: number | null;
 }
 
