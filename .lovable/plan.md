@@ -1,23 +1,23 @@
 
 
-## Add cancellation type indicator to refund detail modal
+## Fix scroll in refund detail modal
 
 ### Problem
-The refund detail modal doesn't clearly show whether the refund is for a full package cancellation or just individual products. This makes it confusing for admins reviewing refund orders.
+The `ScrollArea` inside the detail modal has `max-h-[calc(85vh-100px)]` but within a flex column layout, it doesn't get properly constrained — causing the content to overflow without scrolling.
 
-### How to distinguish
-- **Full package cancellation**: The `reason` field starts with "Cancelación completa:" and the `cancelled_products` array contains ALL products from the package. Also, the package status will be `cancelled`.
-- **Partial cancellation**: The `reason` doesn't have that prefix, and `cancelled_products` typically has fewer items.
+### Fix
 
-### Changes
+**`src/components/admin/AdminRefundsTab.tsx`** (line 289):
 
-**`src/components/admin/AdminRefundsTab.tsx`**:
+Change the ScrollArea from using `max-h` to using `flex-1 overflow-hidden min-h-0` so it properly fills the remaining space in the flex column and enables scrolling:
 
-1. In the detail modal, add a badge/indicator right after the shopper info showing:
-   - "Cancelación completa" (orange/red badge) if `reason` starts with "Cancelación completa" or `package.status === 'cancelled'`
-   - "Cancelación parcial (X de Y productos)" (yellow badge) otherwise — using `cancelled_products.length` vs total products from `package.products_data`
+```tsx
+// Before
+<ScrollArea className="max-h-[calc(85vh-100px)] pr-4">
 
-2. In the refund table rows, add a small type indicator in the Producto(s) column (e.g., a subtle badge or prefix) so admins can see at a glance without opening the detail
+// After  
+<ScrollArea className="flex-1 overflow-hidden min-h-0 pr-4">
+```
 
-3. The `useAdminRefundOrders` hook already fetches `packages.products_data`, so we can count total products from there to show "2 de 5 productos cancelados" for partial cancellations
+The key is `min-h-0` — in a flex column, children default to `min-height: auto` which prevents them from shrinking below their content size. Setting `min-h-0` allows the ScrollArea to shrink and activate its internal scrollbar.
 
