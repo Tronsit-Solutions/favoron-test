@@ -715,7 +715,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             )}
           </TabsContent>
 
-          <TabsContent value="trips" className="space-y-6">
+          <TabsContent value="trips" className="space-y-6 min-w-0 w-full max-w-full overflow-x-hidden">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
                 <h3 className="text-xl sm:text-2xl font-bold">Mis Viajes</h3>
