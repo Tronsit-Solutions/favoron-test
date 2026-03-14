@@ -1,58 +1,31 @@
 
 
-## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
+## Fix: Dropdown menu not respecting safe area insets
 
-### Concepto
-Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
+### Problem
+The header uses `sticky top-0`, so when it sticks, it positions at the very top of the viewport — behind the notch. The body padding pushes initial content down, but sticky positioning ignores parent padding and uses viewport coordinates. The dropdown menu (portaled) then also renders behind the notch.
 
-### Widgets disponibles (componentes existentes)
-Del catálogo de charts y componentes ya construidos:
-1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
-2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
-3. **UserGrowthChart** — Crecimiento de usuarios
-4. **PackagesChart** — Gráfico de paquetes por mes
-5. **TripsChart** — Gráfico de viajes
-6. **RevenueChart** — Ingresos por servicio
-7. **GMVChart** — GMV mensual
-8. **ServiceFeeGrowthChart** — Crecimiento de service fees
-9. **AvgPackageValueChart** — Valor promedio por paquete
-10. **AcquisitionChart** — Canales de adquisición
-11. **AcquisitionSurveyTable** — Tabla de encuestas
-12. **TravelerTipsCard** — Propinas de viajeros
-13. **CACKPICards** — Unit Economics KPIs
-14. **FunnelChart** — Funnel de conversión
+### Solution
+Add safe area padding directly to the sticky header element and adjust its `top` position, so both the header and its dropdown respect the safe area when stuck.
 
-### Cambios
+### Changes
 
-**`src/components/Dashboard.tsx`**:
-- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
-- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
+**`src/components/dashboard/DashboardHeader.tsx`** (line 63):
+- Change `className="border-b bg-white sticky top-0 z-50"` to include safe-area-aware top positioning and padding:
+  - Add inline style `top: env(safe-area-inset-top, 0px)` 
+  - Or use a CSS class
 
-**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
-- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
-- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
-- Catálogo de widgets con id, nombre, icono, y componente React
-- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
-- **Reordenar**: botones ↑/↓ en cada widget en modo edición
-- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
-- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
-- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
-- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
+**`src/index.css`**: 
+- Remove `padding-top` from `body` (to avoid double spacing)
+- Add a utility class `.sticky-safe-top` that sets `top: env(safe-area-inset-top, 0px)` and `padding-top: 0`
+- Keep `padding-bottom` on body for bottom safe area
 
-**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
-- Modal/popover que muestra los widgets no activos del catálogo
-- Click en uno lo agrega al final de `activeWidgets`
+Alternatively, simpler approach:
+- Keep body `padding-top` for non-sticky content pages
+- On the header: use `top: env(safe-area-inset-top, 0px)` via inline style and add a matching `padding-top` so the header itself extends into the safe area with a background color covering the notch area
 
-### UX
-- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
-- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
-- Botón "Agregar Widget" que abre el picker
-- Botón "Listo" para salir del modo edición
-- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
-
-### Consideraciones técnicas
-- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
-- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
-- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
-- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
+**Recommended approach**: 
+1. Remove `padding-top` from body
+2. On the header `<header>` element, add `pt-[env(safe-area-inset-top)]` via inline style: `style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}` and keep `sticky top-0` — this way the header fills the safe area with its white background
+3. For pages without the header, content will still be protected by the remaining safe area utilities
 
