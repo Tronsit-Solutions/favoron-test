@@ -156,11 +156,11 @@ const SupportBubble: React.FC = () => {
         ref={tabRef}
         onClick={() => setIsOpen((v) => !v)}
         className={cn(
-          "fixed right-0 top-1/2 -translate-y-1/2 z-40",
+          "fixed right-[max(8px,env(safe-area-inset-right))] top-1/2 -translate-y-1/2 z-40",
           "flex flex-col items-center justify-center gap-1",
-          "w-8 h-24 rounded-l-lg",
+          "w-7 sm:w-8 h-24 rounded-l-lg",
           "bg-primary text-primary-foreground shadow-md",
-          "hover:w-10 transition-all duration-200",
+          "hover:w-9 sm:hover:w-10 transition-all duration-200",
           "cursor-pointer"
         )}
         aria-label="Abrir soporte"
