@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Truck, ExternalLink, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface TrackingEvent {
   status?: string;

@@ -13,6 +13,7 @@ import ReferralCreditToggle from "@/components/payment/ReferralCreditToggle";
 import { Package } from "@/types";
 import { PartialDeliveryInfo } from "@/components/dashboard/PartialDeliveryInfo";
 import { supabase } from "@/integrations/supabase/client";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface QuotePaymentStepProps {
   pkg: Package;

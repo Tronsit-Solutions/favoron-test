@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Gift, Copy, CheckCircle, X, ArrowRight, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { APP_URL } from "@/lib/constants";
+import { copyToClipboard } from "@/lib/clipboard";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";

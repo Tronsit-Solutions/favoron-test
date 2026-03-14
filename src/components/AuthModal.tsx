@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { logAuthError, getEmailDomain } from "@/lib/authErrorLogger";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { APP_URL } from "@/lib/constants";
+import { copyToClipboard } from "@/lib/clipboard";
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;

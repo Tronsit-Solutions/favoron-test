@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, FileImage, X, CreditCard, Copy, CheckCircle } from "lucide-react";
 import { usePrimeMembership } from "@/hooks/usePrimeMembership";
 import { usePlatformFees } from "@/hooks/usePlatformFees";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface PrimePaymentModalProps {
   isOpen: boolean;
