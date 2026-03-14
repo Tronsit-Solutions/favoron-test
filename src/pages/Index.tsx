@@ -70,6 +70,11 @@ const Index = () => {
   // No blocking on auth - landing page renders immediately
   // User-specific content (NavBar, HeroSection) handles its own loading state
 
+  // On native, show nothing while redirecting
+  if (nativeRedirecting || (Capacitor.isNativePlatform() && loading)) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
       <NavBar 
