@@ -314,6 +314,28 @@ const AdminRefundsTab = () => {
                 </div>
               </div>
 
+              {/* Cancellation type indicator */}
+              {(() => {
+                const isFullCancellation = selectedRefund.reason?.startsWith('Cancelación completa') || selectedRefund.package?.status === 'cancelled';
+                const totalProducts = Array.isArray(selectedRefund.package?.products_data) ? selectedRefund.package.products_data.length : 0;
+                const cancelledCount = selectedRefund.cancelled_products?.length || 0;
+                return (
+                  <div>
+                    {isFullCancellation ? (
+                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">
+                        <XCircle className="h-3 w-3 mr-1" />
+                        Cancelación completa del pedido
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+                        <Clock className="h-3 w-3 mr-1" />
+                        Cancelación parcial ({cancelledCount} de {totalProducts} productos)
+                      </Badge>
+                    )}
+                  </div>
+                );
+              })()}
+
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Datos Bancarios</p>
                 <div className="bg-muted p-3 rounded-lg text-sm space-y-1">
