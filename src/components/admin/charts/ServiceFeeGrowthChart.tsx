@@ -34,6 +34,17 @@ export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
   const momGrowth = Math.abs(prevMonth) > 0 ? ((lastMonth - prevMonth) / Math.abs(prevMonth)) * 100 : 0;
   const isPositive = momGrowth >= 0;
 
+  // Average MoM growth across all months with data
+  const momRates: number[] = [];
+  for (let i = 1; i < chartData.length; i++) {
+    const prev = chartData[i - 1].displayRevenue;
+    const curr = chartData[i].displayRevenue;
+    if (Math.abs(prev) > 0) {
+      momRates.push(((curr - prev) / Math.abs(prev)) * 100);
+    }
+  }
+  const avgMomGrowth = momRates.length > 0 ? momRates.reduce((a, b) => a + b, 0) / momRates.length : 0;
+
   const hasData = chartData.some(d => d.displayRevenue !== 0);
 
   if (!hasData) {
