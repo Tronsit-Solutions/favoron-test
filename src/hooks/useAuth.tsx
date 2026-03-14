@@ -362,9 +362,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     });
 
+    // Set up Capacitor deep link handler for native OAuth callbacks
+    const cleanupDeepLink = setupDeepLinkHandler(supabase, navigate);
+
     return () => {
       console.log('🧹 Cleaning up auth subscription');
       subscription.unsubscribe();
+      cleanupDeepLink();
     };
   }, []);
 
