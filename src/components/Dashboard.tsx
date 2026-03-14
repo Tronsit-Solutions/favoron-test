@@ -509,13 +509,13 @@ const Dashboard = ({ user }: DashboardProps) => {
           onViewModeChange={handleViewModeChange}
         />
 
-      <div className="container mx-auto mobile-container py-4 sm:py-6 lg:py-8 max-w-full overflow-x-hidden">
+      <div className="container mx-auto mobile-container py-2 sm:py-6 lg:py-8 max-w-full overflow-x-hidden">
         <PhoneNumberBannerSection />
         
         
         {activeTab !== 'profile' && (
-          <div className="mb-6 sm:mb-8">
-            <h2 className={`text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-2 ${
+          <div className="mb-2 sm:mb-6">
+            <h2 className={`text-lg sm:text-3xl font-bold mb-1 sm:mb-2 flex items-center gap-2 ${
               (currentUser?.trust_level === 'prime' || (currentUser?.prime_expires_at && new Date(currentUser.prime_expires_at) > new Date())) 
                 ? 'text-purple-600' 
                 : ''
@@ -530,7 +530,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           </div>
         )}
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 sm:space-y-6">
           {activeTab !== 'profile' && (
             <TabsList className={cn(
               "w-full h-auto min-h-10 grid",

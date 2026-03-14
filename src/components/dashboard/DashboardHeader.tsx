@@ -55,8 +55,8 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
   const isPrimeUser = user?.trustLevel === 'prime' || user?.trust_level === 'prime';
 
   return (
-    <header className="border-b bg-white sticky top-0 z-50" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-      <div className="w-full px-4 py-3 sm:py-4 lg:px-8 xl:px-12 flex justify-between items-center">
+    <header className="border-b bg-background sticky top-0 z-50" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+      <div className="w-full px-3 py-2 sm:px-4 sm:py-4 lg:px-8 xl:px-12 flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <img 
             src="/lovable-uploads/b4ea91c2-1974-4a3d-b9b6-c538aa52daa7.png" 
@@ -76,37 +76,35 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
             <Home className="h-4 w-4" />
           </Button>
           
-          {/* Botón prominente para usuarios con rol admin u operations */}
+          {/* Admin/Operations buttons - hidden on mobile, shown in dropdown instead */}
           {(user.role === 'operations' || user.role === 'admin') && (
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => navigate('/operations')}
-              className="flex items-center bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
+              className="hidden sm:flex items-center bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
             >
               <Package className="h-4 w-4" />
             </Button>
           )}
           
-          {/* Botón de WhatsApp para admins */}
           {user.role === 'admin' && (
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => navigate('/admin/whatsapp')}
-              className="flex items-center bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+              className="hidden sm:flex items-center bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
             >
               <MessageCircle className="h-4 w-4" />
             </Button>
           )}
           
-          {/* Botón de Control Admin */}
           {user.role === 'admin' && (
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => navigate('/admin/control')}
-              className="flex items-center bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+              className="hidden sm:flex items-center bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
             >
               <Settings className="h-4 w-4" />
             </Button>
@@ -115,7 +113,7 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
           <NotificationDropdown userId={user.id} userRole={user.role} />
           
           {user.role === 'admin' && onShowUserManagement && (
-            <Button variant="outline" size="sm" onClick={onShowUserManagement}>
+            <Button variant="outline" size="sm" onClick={onShowUserManagement} className="hidden sm:flex">
               <Users className="h-4 w-4" />
             </Button>
           )}
@@ -148,6 +146,31 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
                 <User className="h-4 w-4 mr-2" />
                 Mi Perfil
               </DropdownMenuItem>
+              {/* Mobile-only admin shortcuts */}
+              {(user.role === 'operations' || user.role === 'admin') && (
+                <DropdownMenuItem onClick={() => navigate('/operations')} className="sm:hidden">
+                  <Package className="h-4 w-4 mr-2" />
+                  Operaciones
+                </DropdownMenuItem>
+              )}
+              {user.role === 'admin' && (
+                <>
+                  <DropdownMenuItem onClick={() => navigate('/admin/whatsapp')} className="sm:hidden">
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    WhatsApp
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/admin/control')} className="sm:hidden">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Control Admin
+                  </DropdownMenuItem>
+                </>
+              )}
+              {user.role === 'admin' && onShowUserManagement && (
+                <DropdownMenuItem onClick={onShowUserManagement} className="sm:hidden">
+                  <Users className="h-4 w-4 mr-2" />
+                  Usuarios
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               {user.role === 'admin' && onViewModeChange && (
                 <>
