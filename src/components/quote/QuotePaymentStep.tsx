@@ -461,7 +461,7 @@ export default function QuotePaymentStep({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => copyToClipboard(bankAccount.account_holder, "Titular de la cuenta")}
+                        onClick={() => handleCopyToClipboard(bankAccount.account_holder, "Titular de la cuenta")}
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
