@@ -1,7 +1,8 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { Suspense, lazy, ComponentType, useEffect } from "react";
+import { Suspense, lazy, ComponentType, useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
