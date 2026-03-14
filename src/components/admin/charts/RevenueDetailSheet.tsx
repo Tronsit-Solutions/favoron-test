@@ -79,6 +79,25 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
 
         // Process active packages
         (activePkgs || []).forEach(pkg => {
+          const isCancelled = pkg.status === 'cancelled' || pkg.status === 'archived_by_shopper';
+
+          if (isCancelled) {
+            // Only include cancelled packages with payment evidence (aligned with FinancialSummaryTable)
+            const receipt = pkg.payment_receipt as any;
+            const hasPaymentEvidence = !!(receipt?.receipt_url || pkg.recurrente_payment_id);
+            if (hasPaymentEvidence) {
+              items.push({
+                id: pkg.id,
+                description: pkg.item_description,
+                status: pkg.status,
+                serviceFee: 0,
+                type: "cancelled",
+                labelNumber: pkg.label_number,
+              });
+            }
+            return;
+          }
+
           const qv = getQuoteValues(pkg.quote);
           const sf = qv.serviceFee;
           if (sf > 0) {
