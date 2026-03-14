@@ -9,6 +9,7 @@ import {
   stopSessionSecurity, 
   SensitiveOperationLimiter 
 } from '@/lib/sessionSecurity';
+import { setupDeepLinkHandler } from '@/lib/capacitorAuth';
 
 interface UiPreferences {
   skip_package_intro?: boolean;
