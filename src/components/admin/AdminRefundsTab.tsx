@@ -286,7 +286,7 @@ const AdminRefundsTab = () => {
             <DialogTitle>Detalle de Reembolso</DialogTitle>
           </DialogHeader>
           {selectedRefund && (
-            <ScrollArea className="max-h-[calc(85vh-100px)] pr-4">
+            <ScrollArea className="flex-1 overflow-hidden min-h-0 pr-4">
               <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
