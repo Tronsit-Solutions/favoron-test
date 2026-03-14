@@ -125,7 +125,7 @@ export default function PrimePaymentModal({ isOpen, onClose, onSuccess }: PrimeP
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(favoronAccount.bank_name, "Banco")}
+                      onClick={() => handleCopyToClipboard(favoronAccount.bank_name, "Banco")}
                       className="h-6 w-8 p-0"
                     >
                       <Copy className="h-2.5 w-2.5" />
