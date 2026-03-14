@@ -509,7 +509,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           onViewModeChange={handleViewModeChange}
         />
 
-      <div className="container mx-auto mobile-container py-4 sm:py-6 lg:py-8 max-w-full overflow-x-hidden">
+      <div className="container mx-auto mobile-container py-2 sm:py-6 lg:py-8 max-w-full overflow-x-hidden">
         <PhoneNumberBannerSection />
         
         
