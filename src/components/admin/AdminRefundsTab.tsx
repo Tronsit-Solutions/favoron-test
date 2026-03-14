@@ -131,6 +131,20 @@ const AdminRefundsTab = () => {
               </TableCell>
               <TableCell>
                 <div className="max-w-[250px]">
+                  {(() => {
+                    const isFullCancellation = refund.reason?.startsWith('Cancelación completa') || refund.package?.status === 'cancelled';
+                    const totalProducts = Array.isArray(refund.package?.products_data) ? refund.package.products_data.length : 0;
+                    const cancelledCount = refund.cancelled_products?.length || 0;
+                    return (
+                      <p className="text-xs font-medium mb-0.5">
+                        {isFullCancellation ? (
+                          <span className="text-destructive">Completa</span>
+                        ) : (
+                          <span className="text-yellow-600">Parcial ({cancelledCount} de {totalProducts})</span>
+                        )}
+                      </p>
+                    );
+                  })()}
                   {refund.cancelled_products?.map((p: any, i: number) => {
                     const productName = p.description || p.itemDescription || 'Producto';
                     const qty = p.quantity && p.quantity > 1 ? ` (x${p.quantity})` : '';
@@ -299,6 +313,28 @@ const AdminRefundsTab = () => {
                   <p className="text-xl font-bold text-green-600">{formatCurrency(selectedRefund.amount)}</p>
                 </div>
               </div>
+
+              {/* Cancellation type indicator */}
+              {(() => {
+                const isFullCancellation = selectedRefund.reason?.startsWith('Cancelación completa') || selectedRefund.package?.status === 'cancelled';
+                const totalProducts = Array.isArray(selectedRefund.package?.products_data) ? selectedRefund.package.products_data.length : 0;
+                const cancelledCount = selectedRefund.cancelled_products?.length || 0;
+                return (
+                  <div>
+                    {isFullCancellation ? (
+                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">
+                        <XCircle className="h-3 w-3 mr-1" />
+                        Cancelación completa del pedido
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+                        <Clock className="h-3 w-3 mr-1" />
+                        Cancelación parcial ({cancelledCount} de {totalProducts} productos)
+                      </Badge>
+                    )}
+                  </div>
+                );
+              })()}
 
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Datos Bancarios</p>
