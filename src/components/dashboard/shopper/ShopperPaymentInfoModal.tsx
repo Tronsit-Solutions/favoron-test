@@ -13,6 +13,7 @@ import RecurrenteCheckout from "@/components/payment/RecurrenteCheckout";
 import ReferralCreditToggle from "@/components/payment/ReferralCreditToggle";
 import { Package } from "@/types";
 import { PartialDeliveryInfo } from "../PartialDeliveryInfo";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface ShopperPaymentInfoModalProps {
   isOpen: boolean;
