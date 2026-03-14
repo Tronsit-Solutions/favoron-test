@@ -146,6 +146,31 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
                 <User className="h-4 w-4 mr-2" />
                 Mi Perfil
               </DropdownMenuItem>
+              {/* Mobile-only admin shortcuts */}
+              {(user.role === 'operations' || user.role === 'admin') && (
+                <DropdownMenuItem onClick={() => navigate('/operations')} className="sm:hidden">
+                  <Package className="h-4 w-4 mr-2" />
+                  Operaciones
+                </DropdownMenuItem>
+              )}
+              {user.role === 'admin' && (
+                <>
+                  <DropdownMenuItem onClick={() => navigate('/admin/whatsapp')} className="sm:hidden">
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    WhatsApp
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/admin/control')} className="sm:hidden">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Control Admin
+                  </DropdownMenuItem>
+                </>
+              )}
+              {user.role === 'admin' && onShowUserManagement && (
+                <DropdownMenuItem onClick={onShowUserManagement} className="sm:hidden">
+                  <Users className="h-4 w-4 mr-2" />
+                  Usuarios
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               {user.role === 'admin' && onViewModeChange && (
                 <>
