@@ -571,10 +571,14 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     setAuthError(null);
     try {
+      const isNative = typeof window !== 'undefined' && 
+        'Capacitor' in window && 
+        (window as any).Capacitor?.isNativePlatform?.();
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${APP_URL}/dashboard`
+          redirectTo: isNative ? 'favoron://auth/callback' : `${APP_URL}/dashboard`
         }
       });
 

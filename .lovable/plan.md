@@ -1,44 +1,58 @@
 
 
-## Handle Supabase Auth Callback via Capacitor Deep Links
+## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
 
-### What this does
-On native Capacitor apps, OAuth redirects (Google sign-in) open the system browser. When the auth completes, Supabase redirects to a deep link (`favoron://auth/callback`). We need to intercept that deep link using the Capacitor App plugin and exchange the auth code for a session inside the app.
+### Concepto
+Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
 
-For email/password sign-in, no deep link handling is needed (it works inline). The main change is for OAuth flows.
+### Widgets disponibles (componentes existentes)
+Del catálogo de charts y componentes ya construidos:
+1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
+2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
+3. **UserGrowthChart** — Crecimiento de usuarios
+4. **PackagesChart** — Gráfico de paquetes por mes
+5. **TripsChart** — Gráfico de viajes
+6. **RevenueChart** — Ingresos por servicio
+7. **GMVChart** — GMV mensual
+8. **ServiceFeeGrowthChart** — Crecimiento de service fees
+9. **AvgPackageValueChart** — Valor promedio por paquete
+10. **AcquisitionChart** — Canales de adquisición
+11. **AcquisitionSurveyTable** — Tabla de encuestas
+12. **TravelerTipsCard** — Propinas de viajeros
+13. **CACKPICards** — Unit Economics KPIs
+14. **FunnelChart** — Funnel de conversión
 
-### Changes
+### Cambios
 
-**1. Install `@capacitor/app`**
-Required for listening to `appUrlOpen` events (deep link interception).
+**`src/components/Dashboard.tsx`**:
+- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
+- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
 
-**2. Create `src/lib/capacitorAuth.ts`** -- Deep link handler utility
-- Import `App` from `@capacitor/app` and `Capacitor` from `@capacitor/core`
-- Export a `setupDeepLinkHandler(supabase, navigate)` function that:
-  - Only runs on native (`Capacitor.isNativePlatform()`)
-  - Listens for `appUrlOpen` events
-  - Parses the URL for auth callback parameters (code, access_token, refresh_token)
-  - If a `code` param is found, calls `supabase.auth.exchangeCodeForSession(code)`
-  - If tokens are found directly, calls `supabase.auth.setSession()`
-  - On success, navigates to `/dashboard`
-- Returns a cleanup function to remove the listener
+**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
+- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
+- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
+- Catálogo de widgets con id, nombre, icono, y componente React
+- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
+- **Reordenar**: botones ↑/↓ en cada widget en modo edición
+- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
+- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
+- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
+- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
 
-**3. Update `src/hooks/useAuth.tsx`**
-- Import and call `setupDeepLinkHandler` inside the existing `useEffect` that sets up the auth listener
-- Pass `supabase` and `navigate` to it
-- Clean up on unmount
+**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
+- Modal/popover que muestra los widgets no activos del catálogo
+- Click en uno lo agrega al final de `activeWidgets`
 
-**4. Update `handleGoogleSignIn` in `src/pages/Auth.tsx` and `src/components/AuthModal.tsx`**
-- When on native platform, change the `redirectTo` to `favoron://auth/callback` instead of `APP_URL/dashboard`
-- Use `skipBrowserRedirect: false` (default) so Supabase opens the browser for OAuth
+### UX
+- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
+- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
+- Botón "Agregar Widget" que abre el picker
+- Botón "Listo" para salir del modo edición
+- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
 
-**5. Create `capacitor.config.ts`**
-- Configure the app with the correct `appId`, `appName`, and `webDir`
-- Add the server URL for dev hot-reload
-- Note: The user will need to configure the `favoron://` URL scheme in their native project's `Info.plist` (iOS) and `AndroidManifest.xml` (Android)
-
-### Post-implementation notes for the user
-- Add `favoron` as a URL scheme in iOS `Info.plist` and Android `AndroidManifest.xml`
-- Add `favoron://auth/callback` as an allowed redirect URL in Supabase Dashboard > Auth > URL Configuration
-- Run `npx cap sync` after pulling changes
+### Consideraciones técnicas
+- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
+- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
+- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
+- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
 

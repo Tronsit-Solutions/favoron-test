@@ -178,7 +178,11 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
 
   const handleGoogleSignIn = async () => {
     try {
-      const redirectUrl = `${APP_URL}/`;
+      const isNative = typeof window !== 'undefined' && 
+        'Capacitor' in window && 
+        (window as any).Capacitor?.isNativePlatform?.();
+      
+      const redirectUrl = isNative ? 'favoron://auth/callback' : `${APP_URL}/`;
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

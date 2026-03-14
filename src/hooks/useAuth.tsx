@@ -9,6 +9,7 @@ import {
   stopSessionSecurity, 
   SensitiveOperationLimiter 
 } from '@/lib/sessionSecurity';
+import { setupDeepLinkHandler } from '@/lib/capacitorAuth';
 
 interface UiPreferences {
   skip_package_intro?: boolean;
@@ -361,9 +362,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     });
 
+    // Set up Capacitor deep link handler for native OAuth callbacks
+    const cleanupDeepLink = setupDeepLinkHandler(supabase, navigate);
+
     return () => {
       console.log('🧹 Cleaning up auth subscription');
       subscription.unsubscribe();
+      cleanupDeepLink();
     };
   }, []);
 
