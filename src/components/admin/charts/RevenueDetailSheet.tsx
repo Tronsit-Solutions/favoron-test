@@ -268,9 +268,10 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
                             <span className={`text-xs px-2 py-1 rounded-full ${
                               item.type === 'income' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
                               item.type === 'refund' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                              item.type === 'cancelled' ? 'bg-gray-100 text-gray-500 dark:bg-gray-800/30 dark:text-gray-400' :
                               'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                             }`}>
-                              {item.type === 'income' ? 'Ingreso' : item.type === 'refund' ? 'Reembolso' : 'Prime'}
+                              {item.type === 'income' ? 'Ingreso' : item.type === 'refund' ? 'Reembolso' : item.type === 'cancelled' ? 'Cancelado' : 'Prime'}
                             </span>
                           </TableCell>
                           <TableCell className={`text-sm text-right font-mono ${
