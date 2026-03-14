@@ -131,6 +131,20 @@ const AdminRefundsTab = () => {
               </TableCell>
               <TableCell>
                 <div className="max-w-[250px]">
+                  {(() => {
+                    const isFullCancellation = refund.reason?.startsWith('Cancelación completa') || refund.package?.status === 'cancelled';
+                    const totalProducts = Array.isArray(refund.package?.products_data) ? refund.package.products_data.length : 0;
+                    const cancelledCount = refund.cancelled_products?.length || 0;
+                    return (
+                      <p className="text-xs font-medium mb-0.5">
+                        {isFullCancellation ? (
+                          <span className="text-destructive">Completa</span>
+                        ) : (
+                          <span className="text-yellow-600">Parcial ({cancelledCount} de {totalProducts})</span>
+                        )}
+                      </p>
+                    );
+                  })()}
                   {refund.cancelled_products?.map((p: any, i: number) => {
                     const productName = p.description || p.itemDescription || 'Producto';
                     const qty = p.quantity && p.quantity > 1 ? ` (x${p.quantity})` : '';
