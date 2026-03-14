@@ -47,11 +47,11 @@ export const RevenueDetailSheet = ({ month, onClose }: RevenueDetailSheetProps) 
         if (m > 12) { m = 1; y++; }
         const endDate = `${y}-${String(m).padStart(2, '0')}-01T06:00:00.000Z`;
 
-        // 1. Active packages created this month (Guatemala TZ range)
+        // 1. Active packages + cancelled/archived (for alignment with FinancialSummaryTable)
         const { data: activePkgs } = await supabase
           .from('packages')
-          .select('id, item_description, status, quote, label_number')
-          .in('status', ACTIVE_STATUSES)
+          .select('id, item_description, status, quote, label_number, payment_receipt, recurrente_payment_id')
+          .in('status', [...ACTIVE_STATUSES, 'cancelled', 'archived_by_shopper'])
           .gte('created_at', startDate)
           .lt('created_at', endDate);
 
