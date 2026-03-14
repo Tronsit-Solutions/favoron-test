@@ -509,7 +509,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           onViewModeChange={handleViewModeChange}
         />
 
-      <div className="container mx-auto mobile-container py-2 sm:py-6 lg:py-8 max-w-full overflow-x-hidden">
+      <div className="container mx-auto mobile-container py-2 sm:py-6 lg:py-8 max-w-full overflow-x-hidden box-border">
         <PhoneNumberBannerSection />
         
         
@@ -530,7 +530,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           </div>
         )}
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 sm:space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 sm:space-y-6 min-w-0 w-full max-w-full overflow-hidden">
           {activeTab !== 'profile' && (
             <TabsList className={cn(
               "w-full h-auto min-h-10 grid",
@@ -715,7 +715,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             )}
           </TabsContent>
 
-          <TabsContent value="trips" className="space-y-6">
+          <TabsContent value="trips" className="space-y-6 min-w-0 w-full max-w-full overflow-x-hidden">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
                 <h3 className="text-xl sm:text-2xl font-bold">Mis Viajes</h3>
@@ -790,7 +790,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                               />
                               {/* Nested assigned packages for this trip */}
                               {tripPackages.length > 0 && (
-                                <div className="ml-2 sm:ml-4 border-l-2 border-primary/20 pl-3 sm:pl-4 space-y-3">
+                                <div className="ml-1 sm:ml-4 border-l-2 border-primary/20 pl-2 sm:pl-4 space-y-3 min-w-0 max-w-full overflow-hidden">
                                   <p className="text-sm font-medium text-muted-foreground">
                                     📦 {tripPackages.length} paquete{tripPackages.length !== 1 ? 's' : ''} asignado{tripPackages.length !== 1 ? 's' : ''}
                                   </p>
