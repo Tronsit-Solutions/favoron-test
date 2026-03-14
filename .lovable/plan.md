@@ -1,58 +1,41 @@
 
 
-## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
+## Optimización del Dashboard para iPhone
 
-### Concepto
-Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
+### Problemas detectados
 
-### Widgets disponibles (componentes existentes)
-Del catálogo de charts y componentes ya construidos:
-1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
-2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
-3. **UserGrowthChart** — Crecimiento de usuarios
-4. **PackagesChart** — Gráfico de paquetes por mes
-5. **TripsChart** — Gráfico de viajes
-6. **RevenueChart** — Ingresos por servicio
-7. **GMVChart** — GMV mensual
-8. **ServiceFeeGrowthChart** — Crecimiento de service fees
-9. **AvgPackageValueChart** — Valor promedio por paquete
-10. **AcquisitionChart** — Canales de adquisición
-11. **AcquisitionSurveyTable** — Tabla de encuestas
-12. **TravelerTipsCard** — Propinas de viajeros
-13. **CACKPICards** — Unit Economics KPIs
-14. **FunnelChart** — Funnel de conversión
+1. **Header saturado**: Para admins hay 7+ botones en la barra (Home, Operations, WhatsApp, Settings, Notifications, Users, Profile). En iPhone se amontonan.
+2. **Saludo ocupa mucho espacio vertical**: "¡Hola, Administrador! 👋" con `text-2xl` y `mb-6` consume espacio valioso en pantalla pequeña.
+3. **QuickActions siempre apiladas en móvil**: Las cards de "Solicitar Favorón" y "Registrar Viaje" son altas con header + description + button, ocupando ~300px.
+4. **Padding excesivo**: `py-4` en el container + `mb-6` del saludo + `space-y-6` en tabs = mucho espacio perdido.
 
-### Cambios
+### Cambios propuestos
 
-**`src/components/Dashboard.tsx`**:
-- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
-- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
+**`src/components/dashboard/DashboardHeader.tsx`**
+- En móvil, agrupar los botones secundarios de admin (Operations, WhatsApp, Settings, Users) dentro del DropdownMenu del perfil, dejando solo Logo + Home + Notifications + Avatar visibles.
+- Reducir `py-3` a `py-2` en móvil.
 
-**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
-- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
-- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
-- Catálogo de widgets con id, nombre, icono, y componente React
-- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
-- **Reordenar**: botones ↑/↓ en cada widget en modo edición
-- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
-- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
-- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
-- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
+**`src/components/Dashboard.tsx`**
+- Reducir el saludo: de `text-2xl` a `text-xl` en móvil, reducir `mb-6` a `mb-3`.
+- Reducir `py-4` del container a `py-2` en móvil.
 
-**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
-- Modal/popover que muestra los widgets no activos del catálogo
-- Click en uno lo agrega al final de `activeWidgets`
+**`src/components/dashboard/QuickActions.tsx`**
+- En móvil, hacer las cards más compactas: ocultar `CardDescription`, reducir padding, mostrar solo icono + botón en una sola fila por card.
 
-### UX
-- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
-- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
-- Botón "Agregar Widget" que abre el picker
-- Botón "Listo" para salir del modo edición
-- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
+### Detalle técnico
 
-### Consideraciones técnicas
-- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
-- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
-- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
-- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
+**DashboardHeader** - Mover botones admin a dropdown en móvil:
+```
+Visible en móvil: [Logo] [Home] [Notifications] [Avatar▾]
+Dentro del dropdown: Operations, WhatsApp, Settings, Users (solo en móvil)
+```
+
+**Dashboard greeting** - Reducir espacio:
+- `mb-6 sm:mb-8` → `mb-2 sm:mb-6`
+- `text-2xl sm:text-3xl` → `text-lg sm:text-3xl`
+- `py-4 sm:py-6` → `py-2 sm:py-6`
+
+**QuickActions** - Layout compacto en móvil:
+- Usar 2 columnas en móvil con cards mínimas (icono + botón, sin descripción)
+- O convertir en 2 botones horizontales sin cards
 
