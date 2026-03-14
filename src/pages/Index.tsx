@@ -34,6 +34,21 @@ const CTASection = lazyWithRetry(() => import("@/components/CTASection"));
 const Index = () => {
   const { user, profile, userRole, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const [nativeRedirecting, setNativeRedirecting] = useState(false);
+
+  // On native Capacitor app, skip landing page entirely
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      if (!loading) {
+        setNativeRedirecting(true);
+        if (user && profile) {
+          navigate('/dashboard', { replace: true });
+        } else {
+          navigate('/auth', { replace: true });
+        }
+      }
+    }
+  }, [user, profile, loading, navigate]);
 
   // Capture referral code immediately on landing
   useEffect(() => {
