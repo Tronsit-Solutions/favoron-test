@@ -530,7 +530,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           </div>
         )}
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 sm:space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 sm:space-y-6 min-w-0 w-full max-w-full overflow-hidden">
           {activeTab !== 'profile' && (
             <TabsList className={cn(
               "w-full h-auto min-h-10 grid",
