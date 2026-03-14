@@ -18,23 +18,23 @@ export const setupDeepLinkHandler = (
 
   console.log('📱 Setting up Capacitor deep link handler for auth callbacks');
 
-  const handle = App.addListener('appUrlOpen', async (event: URLOpenListenerEvent) => {
+  let listenerHandle: { remove: () => void } | null = null;
+
+  App.addListener('appUrlOpen', async (event: URLOpenListenerEvent) => {
     console.log('📱 Deep link received:', event.url);
 
     try {
       const url = new URL(event.url);
 
-      // Only handle auth callback URLs
       if (!url.pathname.includes('/auth/callback') && !url.host.includes('auth/callback')) {
         console.log('📱 Ignoring non-auth deep link');
         return;
       }
 
-      // Check for authorization code (PKCE flow)
       const code = url.searchParams.get('code');
       if (code) {
         console.log('📱 Found auth code, exchanging for session...');
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) {
           console.error('📱 Error exchanging code for session:', error);
           return;
@@ -44,12 +44,11 @@ export const setupDeepLinkHandler = (
         return;
       }
 
-      // Check for tokens directly (implicit flow fallback)
       const accessToken = url.searchParams.get('access_token');
       const refreshToken = url.searchParams.get('refresh_token');
       if (accessToken && refreshToken) {
         console.log('📱 Found tokens directly, setting session...');
-        const { data, error } = await supabase.auth.setSession({
+        const { error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
@@ -62,7 +61,6 @@ export const setupDeepLinkHandler = (
         return;
       }
 
-      // Check for error
       const errorParam = url.searchParams.get('error');
       if (errorParam) {
         console.error('📱 Auth callback error:', errorParam, url.searchParams.get('error_description'));
@@ -73,10 +71,12 @@ export const setupDeepLinkHandler = (
     } catch (error) {
       console.error('📱 Error handling deep link:', error);
     }
+  }).then(handle => {
+    listenerHandle = handle;
   });
 
   return () => {
     console.log('📱 Removing deep link listener');
-    handle.remove();
+    listenerHandle?.remove();
   };
 };
