@@ -34,6 +34,17 @@ export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
   const momGrowth = Math.abs(prevMonth) > 0 ? ((lastMonth - prevMonth) / Math.abs(prevMonth)) * 100 : 0;
   const isPositive = momGrowth >= 0;
 
+  // Average MoM growth across all months with data
+  const momRates: number[] = [];
+  for (let i = 1; i < chartData.length; i++) {
+    const prev = chartData[i - 1].displayRevenue;
+    const curr = chartData[i].displayRevenue;
+    if (Math.abs(prev) > 0) {
+      momRates.push(((curr - prev) / Math.abs(prev)) * 100);
+    }
+  }
+  const avgMomGrowth = momRates.length > 0 ? momRates.reduce((a, b) => a + b, 0) / momRates.length : 0;
+
   const hasData = chartData.some(d => d.displayRevenue !== 0);
 
   if (!hasData) {
@@ -73,6 +84,9 @@ export const ServiceFeeGrowthChart = ({ data }: ServiceFeeGrowthChartProps) => {
               <div className={`flex items-center gap-1 text-sm ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
                 {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                 {isPositive ? '+' : ''}{momGrowth.toFixed(1)}% MoM
+              </div>
+              <div className="text-xs text-muted-foreground">
+                ~{avgMomGrowth >= 0 ? '+' : ''}{avgMomGrowth.toFixed(1)}% Avg MoM
               </div>
             </div>
           </div>
