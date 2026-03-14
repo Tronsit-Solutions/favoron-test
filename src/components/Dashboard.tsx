@@ -790,7 +790,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                               />
                               {/* Nested assigned packages for this trip */}
                               {tripPackages.length > 0 && (
-                                <div className="ml-2 sm:ml-4 border-l-2 border-primary/20 pl-3 sm:pl-4 space-y-3">
+                                <div className="ml-1 sm:ml-4 border-l-2 border-primary/20 pl-2 sm:pl-4 space-y-3 min-w-0 max-w-full overflow-hidden">
                                   <p className="text-sm font-medium text-muted-foreground">
                                     📦 {tripPackages.length} paquete{tripPackages.length !== 1 ? 's' : ''} asignado{tripPackages.length !== 1 ? 's' : ''}
                                   </p>
