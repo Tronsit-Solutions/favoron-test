@@ -4,6 +4,7 @@ import { Gift, Copy, CheckCircle, Handshake } from "lucide-react";
 import { useReferrals } from "@/hooks/useReferrals";
 import { useToast } from "@/hooks/use-toast";
 import { APP_URL } from "@/lib/constants";
+import { copyToClipboard } from "@/lib/clipboard";
 import { supabase } from "@/integrations/supabase/client";
 
 const ReferralBanner = () => {

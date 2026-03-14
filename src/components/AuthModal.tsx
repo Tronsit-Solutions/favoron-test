@@ -230,10 +230,10 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
 
   const handleCopyDetails = async () => {
     if (authError?.details) {
-      try {
-        await navigator.clipboard.writeText(authError.details);
+      const success = await copyToClipboard(authError.details);
+      if (success) {
         toast({ title: 'Copiado', description: 'Detalles copiados al portapapeles' });
-      } catch {}
+      }
     }
   };
 

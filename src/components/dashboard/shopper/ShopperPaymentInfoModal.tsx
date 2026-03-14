@@ -92,13 +92,11 @@ export default function ShopperPaymentInfoModal({
     }
   };
 
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      toast({
-        title: "Copiado",
-        description: `${label} copiado al portapapeles`,
-      });
-    });
+  const handleCopyToClipboard = async (text: string, label: string) => {
+    const success = await copyToClipboard(text);
+    if (success) {
+      toast({ title: "Copiado", description: `${label} copiado al portapapeles` });
+    }
   };
 
   const handleUploadComplete = (updatedPkg: Package) => {

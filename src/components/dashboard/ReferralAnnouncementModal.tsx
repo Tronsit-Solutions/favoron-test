@@ -68,12 +68,12 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
 
   const handleCopy = async () => {
     if (!referralLink) return;
-    try {
-      await navigator.clipboard.writeText(shareMessage);
+    const success = await copyToClipboard(shareMessage);
+    if (success) {
       setCopied(true);
       toast({ title: "¡Link copiado!", description: "Compártelo con tus amigos" });
       setTimeout(() => setCopied(false), 2000);
-    } catch {
+    } else {
       toast({ title: "Error", description: "No se pudo copiar", variant: "destructive" });
     }
   };

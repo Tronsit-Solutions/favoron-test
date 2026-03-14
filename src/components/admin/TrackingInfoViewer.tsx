@@ -54,10 +54,10 @@ export default function TrackingInfoViewer({ trackingInfo, className }: Tracking
 
   const handleCopy = async () => {
     if (!trackingNumber) return;
-    try {
-      await navigator.clipboard.writeText(trackingNumber);
+    const success = await copyToClipboard(trackingNumber);
+    if (success) {
       toast({ title: "Copiado", description: "Número de seguimiento copiado" });
-    } catch (_) {
+    } else {
       toast({ title: "Error", description: "No se pudo copiar", variant: "destructive" });
     }
   };

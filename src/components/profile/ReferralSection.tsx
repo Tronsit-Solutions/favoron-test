@@ -35,10 +35,10 @@ const ReferralSection = () => {
   const shareMessage = `¡Únete a Favorón con mi link de referido y recibe un descuento de Q${discountAmount} en tu primer pedido! ${referralLink}`;
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(shareMessage);
+    const success = await copyToClipboard(shareMessage);
+    if (success) {
       toast({ title: "¡Mensaje copiado!", description: "Compártelo con tus amigos" });
-    } catch {
+    } else {
       toast({ title: "Error", description: "No se pudo copiar", variant: "destructive" });
     }
   };
