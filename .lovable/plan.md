@@ -1,58 +1,41 @@
 
 
-## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
+## Crear orden de cobro faltante para Melanie Spencer
 
-### Concepto
-Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
+### Diagnóstico
+- Trip `101c5277` (Fort Worth → Guatemala City) tiene 9 paquetes, de los cuales 4 fueron cancelados y 5 entregados.
+- La orden de pago completada (`f9aa009d`, Q360) cubrió solo 4 paquetes.
+- **Paquete faltante**: `287f9fcc` — "crema para el cuerpo, tamaño mini + perfume mini para el pelo" — status `delivered_to_office`, tip Q50. No fue incluido en el pago original.
 
-### Widgets disponibles (componentes existentes)
-Del catálogo de charts y componentes ya construidos:
-1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
-2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
-3. **UserGrowthChart** — Crecimiento de usuarios
-4. **PackagesChart** — Gráfico de paquetes por mes
-5. **TripsChart** — Gráfico de viajes
-6. **RevenueChart** — Ingresos por servicio
-7. **GMVChart** — GMV mensual
-8. **ServiceFeeGrowthChart** — Crecimiento de service fees
-9. **AvgPackageValueChart** — Valor promedio por paquete
-10. **AcquisitionChart** — Canales de adquisición
-11. **AcquisitionSurveyTable** — Tabla de encuestas
-12. **TravelerTipsCard** — Propinas de viajeros
-13. **CACKPICards** — Unit Economics KPIs
-14. **FunnelChart** — Funnel de conversión
+### Acción
+Insertar una nueva `payment_order` pendiente por **Q50** con:
+- Mismos datos bancarios (Banco Promerica, cuenta 32996620151368, ahorros)
+- `historical_packages` con snapshot del paquete `287f9fcc` y sus 2 productos
+- Status `pending` para que el admin la procese
 
-### Cambios
-
-**`src/components/Dashboard.tsx`**:
-- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
-- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
-
-**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
-- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
-- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
-- Catálogo de widgets con id, nombre, icono, y componente React
-- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
-- **Reordenar**: botones ↑/↓ en cada widget en modo edición
-- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
-- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
-- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
-- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
-
-**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
-- Modal/popover que muestra los widgets no activos del catálogo
-- Click en uno lo agrega al final de `activeWidgets`
-
-### UX
-- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
-- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
-- Botón "Agregar Widget" que abre el picker
-- Botón "Listo" para salir del modo edición
-- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
-
-### Consideraciones técnicas
-- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
-- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
-- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
-- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
+### SQL (migración)
+```sql
+INSERT INTO payment_orders (
+  traveler_id, trip_id, amount,
+  bank_name, bank_account_holder, bank_account_number, bank_account_type,
+  status, payment_type, historical_packages
+) VALUES (
+  'a19a9275-7b82-496c-bc6e-32773033391a',
+  '101c5277-b798-4ab6-a800-d2a62f14b8f9',
+  50,
+  'Banco Promerica', 'Melanie Spencer', '32996620151368', 'ahorros',
+  'pending', 'trip_payment',
+  '[{
+    "package_id": "287f9fcc-fd4d-4da9-804d-5c447c1b83cc",
+    "item_description": "Pedido de 2 productos: crema para el cuerpo, tamaño mini, perfume mini para el pelo",
+    "admin_assigned_tip": 50,
+    "status": "delivered_to_office",
+    "quote": {"adminAssignedTipAccepted":true,"deliveryFee":0,"price":50,"serviceFee":25,"totalPrice":75},
+    "products_data": [
+      {"adminAssignedTip":25,"estimatedPrice":16,"itemDescription":"crema para el cuerpo, tamaño mini","quantity":1,"requestType":"online"},
+      {"adminAssignedTip":25,"estimatedPrice":25,"itemDescription":"perfume mini para el pelo","quantity":1,"requestType":"online"}
+    ]
+  }]'::jsonb
+);
+```
 
