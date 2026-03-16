@@ -38,6 +38,7 @@ interface MatchCardProps {
   onAdminConfirmOfficeDelivery: () => void;
   onConfirmShopperReceived: () => void;
   onOpenActionsModal?: (packageId: string) => void;
+  onOpenMatchDialog?: (pkg: any) => void;
   unreadCount?: number;
   hasMessages?: boolean;
   assignmentInfo?: { count: number; assignments: any[] };
