@@ -1367,6 +1367,26 @@ const CollapsiblePackageCard = ({
           </div>
         </DialogContent>
       </Dialog>
+      {/* Multi-Quote Selection Modal */}
+      <Dialog open={showMultiQuoteModal} onOpenChange={setShowMultiQuoteModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" />
+              Cotizaciones recibidas
+            </DialogTitle>
+          </DialogHeader>
+          {multiAssignments && onAcceptMultiAssignmentQuote && (
+            <MultiQuoteSelector
+              assignments={multiAssignments}
+              onAcceptQuote={async (assignmentId) => {
+                await onAcceptMultiAssignmentQuote(pkg.id, assignmentId);
+                setShowMultiQuoteModal(false);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
       {/* Status Detail Modal (Mobile) */}
       <Dialog open={showStatusModal} onOpenChange={setShowStatusModal}>
         <DialogContent className="max-w-sm">
