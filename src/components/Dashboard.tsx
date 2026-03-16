@@ -323,9 +323,11 @@ const Dashboard = ({ user }: DashboardProps) => {
   // === Shopper-side: fetch multi-assignments for user's own packages ===
   useEffect(() => {
     const fetchShopperAssignments = async () => {
-      // Find packages owned by this user that are in matched status with no matched_trip_id (multi-assignment)
+      // Find packages owned by this user that are multi-assignment (no matched_trip_id)
+      // Include both 'matched' and 'quote_sent' status — the latter covers packages where
+      // the old code incorrectly set package-level status to quote_sent
       const multiMatchedPkgIds = userPackages
-        .filter(p => p.status === 'matched' && !p.matched_trip_id)
+        .filter(p => ['matched', 'quote_sent'].includes(p.status) && !p.matched_trip_id)
         .map(p => p.id);
       
       if (multiMatchedPkgIds.length === 0) {

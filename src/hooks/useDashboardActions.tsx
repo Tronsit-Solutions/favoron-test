@@ -396,12 +396,35 @@ export const useDashboardActions = (
               delivery_fee_outside_city: fees.delivery_fee_outside_city,
               prime_delivery_discount: fees.prime_delivery_discount,
             }, selectedPackage.package_destination_country);
-            await updatePackage(selectedPackage.id, {
-              status: 'quote_sent',
-              quote: normalizedQuoteData,
-              traveler_address: travelerAddress,
-              matched_trip_dates: matchedTripDates
-            });
+            
+            // Multi-assignment: write to package_assignments, keep package status as matched
+            if (selectedPackage._isMultiAssignment && selectedPackage._assignmentId) {
+              console.log('⚡ Multi-assignment quote: updating assignment', selectedPackage._assignmentId);
+              const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+              const { error: assignError } = await supabase
+                .from('package_assignments')
+                .update({
+                  status: 'quote_sent',
+                  quote: normalizedQuoteData,
+                  traveler_address: travelerAddress,
+                  matched_trip_dates: matchedTripDates,
+                  quote_expires_at: expiresAt,
+                })
+                .eq('id', selectedPackage._assignmentId);
+              
+              if (assignError) {
+                console.error('❌ Failed to update assignment:', assignError);
+                throw assignError;
+              }
+            } else {
+              // Single-assignment: update package directly (existing behavior)
+              await updatePackage(selectedPackage.id, {
+                status: 'quote_sent',
+                quote: normalizedQuoteData,
+                traveler_address: travelerAddress,
+                matched_trip_dates: matchedTripDates
+              });
+            }
             
             // 📱 Enviar notificación WhatsApp al shopper
             if (selectedPackage.user_id) {
