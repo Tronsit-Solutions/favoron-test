@@ -180,6 +180,9 @@ const ActiveMatchesTab = ({
         return new Set(allStatuses);
       }
       const next = new Set([...prev].filter(s => allStatuses.includes(s)));
+      allStatuses.forEach(s => {
+        if (!next.has(s)) next.add(s);
+      });
       return next;
     });
   }, [allStatuses]);
