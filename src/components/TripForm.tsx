@@ -91,10 +91,10 @@ const TripForm = ({
   );
 
   // Wizard step state - ahora persistido en formState
-  const currentStep = formState.currentStep ?? 0;
+  const currentStep = formState.currentStep ?? 1;
   const setCurrentStep = (step: number | ((prev: number) => number)) => {
     if (typeof step === 'function') {
-      setFormState(prev => ({ ...prev, currentStep: step(prev.currentStep ?? 0) }));
+      setFormState(prev => ({ ...prev, currentStep: step(prev.currentStep ?? 1) }));
     } else {
       updateField('currentStep', step);
     }
