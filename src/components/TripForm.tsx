@@ -490,7 +490,6 @@ const TripForm = ({
     }
     setShowOnboarding(false);
   };
-  );
 
   // Progress indicator component - now clickable for free navigation
   const StepIndicator = () => (
