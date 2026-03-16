@@ -1219,6 +1219,8 @@ const CollapsiblePackageCard = ({
                       onQuote={onQuote}
                       onDeletePackage={onDeletePackage}
                       onRequestRequote={onRequestRequote}
+                      multiAssignments={multiAssignments}
+                      onShowMultiQuotes={() => setShowMultiQuoteModal(true)}
                     />
                   </div>
                 </div>

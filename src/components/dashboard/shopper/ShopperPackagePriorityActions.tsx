@@ -215,13 +215,36 @@ const ShopperPackagePriorityActions = ({
             onClick: () => setShowRescheduleDialog(true)
           }
         };
-      case 'matched':
+      case 'matched': {
+        const quotesReceived = multiAssignments?.filter(a => a.status === 'quote_sent') || [];
+        const totalAssignments = multiAssignments?.length || 0;
+
+        if (quotesReceived.length > 0) {
+          return {
+            icon: CreditCard,
+            title: `⚡ Cotizaciones recibidas (${quotesReceived.length})`,
+            description: `Has recibido ${quotesReceived.length} cotización${quotesReceived.length > 1 ? 'es' : ''} de viajeros. Compáralas y elige la mejor opción.`,
+            button: {
+              text: `Ver Cotizaciones (${quotesReceived.length})`,
+              onClick: () => onShowMultiQuotes?.()
+            }
+          };
+        }
+        if (totalAssignments > 1) {
+          return {
+            icon: Clock,
+            title: `⚡ Compitiendo (${totalAssignments} viajeros)`,
+            description: "Tu paquete fue asignado a varios viajeros. Esperando que envíen sus cotizaciones.",
+            button: null
+          };
+        }
         return {
           icon: Package2,
           title: "👥 Asignado a viajero",
           description: "Tu paquete fue asignado a un viajero. Pronto recibirás una cotización.",
           button: null
         };
+      }
       case 'approved':
         if (isDeadlineExpired) {
           return {
