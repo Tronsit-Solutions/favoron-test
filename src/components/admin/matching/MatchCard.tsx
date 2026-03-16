@@ -455,6 +455,11 @@ export const MatchCard = ({
                       <Settings className="h-3 w-3" />
                     </Button>
                   )}
+                  {onOpenMatchDialog && pkg.status === 'matched' && (
+                    <Button size="sm" variant="outline" onClick={() => onOpenMatchDialog(pkg)} className="px-2" title="Asignar más viajeros">
+                      <Users className="h-3 w-3" />
+                    </Button>
+                  )}
                   
                   {/* Label Generation Button for Desktop */}
                   {canGenerateLabel && (
