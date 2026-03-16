@@ -721,9 +721,9 @@ const [editForm, setEditForm] = useState({
       };
       
       onUpdatePackage(pkg.id, updates);
+      refetchPackageDetails();
     }
     setEditMode(false);
-    closeModal(modalId);
   };
 
   // Handle inline notes save (quick edit without full modal edit mode)
