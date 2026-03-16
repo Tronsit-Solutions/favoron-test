@@ -18,7 +18,8 @@ import {
   Star,
   Tag,
   PackageCheck,
-  Ban
+  Ban,
+  Users
 } from "lucide-react";
 import { MatchStatusBadge, getStatusInfo } from "./MatchStatusBadge";
 import QuoteCountdown from "../../dashboard/QuoteCountdown";
