@@ -102,14 +102,54 @@ const AdminMatchingTab = ({
     cleanupOldQuotes();
   }, []);
 
+  // Fetch package_assignments for multi-assigned packages
+  const [assignmentsMap, setAssignmentsMap] = useState<{ [packageId: string]: { count: number; assignments: any[] } }>({});
+  
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('package_assignments')
+          .select('id, package_id, trip_id, status, quote, admin_assigned_tip, traveler_address, matched_trip_dates, products_data')
+          .not('status', 'eq', 'rejected');
+
+        if (error) throw error;
+        if (data) {
+          const map: { [packageId: string]: { count: number; assignments: any[] } } = {};
+          data.forEach(assignment => {
+            if (!map[assignment.package_id]) {
+              map[assignment.package_id] = { count: 0, assignments: [] };
+            }
+            map[assignment.package_id].count++;
+            map[assignment.package_id].assignments.push(assignment);
+          });
+          setAssignmentsMap(map);
+        }
+      } catch (err) {
+        console.warn('Error fetching package assignments:', err);
+      }
+    };
+    fetchAssignments();
+  }, [packages]);
+
+  // Multi-assigned package IDs (packages with assignments but no matched_trip_id)
+  const multiAssignedPackageIds = useMemo(() => {
+    const ids = new Set<string>();
+    packages.forEach(pkg => {
+      if (!pkg.matched_trip_id && assignmentsMap[pkg.id] && assignmentsMap[pkg.id].count > 0) {
+        ids.add(pkg.id);
+      }
+    });
+    return ids;
+  }, [packages, assignmentsMap]);
+
   // Calculate stats
   const approvedPackages = packages.filter(p => p.status === 'approved');
   const rejectedQuotes = packages.filter(p => p.status === 'quote_rejected');
-  const pendingRequests = [...approvedPackages, ...rejectedQuotes];
+  const pendingRequests = [...approvedPackages, ...rejectedQuotes].filter(p => !multiAssignedPackageIds.has(p.id));
   const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
   const activeMatches = packages.filter(pkg => {
-    // Include ALL packages with a matched trip, regardless of status or expiration
-    return pkg.matched_trip_id !== null && pkg.matched_trip_id !== undefined;
+    return (pkg.matched_trip_id !== null && pkg.matched_trip_id !== undefined) || multiAssignedPackageIds.has(pkg.id);
   });
   const pendingPayments = packages.filter(pkg => 
     pkg.status === 'payment_pending_approval' && pkg.payment_receipt
