@@ -1391,8 +1391,10 @@ export const useDashboardActions = (
           }
         }
         // Special handling for status change from "matched" to "quote_sent"
+        // Unified: now uses package_assignments flow (handled by AdminActionsModal)
+        // This path should not be reached for new matches, but keep as legacy fallback
         else if (currentPackage?.status === 'matched' && status === 'quote_sent') {
-          console.log('🔄 Admin changing status from matched to quote_sent, generating quote...');
+          console.log('🔄 handleStatusUpdate: matched→quote_sent - redirecting to assignment-based flow');
           
           // Check if we have admin_assigned_tip
           if (!currentPackage.admin_assigned_tip || currentPackage.admin_assigned_tip <= 0) {
@@ -1404,12 +1406,59 @@ export const useDashboardActions = (
             return;
           }
 
-          try {
-            // Import quote helper
-            const { createNormalizedQuote } = await import('@/lib/quoteHelpers');
-            const { supabase } = await import('@/integrations/supabase/client');
+          // Check for assignments first (unified path)
+          const { data: assignments, error: assignErr } = await supabase
+            .from('package_assignments')
+            .select('*')
+            .eq('package_id', id)
+            .in('status', ['pending']);
 
-            // Fetch shopper's profile to get trust level
+          if (!assignErr && assignments && assignments.length > 0) {
+            // Has assignments: generate quotes for each
+            for (const assignment of assignments) {
+              const tipToUse = assignment.admin_assigned_tip || currentPackage.admin_assigned_tip;
+              
+              const quoteData = await generateQuoteForAdminStatusChange({
+                packageId: id,
+                currentPackage: { ...currentPackage, admin_assigned_tip: tipToUse },
+                trips: trips,
+                adminAssignedTip: tipToUse,
+                overrideTripId: assignment.trip_id,
+                rates,
+                fees: fees ? {
+                  delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+                  delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
+                  delivery_fee_outside_city: fees.delivery_fee_outside_city,
+                  prime_delivery_discount: fees.prime_delivery_discount,
+                } : undefined,
+                destinationCountry: currentPackage.package_destination_country
+              });
+
+              await supabase
+                .from('package_assignments')
+                .update({
+                  status: 'quote_sent',
+                  quote: quoteData.quote as any,
+                  traveler_address: quoteData.traveler_address as any,
+                  matched_trip_dates: quoteData.matched_trip_dates as any,
+                  quote_expires_at: quoteData.quote_expires_at,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', assignment.id);
+            }
+
+            // Don't change package status - stays 'matched'
+            toast({
+              title: "Cotizaciones enviadas",
+              description: `Se enviaron cotizaciones a ${assignments.length} viajero(s).`,
+            });
+            return;
+          }
+
+          // Legacy fallback: no assignments exist, update package directly
+          try {
+            const { createNormalizedQuote } = await import('@/lib/quoteHelpers');
+            
             const { data: shopperProfile, error: profileError } = await supabase
               .from('profiles')
               .select('trust_level')
@@ -1417,24 +1466,16 @@ export const useDashboardActions = (
               .single();
 
             if (profileError) {
-              console.error('Error fetching shopper profile:', profileError);
-              toast({
-                title: "Error",
-                description: "No se pudo obtener el perfil del comprador.",
-                variant: "destructive",
-              });
+              toast({ title: "Error", description: "No se pudo obtener el perfil del comprador.", variant: "destructive" });
               return;
             }
 
-            // Fetch matched trip details for address and dates
             let travelerAddress = null;
             let matchedTripDates = null;
 
             if (currentPackage.matched_trip_id) {
               const matchedTrip = trips.find(trip => trip.id === currentPackage.matched_trip_id);
-              
               if (matchedTrip) {
-                // Build traveler address from trip data
                 travelerAddress = matchedTrip.package_receiving_address ? {
                   recipientName: matchedTrip.package_receiving_address.recipientName,
                   streetAddress: matchedTrip.package_receiving_address.streetAddress,
@@ -1444,8 +1485,6 @@ export const useDashboardActions = (
                   hotelAirbnbName: matchedTrip.package_receiving_address.hotelAirbnbName,
                   accommodationType: matchedTrip.package_receiving_address.accommodationType
                 } : null;
-
-                // Build trip dates information
                 matchedTripDates = {
                   first_day_packages: matchedTrip.first_day_packages,
                   last_day_packages: matchedTrip.last_day_packages,
@@ -1455,39 +1494,30 @@ export const useDashboardActions = (
               }
             }
 
-            // Generate quote using admin_assigned_tip as base price
             const confirmedAddress = currentPackage.confirmed_delivery_address as any;
             const cityArea = confirmedAddress?.cityArea;
-
             const normalizedQuote = createNormalizedQuote(
               currentPackage.admin_assigned_tip,
               currentPackage.delivery_method || 'pickup',
               shopperProfile.trust_level,
               `Cotización generada automáticamente por admin`,
-              true, // adminAssignedTipAccepted
+              true,
               cityArea || currentPackage.package_destination,
               rates,
-              fees,  // pass dynamic delivery fees
+              fees,
               currentPackage.package_destination_country
             );
 
-            // Update package with quote, address, and dates
             updateData = {
               status,
               quote: normalizedQuote,
               traveler_address: travelerAddress,
               matched_trip_dates: matchedTripDates,
-              quote_expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString() // 48 hours from now
+              quote_expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
             };
-
-            console.log('📊 Generated quote:', normalizedQuote);
           } catch (quoteError) {
             console.error('Error generating quote:', quoteError);
-            toast({
-              title: "Error",
-              description: "No se pudo generar la cotización automáticamente.",
-              variant: "destructive",
-            });
+            toast({ title: "Error", description: "No se pudo generar la cotización automáticamente.", variant: "destructive" });
             return;
           }
         }
