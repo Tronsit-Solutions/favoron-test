@@ -1634,11 +1634,19 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     </Dialog>
   );
 
-  if (editMode) {
-    return renderPackageForm();
-  }
-
-  return renderPackageForm();
+  return (
+    <>
+      {renderPackageForm()}
+      <OnboardingBottomSheet
+        isOpen={showOnboarding}
+        onContinue={handleOnboardingContinue}
+        onClose={() => setShowOnboarding(false)}
+        slides={shopperOnboardingSlides}
+        gradientClassName="from-primary via-primary/80 to-primary/60"
+        variant="shopper"
+      />
+    </>
+  );
 };
 
 export default PackageRequestForm;
