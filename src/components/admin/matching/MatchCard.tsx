@@ -40,6 +40,7 @@ interface MatchCardProps {
   onOpenActionsModal?: (packageId: string) => void;
   unreadCount?: number;
   hasMessages?: boolean;
+  assignmentInfo?: { count: number; assignments: any[] };
 }
 
 export const MatchCard = ({
@@ -55,7 +56,8 @@ export const MatchCard = ({
   onConfirmShopperReceived,
   onOpenActionsModal,
   unreadCount = 0,
-  hasMessages = false
+  hasMessages = false,
+  assignmentInfo
 }: MatchCardProps) => {
   const isMobile = useIsMobile();
   const [isAdminConfirming, setIsAdminConfirming] = useState(false);
@@ -215,6 +217,11 @@ export const MatchCard = ({
                 </div>
                 <h4 className={`font-medium ${isMobile ? "text-base" : "text-sm"}`}>{getProductsDisplayTitle()}</h4>
                 <MatchStatusBadge status={pkg.status} />
+                {assignmentInfo && assignmentInfo.count > 0 && !pkg.matched_trip_id && (
+                  <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-300">
+                    ⚡ Compitiendo ({assignmentInfo.count}pax)
+                  </Badge>
+                )}
                 {pkg.label_number && (
                   <Badge variant="outline" className="text-xs font-mono bg-orange-50 text-orange-700 border-orange-300">
                     🏷️ #{pkg.label_number}
@@ -257,11 +264,15 @@ export const MatchCard = ({
                       )}
                     </span>
                   </div>
-                  {matchedTrip && (
+                  {matchedTrip ? (
                     <div className="flex items-center space-x-2">
                       <span>🤝 {getTravelerName()} ✈️</span>
                     </div>
-                  )}
+                  ) : assignmentInfo && assignmentInfo.count > 0 ? (
+                    <div className="flex items-center space-x-2">
+                      <span>🤝 {assignmentInfo.count} viajeros asignados ✈️</span>
+                    </div>
+                  ) : null}
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-primary text-base">${pkg.estimated_price}</span>
                     <span>📅 {new Date(pkg.updated_at).toLocaleDateString('es-GT')}</span>
@@ -276,11 +287,15 @@ export const MatchCard = ({
                         <Star className="h-3 w-3 text-purple-500 fill-purple-500" />
                       </span>
                     )}
-                    {matchedTrip && (
+                    {matchedTrip ? (
                       <>
                         {' '} 🤝 {getTravelerName()} ✈️
                       </>
-                    )}
+                    ) : assignmentInfo && assignmentInfo.count > 0 ? (
+                      <>
+                        {' '} 🤝 {assignmentInfo.count} viajeros asignados ✈️
+                      </>
+                    ) : null}
                   </span>
                   <span className="font-medium text-primary">${pkg.estimated_price}</span>
                   <span>📅 {new Date(pkg.updated_at).toLocaleDateString('es-GT')}</span>

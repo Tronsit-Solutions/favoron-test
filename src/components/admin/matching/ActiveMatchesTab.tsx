@@ -35,6 +35,8 @@ interface ActiveMatchesTabProps {
   unreadCounts?: { [packageId: string]: number };
   markPackageMessagesAsRead?: (packageId: string) => Promise<void>;
   hasMessages?: (packageId: string) => boolean;
+  assignmentsMap?: { [packageId: string]: { count: number; assignments: any[] } };
+  multiAssignedPackageIds?: Set<string>;
 }
 
 const ActiveMatchesTab = ({ 
@@ -50,7 +52,9 @@ const ActiveMatchesTab = ({
   getStatusBadge,
   unreadCounts = {},
   markPackageMessagesAsRead,
-  hasMessages = () => false
+  hasMessages = () => false,
+  assignmentsMap = {},
+  multiAssignedPackageIds
 }: ActiveMatchesTabProps) => {
   const [selectedChatPackage, setSelectedChatPackage] = useState<any>(null);
   const [expandedPackages, setExpandedPackages] = useState<Set<string>>(new Set());
@@ -71,7 +75,7 @@ const ActiveMatchesTab = ({
     brokenMatchesCount,
     statuses,
     statsData
-  } = useMatchFilters(packages, trips);
+  } = useMatchFilters(packages, trips, multiAssignedPackageIds);
 
   // Debounce search with useRef to avoid lodash dependency issues
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -429,6 +433,7 @@ const ActiveMatchesTab = ({
                   pkg={pkg}
                   matchedTrip={matchedTrip}
                   isExpanded={expandedPackages.has(pkg.id)}
+                  assignmentInfo={assignmentsMap[pkg.id]}
                   onToggle={() => togglePackage(pkg.id)}
                   onViewDetail={() => onViewPackageDetail(pkg)}
                   onOpenChat={() => {

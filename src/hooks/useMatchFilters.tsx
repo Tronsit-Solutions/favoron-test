@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 // Statuses considered "broken" - these get deprioritized
 const BROKEN_STATUSES = ['rejected', 'quote_rejected', 'cancelled', 'quote_expired'];
 
-export const useMatchFilters = (packages: any[], trips: any[]) => {
+export const useMatchFilters = (packages: any[], trips: any[], multiAssignedPackageIds?: Set<string>) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -13,7 +13,10 @@ export const useMatchFilters = (packages: any[], trips: any[]) => {
     const broken: any[] = [];
     
     packages.forEach(pkg => {
-      if (pkg.matched_trip_id !== null && pkg.matched_trip_id !== undefined) {
+      const hasMatch = pkg.matched_trip_id !== null && pkg.matched_trip_id !== undefined;
+      const isMultiAssigned = multiAssignedPackageIds?.has(pkg.id) ?? false;
+      
+      if (hasMatch || isMultiAssigned) {
         if (BROKEN_STATUSES.includes(pkg.status)) {
           broken.push(pkg);
         } else {
@@ -23,7 +26,7 @@ export const useMatchFilters = (packages: any[], trips: any[]) => {
     });
     
     return { activeMatches: active, brokenMatches: broken };
-  }, [packages]);
+  }, [packages, multiAssignedPackageIds]);
 
   // Combined matched packages (active first, then broken when loaded)
   const matchedPackages = useMemo(() => 
