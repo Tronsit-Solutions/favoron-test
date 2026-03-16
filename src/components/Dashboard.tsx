@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 
 import { Star } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -261,10 +261,67 @@ const Dashboard = ({ user }: DashboardProps) => {
     return true;
   });
   
+  // === Multi-assignment support: fetch package_assignments for user's trips ===
+  const [multiAssignedPackages, setMultiAssignedPackages] = useState<any[]>([]);
+  
+  useEffect(() => {
+    const fetchMultiAssignments = async () => {
+      if (userTrips.length === 0) {
+        setMultiAssignedPackages([]);
+        return;
+      }
+      
+      const tripIds = userTrips.map(t => t.id);
+      
+      const { data: assignments, error } = await supabase
+        .from('package_assignments')
+        .select('*, packages(*)')
+        .in('trip_id', tripIds);
+      
+      if (error || !assignments) {
+        console.error('Error fetching package_assignments:', error);
+        setMultiAssignedPackages([]);
+        return;
+      }
+      
+      // Filter to only assignments whose package does NOT already have matched_trip_id 
+      // pointing to one of user's trips (those are already in regular assignedPackages)
+      const multiAssigned = assignments
+        .filter(a => {
+          const pkg = a.packages as any;
+          if (!pkg) return false;
+          // Skip if package is already visible via matched_trip_id
+          if (pkg.matched_trip_id && tripIds.includes(pkg.matched_trip_id)) return false;
+          // Only show active assignment statuses
+          if (['rejected', 'expired', 'cancelled'].includes(a.status)) return false;
+          return true;
+        })
+        .map(a => {
+          const pkg = a.packages as any;
+          return {
+            ...pkg,
+            // Override with assignment-level data
+            matched_trip_id: a.trip_id,
+            admin_assigned_tip: a.admin_assigned_tip ?? pkg.admin_assigned_tip,
+            quote: a.quote ?? pkg.quote,
+            products_data: a.products_data ?? pkg.products_data,
+            // Mark as multi-assignment for UI differentiation
+            _isMultiAssignment: true,
+            _assignmentId: a.id,
+            _assignmentStatus: a.status,
+          };
+        });
+      
+      setMultiAssignedPackages(multiAssigned);
+    };
+    
+    fetchMultiAssignments();
+  }, [userTrips.length, packages]); // Re-fetch when trips or packages change
+
   // Get packages assigned to user's trips (for traveler view)
   // Note: traveler_dismissed_at filter removed - we now rely solely on matched_trip_id
   // When quotes expire, the cron job auto-cleans matched_trip_id so packages don't appear here
-  const assignedPackages = packages.filter(pkg => {
+  const directAssignedPackages = packages.filter(pkg => {
     // Check if package is assigned to any of user's trips
     if (pkg.matched_trip_id && userTrips.some(trip => trip.id === pkg.matched_trip_id)) {
       return true;
@@ -277,6 +334,20 @@ const Dashboard = ({ user }: DashboardProps) => {
     
     return false;
   });
+  
+  // Merge: direct assignments + multi-assignments (dedup by package id per trip)
+  const assignedPackages = useMemo(() => {
+    const seen = new Set(directAssignedPackages.map(p => `${p.id}_${p.matched_trip_id}`));
+    const merged = [...directAssignedPackages];
+    for (const mp of multiAssignedPackages) {
+      const key = `${mp.id}_${mp.matched_trip_id}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        merged.push(mp);
+      }
+    }
+    return merged;
+  }, [directAssignedPackages, multiAssignedPackages]);
 
   // Real-time updates with modal protection enabled
   useOptimizedRealtime({

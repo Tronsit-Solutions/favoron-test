@@ -1,31 +1,59 @@
+## Onboarding Bottom Sheet — Implementado ✅
 
+### Cambios realizados
 
-## Confirmation: Multi-assigned packages are invisible to travelers
+**Nuevo: `src/components/onboarding/OnboardingBottomSheet.tsx`**
+- Componente reutilizable con slides tipo bottom-sheet (móvil) / modal centrado (desktop)
+- Swipe entre slides con `react-swipeable`
+- Dots de navegación clickeables
+- Checkbox "No volver a mostrar" en último slide
+- Soporte para variantes `shopper` (azul) y `traveler` (verde)
+- Gradiente configurable para el hero area
 
-You are correct. When the admin assigns a package to 2+ travelers:
+**Modificado: `src/components/PackageRequestForm.tsx`**
+- Eliminado Step 0 (intro inline) 
+- Agregado `OnboardingBottomSheet` con 4 slides para shoppers
+- El formulario ahora siempre empieza en Step 1
+- Persiste preferencia en `ui_preferences.skip_package_intro`
 
-1. **`matched_trip_id` stays `null`** on the package (by design, per the multi-traveler assignment logic in `useDashboardActions.tsx` lines 1263-1276)
-2. **The traveler dashboard** (`Dashboard.tsx` line 267-275) only shows packages where `pkg.matched_trip_id` matches one of the user's trip IDs
-3. **Result**: Neither traveler can see the package, even though rows exist in `package_assignments`
+**Modificado: `src/components/TripForm.tsx`**
+- Eliminado Step 0 (intro inline)
+- Agregado `OnboardingBottomSheet` con 4 slides para viajeros
+- El formulario ahora siempre empieza en Step 1
+- Persiste preferencia en `ui_preferences.skip_trip_intro`
 
-### What's needed (Phase 2)
+### Contenido de slides
 
-To fix this, the traveler dashboard needs to also query `package_assignments` for packages assigned to the traveler's trips. The approach:
+**Shoppers:**
+1. "¡Tu primera compra internacional!" — Describe producto y origen
+2. "Recibe una cotización" — Incluye propina y tarifa de servicio
+3. "Compra tu producto" — Envía a dirección del viajero
+4. "¡Recibe tu paquete!" — Oficina o domicilio + mención de impuestos como cargo adicional
 
-1. **Fetch `package_assignments`** where `trip_id` is in the user's trip IDs, joining with `packages` data
-2. **Merge** these assignments into the `assignedPackages` list in `Dashboard.tsx`, so they appear nested under the correct trip (in `TripPackagesGroup`)
-3. **Differentiate UI** for multi-assignment packages — the traveler should see they're "competing" and can submit their quote/tip
-4. **Use assignment-level data** (tip, quote, status) from `package_assignments` instead of the package-level fields when in multi-assignment mode
+**Viajeros:**
+1. "¡Conviértete en Viajero!" — Registra viaje con origen, llegada, espacio
+2. "Recibe solicitudes" — Decide cuáles aceptar, define propina
+3. "Cotiza con confianza" — Impuestos se reembolsan
+4. "Entrega y cobra" — Oficina o recolección, pago al completar
 
-### Files to change
+## Multi-Traveler Assignment: Traveler Dashboard Integration — Implementado ✅
 
-- **`src/hooks/useDashboardData.tsx`** (or equivalent data hook) — Add a query to fetch `package_assignments` for the user's trips, with joined package data
-- **`src/components/Dashboard.tsx`** — Expand `assignedPackages` logic to include packages from `package_assignments` (not just `matched_trip_id`), mapping assignment-level fields onto the package object
-- **`src/components/dashboard/CollapsibleTravelerPackageCard.tsx`** — Minor UI tweaks to indicate multi-assignment status (e.g., "Compitiendo con otros viajeros")
+### Problema
+Cuando un admin asigna un paquete a 2+ viajeros, `matched_trip_id` queda `null` en el paquete. El dashboard del viajero solo filtraba por `matched_trip_id`, así que ningún viajero podía ver el paquete.
 
-### Key considerations
+### Solución implementada
 
-- Single-assignment packages (where `matched_trip_id` is set directly) should continue working as-is — no regression
-- The quote/tip data for multi-assignments lives in `package_assignments.quote` and `package_assignments.admin_assigned_tip`, not on the package itself
-- RLS policies on `package_assignments` already allow travelers to SELECT and UPDATE their own assignments
+**Modificado: `src/components/Dashboard.tsx`**
+- Agregado `useEffect` que consulta `package_assignments` para los trips del usuario
+- Filtra assignments cuyo paquete NO tiene `matched_trip_id` apuntando a un trip del usuario (evita duplicados)
+- Mapea datos a nivel de assignment (`admin_assigned_tip`, `quote`, `products_data`) sobre el paquete
+- Marca paquetes multi-asignados con `_isMultiAssignment: true`
+- Fusiona con `assignedPackages` existentes usando `useMemo` con dedup por `id_tripId`
 
+**Modificado: `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`**
+- Badge "⚡ Compitiendo" (amber) visible cuando `pkg._isMultiAssignment === true`
+- Se muestra junto al status badge existente
+
+### Compatibilidad
+- Paquetes single-assignment (con `matched_trip_id` directo) siguen funcionando igual
+- RLS de `package_assignments` ya permite SELECT a viajeros con trips propios
