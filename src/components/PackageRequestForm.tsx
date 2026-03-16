@@ -147,23 +147,23 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const shopperOnboardingSlides: OnboardingSlide[] = [
     {
       icon: Search,
-      title: "¡Tu primera compra internacional!",
+      title: "¡Estás a punto de pedir tu primer Favorón!",
       description: "Describe el producto que necesitas y de dónde quieres que lo traigan. Un viajero lo llevará por ti.",
     },
     {
       icon: DollarSign,
       title: "Recibe una cotización",
-      description: "Un viajero te enviará el costo de traer tu paquete, que incluye su propina y la tarifa de servicio.",
+      description: "Un viajero te enviará el costo de traer tu paquete, que incluye su propina y la tarifa de servicio. Si el viajero pagó algún impuesto o tasa, deberás pagarlo para recibir tu paquete.",
     },
     {
       icon: ShoppingCart,
       title: "Compra tu producto",
-      description: "Una vez aceptada la cotización, compra el producto y envíalo a la dirección del viajero. Te la compartiremos automáticamente.",
+      description: "Una vez aceptada la cotización, compra el producto y envíalo a la dirección del viajero.",
     },
     {
       icon: Package,
       title: "¡Recibe tu paquete!",
-      description: "Retíralo en nuestra oficina o solicita envío a domicilio. Si el viajero pagó algún impuesto o tasa, se agregará como cargo adicional.",
+      description: "Retíralo en nuestra oficina o solicita envío a domicilio. ¡Así de fácil!",
     },
   ];
 
