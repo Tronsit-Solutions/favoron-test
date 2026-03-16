@@ -1,37 +1,13 @@
-## Onboarding Bottom Sheet — Implementado ✅
 
-### Cambios realizados
 
-**Nuevo: `src/components/onboarding/OnboardingBottomSheet.tsx`**
-- Componente reutilizable con slides tipo bottom-sheet (móvil) / modal centrado (desktop)
-- Swipe entre slides con `react-swipeable`
-- Dots de navegación clickeables
-- Checkbox "No volver a mostrar" en último slide
-- Soporte para variantes `shopper` (azul) y `traveler` (verde)
-- Gradiente configurable para el hero area
+## Fix: Trip form should open on step 1 by default
 
-**Modificado: `src/components/PackageRequestForm.tsx`**
-- Eliminado Step 0 (intro inline) 
-- Agregado `OnboardingBottomSheet` con 4 slides para shoppers
-- El formulario ahora siempre empieza en Step 1
-- Persiste preferencia en `ui_preferences.skip_package_intro`
+### Problem
+In `src/components/TripForm.tsx` line 94, `currentStep` defaults to `0` via `formState.currentStep ?? 0`. Since steps are 1-4, step 0 shows the stepper header but no step content — the user must click a step circle to begin.
 
-**Modificado: `src/components/TripForm.tsx`**
-- Eliminado Step 0 (intro inline)
-- Agregado `OnboardingBottomSheet` con 4 slides para viajeros
-- El formulario ahora siempre empieza en Step 1
-- Persiste preferencia en `ui_preferences.skip_trip_intro`
+### Fix
+Change the fallback on line 94 from `?? 0` to `?? 1`, and similarly on line 97 where the callback form also defaults to `0`. This ensures the form always opens on step 1 (Viaje).
 
-### Contenido de slides
+### File
+`src/components/TripForm.tsx` — lines 94 and 97: replace `?? 0` with `?? 1`.
 
-**Shoppers:**
-1. "¡Tu primera compra internacional!" — Describe producto y origen
-2. "Recibe una cotización" — Incluye propina y tarifa de servicio
-3. "Compra tu producto" — Envía a dirección del viajero
-4. "¡Recibe tu paquete!" — Oficina o domicilio + mención de impuestos como cargo adicional
-
-**Viajeros:**
-1. "¡Conviértete en Viajero!" — Registra viaje con origen, llegada, espacio
-2. "Recibe solicitudes" — Decide cuáles aceptar, define propina
-3. "Cotiza con confianza" — Impuestos se reembolsan
-4. "Entrega y cobra" — Oficina o recolección, pago al completar
