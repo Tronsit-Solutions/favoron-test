@@ -107,11 +107,42 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
     }
   };
 
+  const loadPdfAsBlob = async () => {
+    setLoadingPdf(true);
+    setPdfBlobUrl(null);
+    try {
+      let filePath: string;
+      if (purchaseConfirmation.filePath) {
+        filePath = purchaseConfirmation.filePath;
+      } else {
+        filePath = `${packageId}/${purchaseConfirmation.filename}`;
+      }
+
+      const bucketsToTry = resolveBuckets();
+      for (const bucket of bucketsToTry) {
+        const { data, error } = await supabase.storage.from(bucket).download(filePath);
+        if (!error && data) {
+          const blob = new Blob([data], { type: 'application/pdf' });
+          setPdfBlobUrl(URL.createObjectURL(blob));
+          return;
+        }
+      }
+      console.error('Could not download PDF from any bucket');
+    } catch (error) {
+      console.error('Error loading PDF as blob:', error);
+    } finally {
+      setLoadingPdf(false);
+    }
+  };
+
   const handleView = async () => {
     const url = await generateSignedUrl();
     if (url) {
       if (isImage || isPDF) {
         setShowModal(true);
+        if (isPDF) {
+          loadPdfAsBlob();
+        }
       } else {
         window.open(url, '_blank');
       }
