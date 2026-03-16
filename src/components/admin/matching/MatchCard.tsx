@@ -56,7 +56,8 @@ export const MatchCard = ({
   onConfirmShopperReceived,
   onOpenActionsModal,
   unreadCount = 0,
-  hasMessages = false
+  hasMessages = false,
+  assignmentInfo
 }: MatchCardProps) => {
   const isMobile = useIsMobile();
   const [isAdminConfirming, setIsAdminConfirming] = useState(false);
