@@ -184,8 +184,12 @@ const CollapsiblePackageCard = ({
       case 'approved':
         return "Aprobado - Esperando match con un viajero";
       case 'matched':
-        if (multiAssignments && multiAssignments.some(a => a.status === 'quote_sent')) {
-          return 'Cotizaciones recibidas - Compara y elige';
+        if (multiAssignments && multiAssignments.length > 0 && !pkg.matched_trip_id) {
+          const quotesReceived = multiAssignments.filter(a => a.status === 'quote_sent').length;
+          if (quotesReceived > 0) {
+            return `Cotizaciones recibidas de ${quotesReceived} viajero${quotesReceived > 1 ? 's' : ''} - Compara y elige`;
+          }
+          return `⚡ Compitiendo (${multiAssignments.length}) - Esperando cotizaciones`;
         }
         return "Match con viajero - Esperando cotización";
       case 'quote_sent':
