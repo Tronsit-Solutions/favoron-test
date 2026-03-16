@@ -1157,7 +1157,7 @@ export const useDashboardActions = (
     }
   };
 
-  const handleMatchPackage = async (packageId: string, tripId: string, adminTip?: number, productsWithTips?: any[]) => {
+  const handleMatchPackage = async (packageId: string, tripId: string, adminTip?: number, productsWithTips?: any[], allTripIds?: string[]) => {
     try {
       if (!updatePackage) {
         console.error('updatePackage function not available');
@@ -1174,52 +1174,26 @@ export const useDashboardActions = (
         return;
       }
 
-      // Get trip information to include traveler address and dates
-      const matchedTrip = trips.find(trip => trip.id === tripId);
-      const travelerAddress = buildTravelerAddress(matchedTrip);
+      // Determine list of trip IDs to assign
+      const tripIdsToAssign = allTripIds && allTripIds.length > 0 ? allTripIds : [tripId];
+      const isMultiAssignment = tripIdsToAssign.length > 1;
 
-      // Include trip dates for shipping information
-      const matchedTripDates = matchedTrip ? {
-        first_day_packages: matchedTrip.first_day_packages,
-        last_day_packages: matchedTrip.last_day_packages,
-        delivery_date: matchedTrip.delivery_date,
-        arrival_date: matchedTrip.arrival_date
-      } : null;
+      // Build products_data update
+      const currentPackage = packages.find(pkg => pkg.id === packageId);
+      let updatedProductsData: any[] | undefined;
 
-      // Update package in Supabase with match information
-      // Clear any previous quote data to ensure fresh start
-      const updateData: any = {
-        status: 'matched',
-        matched_trip_id: tripId,
-        quote: null, // Clear any previous quote from previous match
-        admin_assigned_tip: adminTip,
-        traveler_address: travelerAddress,
-        matched_trip_dates: matchedTripDates,
-        // Clear dismissal fields from previous trip assignment so package is visible to new traveler
-        traveler_dismissal: null,
-        traveler_dismissed_at: null
-      };
-
-      // If this is a multi-product order with individual tips, update products_data
       if (productsWithTips && productsWithTips.length > 0) {
-        const currentPackage = packages.find(pkg => pkg.id === packageId);
         if (currentPackage?.products_data) {
-          // Update existing products_data with assigned tips
-          const updatedProductsData = currentPackage.products_data.map((product: any, index: number) => {
+          updatedProductsData = currentPackage.products_data.map((product: any, index: number) => {
             const productWithTip = productsWithTips[index];
             return {
               ...product,
               adminAssignedTip: productWithTip?.adminAssignedTip || 0
             };
           });
-          updateData.products_data = updatedProductsData;
         }
       } else {
-        // Single-product case: ensure adminAssignedTip is saved inside products_data
-        const currentPackage = packages.find(pkg => pkg.id === packageId);
         if (currentPackage) {
-          let updatedProductsData: any[] | undefined;
-
           if (Array.isArray(currentPackage.products_data) && currentPackage.products_data.length > 0) {
             if (currentPackage.products_data.length === 1) {
               const onlyProduct = currentPackage.products_data[0];
@@ -1229,28 +1203,91 @@ export const useDashboardActions = (
                 adminAssignedTip: adminTip
               }];
             }
-            // If more than one product exists but no per-product tips provided, leave as is
           } else {
-            // Build products_data from legacy fields - preserve any existing quantity info
             updatedProductsData = [{
               itemDescription: currentPackage.item_description || 'Producto',
               estimatedPrice: String(currentPackage.estimated_price ?? '0'),
               itemLink: currentPackage.item_link || null,
-              quantity: '1', // Legacy packages don't have quantity info
+              quantity: '1',
               adminAssignedTip: adminTip
             }];
-          }
-
-          if (updatedProductsData) {
-            updateData.products_data = updatedProductsData;
           }
         }
       }
 
-      await updatePackage(packageId, updateData);
+      // Insert assignments into package_assignments table
+      const assignmentRows = tripIdsToAssign.map(tid => {
+        const matchedTrip = trips.find(trip => trip.id === tid);
+        const travelerAddress = buildTravelerAddress(matchedTrip);
+        const matchedTripDates = matchedTrip ? {
+          first_day_packages: matchedTrip.first_day_packages,
+          last_day_packages: matchedTrip.last_day_packages,
+          delivery_date: matchedTrip.delivery_date,
+          arrival_date: matchedTrip.arrival_date
+        } : null;
 
-      // Log package assignment to trip history
-      const currentPackage = packages.find(pkg => pkg.id === packageId);
+        return {
+          package_id: packageId,
+          trip_id: tid,
+          status: 'pending',
+          admin_assigned_tip: adminTip,
+          traveler_address: travelerAddress,
+          matched_trip_dates: matchedTripDates,
+          products_data: updatedProductsData || null
+        };
+      });
+
+      const { error: assignError } = await supabase
+        .from('package_assignments')
+        .insert(assignmentRows);
+
+      if (assignError) {
+        console.error('Error inserting package_assignments:', assignError);
+        throw assignError;
+      }
+
+      // For single assignment, also set matched_trip_id for backward compatibility
+      // For multi-assignment, only set status to 'matched' without matched_trip_id yet
+      if (isMultiAssignment) {
+        // Multi-assignment: package is in "awaiting quotes" state
+        const updateData: any = {
+          status: 'matched',
+          admin_assigned_tip: adminTip,
+          traveler_dismissal: null,
+          traveler_dismissed_at: null
+        };
+        if (updatedProductsData) {
+          updateData.products_data = updatedProductsData;
+        }
+        await updatePackage(packageId, updateData);
+      } else {
+        // Single assignment: backward-compatible, set matched_trip_id directly
+        const matchedTrip = trips.find(trip => trip.id === tripId);
+        const travelerAddress = buildTravelerAddress(matchedTrip);
+        const matchedTripDates = matchedTrip ? {
+          first_day_packages: matchedTrip.first_day_packages,
+          last_day_packages: matchedTrip.last_day_packages,
+          delivery_date: matchedTrip.delivery_date,
+          arrival_date: matchedTrip.arrival_date
+        } : null;
+
+        const updateData: any = {
+          status: 'matched',
+          matched_trip_id: tripId,
+          quote: null,
+          admin_assigned_tip: adminTip,
+          traveler_address: travelerAddress,
+          matched_trip_dates: matchedTripDates,
+          traveler_dismissal: null,
+          traveler_dismissed_at: null
+        };
+        if (updatedProductsData) {
+          updateData.products_data = updatedProductsData;
+        }
+        await updatePackage(packageId, updateData);
+      }
+
+      // Log package assignment to trip history for each trip
       const adminName = currentUser?.first_name
         ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
         : 'Admin';
@@ -1258,37 +1295,43 @@ export const useDashboardActions = (
       const shopperName = shopperProfile?.first_name
         ? `${shopperProfile.first_name} ${shopperProfile.last_name || ''}`.trim()
         : 'Shopper';
-      const historyEntry = createHistoryEntry(
-        'package_assigned',
-        currentUser?.id || null,
-        adminName,
-        {
-          package_id: packageId,
-          item_description: currentPackage?.item_description || '',
-          shopper_name: shopperName,
-          admin_tip: adminTip,
-        }
-      );
-      appendTripHistoryEntry(tripId, historyEntry);
-      
-      // 📱 Enviar notificación WhatsApp al viajero
-      if (matchedTrip?.user_id) {
-        const destination = currentPackage?.package_destination || 'Guatemala';
-        
-        sendWhatsAppNotification({
-          userId: matchedTrip.user_id,
-          templateId: 'package_assigned',
-          variables: {
-            "2": destination,
-            "3": `${adminTip?.toFixed(2) || '0.00'}`
+
+      for (const tid of tripIdsToAssign) {
+        const historyEntry = createHistoryEntry(
+          'package_assigned',
+          currentUser?.id || null,
+          adminName,
+          {
+            package_id: packageId,
+            item_description: currentPackage?.item_description || '',
+            shopper_name: shopperName,
+            admin_tip: adminTip,
+            multi_assignment: isMultiAssignment,
+            total_assignments: tripIdsToAssign.length,
           }
-        });
-        console.log('📱 WhatsApp enviado al viajero:', matchedTrip.user_id);
+        );
+        appendTripHistoryEntry(tid, historyEntry);
+
+        // Send WhatsApp notification to each traveler
+        const matchedTrip = trips.find(trip => trip.id === tid);
+        if (matchedTrip?.user_id) {
+          const destination = currentPackage?.package_destination || 'Guatemala';
+          sendWhatsAppNotification({
+            userId: matchedTrip.user_id,
+            templateId: 'package_assigned',
+            variables: {
+              "2": destination,
+              "3": `${adminTip?.toFixed(2) || '0.00'}`
+            }
+          });
+        }
       }
       
       toast({
         title: "¡Match realizado!",
-        description: `Tu solicitud fue emparejada. Tip asignado: Q${adminTip}.`,
+        description: isMultiAssignment
+          ? `Paquete asignado a ${tripIdsToAssign.length} viajeros. Tip: Q${adminTip}.`
+          : `Paquete emparejado. Tip asignado: Q${adminTip}.`,
       });
     } catch (error) {
       console.error('Error matching package:', error);
