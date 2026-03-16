@@ -114,6 +114,22 @@ export const useAdminTips = () => {
       throw error;
     }
 
+    // Sync tips to all active package_assignments so quotes use fresh values
+    const { error: assignError } = await supabase
+      .from('package_assignments')
+      .update({
+        products_data: normalizedProducts as unknown as any,
+        admin_assigned_tip: totalTip,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('package_id', packageId)
+      .in('status', ['pending', 'quote_sent']);
+
+    if (assignError) {
+      console.error('Error syncing tips to package_assignments:', assignError);
+      // Don't throw - the master package was updated successfully
+    }
+
     // Recalculate trip payment accumulator if we have trip info
     const tripId = options?.tripId || currentPkg?.matched_trip_id;
     const travelerId = options?.travelerId;
