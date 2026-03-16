@@ -1385,7 +1385,7 @@ const AdminMatchDialog = ({
                         <Card 
                           key={`spain-${trip.id}`} 
                           className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                            selectedTripId === trip.id 
+                            selectedTripIds.has(String(trip.id)) 
                               ? 'ring-2 ring-primary bg-primary/5' 
                               : wasPreviouslyRejected
                                 ? 'bg-red-50 border-2 border-red-300 hover:bg-red-100'
