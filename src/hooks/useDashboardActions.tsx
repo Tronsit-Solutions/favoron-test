@@ -2200,6 +2200,36 @@ export const useDashboardActions = (
     }
   };
 
+  const handleAcceptMultiAssignmentQuote = async (packageId: string, assignmentId: string) => {
+    try {
+      console.log('🎯 Shopper accepting assignment:', { packageId, assignmentId });
+      
+      const { error } = await supabase.rpc('shopper_accept_assignment', {
+        _package_id: packageId,
+        _assignment_id: assignmentId
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "¡Cotización aceptada!",
+        description: "Has seleccionado a tu viajero. Procede con el pago.",
+      });
+
+      if (refreshPackages) {
+        await refreshPackages();
+      }
+    } catch (error: any) {
+      console.error('❌ Error accepting multi-assignment quote:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo aceptar la cotización. Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   return {
     handlePackageSubmit,
     handleTripSubmit,
@@ -2220,6 +2250,7 @@ export const useDashboardActions = (
     handleConfirmDeliveryComplete,
     handleEditTrip,
     handleEditPackage,
-    handleDismissExpiredPackage
+    handleDismissExpiredPackage,
+    handleAcceptMultiAssignmentQuote
   };
 };
