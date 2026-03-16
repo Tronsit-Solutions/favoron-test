@@ -1471,25 +1471,33 @@ const TripForm = ({
           </DialogDescription>
         </DialogHeader>
 
-        {currentStep >= 1 && <StepIndicator />}
+        <StepIndicator />
 
-        {currentStep === 0 ? (
-          renderStep0()
-        ) : (
-          <form onSubmit={handleSubmit} className="mobile-safe-form">
-            {currentStep === 1 && renderStep1()}
-            {currentStep === 2 && renderStep2()}
-            {currentStep === 3 && renderStep3()}
-            {currentStep === 4 && renderStep4()}
-          </form>
-        )}
+        <form onSubmit={handleSubmit} className="mobile-safe-form">
+          {currentStep === 1 && renderStep1()}
+          {currentStep === 2 && renderStep2()}
+          {currentStep === 3 && renderStep3()}
+          {currentStep === 4 && renderStep4()}
+        </form>
         
         <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
       </DialogContent>
     </Dialog>
   );
 
-  return renderTripForm();
+  return (
+    <>
+      {renderTripForm()}
+      <OnboardingBottomSheet
+        isOpen={showOnboarding}
+        onContinue={handleOnboardingContinue}
+        onClose={() => setShowOnboarding(false)}
+        slides={travelerOnboardingSlides}
+        gradientClassName="from-traveler via-traveler/80 to-traveler/60"
+        variant="traveler"
+      />
+    </>
+  );
 };
 
 export default TripForm;
