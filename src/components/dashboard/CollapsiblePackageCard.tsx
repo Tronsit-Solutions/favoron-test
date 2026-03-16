@@ -59,6 +59,9 @@ interface CollapsiblePackageCardProps {
   forceOpen?: boolean;
   forceTab?: string;
   onExternalControlHandled?: () => void;
+  // Multi-assignment props
+  multiAssignments?: any[];
+  onAcceptMultiAssignmentQuote?: (packageId: string, assignmentId: string) => Promise<void>;
 }
 const CollapsiblePackageCard = ({
   pkg,
@@ -72,7 +75,9 @@ const CollapsiblePackageCard = ({
   viewMode = 'user',
   forceOpen,
   forceTab,
-  onExternalControlHandled
+  onExternalControlHandled,
+  multiAssignments,
+  onAcceptMultiAssignmentQuote
 }: CollapsiblePackageCardProps) => {
   const [isOpen, setIsOpen] = React.useState(forceOpen || false);
   const [activeTab, setActiveTab] = React.useState(forceTab || "producto");
