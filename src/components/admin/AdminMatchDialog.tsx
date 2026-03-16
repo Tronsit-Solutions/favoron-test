@@ -42,6 +42,7 @@ const AdminMatchDialog = ({
 }: AdminMatchDialogProps) => {
   const { openModal, closeModal, isModalOpen, getModalData } = useModalState();
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
+  const [selectedTripIds, setSelectedTripIds] = useState<Set<string>>(new Set());
   const [expandedTrips, setExpandedTrips] = useState<Set<number>>(new Set());
   const [packageExpanded, setPackageExpanded] = useState<boolean>(false);
   const [travelerProfiles, setTravelerProfiles] = useState<{[key: string]: any}>({});
