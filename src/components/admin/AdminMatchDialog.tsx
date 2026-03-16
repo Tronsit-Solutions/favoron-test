@@ -1570,11 +1570,13 @@ const AdminMatchDialog = ({
             <Button 
               onClick={handleMatch} 
               className="flex-1 sm:flex-none sm:w-auto h-11"
-              disabled={!selectedTripId || getTotalAssignedTip() <= 0}
+              disabled={selectedTripIds.size === 0 || getTotalAssignedTip() <= 0}
               variant="shopper"
             >
               <Zap className="h-4 w-4 mr-2" />
-              Confirmar Match
+              {selectedTripIds.size > 1 
+                ? `Confirmar Match (${selectedTripIds.size} viajes)` 
+                : 'Confirmar Match'}
             </Button>
             <Button 
               variant="outline" 
