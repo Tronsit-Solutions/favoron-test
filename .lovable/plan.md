@@ -101,3 +101,20 @@ Cuando un viajero enviaba cotización en un paquete multi-asignado, se escribía
 
 **Modificado: `src/components/Dashboard.tsx`**
 - Filtro de shopper ampliado: incluye paquetes con `status === 'quote_sent'` sin `matched_trip_id` (datos legacy del bug anterior)
+
+## Fix: Admin Quote Generation for Multi-Assignments — Implementado ✅
+
+### Problema
+Cuando admin cambiaba status de `matched` → `quote_sent` en un paquete multi-asignado (sin `matched_trip_id`), la cotización se escribía directamente en la tabla `packages`, rompiendo el flujo de competencia entre viajeros.
+
+### Cambios
+
+**Modificado: `src/components/admin/AdminActionsModal.tsx`**
+- Detecta multi-asignación verificando si `matched_trip_id` es null
+- Para multi-asignaciones: consulta `package_assignments` pendientes, genera cotización por cada una, y las guarda en la tabla de assignments
+- El paquete se mantiene en `status: 'matched'` hasta que el shopper elija ganador
+- Para asignaciones individuales: comportamiento legacy sin cambios
+
+**Modificado: `src/utils/adminQuoteGeneration.ts`**
+- Nuevo parámetro `overrideTripId` en `QuoteGenerationData`
+- Usa `overrideTripId` en vez de `matched_trip_id` para buscar el trip correcto en paquetes multi-asignados
