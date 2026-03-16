@@ -1324,9 +1324,7 @@ export const useDashboardActions = (
       
       toast({
         title: "¡Match realizado!",
-        description: isMultiAssignment
-          ? `Paquete asignado a ${tripIdsToAssign.length} viajeros. Tip: Q${adminTip}.`
-          : `Paquete emparejado. Tip asignado: Q${adminTip}.`,
+        description: `Paquete asignado a ${tripIdsToAssign.length} viajero(s). Tip: Q${adminTip}.`,
       });
     } catch (error) {
       console.error('Error matching package:', error);
