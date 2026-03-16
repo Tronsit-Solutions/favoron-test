@@ -316,6 +316,65 @@ const [editForm, setEditForm] = useState({
     loadPaymentOrder();
   }, [pkg?.matched_trip_id, isOpen]);
 
+  // Load multi-traveler assignments when no matchedTrip
+  useEffect(() => {
+    const loadAssignments = async () => {
+      if (!isOpen || !pkg?.id) {
+        setPackageAssignments([]);
+        return;
+      }
+      
+      setLoadingAssignments(true);
+      try {
+        const { data: assignments, error } = await supabase
+          .from('package_assignments')
+          .select('id, package_id, trip_id, status, quote, admin_assigned_tip, traveler_address, matched_trip_dates, products_data, created_at')
+          .eq('package_id', pkg.id)
+          .not('status', 'eq', 'rejected');
+
+        if (error) throw error;
+        if (!assignments || assignments.length === 0) {
+          setPackageAssignments([]);
+          setLoadingAssignments(false);
+          return;
+        }
+
+        // Fetch trip + profile info for each assignment
+        const tripIds = [...new Set(assignments.map(a => a.trip_id))];
+        const { data: tripsData } = await supabase
+          .from('trips')
+          .select('id, from_city, from_country, to_city, to_country, arrival_date, delivery_date, first_day_packages, last_day_packages, user_id')
+          .in('id', tripIds);
+
+        const travelerIds = [...new Set((tripsData || []).map(t => t.user_id))];
+        let profilesData: any[] = [];
+        if (travelerIds.length > 0) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, username, email, phone_number, country_code')
+            .in('id', travelerIds);
+          profilesData = data || [];
+        }
+
+        // Build enriched assignments
+        const enriched = assignments.map(a => {
+          const trip = (tripsData || []).find(t => t.id === a.trip_id);
+          const profile = trip ? profilesData.find(p => p.id === trip.user_id) : null;
+          return { ...a, trip, profile };
+        });
+
+        setPackageAssignments(enriched);
+      } catch (err) {
+        console.warn('Error loading package assignments:', err);
+        setPackageAssignments([]);
+      } finally {
+        setLoadingAssignments(false);
+      }
+    };
+
+    loadAssignments();
+  }, [isOpen, pkg?.id]);
+
   // Load profiles for rejection history
   useEffect(() => {
     const loadRejectionProfiles = async () => {
