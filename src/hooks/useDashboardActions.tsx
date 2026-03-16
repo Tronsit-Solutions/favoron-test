@@ -397,9 +397,11 @@ export const useDashboardActions = (
               prime_delivery_discount: fees.prime_delivery_discount,
             }, selectedPackage.package_destination_country);
             
-            // Multi-assignment: write to package_assignments, keep package status as matched
-            if (selectedPackage._isMultiAssignment && selectedPackage._assignmentId) {
-              console.log('⚡ Multi-assignment quote: updating assignment', selectedPackage._assignmentId);
+            // Unified: always write to package_assignments
+            // Find the traveler's assignment for this package
+            const assignmentId = selectedPackage._assignmentId;
+            if (assignmentId) {
+              console.log('⚡ Updating assignment with quote:', assignmentId);
               const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
               const { error: assignError } = await supabase
                 .from('package_assignments')
@@ -410,14 +412,15 @@ export const useDashboardActions = (
                   matched_trip_dates: matchedTripDates as any,
                   quote_expires_at: expiresAt,
                 })
-                .eq('id', selectedPackage._assignmentId);
+                .eq('id', assignmentId);
               
               if (assignError) {
                 console.error('❌ Failed to update assignment:', assignError);
                 throw assignError;
               }
             } else {
-              // Single-assignment: update package directly (existing behavior)
+              // Legacy fallback: no assignment row exists, update package directly
+              console.log('📦 Legacy package: updating package directly');
               await updatePackage(selectedPackage.id, {
                 status: 'quote_sent',
                 quote: normalizedQuoteData,
