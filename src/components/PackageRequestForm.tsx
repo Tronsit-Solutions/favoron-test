@@ -139,20 +139,40 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     { debounceMs: 400, storage: 'local' }
   );
 
-  // Wizard step state (not persisted - resets when modal opens)
-  // Step 0 = intro/onboarding, Steps 1-4 = actual form wizard
-  const [currentStep, setCurrentStep] = useState(0);
-  // Track which wizard step we're on (1-4 for the actual form)
+  // Wizard step state - starts at step 1 (no more step 0)
+  const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
 
-  // Reset step when modal opens - check if should skip intro based on user preference
+  // Shopper onboarding slides
+  const shopperOnboardingSlides: OnboardingSlide[] = [
+    {
+      icon: Search,
+      title: "¡Tu primera compra internacional!",
+      description: "Describe el producto que necesitas y de dónde quieres que lo traigan. Un viajero lo llevará por ti.",
+    },
+    {
+      icon: DollarSign,
+      title: "Recibe una cotización",
+      description: "Un viajero te enviará el costo de traer tu paquete, que incluye su propina y la tarifa de servicio.",
+    },
+    {
+      icon: ShoppingCart,
+      title: "Compra tu producto",
+      description: "Una vez aceptada la cotización, compra el producto y envíalo a la dirección del viajero. Te la compartiremos automáticamente.",
+    },
+    {
+      icon: Package,
+      title: "¡Recibe tu paquete!",
+      description: "Retíralo en nuestra oficina o solicita envío a domicilio. Si el viajero pagó algún impuesto o tasa, se agregará como cargo adicional.",
+    },
+  ];
+
+  // Reset step when modal opens - show onboarding if needed
   useEffect(() => {
     if (isOpen) {
-      // In edit mode, always start at step 1 (skip intro)
-      // Otherwise, check user's stored preference
-      const shouldSkipIntro = editMode || profile?.ui_preferences?.skip_package_intro === true;
-      setCurrentStep(shouldSkipIntro ? 1 : 0);
-      setSkipIntroduction(false); // Reset checkbox state
+      setCurrentStep(1);
+      const shouldShowOnboarding = !editMode && profile?.ui_preferences?.skip_package_intro !== true;
+      setShowOnboarding(shouldShowOnboarding);
     }
   }, [isOpen, editMode, profile?.ui_preferences?.skip_package_intro]);
 
