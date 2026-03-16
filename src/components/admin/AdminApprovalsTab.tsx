@@ -29,6 +29,20 @@ const AdminApprovalsTab = ({
   const [activeTab, setActiveTab] = useState("packages");
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [rejectionTarget, setRejectionTarget] = useState<{ type: 'package' | 'trip'; id: string; name: string } | null>(null);
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+
+  const handleAction = async (type: 'package' | 'trip', id: string, action: 'approve' | 'reject', reason?: string) => {
+    setProcessingIds(prev => new Set(prev).add(id));
+    try {
+      await onApproveReject(type, id, action, reason);
+    } finally {
+      setProcessingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
+  };
 
   const pendingPackages = packages.filter(p => p.status === 'pending_approval');
   const pendingTrips = trips.filter(t => t.status === 'pending_approval');
