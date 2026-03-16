@@ -561,8 +561,19 @@ const AdminMatchDialog = ({
   };
 
   const handleTripSelection = (tripId: number) => {
+    const tripIdStr = String(tripId);
+    setSelectedTripIds(prev => {
+      const next = new Set(prev);
+      if (next.has(tripIdStr)) {
+        next.delete(tripIdStr);
+      } else {
+        next.add(tripIdStr);
+      }
+      return next;
+    });
+    // Keep legacy single-select for backward compat (use first selected)
     setSelectedTripId(tripId);
-    setMatchingTrip(tripId.toString());
+    setMatchingTrip(tripIdStr);
   };
 
   // Helper functions to detect multi-product orders
