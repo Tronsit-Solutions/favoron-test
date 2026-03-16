@@ -28,6 +28,8 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [loadingPdf, setLoadingPdf] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
 
