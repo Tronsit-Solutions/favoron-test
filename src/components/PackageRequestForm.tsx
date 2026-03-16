@@ -1561,21 +1561,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // ============= NAVIGATION BUTTONS =============
   const renderNavigationButtons = () => {
-    // Step 0 (intro) has special navigation
-    if (currentStep === 0) {
-      return (
-        <div className="flex space-x-3 pt-4 border-t border-border">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Cancelar
-          </Button>
-          <Button type="button" variant="shopper" onClick={handleContinueFromIntro} className="flex-1">
-            Continuar
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-      );
-    }
-    
     return (
       <div className="flex space-x-3 pt-4 border-t border-border">
         {currentStep === 1 ? (
