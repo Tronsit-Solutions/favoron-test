@@ -112,12 +112,12 @@ const TripForm = ({
     {
       icon: Users,
       title: "Recibe solicitudes",
-      description: "Los shoppers te enviarán solicitudes de paquetes. Tú decides cuáles aceptar y defines tu propina.",
+      description: "Los shoppers te enviarán solicitudes de paquetes con una propina asignada. Tú decides cuáles aceptar. Si te cobran algún impuesto en aduana, se te reembolsará al presentar la factura.",
     },
     {
-      icon: DollarSign,
-      title: "Cotiza con confianza",
-      description: "Incluye tu propina en la cotización. Si llegas a pagar algún impuesto o tasa al transportar, se te reembolsará.",
+      icon: Package,
+      title: "Recibe tu compra",
+      description: "El shopper realizará la compra y la enviará a tu dirección. Se te compartirá el comprobante de compra y el número de tracking.",
     },
     {
       icon: Truck,
