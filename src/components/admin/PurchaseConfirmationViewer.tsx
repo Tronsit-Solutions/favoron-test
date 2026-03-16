@@ -28,6 +28,8 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [loadingPdf, setLoadingPdf] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
 
@@ -105,11 +107,42 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
     }
   };
 
+  const loadPdfAsBlob = async () => {
+    setLoadingPdf(true);
+    setPdfBlobUrl(null);
+    try {
+      let filePath: string;
+      if (purchaseConfirmation.filePath) {
+        filePath = purchaseConfirmation.filePath;
+      } else {
+        filePath = `${packageId}/${purchaseConfirmation.filename}`;
+      }
+
+      const bucketsToTry = resolveBuckets();
+      for (const bucket of bucketsToTry) {
+        const { data, error } = await supabase.storage.from(bucket).download(filePath);
+        if (!error && data) {
+          const blob = new Blob([data], { type: 'application/pdf' });
+          setPdfBlobUrl(URL.createObjectURL(blob));
+          return;
+        }
+      }
+      console.error('Could not download PDF from any bucket');
+    } catch (error) {
+      console.error('Error loading PDF as blob:', error);
+    } finally {
+      setLoadingPdf(false);
+    }
+  };
+
   const handleView = async () => {
     const url = await generateSignedUrl();
     if (url) {
       if (isImage || isPDF) {
         setShowModal(true);
+        if (isPDF) {
+          loadPdfAsBlob();
+        }
       } else {
         window.open(url, '_blank');
       }
@@ -216,7 +249,13 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
       </Card>
 
       {/* Modal for image preview */}
-      <Dialog open={showModal} onOpenChange={setShowModal}>
+      <Dialog open={showModal} onOpenChange={(open) => {
+        setShowModal(open);
+        if (!open && pdfBlobUrl) {
+          URL.revokeObjectURL(pdfBlobUrl);
+          setPdfBlobUrl(null);
+        }
+      }}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Comprobante de Compra - {purchaseConfirmation.filename}</DialogTitle>
@@ -230,16 +269,16 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
               />
             )}
             {isPDF && (
-              signedUrl ? (
-                <iframe
-                  src={signedUrl}
-                  title="Comprobante de compra"
-                  className="w-full h-[70vh] rounded-lg border"
-                />
-              ) : loading ? (
+              loadingPdf ? (
                 <div className="w-full h-[70vh] bg-muted/30 rounded-lg border flex items-center justify-center">
                   <p className="text-muted-foreground">Cargando PDF...</p>
                 </div>
+              ) : pdfBlobUrl ? (
+                <iframe
+                  src={pdfBlobUrl}
+                  title="Comprobante de compra"
+                  className="w-full h-[70vh] rounded-lg border"
+                />
               ) : (
                 <div className="w-full h-[70vh] bg-muted/30 rounded-lg border flex flex-col items-center justify-center gap-4">
                   <FileText className="h-12 w-12 text-muted-foreground" />
