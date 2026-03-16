@@ -264,6 +264,7 @@ const Dashboard = ({ user }: DashboardProps) => {
   
   // === Multi-assignment support: fetch package_assignments for user's trips ===
   const [multiAssignedPackages, setMultiAssignedPackages] = useState<any[]>([]);
+  const [shopperAssignmentsMap, setShopperAssignmentsMap] = useState<Record<string, any[]>>({});
   
   useEffect(() => {
     const fetchMultiAssignments = async () => {
