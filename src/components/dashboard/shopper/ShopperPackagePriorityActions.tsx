@@ -43,7 +43,9 @@ const ShopperPackagePriorityActions = ({
   onRefresh,
   onDeletePackage,
   onRequestRequote,
-  onShowTimeline
+  onShowTimeline,
+  multiAssignments,
+  onShowMultiQuotes
 }: ShopperPackagePriorityActionsProps) => {
   const { toast } = useToast();
   const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
