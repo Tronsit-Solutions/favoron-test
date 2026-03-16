@@ -118,6 +118,7 @@ const CollapsiblePackageCard = ({
   const [showPlatformReviewFromPreview, setShowPlatformReviewFromPreview] = React.useState(false);
   const [chatModalOpen, setChatModalOpen] = React.useState(false);
   const [showStatusModal, setShowStatusModal] = React.useState(false);
+  const [showMultiQuoteModal, setShowMultiQuoteModal] = React.useState(false);
 
   const { data: existingRating } = useQuery({
     queryKey: ['traveler-rating', pkg.id],
@@ -664,6 +665,22 @@ const CollapsiblePackageCard = ({
                       )
                     ) : null}
                   
+                  {/* Multi-quote button - mobile */}
+                  {isCompeting && hasMultiQuotes && (
+                    <Button size="sm" variant="success" onClick={e => {
+                      e.stopPropagation();
+                      setShowMultiQuoteModal(true);
+                    }} className="text-xs font-medium w-full">
+                      ⚡ Ver Cotizaciones ({multiAssignments!.filter(a => a.status === 'quote_sent').length})
+                    </Button>
+                  )}
+                  {isCompeting && !hasMultiQuotes && (
+                    <Button size="sm" variant="outline" disabled className="text-xs font-medium w-full">
+                      <Clock className="h-3 w-3 mr-1" />
+                      Esperando cotizaciones...
+                    </Button>
+                  )}
+
                   {/* Calificar button - mobile */}
                   {needsFeedback && (
                     <Button size="sm" variant="outline" onClick={e => {
@@ -985,6 +1002,22 @@ const CollapsiblePackageCard = ({
                       </Button>
                     ) : null}
                   
+                  {/* Multi-quote button - desktop */}
+                  {isCompeting && hasMultiQuotes && (
+                    <Button size="sm" variant="success" onClick={e => {
+                      e.stopPropagation();
+                      setShowMultiQuoteModal(true);
+                    }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
+                      <span className="truncate">⚡ Ver Cotizaciones ({multiAssignments!.filter(a => a.status === 'quote_sent').length})</span>
+                    </Button>
+                  )}
+                  {isCompeting && !hasMultiQuotes && (
+                    <Button size="sm" variant="outline" disabled className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
+                      <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">Esperando cotizaciones...</span>
+                    </Button>
+                  )}
+
                   {/* Calificar button - desktop */}
                   {needsFeedback && (
                     <Button size="sm" variant="outline" onClick={e => {
@@ -1332,6 +1365,26 @@ const CollapsiblePackageCard = ({
               className="h-full"
             />
           </div>
+        </DialogContent>
+      </Dialog>
+      {/* Multi-Quote Selection Modal */}
+      <Dialog open={showMultiQuoteModal} onOpenChange={setShowMultiQuoteModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" />
+              Cotizaciones recibidas
+            </DialogTitle>
+          </DialogHeader>
+          {multiAssignments && onAcceptMultiAssignmentQuote && (
+            <MultiQuoteSelector
+              assignments={multiAssignments}
+              onAcceptQuote={async (assignmentId) => {
+                await onAcceptMultiAssignmentQuote(pkg.id, assignmentId);
+                setShowMultiQuoteModal(false);
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
       {/* Status Detail Modal (Mobile) */}
