@@ -182,6 +182,9 @@ const CollapsiblePackageCard = ({
       case 'approved':
         return "Aprobado - Esperando match con un viajero";
       case 'matched':
+        if (multiAssignments && multiAssignments.some(a => a.status === 'quote_sent')) {
+          return 'Cotizaciones recibidas - Compara y elige';
+        }
         return "Match con viajero - Esperando cotización";
       case 'quote_sent':
         const isExpired = pkg.quote_expires_at && new Date(pkg.quote_expires_at) < new Date();
