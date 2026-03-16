@@ -17,6 +17,15 @@ import StarRating from "@/components/ui/star-rating";
 import TravelerRatingModal from "@/components/dashboard/TravelerRatingModal";
 import PlatformReviewModal from "@/components/dashboard/PlatformReviewModal";
 
+interface MultiAssignment {
+  id: string;
+  status: string;
+  quote?: any;
+  trip_id: string;
+  traveler_address?: any;
+  [key: string]: any;
+}
+
 interface ShopperPackagePriorityActionsProps {
   pkg: Package;
   onQuote: (pkg: Package, userType: 'user' | 'admin') => void;
@@ -24,6 +33,8 @@ interface ShopperPackagePriorityActionsProps {
   onDeletePackage?: (pkg: Package) => void;
   onRequestRequote?: (pkg: Package) => void;
   onShowTimeline?: (packageId: string) => void;
+  multiAssignments?: MultiAssignment[];
+  onShowMultiQuotes?: () => void;
 }
 
 const ShopperPackagePriorityActions = ({
