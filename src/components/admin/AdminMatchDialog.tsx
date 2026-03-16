@@ -62,6 +62,7 @@ const AdminMatchDialog = ({
   const [assignedProductsWithTips, setAssignedProductsWithTips] = useState<any[]>([]);
   const [showAllTrips, setShowAllTrips] = useState(false);
   const [showOtherCities, setShowOtherCities] = useState(false);
+  const [alreadyAssignedTripIds, setAlreadyAssignedTripIds] = useState<Set<string>>(new Set());
 
   const MODAL_ID = 'admin-match-dialog';
 
