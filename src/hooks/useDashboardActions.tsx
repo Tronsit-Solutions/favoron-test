@@ -1362,7 +1362,7 @@ export const useDashboardActions = (
         // Special handling when moving back to "approved", "pending_approval", or "rejected" (un-matching)
         if (status === 'approved' || status === 'pending_approval' || status === 'rejected') {
           if (currentPackage?.matched_trip_id) {
-            console.log('🔄 Admin un-matching package, clearing match data...');
+            console.log('🔄 Admin un-matching legacy package, clearing match data...');
             
             // Log package_unassigned to trip history
             const adminName = currentUser?.first_name
@@ -1379,6 +1379,17 @@ export const useDashboardActions = (
               }
             );
             appendTripHistoryEntry(currentPackage.matched_trip_id, unassignEntry);
+          }
+          
+          // Also reject all package_assignments for this package
+          const { error: rejectAssignErr } = await supabase
+            .from('package_assignments')
+            .update({ status: 'rejected', updated_at: new Date().toISOString() })
+            .eq('package_id', id)
+            .not('status', 'eq', 'rejected');
+          
+          if (rejectAssignErr) {
+            console.warn('Error rejecting assignments during un-match:', rejectAssignErr);
           }
           
           // Clear all match-related data to allow fresh matching
