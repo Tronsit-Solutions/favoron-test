@@ -821,13 +821,11 @@ const Dashboard = ({ user }: DashboardProps) => {
                           ];
                           const tripPackages = assignedPackages
                             .filter(pkg => {
-                              if (pkg.matched_trip_id !== trip.id) return false;
+                              if (pkg.matched_trip_id !== trip.id && !pkg._isMultiAssignment) return false;
+                              if (pkg._isMultiAssignment && pkg._assignmentTripId !== trip.id) return false;
                               // Exclude packages from completed_paid trips unless incident
                               if (trip.status === 'completed_paid' && !pkg.incident_flag) return false;
-                              const isTimerActive = (
-                                (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
-                                ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
-                              );
+                              const isMatched = pkg.status === 'matched';
                               const hasExpiredTimer = (
                                 (pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && 
                                 pkg.quote_expires_at && 
@@ -835,7 +833,8 @@ const Dashboard = ({ user }: DashboardProps) => {
                               );
                               const isPaidOrPostPayment = PAID_OR_POST_PAYMENT.includes(pkg.status);
                               const isExpiredQuote = pkg.status === 'quote_expired' || hasExpiredTimer;
-                              return isTimerActive || isPaidOrPostPayment || isExpiredQuote;
+                              const isMultiAssignment = pkg._isMultiAssignment;
+                              return isMatched || isPaidOrPostPayment || isExpiredQuote || isMultiAssignment;
                             })
                             .sort((a, b) => {
                               const aPending = ['matched', 'in_transit', 'pending_office_confirmation'].includes(a.status);
