@@ -1,33 +1,37 @@
+## Onboarding Bottom Sheet — Implementado ✅
 
+### Cambios realizados
 
-## Plan: Sintetizar y reorganizar slides del onboarding de viajeros (5 slides)
+**Nuevo: `src/components/onboarding/OnboardingBottomSheet.tsx`**
+- Componente reutilizable con slides tipo bottom-sheet (móvil) / modal centrado (desktop)
+- Swipe entre slides con `react-swipeable`
+- Dots de navegación clickeables
+- Checkbox "No volver a mostrar" en último slide
+- Soporte para variantes `shopper` (azul) y `traveler` (verde)
+- Gradiente configurable para el hero area
 
-### Problema actual
-Los slides 2 y 3 tienen textos largos que intentan cubrir demasiados conceptos en una sola pantalla. Especialmente el slide 3 mezcla cotización, pago, compra, envío y tracking.
+**Modificado: `src/components/PackageRequestForm.tsx`**
+- Eliminado Step 0 (intro inline) 
+- Agregado `OnboardingBottomSheet` con 4 slides para shoppers
+- El formulario ahora siempre empieza en Step 1
+- Persiste preferencia en `ui_preferences.skip_package_intro`
 
-### Propuesta: 5 slides con textos cortos
+**Modificado: `src/components/TripForm.tsx`**
+- Eliminado Step 0 (intro inline)
+- Agregado `OnboardingBottomSheet` con 4 slides para viajeros
+- El formulario ahora siempre empieza en Step 1
+- Persiste preferencia en `ui_preferences.skip_trip_intro`
 
-**Archivo:** `src/components/TripForm.tsx` (líneas 106-127)
+### Contenido de slides
 
-```text
-Slide 1: "¡Conviértete en Viajero!"  [Plane]
-→ "Registra tu viaje: de dónde vienes, cuándo llegas y cuánto espacio tienes."
+**Shoppers:**
+1. "¡Tu primera compra internacional!" — Describe producto y origen
+2. "Recibe una cotización" — Incluye propina y tarifa de servicio
+3. "Compra tu producto" — Envía a dirección del viajero
+4. "¡Recibe tu paquete!" — Oficina o domicilio + mención de impuestos como cargo adicional
 
-Slide 2: "Recibe solicitudes"  [Users]
-→ "Los shoppers te enviarán solicitudes con una propina asignada. Tú decides cuáles aceptar."
-
-Slide 3: "Cotización y pago"  [DollarSign]
-→ "Envía tu cotización al shopper. Si no realiza el pago, el pedido no se completa."
-
-Slide 4: "Recibe el paquete"  [Package]
-→ "El shopper hará la compra y la enviará a tu dirección con comprobante y tracking. Si te cobran impuestos en aduana, se te reembolsarán con factura."
-
-Slide 5: "Entrega y cobra"  [Truck]
-→ "Entrega en nuestra oficina o programa recolección. Recibirás tu pago al completar la entrega."
-```
-
-### Cambios
-- Reorganizar el array `travelerOnboardingSlides` de 4 a 5 slides
-- Agregar import de `DollarSign` si no está ya importado
-- Textos más cortos y un concepto por slide
-
+**Viajeros:**
+1. "¡Conviértete en Viajero!" — Registra viaje con origen, llegada, espacio
+2. "Recibe solicitudes" — Decide cuáles aceptar, define propina
+3. "Cotiza con confianza" — Impuestos se reembolsan
+4. "Entrega y cobra" — Oficina o recolección, pago al completar
