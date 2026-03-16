@@ -174,7 +174,7 @@ const AdminApprovalsTab = ({
 
   const handleConfirmRejection = async (reason: string) => {
     if (rejectionTarget) {
-      await onApproveReject(rejectionTarget.type, rejectionTarget.id, 'reject', reason);
+      await handleAction(rejectionTarget.type, rejectionTarget.id, 'reject', reason);
       setShowRejectionModal(false);
       setRejectionTarget(null);
     }
