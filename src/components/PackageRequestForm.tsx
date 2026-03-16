@@ -1620,7 +1620,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         {/* Scrollable content area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 min-h-0">
           {currentStep === 1 && renderStep1()}
-          {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
           {currentStep === 4 && renderStep4()}
