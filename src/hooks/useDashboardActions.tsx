@@ -7,6 +7,7 @@ import { sendWhatsAppNotification } from '@/lib/whatsappNotifications';
 import { createHistoryEntry, appendTripHistoryEntry, buildEditDiff } from '@/utils/tripHistoryHelpers';
 import { inferCountryFromCity } from '@/lib/cities';
 import { getCountryLabel } from '@/lib/countries';
+import { generateQuoteForAdminStatusChange } from '@/utils/adminQuoteGeneration';
 
 export const useDashboardActions = (
   packages: any[],
