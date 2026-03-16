@@ -1,59 +1,34 @@
-## Onboarding Bottom Sheet — Implementado ✅
 
-### Cambios realizados
 
-**Nuevo: `src/components/onboarding/OnboardingBottomSheet.tsx`**
-- Componente reutilizable con slides tipo bottom-sheet (móvil) / modal centrado (desktop)
-- Swipe entre slides con `react-swipeable`
-- Dots de navegación clickeables
-- Checkbox "No volver a mostrar" en último slide
-- Soporte para variantes `shopper` (azul) y `traveler` (verde)
-- Gradiente configurable para el hero area
+## Fix: Simplify tripPackages filter by removing timer requirement
 
-**Modificado: `src/components/PackageRequestForm.tsx`**
-- Eliminado Step 0 (intro inline) 
-- Agregado `OnboardingBottomSheet` con 4 slides para shoppers
-- El formulario ahora siempre empieza en Step 1
-- Persiste preferencia en `ui_preferences.skip_package_intro`
+### Analysis
 
-**Modificado: `src/components/TripForm.tsx`**
-- Eliminado Step 0 (intro inline)
-- Agregado `OnboardingBottomSheet` con 4 slides para viajeros
-- El formulario ahora siempre empieza en Step 1
-- Persiste preferencia en `ui_preferences.skip_trip_intro`
+You're correct. There's a DB trigger (`expire_unresponded_assignments`) that runs on cron and automatically:
+- Changes `status` from `matched` → `approved`
+- Sets `matched_trip_id` to `NULL`
+- Clears `matched_assignment_expires_at`
 
-### Contenido de slides
+So when a timer expires, the package **leaves the `matched` status entirely** and its `matched_trip_id` becomes null — meaning it would naturally disappear from the filter on line 824 (`pkg.matched_trip_id !== trip.id`). The client-side timer check is redundant.
 
-**Shoppers:**
-1. "¡Tu primera compra internacional!" — Describe producto y origen
-2. "Recibe una cotización" — Incluye propina y tarifa de servicio
-3. "Compra tu producto" — Envía a dirección del viajero
-4. "¡Recibe tu paquete!" — Oficina o domicilio + mención de impuestos como cargo adicional
+### Proposed change
 
-**Viajeros:**
-1. "¡Conviértete en Viajero!" — Registra viaje con origen, llegada, espacio
-2. "Recibe solicitudes" — Decide cuáles aceptar, define propina
-3. "Cotiza con confianza" — Impuestos se reembolsan
-4. "Entrega y cobra" — Oficina o recolección, pago al completar
+In `Dashboard.tsx` line 827-838, simplify the filter to just:
 
-## Multi-Traveler Assignment: Traveler Dashboard Integration — Implementado ✅
+```ts
+const isMatched = pkg.status === 'matched';
+const isPaidOrPostPayment = PAID_OR_POST_PAYMENT.includes(pkg.status);
+const isExpiredQuote = pkg.status === 'quote_expired' || hasExpiredTimer;
+const isMultiAssignment = pkg._isMultiAssignment;
+return isMatched || isPaidOrPostPayment || isExpiredQuote || isMultiAssignment;
+```
 
-### Problema
-Cuando un admin asigna un paquete a 2+ viajeros, `matched_trip_id` queda `null` en el paquete. El dashboard del viajero solo filtraba por `matched_trip_id`, así que ningún viajero podía ver el paquete.
+Remove the `isTimerActive` variable and its `matched_assignment_expires_at` check. Keep the `hasExpiredTimer` check for quote expiration (that's a different concern — quote timers don't change the status via trigger the same way).
 
-### Solución implementada
+### Risk assessment
 
-**Modificado: `src/components/Dashboard.tsx`**
-- Agregado `useEffect` que consulta `package_assignments` para los trips del usuario
-- Filtra assignments cuyo paquete NO tiene `matched_trip_id` apuntando a un trip del usuario (evita duplicados)
-- Mapea datos a nivel de assignment (`admin_assigned_tip`, `quote`, `products_data`) sobre el paquete
-- Marca paquetes multi-asignados con `_isMultiAssignment: true`
-- Fusiona con `assignedPackages` existentes usando `useMemo` con dedup por `id_tripId`
+**No risk.** If the cron hasn't fired yet and the timer technically expired, the traveler briefly sees the package — which is actually better UX than hiding it. The DB trigger will clean it up on the next cron run. Multi-assigned packages (with `_isMultiAssignment`) also benefit since they don't have `matched_assignment_expires_at` set at all.
 
-**Modificado: `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`**
-- Badge "⚡ Compitiendo" (amber) visible cuando `pkg._isMultiAssignment === true`
-- Se muestra junto al status badge existente
+### File
+- **`src/components/Dashboard.tsx`** — lines 827-838: remove `isTimerActive` condition, replace with simple `isMatched` check, add `isMultiAssignment` passthrough.
 
-### Compatibilidad
-- Paquetes single-assignment (con `matched_trip_id` directo) siguen funcionando igual
-- RLS de `package_assignments` ya permite SELECT a viajeros con trips propios
