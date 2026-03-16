@@ -40,6 +40,7 @@ interface MatchCardProps {
   onOpenActionsModal?: (packageId: string) => void;
   unreadCount?: number;
   hasMessages?: boolean;
+  assignmentInfo?: { count: number; assignments: any[] };
 }
 
 export const MatchCard = ({
