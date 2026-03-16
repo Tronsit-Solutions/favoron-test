@@ -1,37 +1,26 @@
-## Onboarding Bottom Sheet — Implementado ✅
 
-### Cambios realizados
 
-**Nuevo: `src/components/onboarding/OnboardingBottomSheet.tsx`**
-- Componente reutilizable con slides tipo bottom-sheet (móvil) / modal centrado (desktop)
-- Swipe entre slides con `react-swipeable`
-- Dots de navegación clickeables
-- Checkbox "No volver a mostrar" en último slide
-- Soporte para variantes `shopper` (azul) y `traveler` (verde)
-- Gradiente configurable para el hero area
+## Plan: Actualizar slides 2/4 y 3/4 del onboarding de viajeros
 
-**Modificado: `src/components/PackageRequestForm.tsx`**
-- Eliminado Step 0 (intro inline) 
-- Agregado `OnboardingBottomSheet` con 4 slides para shoppers
-- El formulario ahora siempre empieza en Step 1
-- Persiste preferencia en `ui_preferences.skip_package_intro`
+### Cambios en `src/components/TripForm.tsx`
 
-**Modificado: `src/components/TripForm.tsx`**
-- Eliminado Step 0 (intro inline)
-- Agregado `OnboardingBottomSheet` con 4 slides para viajeros
-- El formulario ahora siempre empieza en Step 1
-- Persiste preferencia en `ui_preferences.skip_trip_intro`
+**Slide 2/4 — "Recibe solicitudes" (línea 115):**
+- Corregir que la propina no la define el viajero, viene asignada con cada paquete
+- Agregar que si cobran algo en aduana, se reembolsará al entregar factura
 
-### Contenido de slides
+Nuevo texto:
+> "Los shoppers te enviarán solicitudes de paquetes con una propina asignada. Tú decides cuáles aceptar. Si te cobran algún impuesto en aduana, se te reembolsará al presentar la factura."
 
-**Shoppers:**
-1. "¡Tu primera compra internacional!" — Describe producto y origen
-2. "Recibe una cotización" — Incluye propina y tarifa de servicio
-3. "Compra tu producto" — Envía a dirección del viajero
-4. "¡Recibe tu paquete!" — Oficina o domicilio + mención de impuestos como cargo adicional
+**Slide 3/4 — "Cotiza con confianza" (líneas 119-121):**
+- Cambiar para indicar que el shopper hará la compra y la enviará a la dirección del viajero, con comprobante y tracking
 
-**Viajeros:**
-1. "¡Conviértete en Viajero!" — Registra viaje con origen, llegada, espacio
-2. "Recibe solicitudes" — Decide cuáles aceptar, define propina
-3. "Cotiza con confianza" — Impuestos se reembolsan
-4. "Entrega y cobra" — Oficina o recolección, pago al completar
+Nuevo título: "Recibe tu compra"
+Nuevo texto:
+> "El shopper realizará la compra y la enviará a tu dirección. Se te compartirá el comprobante de compra y el número de tracking."
+
+Cambiar icono de `DollarSign` a `Package` (más apropiado para recepción de compra).
+
+### Resumen de cambios
+- Archivo: `src/components/TripForm.tsx`, líneas 112-121
+- Solo texto e icono, sin cambios de lógica
+
