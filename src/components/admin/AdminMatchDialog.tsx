@@ -1048,12 +1048,14 @@ const AdminMatchDialog = ({
                   return (
                     <Card 
                       key={trip.id} 
-                      className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                        selectedTripIds.has(String(trip.id))
-                          ? 'ring-2 ring-primary bg-primary/5' 
-                          : wasPreviouslyRejected
-                            ? 'bg-red-50 border-2 border-red-300 hover:bg-red-100'
-                            : 'hover:bg-gray-50'
+                      className={`transition-all duration-200 hover:shadow-md ${
+                        alreadyAssignedTripIds.has(String(trip.id))
+                          ? 'opacity-50 bg-muted border-muted cursor-not-allowed'
+                          : selectedTripIds.has(String(trip.id))
+                            ? 'ring-2 ring-primary bg-primary/5 cursor-pointer' 
+                            : wasPreviouslyRejected
+                              ? 'bg-red-50 border-2 border-red-300 hover:bg-red-100 cursor-pointer'
+                              : 'hover:bg-gray-50 cursor-pointer'
                       }`}
                       onClick={() => handleTripSelection(trip.id)}
                     >
