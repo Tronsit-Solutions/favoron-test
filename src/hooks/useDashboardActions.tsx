@@ -405,9 +405,9 @@ export const useDashboardActions = (
                 .from('package_assignments')
                 .update({
                   status: 'quote_sent',
-                  quote: normalizedQuoteData,
-                  traveler_address: travelerAddress,
-                  matched_trip_dates: matchedTripDates,
+                  quote: normalizedQuoteData as any,
+                  traveler_address: travelerAddress as any,
+                  matched_trip_dates: matchedTripDates as any,
                   quote_expires_at: expiresAt,
                 })
                 .eq('id', selectedPackage._assignmentId);
