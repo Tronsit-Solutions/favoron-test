@@ -371,11 +371,36 @@ const AdminMatchDialog = ({
     }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
   }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
 
-  // Reset showAllTrips and showOtherCities when selected package changes
+  // Reset showAllTrips, showOtherCities and fetch existing assignments when selected package changes
   useEffect(() => {
     setShowAllTrips(false);
     setShowOtherCities(false);
-  }, [selectedPackage?.id]);
+    
+    // Fetch existing assignments for this package (for "assign more" flow)
+    if (showMatchDialog && selectedPackage?.id) {
+      const fetchExistingAssignments = async () => {
+        const { data, error } = await supabase
+          .from('package_assignments')
+          .select('trip_id')
+          .eq('package_id', selectedPackage.id)
+          .not('status', 'eq', 'rejected');
+        
+        if (!error && data) {
+          setAlreadyAssignedTripIds(new Set(data.map(a => a.trip_id)));
+        } else {
+          setAlreadyAssignedTripIds(new Set());
+        }
+      };
+      fetchExistingAssignments();
+      
+      // Pre-populate admin tip from existing package
+      if (selectedPackage.admin_assigned_tip && !adminTip) {
+        setAdminTip(String(selectedPackage.admin_assigned_tip));
+      }
+    } else {
+      setAlreadyAssignedTripIds(new Set());
+    }
+  }, [selectedPackage?.id, showMatchDialog]);
 
   // Handle modal state persistence
   useEffect(() => {
