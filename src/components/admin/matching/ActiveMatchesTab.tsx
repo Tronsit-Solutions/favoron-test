@@ -452,6 +452,7 @@ const ActiveMatchesTab = ({
                   onAdminConfirmOfficeDelivery={() => onAdminConfirmOfficeDelivery(pkg.id)}
                   onConfirmShopperReceived={() => onConfirmShopperReceived(pkg.id)}
                   onOpenActionsModal={onOpenActionsModal}
+                  onOpenMatchDialog={onOpenMatchDialog}
                   unreadCount={unreadCounts[pkg.id] || 0}
                   hasMessages={hasMessages(pkg.id)}
                 />
