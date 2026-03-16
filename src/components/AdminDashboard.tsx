@@ -37,7 +37,7 @@ interface AdminDashboardProps {
   packages: any[];
   trips: any[];
   currentUser?: any;
-  onMatchPackage: (packageId: string, tripId: string, adminTip?: number, productsWithTips?: any[]) => void;
+  onMatchPackage: (packageId: string, tripId: string, adminTip?: number, productsWithTips?: any[], allTripIds?: string[]) => void;
   onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
   onApproveReject: (type: 'package' | 'trip', id: string, action: 'approve' | 'reject', reason?: string) => void;
   onPaymentApproval: (packageId: string, action: 'approve' | 'reject') => void;
