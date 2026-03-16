@@ -117,7 +117,7 @@ const TripForm = ({
     {
       icon: Package,
       title: "Recibe tu compra",
-      description: "El shopper realizará la compra y la enviará a tu dirección. Se te compartirá el comprobante de compra y el número de tracking.",
+      description: "Después de enviar tu cotización, el shopper debe realizar el pago. Una vez pagado, hará la compra y la enviará a tu dirección con comprobante y número de tracking. Si el shopper no paga, el pedido no se completó.",
     },
     {
       icon: Truck,
