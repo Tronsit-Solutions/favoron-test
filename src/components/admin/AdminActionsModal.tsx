@@ -273,7 +273,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
               userId: pkg.user_id,
               templateId: 'quote_received_v2',
               variables: {
-                "2": `${parseFloat(quoteTotal).toFixed(2)}`,
+                "2": `${Number(quoteTotal).toFixed(2)}`,
                 "3": productName.substring(0, 50)
               }
             });
