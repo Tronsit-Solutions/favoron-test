@@ -820,9 +820,8 @@ const Dashboard = ({ user }: DashboardProps) => {
                             'ready_for_pickup', 'ready_for_delivery', 'completed'
                           ];
                           const tripPackages = assignedPackages
-                            .filter(pkg => {
-                              if (pkg.matched_trip_id !== trip.id && !pkg._isMultiAssignment) return false;
-                              if (pkg._isMultiAssignment && pkg._assignmentTripId !== trip.id) return false;
+                            .filter((pkg: any) => {
+                              if (pkg.matched_trip_id !== trip.id) return false;
                               // Exclude packages from completed_paid trips unless incident
                               if (trip.status === 'completed_paid' && !pkg.incident_flag) return false;
                               const isMatched = pkg.status === 'matched';
