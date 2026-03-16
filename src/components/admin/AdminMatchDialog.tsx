@@ -27,7 +27,7 @@ interface AdminMatchDialogProps {
   setMatchingTrip: (trip: string) => void;
   availableTrips: any[];
   packages: any[];
-  onMatch: (adminTip?: number, productsWithTips?: any[]) => void;
+  onMatch: (adminTip?: number, productsWithTips?: any[], selectedTripIds?: string[]) => void;
 }
 
 const AdminMatchDialog = ({ 
@@ -42,6 +42,7 @@ const AdminMatchDialog = ({
 }: AdminMatchDialogProps) => {
   const { openModal, closeModal, isModalOpen, getModalData } = useModalState();
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
+  const [selectedTripIds, setSelectedTripIds] = useState<Set<string>>(new Set());
   const [expandedTrips, setExpandedTrips] = useState<Set<number>>(new Set());
   const [packageExpanded, setPackageExpanded] = useState<boolean>(false);
   const [travelerProfiles, setTravelerProfiles] = useState<{[key: string]: any}>({});
@@ -560,8 +561,19 @@ const AdminMatchDialog = ({
   };
 
   const handleTripSelection = (tripId: number) => {
+    const tripIdStr = String(tripId);
+    setSelectedTripIds(prev => {
+      const next = new Set(prev);
+      if (next.has(tripIdStr)) {
+        next.delete(tripIdStr);
+      } else {
+        next.add(tripIdStr);
+      }
+      return next;
+    });
+    // Keep legacy single-select for backward compat (use first selected)
     setSelectedTripId(tripId);
-    setMatchingTrip(tripId.toString());
+    setMatchingTrip(tripIdStr);
   };
 
   // Helper functions to detect multi-product orders
@@ -613,12 +625,13 @@ const AdminMatchDialog = ({
   };
 
   const handleMatch = () => {
-    if (selectedTripId) {
+    if (selectedTripIds.size > 0) {
       const tipAmount = getTotalAssignedTip();
+      const tripIdsArray = Array.from(selectedTripIds);
       if (isMultiProductOrder()) {
-        onMatch(tipAmount, assignedProductsWithTips);
+        onMatch(tipAmount, assignedProductsWithTips, tripIdsArray);
       } else {
-        onMatch(tipAmount);
+        onMatch(tipAmount, undefined, tripIdsArray);
       }
     }
   };
@@ -1007,7 +1020,7 @@ const AdminMatchDialog = ({
                     <Card 
                       key={trip.id} 
                       className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                        selectedTripId === trip.id 
+                        selectedTripIds.has(String(trip.id))
                           ? 'ring-2 ring-primary bg-primary/5' 
                           : wasPreviouslyRejected
                             ? 'bg-red-50 border-2 border-red-300 hover:bg-red-100'
@@ -1238,7 +1251,7 @@ const AdminMatchDialog = ({
                         <Card 
                           key={`us-${trip.id}`} 
                           className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                            selectedTripId === trip.id 
+                            selectedTripIds.has(String(trip.id))
                               ? 'ring-2 ring-primary bg-primary/5' 
                               : wasPreviouslyRejected
                                 ? 'bg-red-50 border-2 border-red-300 hover:bg-red-100'
@@ -1372,7 +1385,7 @@ const AdminMatchDialog = ({
                         <Card 
                           key={`spain-${trip.id}`} 
                           className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                            selectedTripId === trip.id 
+                            selectedTripIds.has(String(trip.id)) 
                               ? 'ring-2 ring-primary bg-primary/5' 
                               : wasPreviouslyRejected
                                 ? 'bg-red-50 border-2 border-red-300 hover:bg-red-100'
@@ -1493,7 +1506,7 @@ const AdminMatchDialog = ({
 
         {/* Action Bar: Tip + Buttons */}
         <div className="border-t pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          {selectedTripId && (
+          {selectedTripIds.size > 0 && (
             <div className="w-full sm:w-auto">
               <div className="flex items-center gap-2 mb-1">
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -1557,11 +1570,13 @@ const AdminMatchDialog = ({
             <Button 
               onClick={handleMatch} 
               className="flex-1 sm:flex-none sm:w-auto h-11"
-              disabled={!selectedTripId || getTotalAssignedTip() <= 0}
+              disabled={selectedTripIds.size === 0 || getTotalAssignedTip() <= 0}
               variant="shopper"
             >
               <Zap className="h-4 w-4 mr-2" />
-              Confirmar Match
+              {selectedTripIds.size > 1 
+                ? `Confirmar Match (${selectedTripIds.size} viajes)` 
+                : 'Confirmar Match'}
             </Button>
             <Button 
               variant="outline" 
