@@ -249,7 +249,13 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
       </Card>
 
       {/* Modal for image preview */}
-      <Dialog open={showModal} onOpenChange={setShowModal}>
+      <Dialog open={showModal} onOpenChange={(open) => {
+        setShowModal(open);
+        if (!open && pdfBlobUrl) {
+          URL.revokeObjectURL(pdfBlobUrl);
+          setPdfBlobUrl(null);
+        }
+      }}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Comprobante de Compra - {purchaseConfirmation.filename}</DialogTitle>
@@ -263,16 +269,16 @@ const PurchaseConfirmationViewer = ({ purchaseConfirmation, packageId, className
               />
             )}
             {isPDF && (
-              signedUrl ? (
-                <iframe
-                  src={signedUrl}
-                  title="Comprobante de compra"
-                  className="w-full h-[70vh] rounded-lg border"
-                />
-              ) : loading ? (
+              loadingPdf ? (
                 <div className="w-full h-[70vh] bg-muted/30 rounded-lg border flex items-center justify-center">
                   <p className="text-muted-foreground">Cargando PDF...</p>
                 </div>
+              ) : pdfBlobUrl ? (
+                <iframe
+                  src={pdfBlobUrl}
+                  title="Comprobante de compra"
+                  className="w-full h-[70vh] rounded-lg border"
+                />
               ) : (
                 <div className="w-full h-[70vh] bg-muted/30 rounded-lg border flex flex-col items-center justify-center gap-4">
                   <FileText className="h-12 w-12 text-muted-foreground" />
