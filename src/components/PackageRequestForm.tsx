@@ -153,7 +153,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     {
       icon: DollarSign,
       title: "Recibe una cotización",
-      description: "Un viajero te enviará el costo de traer tu paquete, que incluye su propina y la tarifa de servicio. Si el viajero pagó algún impuesto o tasa, deberás pagarlo para recibir tu paquete.",
+      description: "Un viajero te enviará el costo de traer tu paquete, que incluye su propina y la tarifa de servicio. Adicionalmente, si el viajero pagó algún impuesto o tasa, deberás cubrir ese costo para recibir tu paquete.",
     },
     {
       icon: ShoppingCart,
