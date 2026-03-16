@@ -385,7 +385,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   };
 
   const handlePrevStep = () => {
-    if (currentStep > 0) {
+    if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
