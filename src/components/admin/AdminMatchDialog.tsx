@@ -1060,6 +1060,9 @@ const AdminMatchDialog = ({
                       onClick={() => handleTripSelection(trip.id)}
                     >
                     <CardContent className="p-2 sm:p-3">
+                         {alreadyAssignedTripIds.has(String(trip.id)) && (
+                           <Badge variant="secondary" className="mb-2 text-xs">✅ Ya asignado</Badge>
+                         )}
                          {/* Main Trip Info - Mobile Responsive Layout */}
                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
