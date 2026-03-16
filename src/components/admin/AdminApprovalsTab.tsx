@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle, XCircle, Eye } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Loader2 } from "lucide-react";
 import { formatFullName } from "@/lib/formatters";
 import RejectionReasonModal from "./RejectionReasonModal";
 import { getDeliveryFee } from "@/lib/pricing";
