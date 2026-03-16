@@ -1199,7 +1199,8 @@ export const useDashboardActions = (
 
       // Determine list of trip IDs to assign
       const tripIdsToAssign = allTripIds && allTripIds.length > 0 ? allTripIds : [tripId];
-      const isMultiAssignment = tripIdsToAssign.length > 1;
+      // Unified: always treat as assignment-based (no single vs multi distinction)
+      const isMultiAssignment = true;
 
       // Build products_data update
       const currentPackage = packages.find(pkg => pkg.id === packageId);
