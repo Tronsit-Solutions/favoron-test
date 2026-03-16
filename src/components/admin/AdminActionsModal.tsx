@@ -175,6 +175,121 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
       if (pkg.status === 'matched' && newStatus === 'quote_sent') {
         console.log('🔄 Admin changing status from matched to quote_sent, generating quote...');
         
+        // Detect multi-assignment: matched_trip_id is null means competing travelers
+        const isMultiAssignment = !pkg.matched_trip_id;
+        
+        if (isMultiAssignment) {
+          // Multi-assignment flow: write to package_assignments, keep package as 'matched'
+          console.log('⚡ Multi-assignment detected, writing quotes to package_assignments...');
+          
+          // Fetch all pending assignments for this package
+          const { data: assignments, error: assignErr } = await supabase
+            .from('package_assignments')
+            .select('*')
+            .eq('package_id', pkg.id)
+            .in('status', ['pending', 'quote_sent']);
+          
+          if (assignErr) throw assignErr;
+          if (!assignments || assignments.length === 0) {
+            throw new Error('No hay asignaciones activas para este paquete multi-asignado.');
+          }
+          
+          // Generate and save quote for each pending assignment
+          const pendingAssignments = assignments.filter(a => a.status === 'pending');
+          if (pendingAssignments.length === 0) {
+            throw new Error('No hay asignaciones pendientes. Todos los viajeros ya tienen cotización.');
+          }
+          
+          for (const assignment of pendingAssignments) {
+            const tipToUse = assignment.admin_assigned_tip || pkg.admin_assigned_tip;
+            
+            const quoteData = await generateQuoteForAdminStatusChange({
+              packageId: pkg.id,
+              currentPackage: { ...pkg, admin_assigned_tip: tipToUse },
+              trips: trips,
+              adminAssignedTip: tipToUse,
+              overrideTripId: assignment.trip_id,
+              rates: {
+                standard: fees?.service_fee_rate_standard ?? 0.50,
+                prime: fees?.service_fee_rate_prime ?? 0.25
+              },
+              fees: fees ? {
+                delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+                delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
+                delivery_fee_outside_city: fees.delivery_fee_outside_city,
+                prime_delivery_discount: fees.prime_delivery_discount,
+              } : undefined,
+              destinationCountry: pkg.package_destination_country
+            });
+            
+            const { error: updateAssignErr } = await supabase
+              .from('package_assignments')
+              .update({
+                status: 'quote_sent',
+                quote: quoteData.quote as any,
+                traveler_address: quoteData.traveler_address as any,
+                matched_trip_dates: quoteData.matched_trip_dates as any,
+                quote_expires_at: quoteData.quote_expires_at,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', assignment.id);
+            
+            if (updateAssignErr) {
+              console.error(`❌ Error updating assignment ${assignment.id}:`, updateAssignErr);
+              throw updateAssignErr;
+            }
+            
+            console.log(`✅ Assignment ${assignment.id} updated with quote`);
+          }
+          
+          // Do NOT change the package status — it stays 'matched'
+          await logAction('status_changed', `Cotización(es) enviada(s) a ${pendingAssignments.length} viajero(s) (multi-asignación)`);
+          
+          // Send WhatsApp notification to shopper
+          if (pkg.user_id) {
+            const firstQuoteData = await generateQuoteForAdminStatusChange({
+              packageId: pkg.id,
+              currentPackage: pkg,
+              trips: trips,
+              adminAssignedTip: pendingAssignments[0].admin_assigned_tip || pkg.admin_assigned_tip,
+              overrideTripId: pendingAssignments[0].trip_id,
+              rates: {
+                standard: fees?.service_fee_rate_standard ?? 0.50,
+                prime: fees?.service_fee_rate_prime ?? 0.25
+              },
+              fees: fees ? {
+                delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+                delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
+                delivery_fee_outside_city: fees.delivery_fee_outside_city,
+                prime_delivery_discount: fees.prime_delivery_discount,
+              } : undefined,
+              destinationCountry: pkg.package_destination_country
+            });
+            
+            const quoteTotal = firstQuoteData.quote?.totalPrice || 0;
+            const productName = pkg.products_data?.[0]?.itemDescription || pkg.item_description || 'Tu pedido';
+            
+            sendWhatsAppNotification({
+              userId: pkg.user_id,
+              templateId: 'quote_received_v2',
+              variables: {
+                "2": `${parseFloat(quoteTotal).toFixed(2)}`,
+                "3": productName.substring(0, 50)
+              }
+            });
+          }
+          
+          toast({
+            title: "Cotizaciones enviadas",
+            description: `Se enviaron cotizaciones a ${pendingAssignments.length} viajero(s). El paquete se mantiene en estado 'matched' hasta que el shopper elija.`
+          });
+          
+          await onRefresh?.();
+          closeModal(modalId);
+          return;
+        }
+        
+        // Single-assignment flow (legacy): write directly to packages table
         const quoteData = await generateQuoteForAdminStatusChange({
           packageId: pkg.id,
           currentPackage: pkg,
@@ -252,7 +367,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
 
       await logAction('status_changed', `Estado cambiado de ${pkg.status} a ${newStatus}`);
       
-      // 📱 Enviar notificación WhatsApp cuando admin cambia a quote_sent
+      // 📱 Enviar notificación WhatsApp cuando admin cambia a quote_sent (single-assignment only)
       if (newStatus === 'quote_sent' && pkg.user_id && updateData.quote) {
         const quoteTotal = updateData.quote.totalPrice || 0;
         const productName = pkg.products_data?.[0]?.itemDescription || pkg.item_description || 'Tu pedido';
