@@ -392,6 +392,17 @@ export const MatchCard = ({
                         Acciones
                       </Button>
                     )}
+                    {onOpenMatchDialog && pkg.status === 'matched' && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => onOpenMatchDialog(pkg)} 
+                        className="min-h-[44px] text-sm"
+                      >
+                        <Users className="h-4 w-4 mr-1" />
+                        + Viajeros
+                      </Button>
+                    )}
                   </div>
                   
                   {/* Label Generation Button for Mobile */}
