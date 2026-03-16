@@ -26,7 +26,7 @@ export const useMatchFilters = (packages: any[], trips: any[], multiAssignedPack
     });
     
     return { activeMatches: active, brokenMatches: broken };
-  }, [packages]);
+  }, [packages, multiAssignedPackageIds]);
 
   // Combined matched packages (active first, then broken when loaded)
   const matchedPackages = useMemo(() => 

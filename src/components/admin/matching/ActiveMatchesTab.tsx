@@ -433,6 +433,7 @@ const ActiveMatchesTab = ({
                   pkg={pkg}
                   matchedTrip={matchedTrip}
                   isExpanded={expandedPackages.has(pkg.id)}
+                  assignmentInfo={assignmentsMap[pkg.id]}
                   onToggle={() => togglePackage(pkg.id)}
                   onViewDetail={() => onViewPackageDetail(pkg)}
                   onOpenChat={() => {

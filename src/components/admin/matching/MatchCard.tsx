@@ -217,6 +217,11 @@ export const MatchCard = ({
                 </div>
                 <h4 className={`font-medium ${isMobile ? "text-base" : "text-sm"}`}>{getProductsDisplayTitle()}</h4>
                 <MatchStatusBadge status={pkg.status} />
+                {assignmentInfo && assignmentInfo.count > 0 && !pkg.matched_trip_id && (
+                  <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-300">
+                    ⚡ Compitiendo ({assignmentInfo.count}pax)
+                  </Badge>
+                )}
                 {pkg.label_number && (
                   <Badge variant="outline" className="text-xs font-mono bg-orange-50 text-orange-700 border-orange-300">
                     🏷️ #{pkg.label_number}
