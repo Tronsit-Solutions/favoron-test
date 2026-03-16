@@ -474,100 +474,22 @@ const TripForm = ({
 
   const displayToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
 
-  // Handle continue from intro step
-  const handleContinueFromIntro = async () => {
-    if (skipIntroduction) {
+  // Handle onboarding continue
+  const handleOnboardingContinue = async (dontShowAgain: boolean) => {
+    if (dontShowAgain) {
       try {
         await updateProfile({
           ui_preferences: {
             ...profile?.ui_preferences,
-            skip_trip_intro: true
-          }
+            skip_trip_intro: true,
+          },
         });
       } catch (error) {
         console.error('Error saving preference:', error);
       }
     }
-    setCurrentStep(1);
+    setShowOnboarding(false);
   };
-
-  // Intro steps for traveler onboarding
-  const introSteps = [
-    {
-      icon: Plane,
-      title: "Registra tu viaje",
-      description: "Indica origen, destino y dirección de recepción"
-    },
-    {
-      icon: Users,
-      title: "Recibe solicitudes de paquetes",
-      description: "Recibe paquetes con propina. Tú decides si aceptas"
-    },
-    {
-      icon: DollarSign,
-      title: "El shopper acepta tu cotización",
-      description: "Si acepta, recibirás el paquete en tu dirección"
-    },
-    {
-      icon: Truck,
-      title: "Entrega en oficina o mensajero",
-      description: "Entrega en oficina Favoron o programa recolección"
-    }
-  ];
-
-  // Render intro step (Step 0)
-  const renderStep0 = () => (
-    <div className="space-y-6 animate-fade-in">
-      <div className="text-center mb-4">
-        <h3 className="text-xl font-semibold">¡Conviértete en Viajero Favoron!</h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          Conoce cómo funciona el proceso:
-        </p>
-      </div>
-
-      <div className="space-y-3">
-        {introSteps.map((step, index) => (
-          <div key={index} className="flex items-start space-x-3 p-3 rounded-lg bg-traveler/5 border border-traveler/10">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-traveler/20 flex items-center justify-center">
-              <span className="text-sm font-bold text-traveler">{index + 1}</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-2">
-                <step.icon className="h-4 w-4 text-traveler flex-shrink-0" />
-                <h4 className="font-medium text-sm sm:text-base">{step.title}</h4>
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                {step.description}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex items-center space-x-2 pt-4 border-t border-border/50">
-        <Checkbox 
-          id="skip-trip-intro" 
-          checked={skipIntroduction}
-          onCheckedChange={(checked) => setSkipIntroduction(checked === true)}
-        />
-        <Label 
-          htmlFor="skip-trip-intro" 
-          className="text-sm text-muted-foreground cursor-pointer"
-        >
-          No volver a mostrar esta introducción
-        </Label>
-      </div>
-
-      <div className="flex space-x-3 pt-4">
-        <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-          Cancelar
-        </Button>
-        <Button type="button" variant="traveler" onClick={handleContinueFromIntro} className="flex-1">
-          Continuar
-          <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
-    </div>
   );
 
   // Progress indicator component - now clickable for free navigation
