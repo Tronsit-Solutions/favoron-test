@@ -17,6 +17,8 @@ export interface QuoteGenerationData {
   };
   /** Destination country for accurate delivery zone classification */
   destinationCountry?: string;
+  /** Override trip ID for multi-assignment packages where matched_trip_id is null */
+  overrideTripId?: string;
 }
 
 /**
