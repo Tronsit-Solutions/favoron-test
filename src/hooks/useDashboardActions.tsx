@@ -7,6 +7,7 @@ import { sendWhatsAppNotification } from '@/lib/whatsappNotifications';
 import { createHistoryEntry, appendTripHistoryEntry, buildEditDiff } from '@/utils/tripHistoryHelpers';
 import { inferCountryFromCity } from '@/lib/cities';
 import { getCountryLabel } from '@/lib/countries';
+import { generateQuoteForAdminStatusChange } from '@/utils/adminQuoteGeneration';
 
 export const useDashboardActions = (
   packages: any[],
@@ -397,9 +398,11 @@ export const useDashboardActions = (
               prime_delivery_discount: fees.prime_delivery_discount,
             }, selectedPackage.package_destination_country);
             
-            // Multi-assignment: write to package_assignments, keep package status as matched
-            if (selectedPackage._isMultiAssignment && selectedPackage._assignmentId) {
-              console.log('⚡ Multi-assignment quote: updating assignment', selectedPackage._assignmentId);
+            // Unified: always write to package_assignments
+            // Find the traveler's assignment for this package
+            const assignmentId = selectedPackage._assignmentId;
+            if (assignmentId) {
+              console.log('⚡ Updating assignment with quote:', assignmentId);
               const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
               const { error: assignError } = await supabase
                 .from('package_assignments')
@@ -410,14 +413,15 @@ export const useDashboardActions = (
                   matched_trip_dates: matchedTripDates as any,
                   quote_expires_at: expiresAt,
                 })
-                .eq('id', selectedPackage._assignmentId);
+                .eq('id', assignmentId);
               
               if (assignError) {
                 console.error('❌ Failed to update assignment:', assignError);
                 throw assignError;
               }
             } else {
-              // Single-assignment: update package directly (existing behavior)
+              // Legacy fallback: no assignment row exists, update package directly
+              console.log('📦 Legacy package: updating package directly');
               await updatePackage(selectedPackage.id, {
                 status: 'quote_sent',
                 quote: normalizedQuoteData,
@@ -1199,7 +1203,8 @@ export const useDashboardActions = (
 
       // Determine list of trip IDs to assign
       const tripIdsToAssign = allTripIds && allTripIds.length > 0 ? allTripIds : [tripId];
-      const isMultiAssignment = tripIdsToAssign.length > 1;
+      // Unified: always treat as assignment-based (no single vs multi distinction)
+      const isMultiAssignment = true;
 
       // Build products_data update
       const currentPackage = packages.find(pkg => pkg.id === packageId);
@@ -1238,77 +1243,60 @@ export const useDashboardActions = (
         }
       }
 
-      // Insert assignments into package_assignments table
-      const assignmentRows = tripIdsToAssign.map(tid => {
-        const matchedTrip = trips.find(trip => trip.id === tid);
-        const travelerAddress = buildTravelerAddress(matchedTrip);
-        const matchedTripDates = matchedTrip ? {
-          first_day_packages: matchedTrip.first_day_packages,
-          last_day_packages: matchedTrip.last_day_packages,
-          delivery_date: matchedTrip.delivery_date,
-          arrival_date: matchedTrip.arrival_date
-        } : null;
-
-        return {
-          package_id: packageId,
-          trip_id: tid,
-          status: 'pending',
-          admin_assigned_tip: adminTip,
-          traveler_address: travelerAddress,
-          matched_trip_dates: matchedTripDates,
-          products_data: updatedProductsData || null
-        };
-      });
-
-      const { error: assignError } = await supabase
+      // Check for existing assignments to avoid duplicates
+      const { data: existingAssignments } = await supabase
         .from('package_assignments')
-        .insert(assignmentRows);
+        .select('trip_id')
+        .eq('package_id', packageId)
+        .not('status', 'eq', 'rejected');
+      
+      const existingTripIds = new Set((existingAssignments || []).map(a => a.trip_id));
+      const newTripIds = tripIdsToAssign.filter(tid => !existingTripIds.has(tid));
 
-      if (assignError) {
-        console.error('Error inserting package_assignments:', assignError);
-        throw assignError;
+      if (newTripIds.length > 0) {
+        // Insert assignments into package_assignments table
+        const assignmentRows = newTripIds.map(tid => {
+          const matchedTrip = trips.find(trip => trip.id === tid);
+          const travelerAddress = buildTravelerAddress(matchedTrip);
+          const matchedTripDates = matchedTrip ? {
+            first_day_packages: matchedTrip.first_day_packages,
+            last_day_packages: matchedTrip.last_day_packages,
+            delivery_date: matchedTrip.delivery_date,
+            arrival_date: matchedTrip.arrival_date
+          } : null;
+
+          return {
+            package_id: packageId,
+            trip_id: tid,
+            status: 'pending',
+            admin_assigned_tip: adminTip,
+            traveler_address: travelerAddress,
+            matched_trip_dates: matchedTripDates,
+            products_data: updatedProductsData || null
+          };
+        });
+
+        const { error: assignError } = await supabase
+          .from('package_assignments')
+          .insert(assignmentRows);
+
+        if (assignError) {
+          console.error('Error inserting package_assignments:', assignError);
+          throw assignError;
+        }
       }
 
-      // For single assignment, also set matched_trip_id for backward compatibility
-      // For multi-assignment, only set status to 'matched' without matched_trip_id yet
-      if (isMultiAssignment) {
-        // Multi-assignment: package is in "awaiting quotes" state
-        const updateData: any = {
-          status: 'matched',
-          admin_assigned_tip: adminTip,
-          traveler_dismissal: null,
-          traveler_dismissed_at: null
-        };
-        if (updatedProductsData) {
-          updateData.products_data = updatedProductsData;
-        }
-        await updatePackage(packageId, updateData);
-      } else {
-        // Single assignment: backward-compatible, set matched_trip_id directly
-        const matchedTrip = trips.find(trip => trip.id === tripId);
-        const travelerAddress = buildTravelerAddress(matchedTrip);
-        const matchedTripDates = matchedTrip ? {
-          first_day_packages: matchedTrip.first_day_packages,
-          last_day_packages: matchedTrip.last_day_packages,
-          delivery_date: matchedTrip.delivery_date,
-          arrival_date: matchedTrip.arrival_date
-        } : null;
-
-        const updateData: any = {
-          status: 'matched',
-          matched_trip_id: tripId,
-          quote: null,
-          admin_assigned_tip: adminTip,
-          traveler_address: travelerAddress,
-          matched_trip_dates: matchedTripDates,
-          traveler_dismissal: null,
-          traveler_dismissed_at: null
-        };
-        if (updatedProductsData) {
-          updateData.products_data = updatedProductsData;
-        }
-        await updatePackage(packageId, updateData);
+      // Unified: always use assignment-based flow. matched_trip_id stays null until shopper accepts.
+      const updateData: any = {
+        status: 'matched',
+        admin_assigned_tip: adminTip,
+        traveler_dismissal: null,
+        traveler_dismissed_at: null
+      };
+      if (updatedProductsData) {
+        updateData.products_data = updatedProductsData;
       }
+      await updatePackage(packageId, updateData);
 
       // Log package assignment to trip history for each trip
       const adminName = currentUser?.first_name
@@ -1352,9 +1340,7 @@ export const useDashboardActions = (
       
       toast({
         title: "¡Match realizado!",
-        description: isMultiAssignment
-          ? `Paquete asignado a ${tripIdsToAssign.length} viajeros. Tip: Q${adminTip}.`
-          : `Paquete emparejado. Tip asignado: Q${adminTip}.`,
+        description: `Paquete asignado a ${tripIdsToAssign.length} viajero(s). Tip: Q${adminTip}.`,
       });
     } catch (error) {
       console.error('Error matching package:', error);
@@ -1376,7 +1362,7 @@ export const useDashboardActions = (
         // Special handling when moving back to "approved", "pending_approval", or "rejected" (un-matching)
         if (status === 'approved' || status === 'pending_approval' || status === 'rejected') {
           if (currentPackage?.matched_trip_id) {
-            console.log('🔄 Admin un-matching package, clearing match data...');
+            console.log('🔄 Admin un-matching legacy package, clearing match data...');
             
             // Log package_unassigned to trip history
             const adminName = currentUser?.first_name
@@ -1393,6 +1379,17 @@ export const useDashboardActions = (
               }
             );
             appendTripHistoryEntry(currentPackage.matched_trip_id, unassignEntry);
+          }
+          
+          // Also reject all package_assignments for this package
+          const { error: rejectAssignErr } = await supabase
+            .from('package_assignments')
+            .update({ status: 'rejected', updated_at: new Date().toISOString() })
+            .eq('package_id', id)
+            .not('status', 'eq', 'rejected');
+          
+          if (rejectAssignErr) {
+            console.warn('Error rejecting assignments during un-match:', rejectAssignErr);
           }
           
           // Clear all match-related data to allow fresh matching
@@ -1418,8 +1415,10 @@ export const useDashboardActions = (
           }
         }
         // Special handling for status change from "matched" to "quote_sent"
+        // Unified: now uses package_assignments flow (handled by AdminActionsModal)
+        // This path should not be reached for new matches, but keep as legacy fallback
         else if (currentPackage?.status === 'matched' && status === 'quote_sent') {
-          console.log('🔄 Admin changing status from matched to quote_sent, generating quote...');
+          console.log('🔄 handleStatusUpdate: matched→quote_sent - redirecting to assignment-based flow');
           
           // Check if we have admin_assigned_tip
           if (!currentPackage.admin_assigned_tip || currentPackage.admin_assigned_tip <= 0) {
@@ -1431,12 +1430,59 @@ export const useDashboardActions = (
             return;
           }
 
-          try {
-            // Import quote helper
-            const { createNormalizedQuote } = await import('@/lib/quoteHelpers');
-            const { supabase } = await import('@/integrations/supabase/client');
+          // Check for assignments first (unified path)
+          const { data: assignments, error: assignErr } = await supabase
+            .from('package_assignments')
+            .select('*')
+            .eq('package_id', id)
+            .in('status', ['pending']);
 
-            // Fetch shopper's profile to get trust level
+          if (!assignErr && assignments && assignments.length > 0) {
+            // Has assignments: generate quotes for each
+            for (const assignment of assignments) {
+              const tipToUse = assignment.admin_assigned_tip || currentPackage.admin_assigned_tip;
+              
+              const quoteData = await generateQuoteForAdminStatusChange({
+                packageId: id,
+                currentPackage: { ...currentPackage, admin_assigned_tip: tipToUse },
+                trips: trips,
+                adminAssignedTip: tipToUse,
+                overrideTripId: assignment.trip_id,
+                rates,
+                fees: fees ? {
+                  delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+                  delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
+                  delivery_fee_outside_city: fees.delivery_fee_outside_city,
+                  prime_delivery_discount: fees.prime_delivery_discount,
+                } : undefined,
+                destinationCountry: currentPackage.package_destination_country
+              });
+
+              await supabase
+                .from('package_assignments')
+                .update({
+                  status: 'quote_sent',
+                  quote: quoteData.quote as any,
+                  traveler_address: quoteData.traveler_address as any,
+                  matched_trip_dates: quoteData.matched_trip_dates as any,
+                  quote_expires_at: quoteData.quote_expires_at,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', assignment.id);
+            }
+
+            // Don't change package status - stays 'matched'
+            toast({
+              title: "Cotizaciones enviadas",
+              description: `Se enviaron cotizaciones a ${assignments.length} viajero(s).`,
+            });
+            return;
+          }
+
+          // Legacy fallback: no assignments exist, update package directly
+          try {
+            const { createNormalizedQuote } = await import('@/lib/quoteHelpers');
+            
             const { data: shopperProfile, error: profileError } = await supabase
               .from('profiles')
               .select('trust_level')
@@ -1444,24 +1490,16 @@ export const useDashboardActions = (
               .single();
 
             if (profileError) {
-              console.error('Error fetching shopper profile:', profileError);
-              toast({
-                title: "Error",
-                description: "No se pudo obtener el perfil del comprador.",
-                variant: "destructive",
-              });
+              toast({ title: "Error", description: "No se pudo obtener el perfil del comprador.", variant: "destructive" });
               return;
             }
 
-            // Fetch matched trip details for address and dates
             let travelerAddress = null;
             let matchedTripDates = null;
 
             if (currentPackage.matched_trip_id) {
               const matchedTrip = trips.find(trip => trip.id === currentPackage.matched_trip_id);
-              
               if (matchedTrip) {
-                // Build traveler address from trip data
                 travelerAddress = matchedTrip.package_receiving_address ? {
                   recipientName: matchedTrip.package_receiving_address.recipientName,
                   streetAddress: matchedTrip.package_receiving_address.streetAddress,
@@ -1471,8 +1509,6 @@ export const useDashboardActions = (
                   hotelAirbnbName: matchedTrip.package_receiving_address.hotelAirbnbName,
                   accommodationType: matchedTrip.package_receiving_address.accommodationType
                 } : null;
-
-                // Build trip dates information
                 matchedTripDates = {
                   first_day_packages: matchedTrip.first_day_packages,
                   last_day_packages: matchedTrip.last_day_packages,
@@ -1482,39 +1518,30 @@ export const useDashboardActions = (
               }
             }
 
-            // Generate quote using admin_assigned_tip as base price
             const confirmedAddress = currentPackage.confirmed_delivery_address as any;
             const cityArea = confirmedAddress?.cityArea;
-
             const normalizedQuote = createNormalizedQuote(
               currentPackage.admin_assigned_tip,
               currentPackage.delivery_method || 'pickup',
               shopperProfile.trust_level,
               `Cotización generada automáticamente por admin`,
-              true, // adminAssignedTipAccepted
+              true,
               cityArea || currentPackage.package_destination,
               rates,
-              fees,  // pass dynamic delivery fees
+              fees,
               currentPackage.package_destination_country
             );
 
-            // Update package with quote, address, and dates
             updateData = {
               status,
               quote: normalizedQuote,
               traveler_address: travelerAddress,
               matched_trip_dates: matchedTripDates,
-              quote_expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString() // 48 hours from now
+              quote_expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
             };
-
-            console.log('📊 Generated quote:', normalizedQuote);
           } catch (quoteError) {
             console.error('Error generating quote:', quoteError);
-            toast({
-              title: "Error",
-              description: "No se pudo generar la cotización automáticamente.",
-              variant: "destructive",
-            });
+            toast({ title: "Error", description: "No se pudo generar la cotización automáticamente.", variant: "destructive" });
             return;
           }
         }

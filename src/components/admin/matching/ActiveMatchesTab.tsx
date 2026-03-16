@@ -31,6 +31,7 @@ interface ActiveMatchesTabProps {
   onAdminConfirmOfficeDelivery: (packageId: string) => void;
   onConfirmShopperReceived: (packageId: string) => void;
   onOpenActionsModal?: (packageId: string) => void;
+  onOpenMatchDialog?: (pkg: any) => void;
   getStatusBadge: (status: string) => JSX.Element;
   unreadCounts?: { [packageId: string]: number };
   markPackageMessagesAsRead?: (packageId: string) => Promise<void>;
@@ -49,6 +50,7 @@ const ActiveMatchesTab = ({
   onAdminConfirmOfficeDelivery,
   onConfirmShopperReceived,
   onOpenActionsModal,
+  onOpenMatchDialog,
   getStatusBadge,
   unreadCounts = {},
   markPackageMessagesAsRead,
@@ -450,6 +452,7 @@ const ActiveMatchesTab = ({
                   onAdminConfirmOfficeDelivery={() => onAdminConfirmOfficeDelivery(pkg.id)}
                   onConfirmShopperReceived={() => onConfirmShopperReceived(pkg.id)}
                   onOpenActionsModal={onOpenActionsModal}
+                  onOpenMatchDialog={onOpenMatchDialog}
                   unreadCount={unreadCounts[pkg.id] || 0}
                   hasMessages={hasMessages(pkg.id)}
                 />

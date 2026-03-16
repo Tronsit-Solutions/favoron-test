@@ -18,7 +18,8 @@ import {
   Star,
   Tag,
   PackageCheck,
-  Ban
+  Ban,
+  Users
 } from "lucide-react";
 import { MatchStatusBadge, getStatusInfo } from "./MatchStatusBadge";
 import QuoteCountdown from "../../dashboard/QuoteCountdown";
@@ -38,6 +39,7 @@ interface MatchCardProps {
   onAdminConfirmOfficeDelivery: () => void;
   onConfirmShopperReceived: () => void;
   onOpenActionsModal?: (packageId: string) => void;
+  onOpenMatchDialog?: (pkg: any) => void;
   unreadCount?: number;
   hasMessages?: boolean;
   assignmentInfo?: { count: number; assignments: any[] };
@@ -55,6 +57,7 @@ export const MatchCard = ({
   onAdminConfirmOfficeDelivery,
   onConfirmShopperReceived,
   onOpenActionsModal,
+  onOpenMatchDialog,
   unreadCount = 0,
   hasMessages = false,
   assignmentInfo
@@ -390,6 +393,17 @@ export const MatchCard = ({
                         Acciones
                       </Button>
                     )}
+                    {onOpenMatchDialog && pkg.status === 'matched' && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => onOpenMatchDialog(pkg)} 
+                        className="min-h-[44px] text-sm"
+                      >
+                        <Users className="h-4 w-4 mr-1" />
+                        + Viajeros
+                      </Button>
+                    )}
                   </div>
                   
                   {/* Label Generation Button for Mobile */}
@@ -440,6 +454,11 @@ export const MatchCard = ({
                   {onOpenActionsModal && (
                     <Button size="sm" variant="secondary" onClick={() => onOpenActionsModal(pkg.id)} className="px-2" title="Acciones administrativas">
                       <Settings className="h-3 w-3" />
+                    </Button>
+                  )}
+                  {onOpenMatchDialog && pkg.status === 'matched' && (
+                    <Button size="sm" variant="outline" onClick={() => onOpenMatchDialog(pkg)} className="px-2" title="Asignar más viajeros">
+                      <Users className="h-3 w-3" />
                     </Button>
                   )}
                   

@@ -292,6 +292,7 @@ const AdminMatchingTab = ({
             onAdminConfirmOfficeDelivery={onAdminConfirmOfficeDelivery || (() => {})}
             onConfirmShopperReceived={onConfirmShopperReceived || (() => {})}
             onOpenActionsModal={onOpenActionsModal}
+            onOpenMatchDialog={onOpenMatchDialog}
             getStatusBadge={getStatusBadge || ((status: string) => <span>{status}</span>)}
             unreadCounts={unreadCounts}
             markPackageMessagesAsRead={markPackageMessagesAsRead}

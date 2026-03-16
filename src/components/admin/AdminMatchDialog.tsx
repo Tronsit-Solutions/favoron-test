@@ -62,6 +62,7 @@ const AdminMatchDialog = ({
   const [assignedProductsWithTips, setAssignedProductsWithTips] = useState<any[]>([]);
   const [showAllTrips, setShowAllTrips] = useState(false);
   const [showOtherCities, setShowOtherCities] = useState(false);
+  const [alreadyAssignedTripIds, setAlreadyAssignedTripIds] = useState<Set<string>>(new Set());
 
   const MODAL_ID = 'admin-match-dialog';
 
@@ -370,11 +371,36 @@ const AdminMatchDialog = ({
     }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
   }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
 
-  // Reset showAllTrips and showOtherCities when selected package changes
+  // Reset showAllTrips, showOtherCities and fetch existing assignments when selected package changes
   useEffect(() => {
     setShowAllTrips(false);
     setShowOtherCities(false);
-  }, [selectedPackage?.id]);
+    
+    // Fetch existing assignments for this package (for "assign more" flow)
+    if (showMatchDialog && selectedPackage?.id) {
+      const fetchExistingAssignments = async () => {
+        const { data, error } = await supabase
+          .from('package_assignments')
+          .select('trip_id')
+          .eq('package_id', selectedPackage.id)
+          .not('status', 'eq', 'rejected');
+        
+        if (!error && data) {
+          setAlreadyAssignedTripIds(new Set(data.map(a => a.trip_id)));
+        } else {
+          setAlreadyAssignedTripIds(new Set());
+        }
+      };
+      fetchExistingAssignments();
+      
+      // Pre-populate admin tip from existing package
+      if (selectedPackage.admin_assigned_tip && !adminTip) {
+        setAdminTip(String(selectedPackage.admin_assigned_tip));
+      }
+    } else {
+      setAlreadyAssignedTripIds(new Set());
+    }
+  }, [selectedPackage?.id, showMatchDialog]);
 
   // Handle modal state persistence
   useEffect(() => {
@@ -562,6 +588,9 @@ const AdminMatchDialog = ({
 
   const handleTripSelection = (tripId: number) => {
     const tripIdStr = String(tripId);
+    // Prevent selecting already-assigned trips
+    if (alreadyAssignedTripIds.has(tripIdStr)) return;
+    
     setSelectedTripIds(prev => {
       const next = new Set(prev);
       if (next.has(tripIdStr)) {
@@ -1019,16 +1048,21 @@ const AdminMatchDialog = ({
                   return (
                     <Card 
                       key={trip.id} 
-                      className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                        selectedTripIds.has(String(trip.id))
-                          ? 'ring-2 ring-primary bg-primary/5' 
-                          : wasPreviouslyRejected
-                            ? 'bg-red-50 border-2 border-red-300 hover:bg-red-100'
-                            : 'hover:bg-gray-50'
+                      className={`transition-all duration-200 hover:shadow-md ${
+                        alreadyAssignedTripIds.has(String(trip.id))
+                          ? 'opacity-50 bg-muted border-muted cursor-not-allowed'
+                          : selectedTripIds.has(String(trip.id))
+                            ? 'ring-2 ring-primary bg-primary/5 cursor-pointer' 
+                            : wasPreviouslyRejected
+                              ? 'bg-red-50 border-2 border-red-300 hover:bg-red-100 cursor-pointer'
+                              : 'hover:bg-gray-50 cursor-pointer'
                       }`}
                       onClick={() => handleTripSelection(trip.id)}
                     >
                     <CardContent className="p-2 sm:p-3">
+                         {alreadyAssignedTripIds.has(String(trip.id)) && (
+                           <Badge variant="secondary" className="mb-2 text-xs">✅ Ya asignado</Badge>
+                         )}
                          {/* Main Trip Info - Mobile Responsive Layout */}
                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-1">
