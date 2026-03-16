@@ -48,8 +48,9 @@ export async function generateQuoteForAdminStatusChange(data: QuoteGenerationDat
   let travelerAddress = null;
   let matchedTripDates = null;
 
-  if (currentPackage.matched_trip_id) {
-    const matchedTrip = trips.find(trip => trip.id === currentPackage.matched_trip_id);
+  const effectiveTripId = overrideTripId || currentPackage.matched_trip_id;
+  if (effectiveTripId) {
+    const matchedTrip = trips.find(trip => trip.id === effectiveTripId);
     
     if (matchedTrip) {
       // Build traveler address from trip data
