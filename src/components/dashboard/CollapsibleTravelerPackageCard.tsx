@@ -534,7 +534,12 @@ const CollapsibleTravelerPackageCard = ({
                         <MessageCircle className="h-6 w-6 text-primary" />
                       </Button>
                     )}
-                    <div className="flex flex-col items-end text-right">
+                    <div className="flex flex-col items-end text-right gap-1">
+                      {pkg._isMultiAssignment && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-500/50 text-amber-600 bg-amber-50">
+                          ⚡ Compitiendo
+                        </Badge>
+                      )}
                       <TravelerPackageStatusBadge status={pkg.status} pkg={pkg} />
                     </div>
                     {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
