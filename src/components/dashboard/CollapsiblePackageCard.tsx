@@ -665,6 +665,22 @@ const CollapsiblePackageCard = ({
                       )
                     ) : null}
                   
+                  {/* Multi-quote button - mobile */}
+                  {isCompeting && hasMultiQuotes && (
+                    <Button size="sm" variant="success" onClick={e => {
+                      e.stopPropagation();
+                      setShowMultiQuoteModal(true);
+                    }} className="text-xs font-medium w-full">
+                      ⚡ Ver Cotizaciones ({multiAssignments!.filter(a => a.status === 'quote_sent').length})
+                    </Button>
+                  )}
+                  {isCompeting && !hasMultiQuotes && (
+                    <Button size="sm" variant="outline" disabled className="text-xs font-medium w-full">
+                      <Clock className="h-3 w-3 mr-1" />
+                      Esperando cotizaciones...
+                    </Button>
+                  )}
+
                   {/* Calificar button - mobile */}
                   {needsFeedback && (
                     <Button size="sm" variant="outline" onClick={e => {
