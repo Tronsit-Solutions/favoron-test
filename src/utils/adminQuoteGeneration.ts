@@ -25,7 +25,7 @@ export interface QuoteGenerationData {
  * Generates a quote when admin changes status from "matched" to "quote_sent"
  */
 export async function generateQuoteForAdminStatusChange(data: QuoteGenerationData) {
-  const { currentPackage, trips, adminAssignedTip, rates, fees, destinationCountry } = data;
+  const { currentPackage, trips, adminAssignedTip, rates, fees, destinationCountry, overrideTripId } = data;
   
   // Check if we have admin_assigned_tip
   if (!adminAssignedTip || adminAssignedTip <= 0) {
