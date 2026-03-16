@@ -1002,6 +1002,22 @@ const CollapsiblePackageCard = ({
                       </Button>
                     ) : null}
                   
+                  {/* Multi-quote button - desktop */}
+                  {isCompeting && hasMultiQuotes && (
+                    <Button size="sm" variant="success" onClick={e => {
+                      e.stopPropagation();
+                      setShowMultiQuoteModal(true);
+                    }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
+                      <span className="truncate">⚡ Ver Cotizaciones ({multiAssignments!.filter(a => a.status === 'quote_sent').length})</span>
+                    </Button>
+                  )}
+                  {isCompeting && !hasMultiQuotes && (
+                    <Button size="sm" variant="outline" disabled className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
+                      <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">Esperando cotizaciones...</span>
+                    </Button>
+                  )}
+
                   {/* Calificar button - desktop */}
                   {needsFeedback && (
                     <Button size="sm" variant="outline" onClick={e => {
