@@ -99,18 +99,41 @@ const TripForm = ({
       updateField('currentStep', step);
     }
   };
-  const [skipIntroduction, setSkipIntroduction] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const totalSteps = 4;
 
-  // Solo resetear paso si NO hay progreso guardado
+  // Traveler onboarding slides
+  const travelerOnboardingSlides: OnboardingSlide[] = [
+    {
+      icon: Plane,
+      title: "¡Conviértete en Viajero!",
+      description: "Registra tu viaje indicando de dónde vienes, cuándo llegas y cuánto espacio tienes disponible.",
+    },
+    {
+      icon: Users,
+      title: "Recibe solicitudes",
+      description: "Los shoppers te enviarán solicitudes de paquetes. Tú decides cuáles aceptar y defines tu propina.",
+    },
+    {
+      icon: DollarSign,
+      title: "Cotiza con confianza",
+      description: "Incluye tu propina en la cotización. Si llegas a pagar algún impuesto o tasa al transportar, se te reembolsará.",
+    },
+    {
+      icon: Truck,
+      title: "Entrega y cobra",
+      description: "Entrega los paquetes en nuestra oficina o programa una recolección. Recibirás tu pago al completar la entrega.",
+    },
+  ];
+
+  // Show onboarding when modal opens if not skipped
   useEffect(() => {
     if (isOpen) {
-      const hasSavedStep = formState.currentStep !== undefined && formState.currentStep > 0;
+      const hasSavedStep = formState.currentStep !== undefined && formState.currentStep > 1;
       if (!hasSavedStep) {
-        const shouldSkip = profile?.ui_preferences?.skip_trip_intro === true;
-        setCurrentStep(shouldSkip ? 1 : 0);
+        const shouldShowOnboarding = profile?.ui_preferences?.skip_trip_intro !== true;
+        setShowOnboarding(shouldShowOnboarding);
       }
-      setSkipIntroduction(false);
     }
   }, [isOpen]);
 
