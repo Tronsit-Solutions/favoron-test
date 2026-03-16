@@ -35,6 +35,8 @@ interface ActiveMatchesTabProps {
   unreadCounts?: { [packageId: string]: number };
   markPackageMessagesAsRead?: (packageId: string) => Promise<void>;
   hasMessages?: (packageId: string) => boolean;
+  assignmentsMap?: { [packageId: string]: { count: number; assignments: any[] } };
+  multiAssignedPackageIds?: Set<string>;
 }
 
 const ActiveMatchesTab = ({ 
