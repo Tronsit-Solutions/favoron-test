@@ -1,18 +1,37 @@
+## Onboarding Bottom Sheet — Implementado ✅
 
+### Cambios realizados
 
-## Plan: Compactar tarjetas en estado `received_by_traveler`
+**Nuevo: `src/components/onboarding/OnboardingBottomSheet.tsx`**
+- Componente reutilizable con slides tipo bottom-sheet (móvil) / modal centrado (desktop)
+- Swipe entre slides con `react-swipeable`
+- Dots de navegación clickeables
+- Checkbox "No volver a mostrar" en último slide
+- Soporte para variantes `shopper` (azul) y `traveler` (verde)
+- Gradiente configurable para el hero area
 
-### Problema
-Las tarjetas en estado `received_by_traveler` son más altas que las demás porque muestran: (1) un bloque vertical con icono circular + texto + botón "Marcar como entregado", y (2) un botón separado "Ver dirección de oficina" con border-top. Esto genera inconsistencia visual.
+**Modificado: `src/components/PackageRequestForm.tsx`**
+- Eliminado Step 0 (intro inline) 
+- Agregado `OnboardingBottomSheet` con 4 slides para shoppers
+- El formulario ahora siempre empieza en Step 1
+- Persiste preferencia en `ui_preferences.skip_package_intro`
 
-### Solución
-Cambiar el layout de `received_by_traveler` en `TravelerPackagePriorityActions.tsx` a un diseño compacto de una sola fila (similar al de `in_transit`):
+**Modificado: `src/components/TripForm.tsx`**
+- Eliminado Step 0 (intro inline)
+- Agregado `OnboardingBottomSheet` con 4 slides para viajeros
+- El formulario ahora siempre empieza en Step 1
+- Persiste preferencia en `ui_preferences.skip_trip_intro`
 
-- **Sin admin_confirmation**: Una fila con texto "¡Paquete listo para entregar!" a la izquierda y los botones "Marcar como entregado" + "Ver dirección" a la derecha, en línea.
-- **Con admin_confirmation**: Una fila con "✅ Entrega confirmada" a la izquierda y botón disabled + "Ver dirección" a la derecha.
-- Eliminar el icono circular decorativo (w-6 h-6) y el border-t separator del botón de oficina para estos estados.
-- El botón de confirmación de entrega expandido (con warning + confirmar/cancelar) se mantiene igual cuando se activa.
+### Contenido de slides
 
-### Archivo
-`src/components/dashboard/traveler/TravelerPackagePriorityActions.tsx` — Extraer `received_by_traveler` del bloque vertical genérico y darle su propio bloque inline como `in_transit`.
+**Shoppers:**
+1. "¡Tu primera compra internacional!" — Describe producto y origen
+2. "Recibe una cotización" — Incluye propina y tarifa de servicio
+3. "Compra tu producto" — Envía a dirección del viajero
+4. "¡Recibe tu paquete!" — Oficina o domicilio + mención de impuestos como cargo adicional
 
+**Viajeros:**
+1. "¡Conviértete en Viajero!" — Registra viaje con origen, llegada, espacio
+2. "Recibe solicitudes" — Decide cuáles aceptar, define propina
+3. "Cotiza con confianza" — Impuestos se reembolsan
+4. "Entrega y cobra" — Oficina o recolección, pago al completar
