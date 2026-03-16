@@ -166,7 +166,9 @@ const CollapsiblePackageCard = ({
     e.stopPropagation();
     setChatModalOpen(true);
   };
-  const needsAction = viewMode === 'user' && (pkg.status === 'quote_sent' || pkg.status === 'quote_accepted' || pkg.status === 'payment_pending' || pkg.status === 'payment_pending_approval' || pkg.status === 'pending_purchase'
+  const hasMultiQuotes = multiAssignments && multiAssignments.some(a => a.status === 'quote_sent');
+  const isCompeting = multiAssignments && multiAssignments.length > 0 && pkg.status === 'matched' && !pkg.matched_trip_id;
+  const needsAction = viewMode === 'user' && (pkg.status === 'quote_sent' || pkg.status === 'quote_accepted' || pkg.status === 'payment_pending' || pkg.status === 'payment_pending_approval' || pkg.status === 'pending_purchase' || hasMultiQuotes
   // Removed: 'approved' condition - approved packages are pending traveler assignment, no shopper action needed
   );
   
