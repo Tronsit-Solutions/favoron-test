@@ -47,9 +47,9 @@ const TripForm = ({
   const { profile, updateProfile } = useAuth();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
 
-  // Estado inicial del formulario completo (incluye currentStep para persistencia)
+  // Estado inicial del formulario completo (starts at step 1, no more step 0)
   const getInitialFormState = () => ({
-    currentStep: 0, // Persistido para mantener progreso al salir/volver
+    currentStep: 1,
     formData: {
       fromCity: '',
       fromCountry: '',
