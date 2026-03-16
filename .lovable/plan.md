@@ -57,3 +57,33 @@ Cuando un admin asigna un paquete a 2+ viajeros, `matched_trip_id` queda `null` 
 ### Compatibilidad
 - Paquetes single-assignment (con `matched_trip_id` directo) siguen funcionando igual
 - RLS de `package_assignments` ya permite SELECT a viajeros con trips propios
+
+## Phase 3: Shopper Quote Comparison & Selection — Implementado ✅
+
+### Cambios realizados
+
+**Migración: `shopper_accept_assignment` RPC**
+- Función SECURITY DEFINER que valida ownership del paquete
+- Promueve datos del assignment ganador al paquete (matched_trip_id, quote, tip, etc.)
+- Acepta el assignment ganador y rechaza todos los demás atómicamente
+
+**Nuevo: `src/components/dashboard/MultiQuoteSelector.tsx`**
+- Muestra cotizaciones de múltiples viajeros side-by-side
+- Cada cotización con avatar, nombre, ruta, fecha, desglose de precios
+- Botón "Aceptar esta cotización" por viajero
+- Assignments pendientes muestran "Esperando cotización de [Nombre]"
+
+**Modificado: `src/components/Dashboard.tsx`**
+- Nuevo useEffect que fetcha `package_assignments` para paquetes del shopper en status `matched` sin `matched_trip_id`
+- Enriquece assignments con datos de perfil del viajero y trip
+- Estado `shopperAssignmentsMap[packageId] → assignment[]` 
+- Pasa props `multiAssignments` y `onAcceptMultiAssignmentQuote` a `CollapsiblePackageCard`
+
+**Modificado: `src/components/dashboard/CollapsiblePackageCard.tsx`**
+- Nuevas props: `multiAssignments`, `onAcceptMultiAssignmentQuote`
+- Renderiza `MultiQuoteSelector` para paquetes multi-asignados en status `matched`
+- Status description cambia a "Cotizaciones recibidas - Compara y elige" cuando hay quotes
+
+**Modificado: `src/hooks/useDashboardActions.tsx`**
+- Nueva función `handleAcceptMultiAssignmentQuote(packageId, assignmentId)`
+- Llama al RPC `shopper_accept_assignment` y refresca paquetes
