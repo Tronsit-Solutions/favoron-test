@@ -229,6 +229,10 @@ const [editForm, setEditForm] = useState({
   const [rejectionProfiles, setRejectionProfiles] = useState<Record<string, any>>({});
   const [loadingRejectionProfiles, setLoadingRejectionProfiles] = useState(false);
 
+  // State for multi-traveler assignments
+  const [packageAssignments, setPackageAssignments] = useState<any[]>([]);
+  const [loadingAssignments, setLoadingAssignments] = useState(false);
+
   // Resolve traveler confirmation photo (handles storage paths and signed URLs)
   // Must call this hook before any early returns to follow Rules of Hooks
   const rawTravelerPhoto = pkg?.traveler_confirmation?.photo || pkg?.traveler_confirmation?.photoUrl;
@@ -311,6 +315,65 @@ const [editForm, setEditForm] = useState({
 
     loadPaymentOrder();
   }, [pkg?.matched_trip_id, isOpen]);
+
+  // Load multi-traveler assignments when no matchedTrip
+  useEffect(() => {
+    const loadAssignments = async () => {
+      if (!isOpen || !pkg?.id) {
+        setPackageAssignments([]);
+        return;
+      }
+      
+      setLoadingAssignments(true);
+      try {
+        const { data: assignments, error } = await supabase
+          .from('package_assignments')
+          .select('id, package_id, trip_id, status, quote, admin_assigned_tip, traveler_address, matched_trip_dates, products_data, created_at')
+          .eq('package_id', pkg.id)
+          .not('status', 'eq', 'rejected');
+
+        if (error) throw error;
+        if (!assignments || assignments.length === 0) {
+          setPackageAssignments([]);
+          setLoadingAssignments(false);
+          return;
+        }
+
+        // Fetch trip + profile info for each assignment
+        const tripIds = [...new Set(assignments.map(a => a.trip_id))];
+        const { data: tripsData } = await supabase
+          .from('trips')
+          .select('id, from_city, from_country, to_city, to_country, arrival_date, delivery_date, first_day_packages, last_day_packages, user_id')
+          .in('id', tripIds);
+
+        const travelerIds = [...new Set((tripsData || []).map(t => t.user_id))];
+        let profilesData: any[] = [];
+        if (travelerIds.length > 0) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, username, email, phone_number, country_code')
+            .in('id', travelerIds);
+          profilesData = data || [];
+        }
+
+        // Build enriched assignments
+        const enriched = assignments.map(a => {
+          const trip = (tripsData || []).find(t => t.id === a.trip_id);
+          const profile = trip ? profilesData.find(p => p.id === trip.user_id) : null;
+          return { ...a, trip, profile };
+        });
+
+        setPackageAssignments(enriched);
+      } catch (err) {
+        console.warn('Error loading package assignments:', err);
+        setPackageAssignments([]);
+      } finally {
+        setLoadingAssignments(false);
+      }
+    };
+
+    loadAssignments();
+  }, [isOpen, pkg?.id]);
 
   // Load profiles for rejection history
   useEffect(() => {
@@ -1224,6 +1287,92 @@ const [editForm, setEditForm] = useState({
                         </AccordionItem>
                       </Accordion>
                   </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Multi-Traveler Assignments - when no single matchedTrip but assignments exist */}
+            {!matchedTrip && packageAssignments.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2 text-lg">
+                    <User className="h-4 w-4" />
+                    <span>✈️ Viajeros Asignados ({packageAssignments.length})</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Paquete asignado a múltiples viajeros candidatos
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {loadingAssignments ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                      <span className="ml-2 text-sm text-muted-foreground">Cargando...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {packageAssignments.map((assignment) => {
+                        const profile = assignment.profile;
+                        const trip = assignment.trip;
+                        const assignmentStatusMap: Record<string, { label: string; variant: string }> = {
+                          pending: { label: 'Esperando cotización', variant: 'secondary' },
+                          quote_sent: { label: 'Cotización enviada', variant: 'default' },
+                          quote_accepted: { label: 'Cotización aceptada', variant: 'success' },
+                          rejected: { label: 'Rechazado', variant: 'destructive' },
+                        };
+                        const statusInfo = assignmentStatusMap[assignment.status] || { label: assignment.status, variant: 'secondary' };
+
+                        return (
+                          <div key={assignment.id} className="rounded-lg border p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm font-medium">
+                                  {profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || 'Sin nombre' : 'Cargando...'}
+                                </span>
+                                {profile?.username && (
+                                  <span className="text-xs text-muted-foreground">@{profile.username}</span>
+                                )}
+                              </div>
+                              <Badge variant={statusInfo.variant as any}>{statusInfo.label}</Badge>
+                            </div>
+
+                            {profile?.email && (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Mail className="h-3.5 w-3.5" />
+                                <span>{profile.email}</span>
+                              </div>
+                            )}
+
+                            {profile?.phone_number && (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Phone className="h-3.5 w-3.5" />
+                                <span>{formatPhoneDisplay(profile.phone_number, profile.country_code)}</span>
+                              </div>
+                            )}
+
+                            {trip && (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                <Globe className="h-3.5 w-3.5" />
+                                <span>
+                                  {trip.from_city} → {trip.to_city}
+                                  {' · '}
+                                  {new Date(trip.first_day_packages).toLocaleDateString('es-GT')} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT')}
+                                </span>
+                              </div>
+                            )}
+
+                            {assignment.admin_assigned_tip != null && assignment.admin_assigned_tip > 0 && (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <DollarSign className="h-3.5 w-3.5" />
+                                <span>Propina: Q{assignment.admin_assigned_tip}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
