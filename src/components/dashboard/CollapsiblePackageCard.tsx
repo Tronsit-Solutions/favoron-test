@@ -166,7 +166,9 @@ const CollapsiblePackageCard = ({
     e.stopPropagation();
     setChatModalOpen(true);
   };
-  const needsAction = viewMode === 'user' && (pkg.status === 'quote_sent' || pkg.status === 'quote_accepted' || pkg.status === 'payment_pending' || pkg.status === 'payment_pending_approval' || pkg.status === 'pending_purchase'
+  const hasMultiQuotes = multiAssignments && multiAssignments.some(a => a.status === 'quote_sent');
+  const isCompeting = multiAssignments && multiAssignments.length > 0 && pkg.status === 'matched' && !pkg.matched_trip_id;
+  const needsAction = viewMode === 'user' && (pkg.status === 'quote_sent' || pkg.status === 'quote_accepted' || pkg.status === 'payment_pending' || pkg.status === 'payment_pending_approval' || pkg.status === 'pending_purchase' || hasMultiQuotes
   // Removed: 'approved' condition - approved packages are pending traveler assignment, no shopper action needed
   );
   
@@ -182,8 +184,12 @@ const CollapsiblePackageCard = ({
       case 'approved':
         return "Aprobado - Esperando match con un viajero";
       case 'matched':
-        if (multiAssignments && multiAssignments.some(a => a.status === 'quote_sent')) {
-          return 'Cotizaciones recibidas - Compara y elige';
+        if (multiAssignments && multiAssignments.length > 0 && !pkg.matched_trip_id) {
+          const quotesReceived = multiAssignments.filter(a => a.status === 'quote_sent').length;
+          if (quotesReceived > 0) {
+            return `Cotizaciones recibidas de ${quotesReceived} viajero${quotesReceived > 1 ? 's' : ''} - Compara y elige`;
+          }
+          return `⚡ Compitiendo (${multiAssignments.length}) - Esperando cotizaciones`;
         }
         return "Match con viajero - Esperando cotización";
       case 'quote_sent':
@@ -431,7 +437,12 @@ const CollapsiblePackageCard = ({
                     <span className="block break-words max-w-full text-muted-foreground">ID: {pkg.id.substring(0, 8)}</span>
                   </div>
                 </CardDescription>
-                <div className="pl-5 flex items-center gap-2 justify-start">
+                <div className="pl-5 flex items-center gap-2 justify-start flex-wrap">
+                  {isCompeting && (
+                    <Badge variant="warning" className="text-xs">
+                      ⚡ Compitiendo ({multiAssignments!.length})
+                    </Badge>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
@@ -745,6 +756,11 @@ const CollapsiblePackageCard = ({
                           {confirmedProductsCount}/{totalProductsCount}
                         </Badge>
                       </Button>
+                    )}
+                    {isCompeting && (
+                      <Badge variant="warning" className="text-xs">
+                        ⚡ Compitiendo ({multiAssignments!.length})
+                      </Badge>
                     )}
                     {pkg.quote_expires_at && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status) && new Date(pkg.quote_expires_at) > new Date() && <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />}
                     
