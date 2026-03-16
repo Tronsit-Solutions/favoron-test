@@ -41,8 +41,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const { getDeliveryPointByCity } = useDeliveryPoints();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
   
-  // State for "Don't show again" checkbox
-  const [skipIntroduction, setSkipIntroduction] = useState(false);
+  // Onboarding bottom sheet state
+  const [showOnboarding, setShowOnboarding] = useState(false);
   // Initialize data based on mode - helper functions
   const getInitialProducts = (): Product[] => {
     if (editMode && initialData?.products_data) {
