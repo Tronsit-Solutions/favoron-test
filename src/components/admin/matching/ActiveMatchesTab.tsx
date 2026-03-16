@@ -75,7 +75,7 @@ const ActiveMatchesTab = ({
     brokenMatchesCount,
     statuses,
     statsData
-  } = useMatchFilters(packages, trips);
+  } = useMatchFilters(packages, trips, multiAssignedPackageIds);
 
   // Debounce search with useRef to avoid lodash dependency issues
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
