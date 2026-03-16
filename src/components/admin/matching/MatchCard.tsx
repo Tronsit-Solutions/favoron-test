@@ -264,11 +264,15 @@ export const MatchCard = ({
                       )}
                     </span>
                   </div>
-                  {matchedTrip && (
+                  {matchedTrip ? (
                     <div className="flex items-center space-x-2">
                       <span>🤝 {getTravelerName()} ✈️</span>
                     </div>
-                  )}
+                  ) : assignmentInfo && assignmentInfo.count > 0 ? (
+                    <div className="flex items-center space-x-2">
+                      <span>🤝 {assignmentInfo.count} viajeros asignados ✈️</span>
+                    </div>
+                  ) : null}
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-primary text-base">${pkg.estimated_price}</span>
                     <span>📅 {new Date(pkg.updated_at).toLocaleDateString('es-GT')}</span>
