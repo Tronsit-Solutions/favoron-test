@@ -15,6 +15,7 @@ import ShopperPackagePriorityActions from "@/components/dashboard/shopper/Shoppe
 import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackageDetails";
 import { useIsMobile } from "@/hooks/use-mobile";
 import PackageQuoteInfo from "@/components/dashboard/PackageQuoteInfo";
+import MultiQuoteSelector from "@/components/dashboard/MultiQuoteSelector";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import UploadedDocumentsRegistry from "@/components/dashboard/UploadedDocumentsRegistry";
 import EditDocumentModal from "@/components/dashboard/EditDocumentModal";
