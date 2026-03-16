@@ -588,6 +588,9 @@ const AdminMatchDialog = ({
 
   const handleTripSelection = (tripId: number) => {
     const tripIdStr = String(tripId);
+    // Prevent selecting already-assigned trips
+    if (alreadyAssignedTripIds.has(tripIdStr)) return;
+    
     setSelectedTripIds(prev => {
       const next = new Set(prev);
       if (next.has(tripIdStr)) {
