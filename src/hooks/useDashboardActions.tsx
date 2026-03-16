@@ -1243,35 +1243,47 @@ export const useDashboardActions = (
         }
       }
 
-      // Insert assignments into package_assignments table
-      const assignmentRows = tripIdsToAssign.map(tid => {
-        const matchedTrip = trips.find(trip => trip.id === tid);
-        const travelerAddress = buildTravelerAddress(matchedTrip);
-        const matchedTripDates = matchedTrip ? {
-          first_day_packages: matchedTrip.first_day_packages,
-          last_day_packages: matchedTrip.last_day_packages,
-          delivery_date: matchedTrip.delivery_date,
-          arrival_date: matchedTrip.arrival_date
-        } : null;
-
-        return {
-          package_id: packageId,
-          trip_id: tid,
-          status: 'pending',
-          admin_assigned_tip: adminTip,
-          traveler_address: travelerAddress,
-          matched_trip_dates: matchedTripDates,
-          products_data: updatedProductsData || null
-        };
-      });
-
-      const { error: assignError } = await supabase
+      // Check for existing assignments to avoid duplicates
+      const { data: existingAssignments } = await supabase
         .from('package_assignments')
-        .insert(assignmentRows);
+        .select('trip_id')
+        .eq('package_id', packageId)
+        .not('status', 'eq', 'rejected');
+      
+      const existingTripIds = new Set((existingAssignments || []).map(a => a.trip_id));
+      const newTripIds = tripIdsToAssign.filter(tid => !existingTripIds.has(tid));
 
-      if (assignError) {
-        console.error('Error inserting package_assignments:', assignError);
-        throw assignError;
+      if (newTripIds.length > 0) {
+        // Insert assignments into package_assignments table
+        const assignmentRows = newTripIds.map(tid => {
+          const matchedTrip = trips.find(trip => trip.id === tid);
+          const travelerAddress = buildTravelerAddress(matchedTrip);
+          const matchedTripDates = matchedTrip ? {
+            first_day_packages: matchedTrip.first_day_packages,
+            last_day_packages: matchedTrip.last_day_packages,
+            delivery_date: matchedTrip.delivery_date,
+            arrival_date: matchedTrip.arrival_date
+          } : null;
+
+          return {
+            package_id: packageId,
+            trip_id: tid,
+            status: 'pending',
+            admin_assigned_tip: adminTip,
+            traveler_address: travelerAddress,
+            matched_trip_dates: matchedTripDates,
+            products_data: updatedProductsData || null
+          };
+        });
+
+        const { error: assignError } = await supabase
+          .from('package_assignments')
+          .insert(assignmentRows);
+
+        if (assignError) {
+          console.error('Error inserting package_assignments:', assignError);
+          throw assignError;
+        }
       }
 
       // Unified: always use assignment-based flow. matched_trip_id stays null until shopper accepts.
