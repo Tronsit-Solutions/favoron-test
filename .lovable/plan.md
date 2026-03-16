@@ -1,58 +1,56 @@
 
 
-## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
+## Contenido corregido de los Onboarding Slides
 
-### Concepto
-Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
+### Shoppers (4 slides, gradiente azul/primary)
 
-### Widgets disponibles (componentes existentes)
-Del catálogo de charts y componentes ya construidos:
-1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
-2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
-3. **UserGrowthChart** — Crecimiento de usuarios
-4. **PackagesChart** — Gráfico de paquetes por mes
-5. **TripsChart** — Gráfico de viajes
-6. **RevenueChart** — Ingresos por servicio
-7. **GMVChart** — GMV mensual
-8. **ServiceFeeGrowthChart** — Crecimiento de service fees
-9. **AvgPackageValueChart** — Valor promedio por paquete
-10. **AcquisitionChart** — Canales de adquisición
-11. **AcquisitionSurveyTable** — Tabla de encuestas
-12. **TravelerTipsCard** — Propinas de viajeros
-13. **CACKPICards** — Unit Economics KPIs
-14. **FunnelChart** — Funnel de conversión
+**Slide 1 — "¡Tu primera compra internacional!"**
+- Icono: Search
+- "Describe el producto que necesitas y de dónde quieres que lo traigan. Un viajero lo llevará por ti."
 
-### Cambios
+**Slide 2 — "Recibe una cotización"**
+- Icono: DollarSign
+- "Un viajero te enviará el costo de traer tu paquete, que incluye su propina y la tarifa de servicio."
 
-**`src/components/Dashboard.tsx`**:
-- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
-- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
+**Slide 3 — "Compra tu producto"**
+- Icono: ShoppingCart
+- "Una vez aceptada la cotización, compra el producto y envíalo a la dirección del viajero. Te la compartiremos automáticamente."
 
-**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
-- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
-- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
-- Catálogo de widgets con id, nombre, icono, y componente React
-- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
-- **Reordenar**: botones ↑/↓ en cada widget en modo edición
-- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
-- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
-- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
-- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
+**Slide 4 — "¡Recibe tu paquete!"**
+- Icono: Package
+- "Retíralo en nuestra oficina o solicita envío a domicilio. Si el viajero pagó algún impuesto o tasa, se agregará como cargo adicional."
+- Botón: "Continuar"
 
-**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
-- Modal/popover que muestra los widgets no activos del catálogo
-- Click en uno lo agrega al final de `activeWidgets`
+---
 
-### UX
-- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
-- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
-- Botón "Agregar Widget" que abre el picker
-- Botón "Listo" para salir del modo edición
-- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
+### Viajeros (4 slides, gradiente verde/traveler)
 
-### Consideraciones técnicas
-- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
-- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
-- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
-- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
+**Slide 1 — "¡Conviértete en Viajero!"**
+- Icono: Plane
+- "Registra tu viaje indicando de dónde vienes, cuándo llegas y cuánto espacio tienes disponible."
+
+**Slide 2 — "Recibe solicitudes"**
+- Icono: Users
+- "Los shoppers te enviarán solicitudes de paquetes. Tú decides cuáles aceptar y defines tu propina."
+
+**Slide 3 — "Cotiza con confianza"**
+- Icono: DollarSign
+- "Incluye tu propina en la cotización. Si llegas a pagar algún impuesto o tasa al transportar, se te reembolsará."
+
+**Slide 4 — "Entrega y cobra"**
+- Icono: Truck
+- "Entrega los paquetes en nuestra oficina o programa una recolección. Recibirás tu pago al completar la entrega."
+- Botón: "Continuar"
+
+---
+
+### Implementación
+Se mantiene el mismo plan técnico ya aprobado:
+- Nuevo `OnboardingBottomSheet.tsx` con diseño bottom-sheet (móvil) / modal (desktop)
+- 4 slides con swipe (`react-swipeable`) y dots
+- Eliminar Step 0 de `PackageRequestForm.tsx` y `TripForm.tsx`
+- Reutilizar `skip_package_intro` / `skip_trip_intro` de `ui_preferences`
+- Checkbox "No volver a mostrar" en último slide
+
+El tema tributario queda mencionado sutilmente: para shoppers en el slide de entrega (cargo adicional), para viajeros en el slide de cotización (reembolso).
 
