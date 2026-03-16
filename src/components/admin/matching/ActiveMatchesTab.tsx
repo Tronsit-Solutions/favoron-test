@@ -31,6 +31,7 @@ interface ActiveMatchesTabProps {
   onAdminConfirmOfficeDelivery: (packageId: string) => void;
   onConfirmShopperReceived: (packageId: string) => void;
   onOpenActionsModal?: (packageId: string) => void;
+  onOpenMatchDialog?: (pkg: any) => void;
   getStatusBadge: (status: string) => JSX.Element;
   unreadCounts?: { [packageId: string]: number };
   markPackageMessagesAsRead?: (packageId: string) => Promise<void>;
