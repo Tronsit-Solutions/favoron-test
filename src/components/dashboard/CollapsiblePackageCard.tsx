@@ -757,6 +757,11 @@ const CollapsiblePackageCard = ({
                         </Badge>
                       </Button>
                     )}
+                    {isCompeting && (
+                      <Badge variant="warning" className="text-xs">
+                        ⚡ Compitiendo ({multiAssignments!.length})
+                      </Badge>
+                    )}
                     {pkg.quote_expires_at && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status) && new Date(pkg.quote_expires_at) > new Date() && <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />}
                     
                   </div>
