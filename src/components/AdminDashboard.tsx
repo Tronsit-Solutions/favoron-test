@@ -214,8 +214,13 @@ const AdminDashboard = ({
   };
 
 
-  const handleMatch = async (adminTip?: number, productsWithTips?: any[]) => {
-    if (selectedPackage && matchingTrip) {
+  const handleMatch = async (adminTip?: number, productsWithTips?: any[], selectedTripIds?: string[]) => {
+    // Use selectedTripIds if provided, otherwise fall back to matchingTrip (single)
+    const tripIds = selectedTripIds && selectedTripIds.length > 0 
+      ? selectedTripIds 
+      : matchingTrip ? [matchingTrip] : [];
+
+    if (selectedPackage && tripIds.length > 0) {
       if (!adminTip || adminTip <= 0) {
         toast({
           title: "Tip requerido",
@@ -228,28 +233,23 @@ const AdminDashboard = ({
       // Show loading toast
       toast({
         title: "Procesando match...",
-        description: "Actualizando los datos del paquete y viaje.",
+        description: `Asignando paquete a ${tripIds.length} viaje${tripIds.length > 1 ? 's' : ''}...`,
       });
 
       try {
-        // Apply optimistic update first for immediate UI feedback
-        console.log('🚀 Applying optimistic match update...');
+        // Apply optimistic update — set package status to matched
         setLocalPackages(prevPackages => 
           prevPackages.map(pkg => 
             pkg.id === selectedPackage.id ? {
               ...pkg,
               status: 'matched',
-              matched_trip_id: matchingTrip,
-              admin_assigned_tip: adminTip,
-              matched_assignment_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
               updated_at: new Date().toISOString()
-              // Note: traveler_dismissed_at cleanup removed - expire_old_quotes now auto-cleans matched_trip_id
             } : pkg
           )
         );
 
-        // Execute the match in the background
-        await onMatchPackage(selectedPackage.id, matchingTrip, adminTip, productsWithTips);
+        // Execute the match — now supports multiple trips
+        await onMatchPackage(selectedPackage.id, tripIds[0], adminTip, productsWithTips, tripIds);
         
         // Force refresh admin data to ensure consistency
         console.log('🔄 Forcing admin data refresh after match...');
@@ -262,9 +262,11 @@ const AdminDashboard = ({
         const isMultiProduct = productsWithTips && productsWithTips.length > 1;
         toast({
           title: "¡Match exitoso!",
-          description: isMultiProduct 
-            ? `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip} con tips por producto (Total: Q${adminTip})`
-            : `Paquete ${selectedPackage.id} emparejado con viaje ${matchingTrip} con tip de Q${adminTip}`,
+          description: tripIds.length > 1
+            ? `Paquete asignado a ${tripIds.length} viajeros. El shopper podrá comparar cotizaciones.`
+            : isMultiProduct 
+              ? `Paquete emparejado con viaje con tips por producto (Total: Q${adminTip})`
+              : `Paquete emparejado con viaje con tip de Q${adminTip}`,
         });
         
         setSelectedPackage(null);
