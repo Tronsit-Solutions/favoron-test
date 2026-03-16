@@ -1506,7 +1506,7 @@ const AdminMatchDialog = ({
 
         {/* Action Bar: Tip + Buttons */}
         <div className="border-t pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          {selectedTripId && (
+          {selectedTripIds.size > 0 && (
             <div className="w-full sm:w-auto">
               <div className="flex items-center gap-2 mb-1">
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
