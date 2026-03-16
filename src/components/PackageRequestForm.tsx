@@ -1558,23 +1558,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     );
   };
 
-  // Handler for continuing from intro step - saves preference if checkbox is checked
-  const handleContinueFromIntro = async () => {
-    if (skipIntroduction) {
-      try {
-        await updateProfile({
-          ui_preferences: {
-            ...profile?.ui_preferences,
-            skip_package_intro: true
-          }
-        });
-      } catch (error) {
-        console.error('Error saving intro preference:', error);
-        // Continue anyway even if save fails
-      }
-    }
-    setCurrentStep(1);
-  };
 
   // ============= NAVIGATION BUTTONS =============
   const renderNavigationButtons = () => {
