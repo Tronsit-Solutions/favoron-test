@@ -675,82 +675,22 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     </div>
   );
 
-  // ============= STEP 0: INTRODUCTION/ONBOARDING =============
-  const introSteps = [
-    {
-      icon: Search,
-      title: "Crea tu solicitud",
-      description: "Describe el producto que necesitas y desde qué país haces la compra"
-    },
-    {
-      icon: DollarSign,
-      title: "Recibe cotización de un viajero",
-      description: "solo", // Special marker for custom rendering
-      highlightWord: true
-    },
-    {
-      icon: ShoppingCart,
-      title: "Compras y envías al viajero",
-      description: "Realizas la compra y lo envías a la dirección del viajero"
-    },
-    {
-      icon: Package,
-      title: "Retira en oficina o a domicilio",
-      description: "Recoge tu producto en oficina Favoron o recíbelo en tu casa"
+  // Handle onboarding continue
+  const handleOnboardingContinue = async (dontShowAgain: boolean) => {
+    if (dontShowAgain) {
+      try {
+        await updateProfile({
+          ui_preferences: {
+            ...profile?.ui_preferences,
+            skip_package_intro: true,
+          },
+        });
+      } catch (error) {
+        console.error('Error saving intro preference:', error);
+      }
     }
-  ];
-
-  const renderStep0 = () => (
-    <div className="space-y-6 animate-fade-in">
-      <div className="text-center mb-4">
-        <h3 className="text-xl font-semibold">¡Bienvenido a Favoron!</h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          Conoce cómo funciona el proceso:
-        </p>
-      </div>
-
-      <div className="space-y-3">
-        {introSteps.map((step, index) => (
-          <div 
-            key={index}
-            className="flex gap-3 p-3 rounded-lg bg-muted/50 border border-border/50 hover:border-shopper/30 transition-colors"
-          >
-            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-shopper/10 flex items-center justify-center text-shopper font-semibold text-sm">
-              {index + 1}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <step.icon className="h-4 w-4 text-shopper flex-shrink-0" />
-                <h4 className="font-medium text-sm sm:text-base">{step.title}</h4>
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                {step.highlightWord ? (
-                  <>El viajero te envía cotización <strong className="underline text-foreground">solo</strong> por el costo de traer tu paquete</>
-                ) : (
-                  step.description
-                )}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Don't show again checkbox */}
-      <div className="flex items-center space-x-2 pt-4 border-t border-border/50">
-        <Checkbox 
-          id="skip-intro" 
-          checked={skipIntroduction}
-          onCheckedChange={(checked) => setSkipIntroduction(checked === true)}
-        />
-        <Label 
-          htmlFor="skip-intro" 
-          className="text-sm text-muted-foreground cursor-pointer"
-        >
-          No volver a mostrar esta introducción
-        </Label>
-      </div>
-    </div>
-  );
+    setShowOnboarding(false);
+  };
 
   // ============= STEP 1: TIPO DE SOLICITUD =============
   const renderStep1 = () => {
