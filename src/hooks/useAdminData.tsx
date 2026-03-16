@@ -207,7 +207,7 @@ export const useAdminData = (): AdminData => {
           payment_receipt,
           payment_method, recurrente_checkout_id
         `)
-        .not('matched_trip_id', 'is', null)
+        .or('matched_trip_id.not.is.null,status.in.(matched,quote_sent)')
         .not('status', 'in', `(${BROKEN_STATUSES.join(',')})`)
         .order('created_at', { ascending: false });
 
