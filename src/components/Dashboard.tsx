@@ -185,7 +185,8 @@ const Dashboard = ({ user }: DashboardProps) => {
     handleEditPackage,
     handleAdminConfirmOfficeDelivery,
     handleConfirmShopperReceived,
-    handleDismissExpiredPackage
+    handleDismissExpiredPackage,
+    handleAcceptMultiAssignmentQuote
   } = useDashboardActions(
     packages,
     setPackages,
@@ -263,6 +264,7 @@ const Dashboard = ({ user }: DashboardProps) => {
   
   // === Multi-assignment support: fetch package_assignments for user's trips ===
   const [multiAssignedPackages, setMultiAssignedPackages] = useState<any[]>([]);
+  const [shopperAssignmentsMap, setShopperAssignmentsMap] = useState<Record<string, any[]>>({});
   
   useEffect(() => {
     const fetchMultiAssignments = async () => {
@@ -317,6 +319,70 @@ const Dashboard = ({ user }: DashboardProps) => {
     
     fetchMultiAssignments();
   }, [userTrips.length, packages]); // Re-fetch when trips or packages change
+
+  // === Shopper-side: fetch multi-assignments for user's own packages ===
+  useEffect(() => {
+    const fetchShopperAssignments = async () => {
+      // Find packages owned by this user that are in matched status with no matched_trip_id (multi-assignment)
+      const multiMatchedPkgIds = userPackages
+        .filter(p => p.status === 'matched' && !p.matched_trip_id)
+        .map(p => p.id);
+      
+      if (multiMatchedPkgIds.length === 0) {
+        setShopperAssignmentsMap({});
+        return;
+      }
+
+      const { data: assignments, error } = await supabase
+        .from('package_assignments')
+        .select('*')
+        .in('package_id', multiMatchedPkgIds)
+        .in('status', ['pending', 'quote_sent']);
+
+      if (error || !assignments) {
+        console.error('Error fetching shopper assignments:', error);
+        setShopperAssignmentsMap({});
+        return;
+      }
+
+      // Fetch traveler profiles and trip info for these assignments
+      const tripIds = [...new Set(assignments.map(a => a.trip_id))];
+      const [tripsResult, profilesResult] = await Promise.all([
+        supabase.from('trips').select('id, from_city, to_city, delivery_date, user_id').in('id', tripIds),
+        // We need traveler profiles via trips
+        supabase.from('trips').select('id, user_id, profiles:user_id(first_name, last_name, avatar_url)').in('id', tripIds)
+      ]);
+
+      const tripsMap: Record<string, any> = {};
+      (tripsResult.data || []).forEach(t => { tripsMap[t.id] = t; });
+      const profilesMap: Record<string, any> = {};
+      (profilesResult.data || []).forEach((t: any) => {
+        if (t.profiles) profilesMap[t.id] = t.profiles;
+      });
+
+      // Build map: packageId -> enriched assignments[]
+      const map: Record<string, any[]> = {};
+      for (const a of assignments) {
+        const trip = tripsMap[a.trip_id];
+        const profile = profilesMap[a.trip_id];
+        const enriched = {
+          ...a,
+          traveler_first_name: profile?.first_name,
+          traveler_last_name: profile?.last_name,
+          traveler_avatar_url: profile?.avatar_url,
+          trip_from_city: trip?.from_city,
+          trip_to_city: trip?.to_city,
+          trip_delivery_date: trip?.delivery_date,
+        };
+        if (!map[a.package_id]) map[a.package_id] = [];
+        map[a.package_id].push(enriched);
+      }
+
+      setShopperAssignmentsMap(map);
+    };
+
+    fetchShopperAssignments();
+  }, [userPackages.length, packages]);
 
   // Get packages assigned to user's trips (for traveler view)
   // Note: traveler_dismissed_at filter removed - we now rely solely on matched_trip_id
@@ -780,6 +846,9 @@ const Dashboard = ({ user }: DashboardProps) => {
                         forceOpen={urlPackageId === pkg.id}
                         forceTab={urlPackageId === pkg.id && urlOpenChat ? "chat" : undefined}
                         onExternalControlHandled={urlPackageId === pkg.id ? clearUrlNavigation : undefined}
+                        // Multi-assignment props
+                        multiAssignments={shopperAssignmentsMap[pkg.id]}
+                        onAcceptMultiAssignmentQuote={handleAcceptMultiAssignmentQuote}
                       />
                 ))}
               </div>

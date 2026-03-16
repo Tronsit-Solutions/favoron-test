@@ -15,6 +15,7 @@ import ShopperPackagePriorityActions from "@/components/dashboard/shopper/Shoppe
 import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackageDetails";
 import { useIsMobile } from "@/hooks/use-mobile";
 import PackageQuoteInfo from "@/components/dashboard/PackageQuoteInfo";
+import MultiQuoteSelector from "@/components/dashboard/MultiQuoteSelector";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import UploadedDocumentsRegistry from "@/components/dashboard/UploadedDocumentsRegistry";
 import EditDocumentModal from "@/components/dashboard/EditDocumentModal";
@@ -59,6 +60,9 @@ interface CollapsiblePackageCardProps {
   forceOpen?: boolean;
   forceTab?: string;
   onExternalControlHandled?: () => void;
+  // Multi-assignment props
+  multiAssignments?: any[];
+  onAcceptMultiAssignmentQuote?: (packageId: string, assignmentId: string) => Promise<void>;
 }
 const CollapsiblePackageCard = ({
   pkg,
@@ -72,7 +76,9 @@ const CollapsiblePackageCard = ({
   viewMode = 'user',
   forceOpen,
   forceTab,
-  onExternalControlHandled
+  onExternalControlHandled,
+  multiAssignments,
+  onAcceptMultiAssignmentQuote
 }: CollapsiblePackageCardProps) => {
   const [isOpen, setIsOpen] = React.useState(forceOpen || false);
   const [activeTab, setActiveTab] = React.useState(forceTab || "producto");
@@ -176,6 +182,9 @@ const CollapsiblePackageCard = ({
       case 'approved':
         return "Aprobado - Esperando match con un viajero";
       case 'matched':
+        if (multiAssignments && multiAssignments.some(a => a.status === 'quote_sent')) {
+          return 'Cotizaciones recibidas - Compara y elige';
+        }
         return "Match con viajero - Esperando cotización";
       case 'quote_sent':
         const isExpired = pkg.quote_expires_at && new Date(pkg.quote_expires_at) < new Date();
@@ -1068,8 +1077,18 @@ const CollapsiblePackageCard = ({
                 {/* Traveler Confirmation Section */}
                 <TravelerConfirmationDisplay pkg={pkg} />
                 
-                {/* Quote Information */}
-                {hasValidQuote(pkg) && <Collapsible open={quoteInfoOpen} onOpenChange={setQuoteInfoOpen}>
+                {/* Multi-Assignment Quote Selector */}
+                {multiAssignments && multiAssignments.length > 0 && pkg.status === 'matched' && !pkg.matched_trip_id && onAcceptMultiAssignmentQuote && (
+                  <div className="bg-background rounded-lg border border-primary/20 shadow-sm p-3">
+                    <MultiQuoteSelector
+                      assignments={multiAssignments}
+                      onAcceptQuote={(assignmentId) => onAcceptMultiAssignmentQuote(pkg.id, assignmentId)}
+                    />
+                  </div>
+                )}
+
+                {/* Quote Information (single-assignment) */}
+                {hasValidQuote(pkg) && !(multiAssignments && multiAssignments.length > 0 && pkg.status === 'matched') && <Collapsible open={quoteInfoOpen} onOpenChange={setQuoteInfoOpen}>
                     <div className="bg-white rounded-lg border border-muted/50 shadow-sm">
                       <CollapsibleTrigger asChild>
                         <div className="p-3 border-b border-muted/50 cursor-pointer hover:bg-muted/30 transition-colors">

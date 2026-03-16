@@ -1,0 +1,182 @@
+import React, { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { getQuoteValues } from "@/lib/quoteHelpers";
+import { formatPrice } from "@/lib/formatters";
+import { Clock, MapPin, DollarSign, Check, Loader2, User } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+
+interface Assignment {
+  id: string;
+  trip_id: string;
+  status: string;
+  quote: any;
+  admin_assigned_tip: number | null;
+  traveler_address: any;
+  matched_trip_dates: any;
+  quote_expires_at: string | null;
+  // Joined data
+  traveler_first_name?: string;
+  traveler_last_name?: string;
+  traveler_avatar_url?: string;
+  trip_from_city?: string;
+  trip_to_city?: string;
+  trip_delivery_date?: string;
+}
+
+interface MultiQuoteSelectorProps {
+  assignments: Assignment[];
+  onAcceptQuote: (assignmentId: string) => Promise<void>;
+}
+
+const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorProps) => {
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
+
+  const quotedAssignments = assignments.filter(a => a.status === 'quote_sent' && a.quote);
+  const pendingAssignments = assignments.filter(a => a.status === 'pending');
+
+  const handleAccept = async (assignmentId: string) => {
+    setAcceptingId(assignmentId);
+    try {
+      await onAcceptQuote(assignmentId);
+    } finally {
+      setAcceptingId(null);
+    }
+  };
+
+  if (quotedAssignments.length === 0 && pendingAssignments.length === 0) {
+    return (
+      <div className="text-center py-4 text-muted-foreground text-sm">
+        No hay cotizaciones disponibles aún.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 mb-1">
+        <DollarSign className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold text-foreground">
+          Cotizaciones recibidas ({quotedAssignments.length})
+        </h3>
+      </div>
+
+      {quotedAssignments.map((assignment) => {
+        const quoteValues = getQuoteValues(assignment.quote);
+        const travelerName = [assignment.traveler_first_name, assignment.traveler_last_name]
+          .filter(Boolean).join(' ') || 'Viajero';
+        const initials = (assignment.traveler_first_name?.[0] || '') + (assignment.traveler_last_name?.[0] || '');
+
+        return (
+          <Card key={assignment.id} className="border-primary/20 hover:border-primary/40 transition-colors">
+            <CardContent className="p-3 space-y-3">
+              {/* Traveler info */}
+              <div className="flex items-center gap-3">
+                <Avatar className="h-9 w-9">
+                  {assignment.traveler_avatar_url ? (
+                    <AvatarImage src={assignment.traveler_avatar_url} alt={travelerName} />
+                  ) : null}
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                    {initials || <User className="h-4 w-4" />}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{travelerName}</p>
+                  {assignment.trip_from_city && assignment.trip_to_city && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {assignment.trip_from_city} → {assignment.trip_to_city}
+                    </p>
+                  )}
+                </div>
+                {assignment.trip_delivery_date && (
+                  <Badge variant="secondary" className="text-xs flex-shrink-0">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {format(new Date(assignment.trip_delivery_date), 'dd MMM', { locale: es })}
+                  </Badge>
+                )}
+              </div>
+
+              {/* Quote breakdown */}
+              <div className="bg-muted/50 rounded-md p-2.5 space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Propina viajero</span>
+                  <span>{formatPrice(quoteValues.price)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Tarifa de servicio</span>
+                  <span>{formatPrice(quoteValues.serviceFee)}</span>
+                </div>
+                {quoteValues.deliveryFee > 0 && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Envío</span>
+                    <span>{formatPrice(quoteValues.deliveryFee)}</span>
+                  </div>
+                )}
+                <div className="border-t border-muted pt-1 flex justify-between text-sm font-semibold">
+                  <span>Total</span>
+                  <span className="text-primary">{formatPrice(quoteValues.totalPrice)}</span>
+                </div>
+              </div>
+
+              {/* Accept button */}
+              <Button
+                variant="shopper"
+                size="sm"
+                className="w-full"
+                onClick={() => handleAccept(assignment.id)}
+                disabled={acceptingId !== null}
+              >
+                {acceptingId === assignment.id ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Aceptando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Aceptar esta cotización
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        );
+      })}
+
+      {/* Pending assignments */}
+      {pendingAssignments.map((assignment) => {
+        const travelerName = [assignment.traveler_first_name, assignment.traveler_last_name]
+          .filter(Boolean).join(' ') || 'Viajero';
+
+        return (
+          <Card key={assignment.id} className="border-dashed border-muted-foreground/30">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-8 w-8 opacity-60">
+                  <AvatarFallback className="bg-muted text-muted-foreground text-xs">
+                    <User className="h-3.5 w-3.5" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">
+                    Esperando cotización de <span className="font-medium">{travelerName}</span>
+                  </p>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  <Clock className="h-3 w-3 mr-1" />
+                  Pendiente
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+};
+
+export default MultiQuoteSelector;
