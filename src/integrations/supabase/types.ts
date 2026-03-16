@@ -595,6 +595,66 @@ export type Database = {
         }
         Relationships: []
       }
+      package_assignments: {
+        Row: {
+          admin_assigned_tip: number | null
+          created_at: string
+          id: string
+          matched_trip_dates: Json | null
+          package_id: string
+          products_data: Json | null
+          quote: Json | null
+          quote_expires_at: string | null
+          status: string
+          traveler_address: Json | null
+          trip_id: string
+          updated_at: string
+        }
+        Insert: {
+          admin_assigned_tip?: number | null
+          created_at?: string
+          id?: string
+          matched_trip_dates?: Json | null
+          package_id: string
+          products_data?: Json | null
+          quote?: Json | null
+          quote_expires_at?: string | null
+          status?: string
+          traveler_address?: Json | null
+          trip_id: string
+          updated_at?: string
+        }
+        Update: {
+          admin_assigned_tip?: number | null
+          created_at?: string
+          id?: string
+          matched_trip_dates?: Json | null
+          package_id?: string
+          products_data?: Json | null
+          quote?: Json | null
+          quote_expires_at?: string | null
+          status?: string
+          traveler_address?: Json | null
+          trip_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_assignments_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_assignments_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       package_messages: {
         Row: {
           content: string | null
