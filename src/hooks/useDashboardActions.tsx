@@ -1559,9 +1559,9 @@ export const useDashboardActions = (
         
         await updatePackage(id, updateData);
         
-        // Refresh packages after approval/rejection to ensure UI is updated
+        // Refresh packages in background (non-blocking for speed)
         if (refreshPackages) {
-          await refreshPackages();
+          refreshPackages();
         }
         
         toast({
