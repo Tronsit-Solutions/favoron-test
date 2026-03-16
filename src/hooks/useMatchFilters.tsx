@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 // Statuses considered "broken" - these get deprioritized
 const BROKEN_STATUSES = ['rejected', 'quote_rejected', 'cancelled', 'quote_expired'];
 
-export const useMatchFilters = (packages: any[], trips: any[]) => {
+export const useMatchFilters = (packages: any[], trips: any[], multiAssignedPackageIds?: Set<string>) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
