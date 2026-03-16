@@ -229,6 +229,10 @@ const [editForm, setEditForm] = useState({
   const [rejectionProfiles, setRejectionProfiles] = useState<Record<string, any>>({});
   const [loadingRejectionProfiles, setLoadingRejectionProfiles] = useState(false);
 
+  // State for multi-traveler assignments
+  const [packageAssignments, setPackageAssignments] = useState<any[]>([]);
+  const [loadingAssignments, setLoadingAssignments] = useState(false);
+
   // Resolve traveler confirmation photo (handles storage paths and signed URLs)
   // Must call this hook before any early returns to follow Rules of Hooks
   const rawTravelerPhoto = pkg?.traveler_confirmation?.photo || pkg?.traveler_confirmation?.photoUrl;
