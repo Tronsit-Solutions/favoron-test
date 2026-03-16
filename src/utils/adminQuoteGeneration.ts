@@ -17,13 +17,15 @@ export interface QuoteGenerationData {
   };
   /** Destination country for accurate delivery zone classification */
   destinationCountry?: string;
+  /** Override trip ID for multi-assignment packages where matched_trip_id is null */
+  overrideTripId?: string;
 }
 
 /**
  * Generates a quote when admin changes status from "matched" to "quote_sent"
  */
 export async function generateQuoteForAdminStatusChange(data: QuoteGenerationData) {
-  const { currentPackage, trips, adminAssignedTip, rates, fees, destinationCountry } = data;
+  const { currentPackage, trips, adminAssignedTip, rates, fees, destinationCountry, overrideTripId } = data;
   
   // Check if we have admin_assigned_tip
   if (!adminAssignedTip || adminAssignedTip <= 0) {
@@ -46,8 +48,9 @@ export async function generateQuoteForAdminStatusChange(data: QuoteGenerationDat
   let travelerAddress = null;
   let matchedTripDates = null;
 
-  if (currentPackage.matched_trip_id) {
-    const matchedTrip = trips.find(trip => trip.id === currentPackage.matched_trip_id);
+  const effectiveTripId = overrideTripId || currentPackage.matched_trip_id;
+  if (effectiveTripId) {
+    const matchedTrip = trips.find(trip => trip.id === effectiveTripId);
     
     if (matchedTrip) {
       // Build traveler address from trip data
