@@ -1,37 +1,24 @@
-## Onboarding Bottom Sheet — Implementado ✅
 
-### Cambios realizados
 
-**Nuevo: `src/components/onboarding/OnboardingBottomSheet.tsx`**
-- Componente reutilizable con slides tipo bottom-sheet (móvil) / modal centrado (desktop)
-- Swipe entre slides con `react-swipeable`
-- Dots de navegación clickeables
-- Checkbox "No volver a mostrar" en último slide
-- Soporte para variantes `shopper` (azul) y `traveler` (verde)
-- Gradiente configurable para el hero area
+## Plan: Actualizar contenido del onboarding de shoppers
 
-**Modificado: `src/components/PackageRequestForm.tsx`**
-- Eliminado Step 0 (intro inline) 
-- Agregado `OnboardingBottomSheet` con 4 slides para shoppers
-- El formulario ahora siempre empieza en Step 1
-- Persiste preferencia en `ui_preferences.skip_package_intro`
+### Cambios solicitados
 
-**Modificado: `src/components/TripForm.tsx`**
-- Eliminado Step 0 (intro inline)
-- Agregado `OnboardingBottomSheet` con 4 slides para viajeros
-- El formulario ahora siempre empieza en Step 1
-- Persiste preferencia en `ui_preferences.skip_trip_intro`
+**Slide 1/4:**
+- Título: `"¡Estás a punto de pedir tu primer Favorón!"` (antes: `"¡Tu primera compra internacional!"`)
 
-### Contenido de slides
+**Slide 2/4:**
+- Añadir: `"Si el viajero pagó algún impuesto o tasa, deberás pagarlo para recibir tu paquete."`
+- Descripción completa: `"Un viajero te enviará el costo de traer tu paquete, que incluye su propina y la tarifa de servicio. Si el viajero pagó algún impuesto o tasa, deberás pagarlo para recibir tu paquete."`
 
-**Shoppers:**
-1. "¡Tu primera compra internacional!" — Describe producto y origen
-2. "Recibe una cotización" — Incluye propina y tarifa de servicio
-3. "Compra tu producto" — Envía a dirección del viajero
-4. "¡Recibe tu paquete!" — Oficina o domicilio + mención de impuestos como cargo adicional
+**Slide 3/4:**
+- Eliminar: `"Te la compartiremos automáticamente."`
+- Descripción: `"Una vez aceptada la cotización, compra el producto y envíalo a la dirección del viajero."`
 
-**Viajeros:**
-1. "¡Conviértete en Viajero!" — Registra viaje con origen, llegada, espacio
-2. "Recibe solicitudes" — Decide cuáles aceptar, define propina
-3. "Cotiza con confianza" — Impuestos se reembolsan
-4. "Entrega y cobra" — Oficina o recolección, pago al completar
+**Slide 4/4:**
+- Eliminar: `"Si el viajero pagó algún impuesto o tasa, se agregará como cargo adicional."`
+- Descripción: `"Retíralo en nuestra oficina o solicita envío a domicilio. ¡Así de fácil!"`
+
+### Archivo a modificar
+- `src/components/PackageRequestForm.tsx` (líneas 147-168, array `shopperOnboardingSlides`)
+
