@@ -56,6 +56,7 @@ export const MatchCard = ({
   onAdminConfirmOfficeDelivery,
   onConfirmShopperReceived,
   onOpenActionsModal,
+  onOpenMatchDialog,
   unreadCount = 0,
   hasMessages = false,
   assignmentInfo
