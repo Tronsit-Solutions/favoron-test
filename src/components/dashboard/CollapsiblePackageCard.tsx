@@ -118,6 +118,7 @@ const CollapsiblePackageCard = ({
   const [showPlatformReviewFromPreview, setShowPlatformReviewFromPreview] = React.useState(false);
   const [chatModalOpen, setChatModalOpen] = React.useState(false);
   const [showStatusModal, setShowStatusModal] = React.useState(false);
+  const [showMultiQuoteModal, setShowMultiQuoteModal] = React.useState(false);
 
   const { data: existingRating } = useQuery({
     queryKey: ['traveler-rating', pkg.id],
