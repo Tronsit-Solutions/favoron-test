@@ -1,56 +1,37 @@
+## Onboarding Bottom Sheet — Implementado ✅
 
+### Cambios realizados
 
-## Contenido corregido de los Onboarding Slides
-
-### Shoppers (4 slides, gradiente azul/primary)
-
-**Slide 1 — "¡Tu primera compra internacional!"**
-- Icono: Search
-- "Describe el producto que necesitas y de dónde quieres que lo traigan. Un viajero lo llevará por ti."
-
-**Slide 2 — "Recibe una cotización"**
-- Icono: DollarSign
-- "Un viajero te enviará el costo de traer tu paquete, que incluye su propina y la tarifa de servicio."
-
-**Slide 3 — "Compra tu producto"**
-- Icono: ShoppingCart
-- "Una vez aceptada la cotización, compra el producto y envíalo a la dirección del viajero. Te la compartiremos automáticamente."
-
-**Slide 4 — "¡Recibe tu paquete!"**
-- Icono: Package
-- "Retíralo en nuestra oficina o solicita envío a domicilio. Si el viajero pagó algún impuesto o tasa, se agregará como cargo adicional."
-- Botón: "Continuar"
-
----
-
-### Viajeros (4 slides, gradiente verde/traveler)
-
-**Slide 1 — "¡Conviértete en Viajero!"**
-- Icono: Plane
-- "Registra tu viaje indicando de dónde vienes, cuándo llegas y cuánto espacio tienes disponible."
-
-**Slide 2 — "Recibe solicitudes"**
-- Icono: Users
-- "Los shoppers te enviarán solicitudes de paquetes. Tú decides cuáles aceptar y defines tu propina."
-
-**Slide 3 — "Cotiza con confianza"**
-- Icono: DollarSign
-- "Incluye tu propina en la cotización. Si llegas a pagar algún impuesto o tasa al transportar, se te reembolsará."
-
-**Slide 4 — "Entrega y cobra"**
-- Icono: Truck
-- "Entrega los paquetes en nuestra oficina o programa una recolección. Recibirás tu pago al completar la entrega."
-- Botón: "Continuar"
-
----
-
-### Implementación
-Se mantiene el mismo plan técnico ya aprobado:
-- Nuevo `OnboardingBottomSheet.tsx` con diseño bottom-sheet (móvil) / modal (desktop)
-- 4 slides con swipe (`react-swipeable`) y dots
-- Eliminar Step 0 de `PackageRequestForm.tsx` y `TripForm.tsx`
-- Reutilizar `skip_package_intro` / `skip_trip_intro` de `ui_preferences`
+**Nuevo: `src/components/onboarding/OnboardingBottomSheet.tsx`**
+- Componente reutilizable con slides tipo bottom-sheet (móvil) / modal centrado (desktop)
+- Swipe entre slides con `react-swipeable`
+- Dots de navegación clickeables
 - Checkbox "No volver a mostrar" en último slide
+- Soporte para variantes `shopper` (azul) y `traveler` (verde)
+- Gradiente configurable para el hero area
 
-El tema tributario queda mencionado sutilmente: para shoppers en el slide de entrega (cargo adicional), para viajeros en el slide de cotización (reembolso).
+**Modificado: `src/components/PackageRequestForm.tsx`**
+- Eliminado Step 0 (intro inline) 
+- Agregado `OnboardingBottomSheet` con 4 slides para shoppers
+- El formulario ahora siempre empieza en Step 1
+- Persiste preferencia en `ui_preferences.skip_package_intro`
 
+**Modificado: `src/components/TripForm.tsx`**
+- Eliminado Step 0 (intro inline)
+- Agregado `OnboardingBottomSheet` con 4 slides para viajeros
+- El formulario ahora siempre empieza en Step 1
+- Persiste preferencia en `ui_preferences.skip_trip_intro`
+
+### Contenido de slides
+
+**Shoppers:**
+1. "¡Tu primera compra internacional!" — Describe producto y origen
+2. "Recibe una cotización" — Incluye propina y tarifa de servicio
+3. "Compra tu producto" — Envía a dirección del viajero
+4. "¡Recibe tu paquete!" — Oficina o domicilio + mención de impuestos como cargo adicional
+
+**Viajeros:**
+1. "¡Conviértete en Viajero!" — Registra viaje con origen, llegada, espacio
+2. "Recibe solicitudes" — Decide cuáles aceptar, define propina
+3. "Cotiza con confianza" — Impuestos se reembolsan
+4. "Entrega y cobra" — Oficina o recolección, pago al completar

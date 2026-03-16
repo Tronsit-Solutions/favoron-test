@@ -15,6 +15,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, Plus, Trash2, Weight, ChevronLeft, ChevronRight, Check, ShoppingCart, Truck, Search } from "lucide-react";
+import OnboardingBottomSheet from "@/components/onboarding/OnboardingBottomSheet";
+import type { OnboardingSlide } from "@/components/onboarding/OnboardingBottomSheet";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import AddressForm from "@/components/AddressForm";
@@ -39,8 +41,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const { getDeliveryPointByCity } = useDeliveryPoints();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
   
-  // State for "Don't show again" checkbox
-  const [skipIntroduction, setSkipIntroduction] = useState(false);
+  // Onboarding bottom sheet state
+  const [showOnboarding, setShowOnboarding] = useState(false);
   // Initialize data based on mode - helper functions
   const getInitialProducts = (): Product[] => {
     if (editMode && initialData?.products_data) {
@@ -137,20 +139,40 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     { debounceMs: 400, storage: 'local' }
   );
 
-  // Wizard step state (not persisted - resets when modal opens)
-  // Step 0 = intro/onboarding, Steps 1-4 = actual form wizard
-  const [currentStep, setCurrentStep] = useState(0);
-  // Track which wizard step we're on (1-4 for the actual form)
+  // Wizard step state - starts at step 1 (no more step 0)
+  const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
 
-  // Reset step when modal opens - check if should skip intro based on user preference
+  // Shopper onboarding slides
+  const shopperOnboardingSlides: OnboardingSlide[] = [
+    {
+      icon: Search,
+      title: "¡Tu primera compra internacional!",
+      description: "Describe el producto que necesitas y de dónde quieres que lo traigan. Un viajero lo llevará por ti.",
+    },
+    {
+      icon: DollarSign,
+      title: "Recibe una cotización",
+      description: "Un viajero te enviará el costo de traer tu paquete, que incluye su propina y la tarifa de servicio.",
+    },
+    {
+      icon: ShoppingCart,
+      title: "Compra tu producto",
+      description: "Una vez aceptada la cotización, compra el producto y envíalo a la dirección del viajero. Te la compartiremos automáticamente.",
+    },
+    {
+      icon: Package,
+      title: "¡Recibe tu paquete!",
+      description: "Retíralo en nuestra oficina o solicita envío a domicilio. Si el viajero pagó algún impuesto o tasa, se agregará como cargo adicional.",
+    },
+  ];
+
+  // Reset step when modal opens - show onboarding if needed
   useEffect(() => {
     if (isOpen) {
-      // In edit mode, always start at step 1 (skip intro)
-      // Otherwise, check user's stored preference
-      const shouldSkipIntro = editMode || profile?.ui_preferences?.skip_package_intro === true;
-      setCurrentStep(shouldSkipIntro ? 1 : 0);
-      setSkipIntroduction(false); // Reset checkbox state
+      setCurrentStep(1);
+      const shouldShowOnboarding = !editMode && profile?.ui_preferences?.skip_package_intro !== true;
+      setShowOnboarding(shouldShowOnboarding);
     }
   }, [isOpen, editMode, profile?.ui_preferences?.skip_package_intro]);
 
@@ -363,7 +385,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   };
 
   const handlePrevStep = () => {
-    if (currentStep > 0) {
+    if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
@@ -653,82 +675,22 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     </div>
   );
 
-  // ============= STEP 0: INTRODUCTION/ONBOARDING =============
-  const introSteps = [
-    {
-      icon: Search,
-      title: "Crea tu solicitud",
-      description: "Describe el producto que necesitas y desde qué país haces la compra"
-    },
-    {
-      icon: DollarSign,
-      title: "Recibe cotización de un viajero",
-      description: "solo", // Special marker for custom rendering
-      highlightWord: true
-    },
-    {
-      icon: ShoppingCart,
-      title: "Compras y envías al viajero",
-      description: "Realizas la compra y lo envías a la dirección del viajero"
-    },
-    {
-      icon: Package,
-      title: "Retira en oficina o a domicilio",
-      description: "Recoge tu producto en oficina Favoron o recíbelo en tu casa"
+  // Handle onboarding continue
+  const handleOnboardingContinue = async (dontShowAgain: boolean) => {
+    if (dontShowAgain) {
+      try {
+        await updateProfile({
+          ui_preferences: {
+            ...profile?.ui_preferences,
+            skip_package_intro: true,
+          },
+        });
+      } catch (error) {
+        console.error('Error saving intro preference:', error);
+      }
     }
-  ];
-
-  const renderStep0 = () => (
-    <div className="space-y-6 animate-fade-in">
-      <div className="text-center mb-4">
-        <h3 className="text-xl font-semibold">¡Bienvenido a Favoron!</h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          Conoce cómo funciona el proceso:
-        </p>
-      </div>
-
-      <div className="space-y-3">
-        {introSteps.map((step, index) => (
-          <div 
-            key={index}
-            className="flex gap-3 p-3 rounded-lg bg-muted/50 border border-border/50 hover:border-shopper/30 transition-colors"
-          >
-            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-shopper/10 flex items-center justify-center text-shopper font-semibold text-sm">
-              {index + 1}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <step.icon className="h-4 w-4 text-shopper flex-shrink-0" />
-                <h4 className="font-medium text-sm sm:text-base">{step.title}</h4>
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                {step.highlightWord ? (
-                  <>El viajero te envía cotización <strong className="underline text-foreground">solo</strong> por el costo de traer tu paquete</>
-                ) : (
-                  step.description
-                )}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Don't show again checkbox */}
-      <div className="flex items-center space-x-2 pt-4 border-t border-border/50">
-        <Checkbox 
-          id="skip-intro" 
-          checked={skipIntroduction}
-          onCheckedChange={(checked) => setSkipIntroduction(checked === true)}
-        />
-        <Label 
-          htmlFor="skip-intro" 
-          className="text-sm text-muted-foreground cursor-pointer"
-        >
-          No volver a mostrar esta introducción
-        </Label>
-      </div>
-    </div>
-  );
+    setShowOnboarding(false);
+  };
 
   // ============= STEP 1: TIPO DE SOLICITUD =============
   const renderStep1 = () => {
@@ -1596,41 +1558,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     );
   };
 
-  // Handler for continuing from intro step - saves preference if checkbox is checked
-  const handleContinueFromIntro = async () => {
-    if (skipIntroduction) {
-      try {
-        await updateProfile({
-          ui_preferences: {
-            ...profile?.ui_preferences,
-            skip_package_intro: true
-          }
-        });
-      } catch (error) {
-        console.error('Error saving intro preference:', error);
-        // Continue anyway even if save fails
-      }
-    }
-    setCurrentStep(1);
-  };
 
   // ============= NAVIGATION BUTTONS =============
   const renderNavigationButtons = () => {
-    // Step 0 (intro) has special navigation
-    if (currentStep === 0) {
-      return (
-        <div className="flex space-x-3 pt-4 border-t border-border">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Cancelar
-          </Button>
-          <Button type="button" variant="shopper" onClick={handleContinueFromIntro} className="flex-1">
-            Continuar
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-      );
-    }
-    
     return (
       <div className="flex space-x-3 pt-4 border-t border-border">
         {currentStep === 1 ? (
@@ -1689,7 +1619,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
         {/* Scrollable content area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 min-h-0">
-          {currentStep === 0 && renderStep0()}
+          {currentStep === 1 && renderStep1()}
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
@@ -1704,11 +1634,19 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     </Dialog>
   );
 
-  if (editMode) {
-    return renderPackageForm();
-  }
-
-  return renderPackageForm();
+  return (
+    <>
+      {renderPackageForm()}
+      <OnboardingBottomSheet
+        isOpen={showOnboarding}
+        onContinue={handleOnboardingContinue}
+        onClose={() => setShowOnboarding(false)}
+        slides={shopperOnboardingSlides}
+        gradientClassName="from-primary via-primary/80 to-primary/60"
+        variant="shopper"
+      />
+    </>
+  );
 };
 
 export default PackageRequestForm;
