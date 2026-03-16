@@ -1559,9 +1559,9 @@ export const useDashboardActions = (
         
         await updatePackage(id, updateData);
         
-        // Refresh packages after approval/rejection to ensure UI is updated
+        // Refresh packages in background (non-blocking for speed)
         if (refreshPackages) {
-          await refreshPackages();
+          refreshPackages();
         }
         
         toast({
@@ -1599,9 +1599,9 @@ export const useDashboardActions = (
         );
         appendTripHistoryEntry(id, entry);
         
-        // Refresh trips after approval/rejection to ensure UI is updated
+        // Refresh trips in background (non-blocking for speed)
         if (refreshTrips) {
-          await refreshTrips();
+          refreshTrips();
         }
         
         toast({

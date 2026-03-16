@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle, XCircle, Eye } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Loader2 } from "lucide-react";
 import { formatFullName } from "@/lib/formatters";
 import RejectionReasonModal from "./RejectionReasonModal";
 import { getDeliveryFee } from "@/lib/pricing";
@@ -29,6 +29,20 @@ const AdminApprovalsTab = ({
   const [activeTab, setActiveTab] = useState("packages");
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [rejectionTarget, setRejectionTarget] = useState<{ type: 'package' | 'trip'; id: string; name: string } | null>(null);
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+
+  const handleAction = async (type: 'package' | 'trip', id: string, action: 'approve' | 'reject', reason?: string) => {
+    setProcessingIds(prev => new Set(prev).add(id));
+    try {
+      await onApproveReject(type, id, action, reason);
+    } finally {
+      setProcessingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
+  };
 
   const pendingPackages = packages.filter(p => p.status === 'pending_approval');
   const pendingTrips = trips.filter(t => t.status === 'pending_approval');
@@ -160,7 +174,7 @@ const AdminApprovalsTab = ({
 
   const handleConfirmRejection = async (reason: string) => {
     if (rejectionTarget) {
-      await onApproveReject(rejectionTarget.type, rejectionTarget.id, 'reject', reason);
+      await handleAction(rejectionTarget.type, rejectionTarget.id, 'reject', reason);
       setShowRejectionModal(false);
       setRejectionTarget(null);
     }
@@ -240,7 +254,12 @@ const AdminApprovalsTab = ({
               ) : (
                 <div className="space-y-3">
                   {pendingPackages.map(pkg => (
-                    <div key={pkg.id} className="border rounded-lg p-3 sm:p-4 space-y-3">
+                    <div key={pkg.id} className={`border rounded-lg p-3 sm:p-4 space-y-3 relative transition-opacity ${processingIds.has(pkg.id) ? 'opacity-50 pointer-events-none' : ''}`}>
+                      {processingIds.has(pkg.id) && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-lg z-10">
+                          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        </div>
+                      )}
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
                         <div className="flex-1 space-y-1">
                           <h4 className={`font-medium text-sm sm:text-base break-words ${
@@ -324,7 +343,8 @@ const AdminApprovalsTab = ({
                           <Button 
                             size="sm" 
                             variant="success"
-                            onClick={() => onApproveReject('package', pkg.id, 'approve')}
+                            onClick={() => handleAction('package', pkg.id, 'approve')}
+                            disabled={processingIds.has(pkg.id)}
                             className="flex-1 sm:flex-none text-xs sm:text-sm"
                           >
                             <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
@@ -364,7 +384,12 @@ const AdminApprovalsTab = ({
               ) : (
                 <div className="space-y-3">
                   {pendingTrips.map(trip => (
-                    <div key={trip.id} className="border rounded-lg p-3 sm:p-4 space-y-3">
+                    <div key={trip.id} className={`border rounded-lg p-3 sm:p-4 space-y-3 relative transition-opacity ${processingIds.has(trip.id) ? 'opacity-50 pointer-events-none' : ''}`}>
+                      {processingIds.has(trip.id) && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-lg z-10">
+                          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        </div>
+                      )}
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
                         <div className="flex-1 space-y-1">
                           <h4 className="font-medium text-sm sm:text-base break-words">{trip.from_city} → {trip.to_city}</h4>
@@ -408,7 +433,8 @@ const AdminApprovalsTab = ({
                           <Button 
                             size="sm" 
                             variant="success"
-                            onClick={() => onApproveReject('trip', trip.id, 'approve')}
+                            onClick={() => handleAction('trip', trip.id, 'approve')}
+                            disabled={processingIds.has(trip.id)}
                             className="flex-1 sm:flex-none text-xs sm:text-sm"
                           >
                             <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
