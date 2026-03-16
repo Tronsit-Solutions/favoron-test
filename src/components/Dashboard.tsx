@@ -185,7 +185,8 @@ const Dashboard = ({ user }: DashboardProps) => {
     handleEditPackage,
     handleAdminConfirmOfficeDelivery,
     handleConfirmShopperReceived,
-    handleDismissExpiredPackage
+    handleDismissExpiredPackage,
+    handleAcceptMultiAssignmentQuote
   } = useDashboardActions(
     packages,
     setPackages,
