@@ -1,58 +1,37 @@
+## Onboarding Bottom Sheet — Implementado ✅
 
+### Cambios realizados
 
-## Renombrar "Dashboard" a "God Mode" y crear dashboard editable para admins
+**Nuevo: `src/components/onboarding/OnboardingBottomSheet.tsx`**
+- Componente reutilizable con slides tipo bottom-sheet (móvil) / modal centrado (desktop)
+- Swipe entre slides con `react-swipeable`
+- Dots de navegación clickeables
+- Checkbox "No volver a mostrar" en último slide
+- Soporte para variantes `shopper` (azul) y `traveler` (verde)
+- Gradiente configurable para el hero area
 
-### Concepto
-Una pestaña "God Mode" con un grid de widgets configurables. El admin puede agregar/quitar widgets de un catálogo de componentes existentes y reordenarlos. La configuración se persiste en `localStorage` por usuario.
+**Modificado: `src/components/PackageRequestForm.tsx`**
+- Eliminado Step 0 (intro inline) 
+- Agregado `OnboardingBottomSheet` con 4 slides para shoppers
+- El formulario ahora siempre empieza en Step 1
+- Persiste preferencia en `ui_preferences.skip_package_intro`
 
-### Widgets disponibles (componentes existentes)
-Del catálogo de charts y componentes ya construidos:
-1. **AdminStatsOverview** — Stats cards (paquetes, viajes, matches, entregados)
-2. **KPICards** — KPIs dinámicos (revenue, GMV, etc.)
-3. **UserGrowthChart** — Crecimiento de usuarios
-4. **PackagesChart** — Gráfico de paquetes por mes
-5. **TripsChart** — Gráfico de viajes
-6. **RevenueChart** — Ingresos por servicio
-7. **GMVChart** — GMV mensual
-8. **ServiceFeeGrowthChart** — Crecimiento de service fees
-9. **AvgPackageValueChart** — Valor promedio por paquete
-10. **AcquisitionChart** — Canales de adquisición
-11. **AcquisitionSurveyTable** — Tabla de encuestas
-12. **TravelerTipsCard** — Propinas de viajeros
-13. **CACKPICards** — Unit Economics KPIs
-14. **FunnelChart** — Funnel de conversión
+**Modificado: `src/components/TripForm.tsx`**
+- Eliminado Step 0 (intro inline)
+- Agregado `OnboardingBottomSheet` con 4 slides para viajeros
+- El formulario ahora siempre empieza en Step 1
+- Persiste preferencia en `ui_preferences.skip_trip_intro`
 
-### Cambios
+### Contenido de slides
 
-**`src/components/Dashboard.tsx`**:
-- Renombrar el `TabsTrigger` de "Dashboard" a "God Mode"
-- Reemplazar el placeholder `TabsContent` con el nuevo componente `<GodModeDashboard />`
+**Shoppers:**
+1. "¡Tu primera compra internacional!" — Describe producto y origen
+2. "Recibe una cotización" — Incluye propina y tarifa de servicio
+3. "Compra tu producto" — Envía a dirección del viajero
+4. "¡Recibe tu paquete!" — Oficina o domicilio + mención de impuestos como cargo adicional
 
-**Nuevo: `src/components/admin/GodModeDashboard.tsx`**:
-- Estado: `activeWidgets: string[]` (IDs de widgets activos, orden = posición)
-- Persistencia en `localStorage` key `god_mode_widgets_{userId}`
-- Catálogo de widgets con id, nombre, icono, y componente React
-- **Modo edición** (toggle button): muestra botones para quitar widgets y un selector para agregar nuevos
-- **Reordenar**: botones ↑/↓ en cada widget en modo edición
-- **Renderizado**: itera `activeWidgets` y renderiza cada componente en un grid responsive
-- Cada widget se envuelve en un contenedor con título y botón de eliminar (en modo edición)
-- Los widgets que requieren datos (charts) usarán los hooks existentes (`useDynamicReportsData`, `useCACAnalytics`, etc.) internamente — cada chart ya es auto-contenido con su propio data fetching
-- Default inicial: `['stats-overview', 'kpi-cards', 'user-growth', 'revenue']`
-
-**Nuevo: `src/components/admin/GodModeWidgetPicker.tsx`**:
-- Modal/popover que muestra los widgets no activos del catálogo
-- Click en uno lo agrega al final de `activeWidgets`
-
-### UX
-- Botón "Editar Dashboard" (icono Settings) en la esquina superior derecha
-- En modo edición: cada widget tiene un overlay con botones ↑↓ y ✕
-- Botón "Agregar Widget" que abre el picker
-- Botón "Listo" para salir del modo edición
-- Sin drag-and-drop (evita dependencias extra), solo ↑/↓
-
-### Consideraciones técnicas
-- No se necesitan nuevos paquetes — todo con componentes existentes y `localStorage`
-- Los charts existentes ya tienen sus propios hooks de datos, no necesitan props externos
-- Algunos widgets (como `AdminStatsOverview`) sí necesitan `packages` y `trips` como props — se pasarán desde el dashboard state
-- El `useDashboardState` ya tiene `isAdminTab` incluyendo `admin-dashboard`, así que los datos admin se cargan correctamente
-
+**Viajeros:**
+1. "¡Conviértete en Viajero!" — Registra viaje con origen, llegada, espacio
+2. "Recibe solicitudes" — Decide cuáles aceptar, define propina
+3. "Cotiza con confianza" — Impuestos se reembolsan
+4. "Entrega y cobra" — Oficina o recolección, pago al completar
