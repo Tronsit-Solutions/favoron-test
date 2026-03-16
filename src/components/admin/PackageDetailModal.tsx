@@ -1291,6 +1291,92 @@ const [editForm, setEditForm] = useState({
               </Card>
             )}
 
+            {/* Multi-Traveler Assignments - when no single matchedTrip but assignments exist */}
+            {!matchedTrip && packageAssignments.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2 text-lg">
+                    <User className="h-4 w-4" />
+                    <span>✈️ Viajeros Asignados ({packageAssignments.length})</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Paquete asignado a múltiples viajeros candidatos
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {loadingAssignments ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                      <span className="ml-2 text-sm text-muted-foreground">Cargando...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {packageAssignments.map((assignment) => {
+                        const profile = assignment.profile;
+                        const trip = assignment.trip;
+                        const assignmentStatusMap: Record<string, { label: string; variant: string }> = {
+                          pending: { label: 'Esperando cotización', variant: 'secondary' },
+                          quote_sent: { label: 'Cotización enviada', variant: 'default' },
+                          quote_accepted: { label: 'Cotización aceptada', variant: 'success' },
+                          rejected: { label: 'Rechazado', variant: 'destructive' },
+                        };
+                        const statusInfo = assignmentStatusMap[assignment.status] || { label: assignment.status, variant: 'secondary' };
+
+                        return (
+                          <div key={assignment.id} className="rounded-lg border p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm font-medium">
+                                  {profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || 'Sin nombre' : 'Cargando...'}
+                                </span>
+                                {profile?.username && (
+                                  <span className="text-xs text-muted-foreground">@{profile.username}</span>
+                                )}
+                              </div>
+                              <Badge variant={statusInfo.variant as any}>{statusInfo.label}</Badge>
+                            </div>
+
+                            {profile?.email && (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Mail className="h-3.5 w-3.5" />
+                                <span>{profile.email}</span>
+                              </div>
+                            )}
+
+                            {profile?.phone_number && (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Phone className="h-3.5 w-3.5" />
+                                <span>{formatPhoneDisplay(profile.phone_number, profile.country_code)}</span>
+                              </div>
+                            )}
+
+                            {trip && (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                <Globe className="h-3.5 w-3.5" />
+                                <span>
+                                  {trip.from_city} → {trip.to_city}
+                                  {' · '}
+                                  {new Date(trip.first_day_packages).toLocaleDateString('es-GT')} - {new Date(trip.last_day_packages).toLocaleDateString('es-GT')}
+                                </span>
+                              </div>
+                            )}
+
+                            {assignment.admin_assigned_tip != null && assignment.admin_assigned_tip > 0 && (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <DollarSign className="h-3.5 w-3.5" />
+                                <span>Propina: Q{assignment.admin_assigned_tip}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Last Known Traveler - when no active match but history exists */}
             {!matchedTrip && (() => {
               // Try to get last traveler info from quote_rejection, traveler_rejection, or admin_actions_log
