@@ -15,6 +15,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, Plus, Trash2, Weight, ChevronLeft, ChevronRight, Check, ShoppingCart, Truck, Search } from "lucide-react";
+import OnboardingBottomSheet from "@/components/onboarding/OnboardingBottomSheet";
+import type { OnboardingSlide } from "@/components/onboarding/OnboardingBottomSheet";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import AddressForm from "@/components/AddressForm";
