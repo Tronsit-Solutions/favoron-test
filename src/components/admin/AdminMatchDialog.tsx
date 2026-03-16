@@ -625,12 +625,13 @@ const AdminMatchDialog = ({
   };
 
   const handleMatch = () => {
-    if (selectedTripId) {
+    if (selectedTripIds.size > 0) {
       const tipAmount = getTotalAssignedTip();
+      const tripIdsArray = Array.from(selectedTripIds);
       if (isMultiProductOrder()) {
-        onMatch(tipAmount, assignedProductsWithTips);
+        onMatch(tipAmount, assignedProductsWithTips, tripIdsArray);
       } else {
-        onMatch(tipAmount);
+        onMatch(tipAmount, undefined, tripIdsArray);
       }
     }
   };
