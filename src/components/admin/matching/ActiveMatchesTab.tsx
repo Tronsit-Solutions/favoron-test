@@ -52,7 +52,9 @@ const ActiveMatchesTab = ({
   getStatusBadge,
   unreadCounts = {},
   markPackageMessagesAsRead,
-  hasMessages = () => false
+  hasMessages = () => false,
+  assignmentsMap = {},
+  multiAssignedPackageIds
 }: ActiveMatchesTabProps) => {
   const [selectedChatPackage, setSelectedChatPackage] = useState<any>(null);
   const [expandedPackages, setExpandedPackages] = useState<Set<string>>(new Set());
