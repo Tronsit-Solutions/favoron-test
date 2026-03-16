@@ -287,11 +287,15 @@ export const MatchCard = ({
                         <Star className="h-3 w-3 text-purple-500 fill-purple-500" />
                       </span>
                     )}
-                    {matchedTrip && (
+                    {matchedTrip ? (
                       <>
                         {' '} 🤝 {getTravelerName()} ✈️
                       </>
-                    )}
+                    ) : assignmentInfo && assignmentInfo.count > 0 ? (
+                      <>
+                        {' '} 🤝 {assignmentInfo.count} viajeros asignados ✈️
+                      </>
+                    ) : null}
                   </span>
                   <span className="font-medium text-primary">${pkg.estimated_price}</span>
                   <span>📅 {new Date(pkg.updated_at).toLocaleDateString('es-GT')}</span>
