@@ -260,6 +260,8 @@ const AdminApprovalsTab = ({
                           <Loader2 className="h-6 w-6 animate-spin text-primary" />
                         </div>
                       )}
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
+                        <div className="flex-1 space-y-1">
                           <h4 className={`font-medium text-sm sm:text-base break-words ${
                             pkg.products_data?.[0]?.requestType === 'personal' ? 'text-blue-600 dark:text-blue-400' : ''
                           }`}>
