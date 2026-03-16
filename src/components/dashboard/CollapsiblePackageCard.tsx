@@ -1077,8 +1077,18 @@ const CollapsiblePackageCard = ({
                 {/* Traveler Confirmation Section */}
                 <TravelerConfirmationDisplay pkg={pkg} />
                 
-                {/* Quote Information */}
-                {hasValidQuote(pkg) && <Collapsible open={quoteInfoOpen} onOpenChange={setQuoteInfoOpen}>
+                {/* Multi-Assignment Quote Selector */}
+                {multiAssignments && multiAssignments.length > 0 && pkg.status === 'matched' && !pkg.matched_trip_id && onAcceptMultiAssignmentQuote && (
+                  <div className="bg-background rounded-lg border border-primary/20 shadow-sm p-3">
+                    <MultiQuoteSelector
+                      assignments={multiAssignments}
+                      onAcceptQuote={(assignmentId) => onAcceptMultiAssignmentQuote(pkg.id, assignmentId)}
+                    />
+                  </div>
+                )}
+
+                {/* Quote Information (single-assignment) */}
+                {hasValidQuote(pkg) && !(multiAssignments && multiAssignments.length > 0 && pkg.status === 'matched') && <Collapsible open={quoteInfoOpen} onOpenChange={setQuoteInfoOpen}>
                     <div className="bg-white rounded-lg border border-muted/50 shadow-sm">
                       <CollapsibleTrigger asChild>
                         <div className="p-3 border-b border-muted/50 cursor-pointer hover:bg-muted/30 transition-colors">
