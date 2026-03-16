@@ -1270,46 +1270,17 @@ export const useDashboardActions = (
         throw assignError;
       }
 
-      // For single assignment, also set matched_trip_id for backward compatibility
-      // For multi-assignment, only set status to 'matched' without matched_trip_id yet
-      if (isMultiAssignment) {
-        // Multi-assignment: package is in "awaiting quotes" state
-        const updateData: any = {
-          status: 'matched',
-          admin_assigned_tip: adminTip,
-          traveler_dismissal: null,
-          traveler_dismissed_at: null
-        };
-        if (updatedProductsData) {
-          updateData.products_data = updatedProductsData;
-        }
-        await updatePackage(packageId, updateData);
-      } else {
-        // Single assignment: backward-compatible, set matched_trip_id directly
-        const matchedTrip = trips.find(trip => trip.id === tripId);
-        const travelerAddress = buildTravelerAddress(matchedTrip);
-        const matchedTripDates = matchedTrip ? {
-          first_day_packages: matchedTrip.first_day_packages,
-          last_day_packages: matchedTrip.last_day_packages,
-          delivery_date: matchedTrip.delivery_date,
-          arrival_date: matchedTrip.arrival_date
-        } : null;
-
-        const updateData: any = {
-          status: 'matched',
-          matched_trip_id: tripId,
-          quote: null,
-          admin_assigned_tip: adminTip,
-          traveler_address: travelerAddress,
-          matched_trip_dates: matchedTripDates,
-          traveler_dismissal: null,
-          traveler_dismissed_at: null
-        };
-        if (updatedProductsData) {
-          updateData.products_data = updatedProductsData;
-        }
-        await updatePackage(packageId, updateData);
+      // Unified: always use assignment-based flow. matched_trip_id stays null until shopper accepts.
+      const updateData: any = {
+        status: 'matched',
+        admin_assigned_tip: adminTip,
+        traveler_dismissal: null,
+        traveler_dismissed_at: null
+      };
+      if (updatedProductsData) {
+        updateData.products_data = updatedProductsData;
       }
+      await updatePackage(packageId, updateData);
 
       // Log package assignment to trip history for each trip
       const adminName = currentUser?.first_name
