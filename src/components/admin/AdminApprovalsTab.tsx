@@ -433,7 +433,8 @@ const AdminApprovalsTab = ({
                           <Button 
                             size="sm" 
                             variant="success"
-                            onClick={() => onApproveReject('trip', trip.id, 'approve')}
+                            onClick={() => handleAction('trip', trip.id, 'approve')}
+                            disabled={processingIds.has(trip.id)}
                             className="flex-1 sm:flex-none text-xs sm:text-sm"
                           >
                             <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
