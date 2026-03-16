@@ -296,6 +296,8 @@ const AdminMatchingTab = ({
             unreadCounts={unreadCounts}
             markPackageMessagesAsRead={markPackageMessagesAsRead}
             hasMessages={hasMessages}
+            assignmentsMap={assignmentsMap}
+            multiAssignedPackageIds={multiAssignedPackageIds}
           />
         </TabsContent>
 
