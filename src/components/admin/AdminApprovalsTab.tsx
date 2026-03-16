@@ -384,7 +384,12 @@ const AdminApprovalsTab = ({
               ) : (
                 <div className="space-y-3">
                   {pendingTrips.map(trip => (
-                    <div key={trip.id} className="border rounded-lg p-3 sm:p-4 space-y-3">
+                    <div key={trip.id} className={`border rounded-lg p-3 sm:p-4 space-y-3 relative transition-opacity ${processingIds.has(trip.id) ? 'opacity-50 pointer-events-none' : ''}`}>
+                      {processingIds.has(trip.id) && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-lg z-10">
+                          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        </div>
+                      )}
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
                         <div className="flex-1 space-y-1">
                           <h4 className="font-medium text-sm sm:text-base break-words">{trip.from_city} → {trip.to_city}</h4>
