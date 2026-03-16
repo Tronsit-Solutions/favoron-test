@@ -50,6 +50,7 @@ const ActiveMatchesTab = ({
   onAdminConfirmOfficeDelivery,
   onConfirmShopperReceived,
   onOpenActionsModal,
+  onOpenMatchDialog,
   getStatusBadge,
   unreadCounts = {},
   markPackageMessagesAsRead,
