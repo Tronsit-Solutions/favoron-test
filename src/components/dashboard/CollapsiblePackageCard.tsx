@@ -1382,21 +1382,64 @@ const CollapsiblePackageCard = ({
       </Dialog>
       {/* Multi-Quote Selection Modal */}
       <Dialog open={showMultiQuoteModal} onOpenChange={setShowMultiQuoteModal}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-primary" />
-              Cotizaciones recibidas
-            </DialogTitle>
-          </DialogHeader>
-          {multiAssignments && onAcceptMultiAssignmentQuote && (
-            <MultiQuoteSelector
-              assignments={multiAssignments}
-              onAcceptQuote={async (assignmentId) => {
-                await onAcceptMultiAssignmentQuote(pkg.id, assignmentId);
-                setShowMultiQuoteModal(false);
-              }}
-            />
+         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          {multiQuoteWizardStep === 'payment' && multiQuoteAcceptedPkg ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-primary" />
+                  Completar Pago
+                </DialogTitle>
+              </DialogHeader>
+              <QuotePaymentStep
+                pkg={multiQuoteAcceptedPkg}
+                onPaymentComplete={(updatedPkg) => {
+                  setShowMultiQuoteModal(false);
+                  setMultiQuoteWizardStep('select');
+                  setMultiQuoteAcceptedPkg(null);
+                }}
+                onClose={() => {
+                  setShowMultiQuoteModal(false);
+                  setMultiQuoteWizardStep('select');
+                  setMultiQuoteAcceptedPkg(null);
+                }}
+              />
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-primary" />
+                  Cotizaciones recibidas
+                </DialogTitle>
+              </DialogHeader>
+              {multiAssignments && onAcceptMultiAssignmentQuote && (
+                <MultiQuoteSelector
+                  assignments={multiAssignments}
+                  onAcceptQuote={async (assignmentId, extras) => {
+                    await onAcceptMultiAssignmentQuote(pkg.id, assignmentId, extras);
+                    // After acceptance, fetch updated package and transition to payment
+                    const { data: updatedPkg } = await supabase
+                      .from('packages')
+                      .select('*')
+                      .eq('id', pkg.id)
+                      .single();
+                    if (updatedPkg) {
+                      setMultiQuoteAcceptedPkg(updatedPkg as unknown as PackageType);
+                      setMultiQuoteWizardStep('payment');
+                    }
+                  }}
+                  packageDetails={{
+                    delivery_method: pkg.delivery_method || 'pickup',
+                    shopper_trust_level: profile?.trust_level,
+                    cityArea: (pkg.confirmed_delivery_address as any)?.cityArea,
+                    package_destination_country: pkg.package_destination_country || undefined,
+                    products_data: pkg.products_data as any[],
+                  }}
+                  shopperId={profile?.id}
+                />
+              )}
+            </>
           )}
         </DialogContent>
       </Dialog>
