@@ -671,7 +671,7 @@ const CollapsiblePackageCard = ({
                       e.stopPropagation();
                       setShowMultiQuoteModal(true);
                     }} className="text-xs font-medium w-full">
-                      ⚡ Ver Cotizaciones ({multiAssignments!.filter(a => a.status === 'quote_sent').length})
+                      ⚡ Ver Cotizaciones ({multiAssignments!.filter(a => a.status === 'bid_submitted').length})
                     </Button>
                   )}
                   {isCompeting && !hasMultiQuotes && (
