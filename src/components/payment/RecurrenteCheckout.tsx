@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Loader2, ExternalLink, AlertCircle, CreditCard, ArrowLeft, Shield } from 'lucide-react';
 import { useRecurrenteCheckout } from '@/hooks/useRecurrenteCheckout';
@@ -34,6 +35,32 @@ export default function RecurrenteCheckout({
     const deliveryPart = deliveryFee > 0 ? ` Delivery fee Q${deliveryFee}` : '';
     return `Servicio Favorón ${labelId}${deliveryPart}`;
   };
+
+  // Poll package status to detect payment completion (works even if payment opens in new tab)
+  useEffect(() => {
+    if (!checkoutUrl || !pkg.id) return;
+    
+    let active = true;
+    const poll = async () => {
+      while (active) {
+        await new Promise(r => setTimeout(r, 3000));
+        if (!active) break;
+        const { data } = await supabase
+          .from('packages')
+          .select('status')
+          .eq('id', pkg.id)
+          .single();
+        if (data && ['pending_purchase', 'payment_pending_approval'].includes(data.status) 
+            && data.status !== pkg.status) {
+          console.log('Payment detected via polling, new status:', data.status);
+          onSuccess?.();
+          break;
+        }
+      }
+    };
+    poll();
+    return () => { active = false; };
+  }, [checkoutUrl, pkg.id, pkg.status, onSuccess]);
 
   // Auto-initiate checkout when embedded
   useEffect(() => {
