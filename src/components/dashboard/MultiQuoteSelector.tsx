@@ -297,8 +297,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">
-                    {travelerFirstName}{' '}
-                    {travelerLastName && <span className="blur-[4px] select-none">{travelerLastName}</span>}
+                    {travelerFirstName}
                   </p>
                   {assignment.trip_from_city && assignment.trip_to_city && (
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
