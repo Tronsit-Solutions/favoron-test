@@ -615,6 +615,7 @@ export const useAdminData = (): AdminData => {
         if (existing) {
           // Preserve profiles if existing has it and new one doesn't
           allPackagesMap.set(pkg.id, {
+            ...existing,
             ...pkg,
             profiles: pkg.profiles || existing.profiles
           });
