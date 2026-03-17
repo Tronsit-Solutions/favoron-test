@@ -191,7 +191,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
         }
         
         // Generate and save quote for each pending assignment
-        const pendingAssignments = assignments.filter(a => a.status === 'pending');
+        const pendingAssignments = assignments.filter(a => a.status === 'bid_pending');
         if (pendingAssignments.length === 0) {
           throw new Error('No hay asignaciones pendientes. Todos los viajeros ya tienen cotización.');
         }
