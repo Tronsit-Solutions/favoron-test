@@ -173,28 +173,56 @@ const TravelerPackageCard = ({
             </div>
           )}
 
-          {/* Action buttons for travelers */}
+          {/* Action buttons / status for travelers */}
           <div className="flex flex-wrap gap-2">
             {pkg.status === 'matched' && (
-              <div className="text-sm text-muted-foreground">
-                {(() => {
-                  // Calculate tip from products_data first, fallback to admin_assigned_tip
-                  let totalTip = 0;
-                  if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
-                    totalTip = pkg.products_data
-                      .filter((product: any) => !product.cancelled)
-                      .reduce((sum: number, product: any) => {
-                        return sum + parseFloat(product.adminAssignedTip || '0');
-                      }, 0);
-                  } else {
-                    totalTip = parseFloat(pkg.admin_assigned_tip || '0');
-                  }
-                  
-                  return totalTip > 0 
-                    ? `Tip asignado por admin: Q${totalTip.toFixed(2)}` 
-                    : 'Esperando tip asignado por admin';
-                })()}
-              </div>
+              <>
+                {pkg._assignmentStatus === 'quote_sent' ? (
+                  <div className="w-full bg-green-50 border border-green-200 rounded-lg p-3">
+                    <p className="text-sm font-medium text-green-800">✅ Cotización enviada</p>
+                    {pkg._assignmentQuote && (
+                      <p className="text-sm text-green-700 mt-1">
+                        Total cotizado: Q{parseFloat(pkg._assignmentQuote.totalPrice || 0).toFixed(2)}
+                      </p>
+                    )}
+                    <p className="text-xs text-green-600 mt-1">
+                      Esperando que el shopper seleccione un viajero
+                    </p>
+                  </div>
+                ) : pkg._assignmentStatus === 'quote_accepted' ? (
+                  <div className="w-full bg-green-50 border border-green-200 rounded-lg p-3">
+                    <p className="text-sm font-medium text-green-800">🎉 ¡El shopper te eligió!</p>
+                    <p className="text-xs text-green-600 mt-1">
+                      Esperando confirmación de pago del shopper
+                    </p>
+                  </div>
+                ) : pkg._assignmentStatus === 'rejected' ? (
+                  <div className="w-full bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-sm font-medium text-red-800">❌ Otro viajero fue seleccionado</p>
+                    <p className="text-xs text-red-600 mt-1">
+                      El shopper eligió a otro viajero para este pedido
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-sm text-muted-foreground">
+                    {(() => {
+                      let totalTip = 0;
+                      if (pkg.products_data && Array.isArray(pkg.products_data) && pkg.products_data.length > 0) {
+                        totalTip = pkg.products_data
+                          .filter((product: any) => !product.cancelled)
+                          .reduce((sum: number, product: any) => {
+                            return sum + parseFloat(product.adminAssignedTip || '0');
+                          }, 0);
+                      } else {
+                        totalTip = parseFloat(pkg.admin_assigned_tip || '0');
+                      }
+                      return totalTip > 0 
+                        ? `Tip asignado por admin: Q${totalTip.toFixed(2)}` 
+                        : 'Esperando tip asignado por admin';
+                    })()}
+                  </div>
+                )}
+              </>
             )}
 
             {pkg.status === 'quote_sent' && (

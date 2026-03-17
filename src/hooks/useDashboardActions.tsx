@@ -713,6 +713,15 @@ export const useDashboardActions = (
         }
       } else {
         if (quoteData.message === 'accepted') {
+          // Guard: if package is still in 'matched', shopper must select a traveler first
+          if (selectedPackage.status === 'matched') {
+            toast({
+              title: "Selecciona un viajero primero",
+              description: "Revisa las cotizaciones recibidas y elige un viajero antes de continuar.",
+              variant: "destructive",
+            });
+            return;
+          }
           console.log('✅ Accepting quote via RPC accept_quote');
           
           // Handle delivery method change
