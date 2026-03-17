@@ -112,7 +112,7 @@ const AdminRefundsTab = () => {
       <TableBody>
         {refunds.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={showActions ? 7 : 6} className="text-center text-muted-foreground py-8">
+            <TableCell colSpan={showActions ? 8 : 7} className="text-center text-muted-foreground py-8">
               No hay reembolsos en esta categoría
             </TableCell>
           </TableRow>
