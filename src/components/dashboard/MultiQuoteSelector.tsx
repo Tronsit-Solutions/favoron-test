@@ -96,8 +96,8 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
               {/* Traveler info */}
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
-                  {assignment.traveler_avatar_url ? (
-                    <AvatarImage src={assignment.traveler_avatar_url} alt={travelerName} />
+                    {assignment.traveler_avatar_url ? (
+                    <AvatarImage src={assignment.traveler_avatar_url} alt={travelerFirstName} />
                   ) : null}
                   <AvatarFallback className="bg-primary/10 text-primary text-xs">
                     {initials || <User className="h-4 w-4" />}
