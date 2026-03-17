@@ -18,7 +18,6 @@ interface Assignment {
   traveler_address: any;
   matched_trip_dates: any;
   quote_expires_at: string | null;
-  // Joined data
   traveler_first_name?: string;
   traveler_last_name?: string;
   traveler_avatar_url?: string;
@@ -42,15 +41,17 @@ const formatDateUTC = (dateString: string) => {
 };
 
 const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorProps) => {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
 
   const quotedAssignments = assignments.filter(a => a.status === 'bid_submitted' && a.quote);
   const pendingAssignments = assignments.filter(a => a.status === 'bid_pending');
 
-  const handleAccept = async (assignmentId: string) => {
-    setAcceptingId(assignmentId);
+  const handleAccept = async () => {
+    if (!selectedId) return;
+    setAcceptingId(selectedId);
     try {
-      await onAcceptQuote(assignmentId);
+      await onAcceptQuote(selectedId);
     } finally {
       setAcceptingId(null);
     }
@@ -65,11 +66,11 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex items-center gap-2 mb-1">
         <DollarSign className="h-4 w-4 text-primary" />
         <h3 className="text-sm font-semibold text-foreground">
-          Cotizaciones recibidas ({quotedAssignments.length})
+          Selecciona una cotización ({quotedAssignments.length})
         </h3>
       </div>
 
@@ -90,19 +91,36 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
         const streetLine = travelerAddr?.streetAddress || travelerAddr?.firstAddressLine || null;
         const zipCode = travelerAddr?.postalCode || travelerAddr?.zipCode || travelerAddr?.codigoPostal || null;
 
+        const isSelected = selectedId === assignment.id;
+
         return (
-          <Card key={assignment.id} className="border-primary/20 hover:border-primary/40 transition-colors">
-            <CardContent className="p-4 space-y-3">
+          <Card
+            key={assignment.id}
+            className={`cursor-pointer transition-all ${
+              isSelected
+                ? 'ring-2 ring-primary border-primary shadow-md'
+                : 'border-muted-foreground/20 hover:border-primary/40'
+            }`}
+            onClick={() => setSelectedId(assignment.id)}
+          >
+            <CardContent className="p-3 space-y-2">
               {/* Traveler info */}
               <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
+                <div className="relative">
+                  <Avatar className="h-9 w-9">
                     {assignment.traveler_avatar_url ? (
-                    <AvatarImage src={assignment.traveler_avatar_url} alt={travelerFirstName} />
-                  ) : null}
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                    {initials || <User className="h-4 w-4" />}
-                  </AvatarFallback>
-                </Avatar>
+                      <AvatarImage src={assignment.traveler_avatar_url} alt={travelerFirstName} />
+                    ) : null}
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                      {initials || <User className="h-4 w-4" />}
+                    </AvatarFallback>
+                  </Avatar>
+                  {isSelected && (
+                    <div className="absolute -top-1 -right-1 bg-primary rounded-full p-0.5">
+                      <Check className="h-3 w-3 text-primary-foreground" />
+                    </div>
+                  )}
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">
                     {travelerFirstName}{' '}
@@ -115,92 +133,75 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
                     </p>
                   )}
                 </div>
-                {assignment.trip_delivery_date && (
-                  <Badge variant="secondary" className="text-xs flex-shrink-0">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {format(new Date(assignment.trip_delivery_date), 'dd MMM', { locale: es })}
-                  </Badge>
-                )}
-              </div>
-
-              {/* Traveler details: address, reception window, delivery date */}
-              <div className="bg-muted/30 rounded-lg p-3 space-y-2 text-sm">
-                {city && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Home className="h-3.5 w-3.5 flex-shrink-0" />
-                    <span>
-                      {accommodationType ? `${accommodationType} en ${city}` : city}
-                    </span>
-                  </div>
-                )}
-                {(streetLine || zipCode) && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
-                    <span>
-                      {[streetLine, zipCode ? `CP ${zipCode}` : null].filter(Boolean).join(', ')}
-                    </span>
-                  </div>
-                )}
-                {firstDay && lastDay && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Package className="h-3.5 w-3.5 flex-shrink-0" />
-                    <span>
-                      Recibe paquetes: <span className="font-medium text-foreground">{formatDateUTC(firstDay)} - {formatDateUTC(lastDay)}</span>
-                    </span>
-                  </div>
-                )}
-                {deliveryDate && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Truck className="h-3.5 w-3.5 flex-shrink-0" />
-                    <span>
-                      Entrega en oficina: <span className="font-medium text-foreground">{formatDateUTC(deliveryDate)}</span>
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Quote breakdown */}
-              <div className="bg-muted/50 rounded-md p-2.5 space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Propina viajero</span>
-                  <span>{formatPrice(quoteValues.price)}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Tarifa de servicio</span>
-                  <span>{formatPrice(quoteValues.serviceFee)}</span>
-                </div>
-                {quoteValues.deliveryFee > 0 && (
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Envío</span>
-                    <span>{formatPrice(quoteValues.deliveryFee)}</span>
-                  </div>
-                )}
-                <div className="border-t border-muted pt-1 flex justify-between text-sm font-semibold">
-                  <span>Total</span>
-                  <span className="text-primary">{formatPrice(quoteValues.totalPrice)}</span>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-sm font-bold text-primary">{formatPrice(quoteValues.totalPrice)}</span>
+                  {assignment.trip_delivery_date && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                      <Clock className="h-2.5 w-2.5 mr-0.5" />
+                      {format(new Date(assignment.trip_delivery_date), 'dd MMM', { locale: es })}
+                    </Badge>
+                  )}
                 </div>
               </div>
 
-              {/* Accept button */}
-              <Button
-                variant="shopper"
-                size="sm"
-                className="w-full"
-                onClick={() => handleAccept(assignment.id)}
-                disabled={acceptingId !== null}
-              >
-                {acceptingId === assignment.id ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Aceptando...
-                  </>
-                ) : (
-                  <>
-                    <Check className="h-4 w-4 mr-2" />
-                    Aceptar esta cotización
-                  </>
-                )}
-              </Button>
+              {/* Expandable details when selected */}
+              {isSelected && (
+                <>
+                  {/* Traveler details */}
+                  <div className="bg-muted/30 rounded-lg p-2.5 space-y-1.5 text-xs">
+                    {city && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Home className="h-3 w-3 flex-shrink-0" />
+                        <span>{accommodationType ? `${accommodationType} en ${city}` : city}</span>
+                      </div>
+                    )}
+                    {(streetLine || zipCode) && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                        <span>{[streetLine, zipCode ? `CP ${zipCode}` : null].filter(Boolean).join(', ')}</span>
+                      </div>
+                    )}
+                    {firstDay && lastDay && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Package className="h-3 w-3 flex-shrink-0" />
+                        <span>
+                          Recibe: <span className="font-medium text-foreground">{formatDateUTC(firstDay)} - {formatDateUTC(lastDay)}</span>
+                        </span>
+                      </div>
+                    )}
+                    {deliveryDate && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Truck className="h-3 w-3 flex-shrink-0" />
+                        <span>
+                          Entrega: <span className="font-medium text-foreground">{formatDateUTC(deliveryDate)}</span>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quote breakdown */}
+                  <div className="bg-muted/50 rounded-md p-2 space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Propina viajero</span>
+                      <span>{formatPrice(quoteValues.price)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Tarifa de servicio</span>
+                      <span>{formatPrice(quoteValues.serviceFee)}</span>
+                    </div>
+                    {quoteValues.deliveryFee > 0 && (
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Envío</span>
+                        <span>{formatPrice(quoteValues.deliveryFee)}</span>
+                      </div>
+                    )}
+                    <div className="border-t border-muted pt-1 flex justify-between text-sm font-semibold">
+                      <span>Total</span>
+                      <span className="text-primary">{formatPrice(quoteValues.totalPrice)}</span>
+                    </div>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         );
@@ -234,6 +235,30 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
           </Card>
         );
       })}
+
+      {/* Sticky confirm button */}
+      {quotedAssignments.length > 0 && (
+        <div className="sticky bottom-0 pt-3 pb-1 bg-background">
+          <Button
+            variant="shopper"
+            className="w-full"
+            onClick={handleAccept}
+            disabled={!selectedId || acceptingId !== null}
+          >
+            {acceptingId ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Aceptando...
+              </>
+            ) : (
+              <>
+                <Check className="h-4 w-4 mr-2" />
+                Aceptar esta cotización
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
