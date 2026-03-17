@@ -1,120 +1,33 @@
-## Onboarding Bottom Sheet — Implementado ✅
 
-### Cambios realizados
 
-**Nuevo: `src/components/onboarding/OnboardingBottomSheet.tsx`**
-- Componente reutilizable con slides tipo bottom-sheet (móvil) / modal centrado (desktop)
-- Swipe entre slides con `react-swipeable`
-- Dots de navegación clickeables
-- Checkbox "No volver a mostrar" en último slide
-- Soporte para variantes `shopper` (azul) y `traveler` (verde)
-- Gradiente configurable para el hero area
+## Change Recurrente checkout item name format
 
-**Modificado: `src/components/PackageRequestForm.tsx`**
-- Eliminado Step 0 (intro inline) 
-- Agregado `OnboardingBottomSheet` con 4 slides para shoppers
-- El formulario ahora siempre empieza en Step 1
-- Persiste preferencia en `ui_preferences.skip_package_intro`
+Currently the item name sent to Recurrente uses the product description (e.g. "How Did I Get Here? Deluxe Double Vinyl"). The user wants it changed to: `Servicio Favorón ID12345 Delivery fee Q25`.
 
-**Modificado: `src/components/TripForm.tsx`**
-- Eliminado Step 0 (intro inline)
-- Agregado `OnboardingBottomSheet` con 4 slides para viajeros
-- El formulario ahora siempre empieza en Step 1
-- Persiste preferencia en `ui_preferences.skip_trip_intro`
+### Changes
 
-### Contenido de slides
+**1. `src/components/payment/RecurrenteCheckout.tsx`** — Replace `getItemDescription()` logic. Instead of using product names, build the string:
+```
+Servicio Favorón ID{label_number} Delivery fee Q{deliveryFee}
+```
+- `label_number` comes from `pkg.label_number`
+- `deliveryFee` comes from `pkg.quote?.deliveryFee` (already available in the quote JSON)
+- Fallback if no label_number: use first 8 chars of package UUID
+- Fallback if no deliveryFee or it's 0: omit the delivery fee part
 
-**Shoppers:**
-1. "¡Tu primera compra internacional!" — Describe producto y origen
-2. "Recibe una cotización" — Incluye propina y tarifa de servicio
-3. "Compra tu producto" — Envía a dirección del viajero
-4. "¡Recibe tu paquete!" — Oficina o domicilio + mención de impuestos como cargo adicional
+**2. `supabase/functions/create-recurrente-checkout/index.ts`** — No changes needed; it already uses `item_description` from the request body (line 114).
 
-**Viajeros:**
-1. "¡Conviértete en Viajero!" — Registra viaje con origen, llegada, espacio
-2. "Recibe solicitudes" — Decide cuáles aceptar, define propina
-3. "Cotiza con confianza" — Impuestos se reembolsan
-4. "Entrega y cobra" — Oficina o recolección, pago al completar
+### Single file edit
 
-## Multi-Traveler Assignment: Traveler Dashboard Integration — Implementado ✅
+In `RecurrenteCheckout.tsx`, replace lines 30-41 (`getItemDescription` function) with:
 
-### Problema
-Cuando un admin asigna un paquete a 2+ viajeros, `matched_trip_id` queda `null` en el paquete. El dashboard del viajero solo filtraba por `matched_trip_id`, así que ningún viajero podía ver el paquete.
+```typescript
+const getItemDescription = () => {
+  const labelId = pkg.label_number ? `ID${pkg.label_number}` : pkg.id.substring(0, 8);
+  const quote = pkg.quote as any;
+  const deliveryFee = quote?.deliveryFee || 0;
+  const deliveryPart = deliveryFee > 0 ? ` Delivery fee Q${deliveryFee}` : '';
+  return `Servicio Favorón ${labelId}${deliveryPart}`;
+};
+```
 
-### Solución implementada
-
-**Modificado: `src/components/Dashboard.tsx`**
-- Agregado `useEffect` que consulta `package_assignments` para los trips del usuario
-- Filtra assignments cuyo paquete NO tiene `matched_trip_id` apuntando a un trip del usuario (evita duplicados)
-- Mapea datos a nivel de assignment (`admin_assigned_tip`, `quote`, `products_data`) sobre el paquete
-- Marca paquetes multi-asignados con `_isMultiAssignment: true`
-- Fusiona con `assignedPackages` existentes usando `useMemo` con dedup por `id_tripId`
-
-**Modificado: `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`**
-- Badge "⚡ Compitiendo" (amber) visible cuando `pkg._isMultiAssignment === true`
-- Se muestra junto al status badge existente
-
-### Compatibilidad
-- Paquetes single-assignment (con `matched_trip_id` directo) siguen funcionando igual
-- RLS de `package_assignments` ya permite SELECT a viajeros con trips propios
-
-## Phase 3: Shopper Quote Comparison & Selection — Implementado ✅
-
-### Cambios realizados
-
-**Migración: `shopper_accept_assignment` RPC**
-- Función SECURITY DEFINER que valida ownership del paquete
-- Promueve datos del assignment ganador al paquete (matched_trip_id, quote, tip, etc.)
-- Acepta el assignment ganador y rechaza todos los demás atómicamente
-
-**Nuevo: `src/components/dashboard/MultiQuoteSelector.tsx`**
-- Muestra cotizaciones de múltiples viajeros side-by-side
-- Cada cotización con avatar, nombre, ruta, fecha, desglose de precios
-- Botón "Aceptar esta cotización" por viajero
-- Assignments pendientes muestran "Esperando cotización de [Nombre]"
-
-**Modificado: `src/components/Dashboard.tsx`**
-- Nuevo useEffect que fetcha `package_assignments` para paquetes del shopper en status `matched` sin `matched_trip_id`
-- Enriquece assignments con datos de perfil del viajero y trip
-- Estado `shopperAssignmentsMap[packageId] → assignment[]` 
-- Pasa props `multiAssignments` y `onAcceptMultiAssignmentQuote` a `CollapsiblePackageCard`
-
-**Modificado: `src/components/dashboard/CollapsiblePackageCard.tsx`**
-- Nuevas props: `multiAssignments`, `onAcceptMultiAssignmentQuote`
-- Renderiza `MultiQuoteSelector` para paquetes multi-asignados en status `matched`
-- Status description cambia a "Cotizaciones recibidas - Compara y elige" cuando hay quotes
-
-**Modificado: `src/hooks/useDashboardActions.tsx`**
-- Nueva función `handleAcceptMultiAssignmentQuote(packageId, assignmentId)`
-- Llama al RPC `shopper_accept_assignment` y refresca paquetes
-
-## Fix: Multi-Assignment Quote Submission — Implementado ✅
-
-### Problema
-Cuando un viajero enviaba cotización en un paquete multi-asignado, se escribía directamente en `packages` (status → `quote_sent`) en vez de en `package_assignments`. El shopper no veía las cotizaciones porque el filtro buscaba `status === 'matched'`.
-
-### Cambios
-
-**Modificado: `src/hooks/useDashboardActions.tsx`**
-- `handleQuoteSubmit` detecta `_isMultiAssignment` y escribe en `package_assignments` (status, quote, traveler_address, matched_trip_dates, quote_expires_at) en vez del paquete directamente
-- El paquete mantiene su status `matched` hasta que el shopper elija ganador
-
-**Modificado: `src/components/Dashboard.tsx`**
-- Filtro de shopper ampliado: incluye paquetes con `status === 'quote_sent'` sin `matched_trip_id` (datos legacy del bug anterior)
-
-## Fix: Admin Quote Generation for Multi-Assignments — Implementado ✅
-
-### Problema
-Cuando admin cambiaba status de `matched` → `quote_sent` en un paquete multi-asignado (sin `matched_trip_id`), la cotización se escribía directamente en la tabla `packages`, rompiendo el flujo de competencia entre viajeros.
-
-### Cambios
-
-**Modificado: `src/components/admin/AdminActionsModal.tsx`**
-- Detecta multi-asignación verificando si `matched_trip_id` es null
-- Para multi-asignaciones: consulta `package_assignments` pendientes, genera cotización por cada una, y las guarda en la tabla de assignments
-- El paquete se mantiene en `status: 'matched'` hasta que el shopper elija ganador
-- Para asignaciones individuales: comportamiento legacy sin cambios
-
-**Modificado: `src/utils/adminQuoteGeneration.ts`**
-- Nuevo parámetro `overrideTripId` en `QuoteGenerationData`
-- Usa `overrideTripId` en vez de `matched_trip_id` para buscar el trip correcto en paquetes multi-asignados
