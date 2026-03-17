@@ -100,6 +100,7 @@ const AdminRefundsTab = () => {
       <TableHeader>
         <TableRow>
           <TableHead>Fecha</TableHead>
+          <TableHead>Paquete</TableHead>
           <TableHead>Shopper</TableHead>
           <TableHead>Producto(s)</TableHead>
           <TableHead>Monto</TableHead>
@@ -111,7 +112,7 @@ const AdminRefundsTab = () => {
       <TableBody>
         {refunds.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={showActions ? 7 : 6} className="text-center text-muted-foreground py-8">
+            <TableCell colSpan={showActions ? 8 : 7} className="text-center text-muted-foreground py-8">
               No hay reembolsos en esta categoría
             </TableCell>
           </TableRow>
@@ -120,6 +121,11 @@ const AdminRefundsTab = () => {
             <TableRow key={refund.id}>
               <TableCell className="text-sm">
                 {new Date(refund.created_at).toLocaleDateString('es-GT')}
+              </TableCell>
+              <TableCell>
+                <span className="text-sm font-mono font-medium">
+                  {refund.package?.label_number ? `#${refund.package.label_number}` : refund.package_id?.slice(0, 8)}
+                </span>
               </TableCell>
               <TableCell>
                 <div>
