@@ -2258,10 +2258,20 @@ export const useDashboardActions = (
     }
   };
 
-  const handleAcceptMultiAssignmentQuote = async (packageId: string, assignmentId: string) => {
+  const handleAcceptMultiAssignmentQuote = async (
+    packageId: string, 
+    assignmentId: string,
+    extras?: { deliveryMethod: string; discountData?: { code: string; codeId: string; amount: number; originalTotal: number; finalTotal: number } }
+  ) => {
     try {
-      console.log('🎯 Shopper accepting assignment:', { packageId, assignmentId });
+      console.log('🎯 Shopper accepting assignment:', { packageId, assignmentId, extras });
       
+      // 1. Update delivery method if changed
+      if (extras?.deliveryMethod) {
+        await updatePackage(packageId, { delivery_method: extras.deliveryMethod });
+      }
+      
+      // 2. Accept assignment (promotes to packages table, status → quote_sent)
       const { error } = await supabase.rpc('shopper_accept_assignment', {
         _package_id: packageId,
         _assignment_id: assignmentId
@@ -2269,9 +2279,81 @@ export const useDashboardActions = (
 
       if (error) throw error;
 
+      // 3. If discount was applied, update the quote with discount data before accepting
+      if (extras?.discountData) {
+        const { data: freshPkg } = await supabase
+          .from('packages')
+          .select('quote')
+          .eq('id', packageId)
+          .single();
+        
+        if (freshPkg?.quote) {
+          const updatedQuote = {
+            ...(freshPkg.quote as any),
+            discountCode: extras.discountData.code,
+            discountCodeId: extras.discountData.codeId,
+            discountAmount: extras.discountData.amount,
+            originalTotalPrice: extras.discountData.originalTotal,
+            finalTotalPrice: extras.discountData.finalTotal,
+          };
+          await updatePackage(packageId, { quote: updatedQuote });
+        }
+      }
+
+      // 4. Also recalculate quote with correct delivery fee based on cityArea
+      {
+        const { data: freshPkg } = await supabase
+          .from('packages')
+          .select('quote, confirmed_delivery_address, package_destination, package_destination_country, delivery_method')
+          .eq('id', packageId)
+          .single();
+        
+        if (freshPkg?.quote) {
+          const currentQuote = freshPkg.quote as any;
+          const cityArea = (freshPkg.confirmed_delivery_address as any)?.cityArea;
+          const destCountry = freshPkg.package_destination_country;
+          
+          // Find the shopper's profile for trust level
+          const selectedPkg = packages.find(p => p.id === packageId);
+          const trustLevel = selectedPkg ? (selectedPkg as any).shopper_trust_level : undefined;
+          
+          const { normalizeQuote } = await import('@/lib/quoteHelpers');
+          const recalculated = normalizeQuote(
+            currentQuote,
+            extras?.deliveryMethod || freshPkg.delivery_method || 'pickup',
+            trustLevel,
+            cityArea,
+            undefined,
+            undefined,
+            destCountry || undefined
+          );
+          
+          const finalQuote = { ...currentQuote, ...recalculated };
+          // Preserve discount data if applied
+          if (extras?.discountData) {
+            finalQuote.discountCode = extras.discountData.code;
+            finalQuote.discountCodeId = extras.discountData.codeId;
+            finalQuote.discountAmount = extras.discountData.amount;
+            finalQuote.originalTotalPrice = extras.discountData.originalTotal;
+            finalQuote.finalTotalPrice = extras.discountData.finalTotal;
+          }
+          await updatePackage(packageId, { quote: finalQuote });
+        }
+      }
+
+      // 5. Immediately accept the quote (skip quote_sent → go to payment_pending)
+      const { error: acceptError } = await supabase.rpc('accept_quote', {
+        _package_id: packageId
+      });
+
+      if (acceptError) {
+        console.error('❌ RPC accept_quote error:', acceptError);
+        throw acceptError;
+      }
+
       toast({
         title: "¡Cotización aceptada!",
-        description: "Has seleccionado a tu viajero. Procede con el pago.",
+        description: "Procede con el pago para continuar.",
       });
 
       if (refreshPackages) {
