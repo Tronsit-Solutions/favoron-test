@@ -226,7 +226,7 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
                   onClick={handleClose}
                   className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-1 cursor-pointer"
                 >
-                  Ahora no
+                  Cerrar
                 </button>
               </div>
             )}
