@@ -2268,7 +2268,7 @@ export const useDashboardActions = (
       
       // 1. Update delivery method if changed
       if (extras?.deliveryMethod) {
-        await updatePackage(packageId, { delivery_method: extras.deliveryMethod });
+        await supabase.from('packages').update({ delivery_method: extras.deliveryMethod }).eq('id', packageId);
       }
       
       // 2. Accept assignment (promotes to packages table, status → quote_sent)
@@ -2279,32 +2279,11 @@ export const useDashboardActions = (
 
       if (error) throw error;
 
-      // 3. If discount was applied, update the quote with discount data before accepting
-      if (extras?.discountData) {
-        const { data: freshPkg } = await supabase
-          .from('packages')
-          .select('quote')
-          .eq('id', packageId)
-          .single();
-        
-        if (freshPkg?.quote) {
-          const updatedQuote = {
-            ...(freshPkg.quote as any),
-            discountCode: extras.discountData.code,
-            discountCodeId: extras.discountData.codeId,
-            discountAmount: extras.discountData.amount,
-            originalTotalPrice: extras.discountData.originalTotal,
-            finalTotalPrice: extras.discountData.finalTotal,
-          };
-          await updatePackage(packageId, { quote: updatedQuote });
-        }
-      }
-
-      // 4. Also recalculate quote with correct delivery fee based on cityArea
+      // 3. Recalculate quote with correct delivery fee and apply discount if any
       {
         const { data: freshPkg } = await supabase
           .from('packages')
-          .select('quote, confirmed_delivery_address, package_destination, package_destination_country, delivery_method')
+          .select('quote, confirmed_delivery_address, package_destination_country, delivery_method')
           .eq('id', packageId)
           .single();
         
@@ -2312,8 +2291,6 @@ export const useDashboardActions = (
           const currentQuote = freshPkg.quote as any;
           const cityArea = (freshPkg.confirmed_delivery_address as any)?.cityArea;
           const destCountry = freshPkg.package_destination_country;
-          
-          // Find the shopper's profile for trust level
           const selectedPkg = packages.find(p => p.id === packageId);
           const trustLevel = selectedPkg ? (selectedPkg as any).shopper_trust_level : undefined;
           
@@ -2328,8 +2305,9 @@ export const useDashboardActions = (
             destCountry || undefined
           );
           
-          const finalQuote = { ...currentQuote, ...recalculated };
-          // Preserve discount data if applied
+          const finalQuote: any = { ...currentQuote, ...recalculated };
+          
+          // Apply discount data if provided
           if (extras?.discountData) {
             finalQuote.discountCode = extras.discountData.code;
             finalQuote.discountCodeId = extras.discountData.codeId;
@@ -2337,7 +2315,8 @@ export const useDashboardActions = (
             finalQuote.originalTotalPrice = extras.discountData.originalTotal;
             finalQuote.finalTotalPrice = extras.discountData.finalTotal;
           }
-          await updatePackage(packageId, { quote: finalQuote });
+          
+          await supabase.from('packages').update({ quote: finalQuote }).eq('id', packageId);
         }
       }
 
