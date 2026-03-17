@@ -446,6 +446,10 @@ export const useDashboardActions = (
             });
           }
           
+          // Refresh data so the card reflects the new bid_submitted status
+          await refreshPackages();
+          await refreshTrips();
+          
           // Close dialog after acceptance handled
           setShowQuoteDialog(false);
           setSelectedPackageForQuote(null);
