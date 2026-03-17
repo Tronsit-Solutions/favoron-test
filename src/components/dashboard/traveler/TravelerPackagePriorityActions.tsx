@@ -128,10 +128,19 @@ const TravelerPackagePriorityActions = ({
         {pkg.status === 'matched' && (
           <div className="flex items-center justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold">Revisa el pedido y acéptalo si te parece bien</p>
+              <p className="text-sm font-semibold">
+                {(pkg as any)._assignmentStatus === 'quote_sent' 
+                  ? '✅ Cotización enviada — esperando al comprador'
+                  : 'Revisa el pedido y acéptalo si te parece bien'}
+              </p>
             </div>
             <div className="flex-shrink-0">
-              {pkg.admin_assigned_tip && pkg.matched_trip_id ? (
+              {(pkg as any)._assignmentStatus === 'quote_sent' ? (
+                <Button size="sm" variant="outline" disabled className="font-medium h-9 text-sm">
+                  <CheckCircle className="h-3 w-3 mr-2" />
+                  Cotización enviada
+                </Button>
+              ) : pkg.admin_assigned_tip ? (
                 <Button size="sm" variant="success" onClick={() => onQuote(pkg, 'user')} className="font-semibold h-9 text-sm">
                   <DollarSign className="h-3 w-3 mr-2" />
                   Ver y Aceptar Tip
