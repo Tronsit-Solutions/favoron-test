@@ -401,9 +401,19 @@ const CollapsibleTravelerPackageCard = ({
                     {/* Status message moved here - below price/tip on left side */}
                     <div className="text-xs mt-2 text-left">
                       {pkg.status === 'matched' && (
-                        <div className="font-medium text-blue-600">
-                          🔗 Paquete emparejado - Envía tu cotización
-                        </div>
+                        pkg._assignmentStatus === 'bid_submitted' ? (
+                          <div className="font-medium text-green-700">✅ Cotización enviada — esperando al comprador</div>
+                        ) : pkg._assignmentStatus === 'bid_won' ? (
+                          <div className="font-medium text-green-700">🎉 ¡El shopper te eligió!</div>
+                        ) : pkg._assignmentStatus === 'bid_lost' ? (
+                          <div className="font-medium text-red-700">❌ Otro viajero fue seleccionado</div>
+                        ) : pkg._assignmentStatus === 'bid_expired' ? (
+                          <div className="font-medium text-yellow-700">⏰ Asignación expirada</div>
+                        ) : pkg._assignmentStatus === 'bid_cancelled' ? (
+                          <div className="font-medium text-muted-foreground">Asignación cancelada</div>
+                        ) : (
+                          <div className="font-medium text-blue-600">🔗 Paquete emparejado - Envía tu cotización</div>
+                        )
                       )}
                      {pkg.status === 'quote_sent' && (
                          <div className="space-y-2">
