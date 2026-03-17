@@ -179,27 +179,6 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
                     )}
                   </div>
 
-                  {/* Quote breakdown */}
-                  <div className="bg-muted/50 rounded-md p-2 space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Propina viajero</span>
-                      <span>{formatPrice(quoteValues.price)}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Tarifa de servicio</span>
-                      <span>{formatPrice(quoteValues.serviceFee)}</span>
-                    </div>
-                    {quoteValues.deliveryFee > 0 && (
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Envío</span>
-                        <span>{formatPrice(quoteValues.deliveryFee)}</span>
-                      </div>
-                    )}
-                    <div className="border-t border-muted pt-1 flex justify-between text-sm font-semibold">
-                      <span>Total</span>
-                      <span className="text-primary">{formatPrice(quoteValues.totalPrice)}</span>
-                    </div>
-                  </div>
                 </>
               )}
             </CardContent>
