@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getQuoteValues } from "@/lib/quoteHelpers";
 import { formatPrice } from "@/lib/formatters";
-import { Clock, MapPin, DollarSign, Check, Loader2, User } from "lucide-react";
+import { Clock, MapPin, DollarSign, Check, Loader2, User, Package, Truck, Home } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -32,6 +32,15 @@ interface MultiQuoteSelectorProps {
   onAcceptQuote: (assignmentId: string) => Promise<void>;
 }
 
+const formatDateUTC = (dateString: string) => {
+  const date = new Date(dateString);
+  return format(
+    new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+    'dd MMM yyyy',
+    { locale: es }
+  );
+};
+
 const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorProps) => {
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
 
@@ -56,7 +65,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex items-center gap-2 mb-1">
         <DollarSign className="h-4 w-4 text-primary" />
         <h3 className="text-sm font-semibold text-foreground">
@@ -70,12 +79,21 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
           .filter(Boolean).join(' ') || 'Viajero';
         const initials = (assignment.traveler_first_name?.[0] || '') + (assignment.traveler_last_name?.[0] || '');
 
+        const tripDates = assignment.matched_trip_dates as any;
+        const travelerAddr = assignment.traveler_address as any;
+
+        const firstDay = tripDates?.first_day_packages || tripDates?.packageReceptionStart;
+        const lastDay = tripDates?.last_day_packages || tripDates?.packageReceptionEnd;
+        const deliveryDate = tripDates?.delivery_date || tripDates?.officeDeliveryDate;
+        const city = travelerAddr?.cityArea || travelerAddr?.city || travelerAddr?.ciudad || null;
+        const accommodationType = travelerAddr?.accommodationType || null;
+
         return (
           <Card key={assignment.id} className="border-primary/20 hover:border-primary/40 transition-colors">
-            <CardContent className="p-3 space-y-3">
+            <CardContent className="p-4 space-y-3">
               {/* Traveler info */}
               <div className="flex items-center gap-3">
-                <Avatar className="h-9 w-9">
+                <Avatar className="h-10 w-10">
                   {assignment.traveler_avatar_url ? (
                     <AvatarImage src={assignment.traveler_avatar_url} alt={travelerName} />
                   ) : null}
@@ -84,7 +102,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{travelerName}</p>
+                  <p className="text-sm font-semibold truncate">{travelerName}</p>
                   {assignment.trip_from_city && assignment.trip_to_city && (
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
                       <MapPin className="h-3 w-3" />
@@ -97,6 +115,34 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
                     <Clock className="h-3 w-3 mr-1" />
                     {format(new Date(assignment.trip_delivery_date), 'dd MMM', { locale: es })}
                   </Badge>
+                )}
+              </div>
+
+              {/* Traveler details: address, reception window, delivery date */}
+              <div className="bg-muted/30 rounded-lg p-3 space-y-2 text-sm">
+                {city && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Home className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span>
+                      {accommodationType ? `${accommodationType} en ${city}` : city}
+                    </span>
+                  </div>
+                )}
+                {firstDay && lastDay && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Package className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span>
+                      Recibe paquetes: <span className="font-medium text-foreground">{formatDateUTC(firstDay)} - {formatDateUTC(lastDay)}</span>
+                    </span>
+                  </div>
+                )}
+                {deliveryDate && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Truck className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span>
+                      Entrega en oficina: <span className="font-medium text-foreground">{formatDateUTC(deliveryDate)}</span>
+                    </span>
+                  </div>
                 )}
               </div>
 
