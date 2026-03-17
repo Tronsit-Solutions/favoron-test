@@ -1127,7 +1127,7 @@ const CollapsiblePackageCard = ({
                 <TravelerConfirmationDisplay pkg={pkg} />
                 
                 {/* Multi-Assignment Quote Selector */}
-                {multiAssignments && multiAssignments.length > 0 && pkg.status === 'matched' && !pkg.matched_trip_id && onAcceptMultiAssignmentQuote && (
+                {multiAssignments && multiAssignments.length > 0 && ['matched', 'quote_sent'].includes(pkg.status) && !pkg.matched_trip_id && onAcceptMultiAssignmentQuote && (
                   <div className="bg-background rounded-lg border border-primary/20 shadow-sm p-3">
                     <MultiQuoteSelector
                       assignments={multiAssignments}
