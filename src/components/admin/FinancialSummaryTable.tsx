@@ -710,6 +710,14 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los meses</SelectItem>
+                {(() => {
+                  const years = [...new Set(availableMonths.map(m => m.split('-')[0]))].sort((a, b) => b.localeCompare(a));
+                  return years.map(year => (
+                    <SelectItem key={`year-${year}`} value={`year-${year}`}>
+                      ── Año {year}
+                    </SelectItem>
+                  ));
+                })()}
                 {availableMonths.map(month => {
                   const [year, monthNum] = month.split('-');
                   const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
