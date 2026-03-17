@@ -58,10 +58,23 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
     }
   }, [isOpen]);
 
-  const handleClose = useCallback(() => {
+  const handleClose = useCallback(async () => {
     if (dontShowAgain && user?.id) {
       try {
         localStorage.setItem(`referral_announcement_dismissed_${user.id}`, 'true');
+      } catch {}
+      // Persist in DB
+      try {
+        const { data: currentProfile } = await supabase
+          .from('profiles')
+          .select('ui_preferences')
+          .eq('id', user.id)
+          .single();
+        const existing = (currentProfile?.ui_preferences as Record<string, unknown>) || {};
+        await supabase
+          .from('profiles')
+          .update({ ui_preferences: { ...existing, referral_announcement_dismissed: true } })
+          .eq('id', user.id);
       } catch {}
     }
     onClose();
