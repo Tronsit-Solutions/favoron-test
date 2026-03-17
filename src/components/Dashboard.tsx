@@ -311,6 +311,10 @@ const Dashboard = ({ user }: DashboardProps) => {
             _isMultiAssignment: true,
             _assignmentId: a.id,
             _assignmentStatus: a.status,
+            // Assignment-specific fields for QuoteDialog (prevents reading stale package-level data)
+            _assignmentQuote: a.quote,
+            _assignmentTravelerAddress: a.traveler_address,
+            _assignmentMatchedTripDates: a.matched_trip_dates,
           };
         });
       
