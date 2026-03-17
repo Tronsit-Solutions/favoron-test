@@ -793,13 +793,14 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                 <TableHead>
                   <ColumnFilter title="Método Pago" options={uniquePaymentMethods} selectedValues={paymentMethodFilter} onSelectionChange={setPaymentMethodFilter} />
                 </TableHead>
-                <TableHead>Recurrente ID</TableHead>
+                
                 <TableHead className="text-right">Total a Pagar</TableHead>
                 <TableHead className="text-right">Descuento</TableHead>
                 <TableHead className="text-right">Tip Viajero</TableHead>
                 <TableHead className="text-right">Ingreso Favoron</TableHead>
                 <TableHead className="text-right">Pago Mensajero</TableHead>
                 <TableHead className="text-center">Comprobante Pago</TableHead>
+                <TableHead>Recurrente Payment ID</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -915,11 +916,6 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground font-mono">
-                    {item.package?.recurrente_payment_id 
-                      ? item.package.recurrente_payment_id.slice(0, 12) + '...' 
-                      : '-'}
-                  </TableCell>
                   <TableCell className={`text-right font-mono ${item.isRefund ? 'text-red-600' : ''}`}>
                     {item.isRefund ? `-${formatCurrency(item.refundAmount || 0)}` : formatCurrency(item.totalToPay)}
                   </TableCell>
@@ -992,6 +988,11 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                         <span className="text-xs text-muted-foreground">Pendiente</span>
                       )
                     )}
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground font-mono">
+                    {item.package?.recurrente_payment_id 
+                      ? item.package.recurrente_payment_id.slice(0, 12) + '...' 
+                      : '-'}
                   </TableCell>
                 </TableRow>
               ))}
