@@ -221,7 +221,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
           const { error: updateAssignErr } = await supabase
             .from('package_assignments')
             .update({
-              status: 'quote_sent',
+              status: 'bid_submitted',
               quote: quoteData.quote as any,
               traveler_address: quoteData.traveler_address as any,
               matched_trip_dates: quoteData.matched_trip_dates as any,

@@ -135,7 +135,7 @@ const TravelerPackagePriorityActions = ({
               </p>
             </div>
             <div className="flex-shrink-0">
-              {(pkg as any)._assignmentStatus === 'quote_sent' ? (
+              {(pkg as any)._assignmentStatus === 'bid_submitted' ? (
                 <Button size="sm" variant="outline" disabled className="font-medium h-9 text-sm">
                   <CheckCircle className="h-3 w-3 mr-2" />
                   Cotización enviada

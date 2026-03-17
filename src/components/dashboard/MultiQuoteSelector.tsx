@@ -35,8 +35,8 @@ interface MultiQuoteSelectorProps {
 const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorProps) => {
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
 
-  const quotedAssignments = assignments.filter(a => a.status === 'quote_sent' && a.quote);
-  const pendingAssignments = assignments.filter(a => a.status === 'pending');
+  const quotedAssignments = assignments.filter(a => a.status === 'bid_submitted' && a.quote);
+  const pendingAssignments = assignments.filter(a => a.status === 'bid_pending');
 
   const handleAccept = async (assignmentId: string) => {
     setAcceptingId(assignmentId);

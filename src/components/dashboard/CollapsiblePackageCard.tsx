@@ -1008,7 +1008,7 @@ const CollapsiblePackageCard = ({
                       e.stopPropagation();
                       setShowMultiQuoteModal(true);
                     }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
-                      <span className="truncate">⚡ Ver Cotizaciones ({multiAssignments!.filter(a => a.status === 'quote_sent').length})</span>
+                      <span className="truncate">⚡ Ver Cotizaciones ({multiAssignments!.filter(a => a.status === 'bid_submitted').length})</span>
                     </Button>
                   )}
                   {isCompeting && !hasMultiQuotes && (
