@@ -1,120 +1,69 @@
-## Onboarding Bottom Sheet — Implementado ✅
 
-### Cambios realizados
 
-**Nuevo: `src/components/onboarding/OnboardingBottomSheet.tsx`**
-- Componente reutilizable con slides tipo bottom-sheet (móvil) / modal centrado (desktop)
-- Swipe entre slides con `react-swipeable`
-- Dots de navegación clickeables
-- Checkbox "No volver a mostrar" en último slide
-- Soporte para variantes `shopper` (azul) y `traveler` (verde)
-- Gradiente configurable para el hero area
+## Analysis: Statuses are independent — and the plan needs one RLS fix
 
-**Modificado: `src/components/PackageRequestForm.tsx`**
-- Eliminado Step 0 (intro inline) 
-- Agregado `OnboardingBottomSheet` con 4 slides para shoppers
-- El formulario ahora siempre empieza en Step 1
-- Persiste preferencia en `ui_preferences.skip_package_intro`
+### Status independence confirmed
 
-**Modificado: `src/components/TripForm.tsx`**
-- Eliminado Step 0 (intro inline)
-- Agregado `OnboardingBottomSheet` con 4 slides para viajeros
-- El formulario ahora siempre empieza en Step 1
-- Persiste preferencia en `ui_preferences.skip_trip_intro`
+Yes, the two tables have completely independent status columns:
 
-### Contenido de slides
+| Table | Status tracks | Example values |
+|---|---|---|
+| `packages.status` | Package lifecycle | `pending_approval` → `approved` → `matched` → `quote_sent` → `payment_pending` → `pending_purchase` → ... → `completed` |
+| `package_assignments.status` | Assignment lifecycle | `pending` → `quote_sent` → `quote_accepted` / `rejected` |
 
-**Shoppers:**
-1. "¡Tu primera compra internacional!" — Describe producto y origen
-2. "Recibe una cotización" — Incluye propina y tarifa de servicio
-3. "Compra tu producto" — Envía a dirección del viajero
-4. "¡Recibe tu paquete!" — Oficina o domicilio + mención de impuestos como cargo adicional
+The assignment status tells the traveler "what happened with YOUR bid", while the package status tells everyone "where is this package in the overall flow".
 
-**Viajeros:**
-1. "¡Conviértete en Viajero!" — Registra viaje con origen, llegada, espacio
-2. "Recibe solicitudes" — Decide cuáles aceptar, define propina
-3. "Cotiza con confianza" — Impuestos se reembolsan
-4. "Entrega y cobra" — Oficina o recolección, pago al completar
+### Critical finding: RLS blocks rejected assignments
 
-## Multi-Traveler Assignment: Traveler Dashboard Integration — Implementado ✅
+The current `traveler_has_active_assignment` function (created in the last migration) excludes `rejected`:
 
-### Problema
-Cuando un admin asigna un paquete a 2+ viajeros, `matched_trip_id` queda `null` en el paquete. El dashboard del viajero solo filtraba por `matched_trip_id`, así que ningún viajero podía ver el paquete.
+```sql
+AND pa.status NOT IN ('rejected', 'expired', 'cancelled')
+```
 
-### Solución implementada
+This means even if we stop filtering on the frontend, the `packages(*)` join inside the assignment query will return `null` for rejected assignments — the traveler literally can't see the package data. **We must update the function.**
 
-**Modificado: `src/components/Dashboard.tsx`**
-- Agregado `useEffect` que consulta `package_assignments` para los trips del usuario
-- Filtra assignments cuyo paquete NO tiene `matched_trip_id` apuntando a un trip del usuario (evita duplicados)
-- Mapea datos a nivel de assignment (`admin_assigned_tip`, `quote`, `products_data`) sobre el paquete
-- Marca paquetes multi-asignados con `_isMultiAssignment: true`
-- Fusiona con `assignedPackages` existentes usando `useMemo` con dedup por `id_tripId`
+### Proposed changes (3 total)
 
-**Modificado: `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`**
-- Badge "⚡ Compitiendo" (amber) visible cuando `pkg._isMultiAssignment === true`
-- Se muestra junto al status badge existente
+**1. SQL Migration — Update `traveler_has_active_assignment` function**
 
-### Compatibilidad
-- Paquetes single-assignment (con `matched_trip_id` directo) siguen funcionando igual
-- RLS de `package_assignments` ya permite SELECT a viajeros con trips propios
+Change the exclusion list from `('rejected', 'expired', 'cancelled')` to just `('expired', 'cancelled')`. This lets travelers see package data for assignments they lost. No new policy needed — just updating the existing function.
 
-## Phase 3: Shopper Quote Comparison & Selection — Implementado ✅
+```sql
+CREATE OR REPLACE FUNCTION public.traveler_has_active_assignment(_user_id uuid, _package_id uuid)
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM package_assignments pa
+    JOIN trips t ON t.id = pa.trip_id
+    WHERE pa.package_id = _package_id
+      AND t.user_id = _user_id
+      AND pa.status NOT IN ('expired', 'cancelled')
+  )
+$$;
+```
 
-### Cambios realizados
+**2. Dashboard.tsx line 298 — Stop hiding rejected assignments**
 
-**Migración: `shopper_accept_assignment` RPC**
-- Función SECURITY DEFINER que valida ownership del paquete
-- Promueve datos del assignment ganador al paquete (matched_trip_id, quote, tip, etc.)
-- Acepta el assignment ganador y rechaza todos los demás atómicamente
+Change: `['rejected', 'expired', 'cancelled']` → `['expired', 'cancelled']`
 
-**Nuevo: `src/components/dashboard/MultiQuoteSelector.tsx`**
-- Muestra cotizaciones de múltiples viajeros side-by-side
-- Cada cotización con avatar, nombre, ruta, fecha, desglose de precios
-- Botón "Aceptar esta cotización" por viajero
-- Assignments pendientes muestran "Esperando cotización de [Nombre]"
+This keeps rejected assignments visible in the traveler's dashboard.
 
-**Modificado: `src/components/Dashboard.tsx`**
-- Nuevo useEffect que fetcha `package_assignments` para paquetes del shopper en status `matched` sin `matched_trip_id`
-- Enriquece assignments con datos de perfil del viajero y trip
-- Estado `shopperAssignmentsMap[packageId] → assignment[]` 
-- Pasa props `multiAssignments` y `onAcceptMultiAssignmentQuote` a `CollapsiblePackageCard`
+**3. No UI changes needed**
 
-**Modificado: `src/components/dashboard/CollapsiblePackageCard.tsx`**
-- Nuevas props: `multiAssignments`, `onAcceptMultiAssignmentQuote`
-- Renderiza `MultiQuoteSelector` para paquetes multi-asignados en status `matched`
-- Status description cambia a "Cotizaciones recibidas - Compara y elige" cuando hay quotes
+`TravelerPackageCard.tsx` already handles the `rejected` state at lines 199-205, showing "❌ Otro viajero fue seleccionado". This will now actually be visible.
 
-**Modificado: `src/hooks/useDashboardActions.tsx`**
-- Nueva función `handleAcceptMultiAssignmentQuote(packageId, assignmentId)`
-- Llama al RPC `shopper_accept_assignment` y refresca paquetes
+### How both sources combine (no duplicates)
 
-## Fix: Multi-Assignment Quote Submission — Implementado ✅
+| Source | What it shows | Filter |
+|---|---|---|
+| `directAssignedPackages` (from `packages` table via `matched_trip_id`) | Won packages + legacy single-assignments | `matched_trip_id` matches user's trip |
+| `multiAssignedPackages` (from `package_assignments` table) | Pending, competing, and lost bids | Skips if package already visible via `matched_trip_id` (line 296) |
 
-### Problema
-Cuando un viajero enviaba cotización en un paquete multi-asignado, se escribía directamente en `packages` (status → `quote_sent`) en vez de en `package_assignments`. El shopper no veía las cotizaciones porque el filtro buscaba `status === 'matched'`.
+Line 296 prevents duplicates: when a traveler wins and `matched_trip_id` gets set to their trip, the assignment-based entry is skipped because `directAssignedPackages` already shows it. Lost travelers don't have `matched_trip_id` pointing to them, so they only see the package via the assignment path — with the "rejected" UI.
 
-### Cambios
+### Files
+1. SQL migration — update `traveler_has_active_assignment` function (remove `rejected` from exclusion)
+2. `src/components/Dashboard.tsx` — line 298, remove `rejected` from filter array
 
-**Modificado: `src/hooks/useDashboardActions.tsx`**
-- `handleQuoteSubmit` detecta `_isMultiAssignment` y escribe en `package_assignments` (status, quote, traveler_address, matched_trip_dates, quote_expires_at) en vez del paquete directamente
-- El paquete mantiene su status `matched` hasta que el shopper elija ganador
-
-**Modificado: `src/components/Dashboard.tsx`**
-- Filtro de shopper ampliado: incluye paquetes con `status === 'quote_sent'` sin `matched_trip_id` (datos legacy del bug anterior)
-
-## Fix: Admin Quote Generation for Multi-Assignments — Implementado ✅
-
-### Problema
-Cuando admin cambiaba status de `matched` → `quote_sent` en un paquete multi-asignado (sin `matched_trip_id`), la cotización se escribía directamente en la tabla `packages`, rompiendo el flujo de competencia entre viajeros.
-
-### Cambios
-
-**Modificado: `src/components/admin/AdminActionsModal.tsx`**
-- Detecta multi-asignación verificando si `matched_trip_id` es null
-- Para multi-asignaciones: consulta `package_assignments` pendientes, genera cotización por cada una, y las guarda en la tabla de assignments
-- El paquete se mantiene en `status: 'matched'` hasta que el shopper elija ganador
-- Para asignaciones individuales: comportamiento legacy sin cambios
-
-**Modificado: `src/utils/adminQuoteGeneration.ts`**
-- Nuevo parámetro `overrideTripId` en `QuoteGenerationData`
-- Usa `overrideTripId` en vez de `matched_trip_id` para buscar el trip correcto en paquetes multi-asignados
