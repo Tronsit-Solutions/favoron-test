@@ -1,54 +1,120 @@
+## Onboarding Bottom Sheet — Implementado ✅
 
+### Cambios realizados
 
-## Merge quote selection + acceptance into a single flow with payment transition
+**Nuevo: `src/components/onboarding/OnboardingBottomSheet.tsx`**
+- Componente reutilizable con slides tipo bottom-sheet (móvil) / modal centrado (desktop)
+- Swipe entre slides con `react-swipeable`
+- Dots de navegación clickeables
+- Checkbox "No volver a mostrar" en último slide
+- Soporte para variantes `shopper` (azul) y `traveler` (verde)
+- Gradiente configurable para el hero area
 
-### Problem
-Currently, the shopper picks a quote in MultiQuoteSelector → `shopper_accept_assignment` RPC runs → package goes to `quote_sent` → shopper must separately open QuoteDialog to accept the quote and proceed to payment. The user wants to skip the `quote_sent` intermediate step by adding delivery method toggle, discount code, and T&C checkboxes directly into the MultiQuoteSelector, then transitioning straight to the payment step.
+**Modificado: `src/components/PackageRequestForm.tsx`**
+- Eliminado Step 0 (intro inline) 
+- Agregado `OnboardingBottomSheet` con 4 slides para shoppers
+- El formulario ahora siempre empieza en Step 1
+- Persiste preferencia en `ui_preferences.skip_package_intro`
 
-### Changes
+**Modificado: `src/components/TripForm.tsx`**
+- Eliminado Step 0 (intro inline)
+- Agregado `OnboardingBottomSheet` con 4 slides para viajeros
+- El formulario ahora siempre empieza en Step 1
+- Persiste preferencia en `ui_preferences.skip_trip_intro`
 
-**1. `src/components/dashboard/MultiQuoteSelector.tsx`** — Add pre-acceptance fields
+### Contenido de slides
 
-When a quote card is selected, show below the traveler details:
-- **Delivery method toggle** (RadioGroup: "Recoger en punto de entrega" = free, "Entrega a domicilio" = fee) — replicated from QuoteDialog lines 1346-1391
-- **Total price display** that recalculates based on delivery method selection
-- **Discount code input** — replicated from QuoteDialog lines 1450-1517 (input + apply button + success state with remove option)
-- **Terms & conditions checkbox** — "Entiendo y acepto los términos y condiciones de Favorón" with link to TermsAndConditionsModal
-- **Delivery time confirmation checkbox** — "He revisado que el paquete llega a tiempo a la dirección proporcionada"
-- Disable the "Aceptar esta cotización" button until both checkboxes are checked
+**Shoppers:**
+1. "¡Tu primera compra internacional!" — Describe producto y origen
+2. "Recibe una cotización" — Incluye propina y tarifa de servicio
+3. "Compra tu producto" — Envía a dirección del viajero
+4. "¡Recibe tu paquete!" — Oficina o domicilio + mención de impuestos como cargo adicional
 
-New props needed:
-- `packageDetails` (delivery_method, shopper_trust_level, cityArea, package_destination_country, products_data) for price recalculation
-- `shopperId` for discount code validation
-- `onAcceptQuote` signature updated to pass additional data: `(assignmentId: string, extras: { deliveryMethod, discountData?, message? }) => Promise<void>`
+**Viajeros:**
+1. "¡Conviértete en Viajero!" — Registra viaje con origen, llegada, espacio
+2. "Recibe solicitudes" — Decide cuáles aceptar, define propina
+3. "Cotiza con confianza" — Impuestos se reembolsan
+4. "Entrega y cobra" — Oficina o recolección, pago al completar
 
-**2. `src/components/dashboard/CollapsiblePackageCard.tsx`** — Pass package context to MultiQuoteSelector
+## Multi-Traveler Assignment: Traveler Dashboard Integration — Implementado ✅
 
-- Pass `pkg` details to MultiQuoteSelector in both inline and modal usages (lines 1130-1136 and 1381-1388)
-- After `onAcceptMultiAssignmentQuote` succeeds, instead of just closing the modal, transition to a payment step (render `QuotePaymentStep` inside the same modal, similar to QuoteDialog's wizard pattern)
-- Add wizard state (`step: 'select' | 'payment'`) to the multi-quote modal
-- After acceptance, fetch the updated package and render `QuotePaymentStep`
+### Problema
+Cuando un admin asigna un paquete a 2+ viajeros, `matched_trip_id` queda `null` en el paquete. El dashboard del viajero solo filtraba por `matched_trip_id`, así que ningún viajero podía ver el paquete.
 
-**3. `src/hooks/useDashboardActions.tsx`** — Update `handleAcceptMultiAssignmentQuote` (lines 2261-2289)
+### Solución implementada
 
-- Accept additional data from the MultiQuoteSelector (delivery method change, discount code data)
-- Before calling `shopper_accept_assignment`, update the package's delivery_method if changed
-- After `shopper_accept_assignment`, also call `accept_quote` RPC to go directly to `payment_pending` (skipping the `quote_sent` step)
-- Apply discount data to the quote if provided
-- Return the updated package so the caller can transition to the payment step
+**Modificado: `src/components/Dashboard.tsx`**
+- Agregado `useEffect` que consulta `package_assignments` para los trips del usuario
+- Filtra assignments cuyo paquete NO tiene `matched_trip_id` apuntando a un trip del usuario (evita duplicados)
+- Mapea datos a nivel de assignment (`admin_assigned_tip`, `quote`, `products_data`) sobre el paquete
+- Marca paquetes multi-asignados con `_isMultiAssignment: true`
+- Fusiona con `assignedPackages` existentes usando `useMemo` con dedup por `id_tripId`
 
-### UX Flow (new)
-1. Shopper opens multi-quote modal → sees quote cards
-2. Taps a card → expands with traveler details + delivery method toggle + discount code + checkboxes
-3. Adjusts delivery method → total recalculates live
-4. Optionally enters discount code → validates and shows savings
-5. Checks both required checkboxes
-6. Taps "Aceptar esta cotización" → runs `shopper_accept_assignment` + `accept_quote` in sequence
-7. Modal transitions to `QuotePaymentStep` (bank transfer / card payment)
+**Modificado: `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`**
+- Badge "⚡ Compitiendo" (amber) visible cuando `pkg._isMultiAssignment === true`
+- Se muestra junto al status badge existente
 
-### Technical notes
-- Price recalculation uses `getPriceBreakdown()` and `usePlatformFeesContext()` — same as QuoteDialog
-- Discount validation uses `validate_discount_code` RPC — same as QuoteDialog
-- The `accept_quote` RPC after `shopper_accept_assignment` mirrors what happens in `handleQuoteSubmit` for the existing single-assignment flow (line 898)
-- TermsAndConditionsModal is already a standalone component that can be imported
+### Compatibilidad
+- Paquetes single-assignment (con `matched_trip_id` directo) siguen funcionando igual
+- RLS de `package_assignments` ya permite SELECT a viajeros con trips propios
 
+## Phase 3: Shopper Quote Comparison & Selection — Implementado ✅
+
+### Cambios realizados
+
+**Migración: `shopper_accept_assignment` RPC**
+- Función SECURITY DEFINER que valida ownership del paquete
+- Promueve datos del assignment ganador al paquete (matched_trip_id, quote, tip, etc.)
+- Acepta el assignment ganador y rechaza todos los demás atómicamente
+
+**Nuevo: `src/components/dashboard/MultiQuoteSelector.tsx`**
+- Muestra cotizaciones de múltiples viajeros side-by-side
+- Cada cotización con avatar, nombre, ruta, fecha, desglose de precios
+- Botón "Aceptar esta cotización" por viajero
+- Assignments pendientes muestran "Esperando cotización de [Nombre]"
+
+**Modificado: `src/components/Dashboard.tsx`**
+- Nuevo useEffect que fetcha `package_assignments` para paquetes del shopper en status `matched` sin `matched_trip_id`
+- Enriquece assignments con datos de perfil del viajero y trip
+- Estado `shopperAssignmentsMap[packageId] → assignment[]` 
+- Pasa props `multiAssignments` y `onAcceptMultiAssignmentQuote` a `CollapsiblePackageCard`
+
+**Modificado: `src/components/dashboard/CollapsiblePackageCard.tsx`**
+- Nuevas props: `multiAssignments`, `onAcceptMultiAssignmentQuote`
+- Renderiza `MultiQuoteSelector` para paquetes multi-asignados en status `matched`
+- Status description cambia a "Cotizaciones recibidas - Compara y elige" cuando hay quotes
+
+**Modificado: `src/hooks/useDashboardActions.tsx`**
+- Nueva función `handleAcceptMultiAssignmentQuote(packageId, assignmentId)`
+- Llama al RPC `shopper_accept_assignment` y refresca paquetes
+
+## Fix: Multi-Assignment Quote Submission — Implementado ✅
+
+### Problema
+Cuando un viajero enviaba cotización en un paquete multi-asignado, se escribía directamente en `packages` (status → `quote_sent`) en vez de en `package_assignments`. El shopper no veía las cotizaciones porque el filtro buscaba `status === 'matched'`.
+
+### Cambios
+
+**Modificado: `src/hooks/useDashboardActions.tsx`**
+- `handleQuoteSubmit` detecta `_isMultiAssignment` y escribe en `package_assignments` (status, quote, traveler_address, matched_trip_dates, quote_expires_at) en vez del paquete directamente
+- El paquete mantiene su status `matched` hasta que el shopper elija ganador
+
+**Modificado: `src/components/Dashboard.tsx`**
+- Filtro de shopper ampliado: incluye paquetes con `status === 'quote_sent'` sin `matched_trip_id` (datos legacy del bug anterior)
+
+## Fix: Admin Quote Generation for Multi-Assignments — Implementado ✅
+
+### Problema
+Cuando admin cambiaba status de `matched` → `quote_sent` en un paquete multi-asignado (sin `matched_trip_id`), la cotización se escribía directamente en la tabla `packages`, rompiendo el flujo de competencia entre viajeros.
+
+### Cambios
+
+**Modificado: `src/components/admin/AdminActionsModal.tsx`**
+- Detecta multi-asignación verificando si `matched_trip_id` es null
+- Para multi-asignaciones: consulta `package_assignments` pendientes, genera cotización por cada una, y las guarda en la tabla de assignments
+- El paquete se mantiene en `status: 'matched'` hasta que el shopper elija ganador
+- Para asignaciones individuales: comportamiento legacy sin cambios
+
+**Modificado: `src/utils/adminQuoteGeneration.ts`**
+- Nuevo parámetro `overrideTripId` en `QuoteGenerationData`
+- Usa `overrideTripId` en vez de `matched_trip_id` para buscar el trip correcto en paquetes multi-asignados

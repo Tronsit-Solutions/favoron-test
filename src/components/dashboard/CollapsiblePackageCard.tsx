@@ -15,7 +15,8 @@ import ShopperPackagePriorityActions from "@/components/dashboard/shopper/Shoppe
 import ShopperPackageDetails from "@/components/dashboard/shopper/ShopperPackageDetails";
 import { useIsMobile } from "@/hooks/use-mobile";
 import PackageQuoteInfo from "@/components/dashboard/PackageQuoteInfo";
-import MultiQuoteSelector from "@/components/dashboard/MultiQuoteSelector";
+import MultiQuoteSelector, { MultiQuoteAcceptExtras } from "@/components/dashboard/MultiQuoteSelector";
+import QuotePaymentStep from "@/components/quote/QuotePaymentStep";
 import { PackageTimeline } from "@/components/chat/PackageTimeline";
 import UploadedDocumentsRegistry from "@/components/dashboard/UploadedDocumentsRegistry";
 import EditDocumentModal from "@/components/dashboard/EditDocumentModal";
@@ -62,7 +63,7 @@ interface CollapsiblePackageCardProps {
   onExternalControlHandled?: () => void;
   // Multi-assignment props
   multiAssignments?: any[];
-  onAcceptMultiAssignmentQuote?: (packageId: string, assignmentId: string) => Promise<void>;
+  onAcceptMultiAssignmentQuote?: (packageId: string, assignmentId: string, extras: MultiQuoteAcceptExtras) => Promise<void>;
 }
 const CollapsiblePackageCard = ({
   pkg,
@@ -119,6 +120,8 @@ const CollapsiblePackageCard = ({
   const [chatModalOpen, setChatModalOpen] = React.useState(false);
   const [showStatusModal, setShowStatusModal] = React.useState(false);
   const [showMultiQuoteModal, setShowMultiQuoteModal] = React.useState(false);
+  const [multiQuoteWizardStep, setMultiQuoteWizardStep] = React.useState<'select' | 'payment'>('select');
+  const [multiQuoteAcceptedPkg, setMultiQuoteAcceptedPkg] = React.useState<PackageType | null>(null);
 
   const { data: existingRating } = useQuery({
     queryKey: ['traveler-rating', pkg.id],
@@ -1131,7 +1134,15 @@ const CollapsiblePackageCard = ({
                   <div className="bg-background rounded-lg border border-primary/20 shadow-sm p-3">
                     <MultiQuoteSelector
                       assignments={multiAssignments}
-                      onAcceptQuote={(assignmentId) => onAcceptMultiAssignmentQuote(pkg.id, assignmentId)}
+                      onAcceptQuote={(assignmentId, extras) => onAcceptMultiAssignmentQuote(pkg.id, assignmentId, extras)}
+                      packageDetails={{
+                        delivery_method: pkg.delivery_method || 'pickup',
+                        shopper_trust_level: profile?.trust_level,
+                        cityArea: (pkg.confirmed_delivery_address as any)?.cityArea,
+                        package_destination_country: pkg.package_destination_country || undefined,
+                        products_data: pkg.products_data as any[],
+                      }}
+                      shopperId={profile?.id}
                     />
                   </div>
                 )}
@@ -1371,21 +1382,64 @@ const CollapsiblePackageCard = ({
       </Dialog>
       {/* Multi-Quote Selection Modal */}
       <Dialog open={showMultiQuoteModal} onOpenChange={setShowMultiQuoteModal}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-primary" />
-              Cotizaciones recibidas
-            </DialogTitle>
-          </DialogHeader>
-          {multiAssignments && onAcceptMultiAssignmentQuote && (
-            <MultiQuoteSelector
-              assignments={multiAssignments}
-              onAcceptQuote={async (assignmentId) => {
-                await onAcceptMultiAssignmentQuote(pkg.id, assignmentId);
-                setShowMultiQuoteModal(false);
-              }}
-            />
+         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          {multiQuoteWizardStep === 'payment' && multiQuoteAcceptedPkg ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-primary" />
+                  Completar Pago
+                </DialogTitle>
+              </DialogHeader>
+              <QuotePaymentStep
+                pkg={multiQuoteAcceptedPkg}
+                onPaymentComplete={(updatedPkg) => {
+                  setShowMultiQuoteModal(false);
+                  setMultiQuoteWizardStep('select');
+                  setMultiQuoteAcceptedPkg(null);
+                }}
+                onClose={() => {
+                  setShowMultiQuoteModal(false);
+                  setMultiQuoteWizardStep('select');
+                  setMultiQuoteAcceptedPkg(null);
+                }}
+              />
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-primary" />
+                  Cotizaciones recibidas
+                </DialogTitle>
+              </DialogHeader>
+              {multiAssignments && onAcceptMultiAssignmentQuote && (
+                <MultiQuoteSelector
+                  assignments={multiAssignments}
+                  onAcceptQuote={async (assignmentId, extras) => {
+                    await onAcceptMultiAssignmentQuote(pkg.id, assignmentId, extras);
+                    // After acceptance, fetch updated package and transition to payment
+                    const { data: updatedPkg } = await supabase
+                      .from('packages')
+                      .select('*')
+                      .eq('id', pkg.id)
+                      .single();
+                    if (updatedPkg) {
+                      setMultiQuoteAcceptedPkg(updatedPkg as unknown as PackageType);
+                      setMultiQuoteWizardStep('payment');
+                    }
+                  }}
+                  packageDetails={{
+                    delivery_method: pkg.delivery_method || 'pickup',
+                    shopper_trust_level: profile?.trust_level,
+                    cityArea: (pkg.confirmed_delivery_address as any)?.cityArea,
+                    package_destination_country: pkg.package_destination_country || undefined,
+                    products_data: pkg.products_data as any[],
+                  }}
+                  shopperId={profile?.id}
+                />
+              )}
+            </>
           )}
         </DialogContent>
       </Dialog>

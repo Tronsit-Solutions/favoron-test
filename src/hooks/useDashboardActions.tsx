@@ -2258,10 +2258,20 @@ export const useDashboardActions = (
     }
   };
 
-  const handleAcceptMultiAssignmentQuote = async (packageId: string, assignmentId: string) => {
+  const handleAcceptMultiAssignmentQuote = async (
+    packageId: string, 
+    assignmentId: string,
+    extras?: { deliveryMethod: string; discountData?: { code: string; codeId: string; amount: number; originalTotal: number; finalTotal: number } }
+  ) => {
     try {
-      console.log('🎯 Shopper accepting assignment:', { packageId, assignmentId });
+      console.log('🎯 Shopper accepting assignment:', { packageId, assignmentId, extras });
       
+      // 1. Update delivery method if changed
+      if (extras?.deliveryMethod) {
+        await supabase.from('packages').update({ delivery_method: extras.deliveryMethod }).eq('id', packageId);
+      }
+      
+      // 2. Accept assignment (promotes to packages table, status → quote_sent)
       const { error } = await supabase.rpc('shopper_accept_assignment', {
         _package_id: packageId,
         _assignment_id: assignmentId
@@ -2269,9 +2279,60 @@ export const useDashboardActions = (
 
       if (error) throw error;
 
+      // 3. Recalculate quote with correct delivery fee and apply discount if any
+      {
+        const { data: freshPkg } = await supabase
+          .from('packages')
+          .select('quote, confirmed_delivery_address, package_destination_country, delivery_method')
+          .eq('id', packageId)
+          .single();
+        
+        if (freshPkg?.quote) {
+          const currentQuote = freshPkg.quote as any;
+          const cityArea = (freshPkg.confirmed_delivery_address as any)?.cityArea;
+          const destCountry = freshPkg.package_destination_country;
+          const selectedPkg = packages.find(p => p.id === packageId);
+          const trustLevel = selectedPkg ? (selectedPkg as any).shopper_trust_level : undefined;
+          
+          const { normalizeQuote } = await import('@/lib/quoteHelpers');
+          const recalculated = normalizeQuote(
+            currentQuote,
+            extras?.deliveryMethod || freshPkg.delivery_method || 'pickup',
+            trustLevel,
+            cityArea,
+            undefined,
+            undefined,
+            destCountry || undefined
+          );
+          
+          const finalQuote: any = { ...currentQuote, ...recalculated };
+          
+          // Apply discount data if provided
+          if (extras?.discountData) {
+            finalQuote.discountCode = extras.discountData.code;
+            finalQuote.discountCodeId = extras.discountData.codeId;
+            finalQuote.discountAmount = extras.discountData.amount;
+            finalQuote.originalTotalPrice = extras.discountData.originalTotal;
+            finalQuote.finalTotalPrice = extras.discountData.finalTotal;
+          }
+          
+          await supabase.from('packages').update({ quote: finalQuote }).eq('id', packageId);
+        }
+      }
+
+      // 5. Immediately accept the quote (skip quote_sent → go to payment_pending)
+      const { error: acceptError } = await supabase.rpc('accept_quote', {
+        _package_id: packageId
+      });
+
+      if (acceptError) {
+        console.error('❌ RPC accept_quote error:', acceptError);
+        throw acceptError;
+      }
+
       toast({
         title: "¡Cotización aceptada!",
-        description: "Has seleccionado a tu viajero. Procede con el pago.",
+        description: "Procede con el pago para continuar.",
       });
 
       if (refreshPackages) {

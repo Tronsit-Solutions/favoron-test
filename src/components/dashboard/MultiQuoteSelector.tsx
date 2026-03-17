@@ -1,11 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { getQuoteValues } from "@/lib/quoteHelpers";
-import { formatPrice } from "@/lib/formatters";
-import { Clock, MapPin, DollarSign, Check, Loader2, User, Package, Truck, Home } from "lucide-react";
+import { getPriceBreakdown } from "@/lib/pricing";
+import { formatPrice, formatCurrency } from "@/lib/formatters";
+import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
+import { Clock, MapPin, DollarSign, Check, Loader2, User, Package, Truck, Home, FileText, AlertTriangle, X } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -26,9 +35,30 @@ interface Assignment {
   trip_delivery_date?: string;
 }
 
+export interface MultiQuoteAcceptExtras {
+  deliveryMethod: string;
+  discountData?: {
+    code: string;
+    codeId: string;
+    amount: number;
+    originalTotal: number;
+    finalTotal: number;
+  };
+}
+
+export interface MultiQuotePackageDetails {
+  delivery_method: string;
+  shopper_trust_level?: string;
+  cityArea?: string;
+  package_destination_country?: string;
+  products_data?: any[];
+}
+
 interface MultiQuoteSelectorProps {
   assignments: Assignment[];
-  onAcceptQuote: (assignmentId: string) => Promise<void>;
+  onAcceptQuote: (assignmentId: string, extras: MultiQuoteAcceptExtras) => Promise<void>;
+  packageDetails: MultiQuotePackageDetails;
+  shopperId?: string;
 }
 
 const formatDateUTC = (dateString: string) => {
@@ -40,18 +70,154 @@ const formatDateUTC = (dateString: string) => {
   );
 };
 
-const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorProps) => {
+const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shopperId }: MultiQuoteSelectorProps) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(packageDetails.delivery_method || 'pickup');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [confirmedDeliveryTime, setConfirmedDeliveryTime] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+
+  // Discount code state
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountError, setDiscountError] = useState<string | null>(null);
+  const [discountSuccess, setDiscountSuccess] = useState(false);
+  const [isValidatingCode, setIsValidatingCode] = useState(false);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [discountCodeId, setDiscountCodeId] = useState<string | null>(null);
+  const [originalTotal, setOriginalTotal] = useState(0);
+  const [finalTotal, setFinalTotal] = useState(0);
+
+  const { fees, rates } = usePlatformFeesContext();
+  const { toast } = useToast();
 
   const quotedAssignments = assignments.filter(a => a.status === 'bid_submitted' && a.quote);
   const pendingAssignments = assignments.filter(a => a.status === 'bid_pending');
 
+  const selectedAssignment = quotedAssignments.find(a => a.id === selectedId);
+
+  // Compute delivery fees for the selected quote
+  const deliveryFees = useMemo(() => ({
+    delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
+    delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
+    delivery_fee_outside_city: fees.delivery_fee_outside_city,
+    prime_delivery_discount: fees.prime_delivery_discount,
+  }), [fees]);
+
+  // Calculate recalculated total for selected quote
+  const recalculatedTotal = useMemo(() => {
+    if (!selectedAssignment) return null;
+    const quoteValues = getQuoteValues(selectedAssignment.quote);
+    // Base price from quote (tip amount)
+    const basePrice = quoteValues.price;
+    const breakdown = getPriceBreakdown(
+      basePrice,
+      selectedDeliveryMethod,
+      packageDetails.shopper_trust_level,
+      packageDetails.cityArea,
+      rates,
+      deliveryFees,
+      packageDetails.package_destination_country
+    );
+    return {
+      ...breakdown,
+      quoteValues,
+    };
+  }, [selectedAssignment, selectedDeliveryMethod, packageDetails, rates, deliveryFees]);
+
+  const standardDeliveryFee = useMemo(() => {
+    if (!selectedAssignment) return 0;
+    const quoteValues = getQuoteValues(selectedAssignment.quote);
+    const breakdown = getPriceBreakdown(
+      quoteValues.price,
+      'delivery',
+      packageDetails.shopper_trust_level,
+      packageDetails.cityArea,
+      rates,
+      deliveryFees,
+      packageDetails.package_destination_country
+    );
+    return breakdown.deliveryFee;
+  }, [selectedAssignment, packageDetails, rates, deliveryFees]);
+
+  const displayTotal = useMemo(() => {
+    if (!recalculatedTotal) return 0;
+    const base = recalculatedTotal.totalPrice;
+    if (discountSuccess && discountAmount > 0) {
+      return Math.max(0, base - discountAmount);
+    }
+    return base;
+  }, [recalculatedTotal, discountSuccess, discountAmount]);
+
+  const removeDiscount = () => {
+    setDiscountCode('');
+    setDiscountSuccess(false);
+    setDiscountAmount(0);
+    setDiscountCodeId(null);
+    setOriginalTotal(0);
+    setFinalTotal(0);
+    setDiscountError(null);
+  };
+
+  const validateDiscountCode = async () => {
+    if (!discountCode.trim() || !recalculatedTotal) return;
+    setIsValidatingCode(true);
+    setDiscountError(null);
+    
+    try {
+      const favoronSubtotal = recalculatedTotal.basePrice + recalculatedTotal.serviceFee;
+      
+      const { data, error } = await supabase.rpc('validate_discount_code', {
+        _code: discountCode.trim().toUpperCase(),
+        _order_amount: favoronSubtotal,
+        _user_id: shopperId || null
+      });
+      
+      if (error) throw error;
+      const result = data as any;
+      
+      if (result?.valid) {
+        const discount = result.calculatedDiscount;
+        const discountedFavoron = Math.max(0, favoronSubtotal - discount);
+        const finalTotalWithDelivery = discountedFavoron + recalculatedTotal.deliveryFee;
+        
+        setDiscountAmount(discount);
+        setDiscountCodeId(result.discountCodeId);
+        setOriginalTotal(favoronSubtotal);
+        setFinalTotal(finalTotalWithDelivery);
+        setDiscountSuccess(true);
+        
+        toast({
+          title: "¡Código aplicado!",
+          description: `Descuento de ${formatCurrency(discount)} aplicado correctamente.`,
+        });
+      } else {
+        setDiscountError(result?.message || 'Código no válido');
+      }
+    } catch (err: any) {
+      setDiscountError(err.message || 'Error al validar el código');
+    } finally {
+      setIsValidatingCode(false);
+    }
+  };
+
   const handleAccept = async () => {
-    if (!selectedId) return;
+    if (!selectedId || !recalculatedTotal) return;
     setAcceptingId(selectedId);
     try {
-      await onAcceptQuote(selectedId);
+      const extras: MultiQuoteAcceptExtras = {
+        deliveryMethod: selectedDeliveryMethod,
+      };
+      if (discountSuccess && discountCodeId) {
+        extras.discountData = {
+          code: discountCode.trim().toUpperCase(),
+          codeId: discountCodeId,
+          amount: discountAmount,
+          originalTotal,
+          finalTotal: displayTotal,
+        };
+      }
+      await onAcceptQuote(selectedId, extras);
     } finally {
       setAcceptingId(null);
     }
@@ -64,6 +230,8 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
       </div>
     );
   }
+
+  const canAccept = selectedId && acceptedTerms && confirmedDeliveryTime && !acceptingId;
 
   return (
     <div className="space-y-3">
@@ -101,7 +269,13 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
                 ? 'ring-2 ring-primary border-primary shadow-md'
                 : 'border-muted-foreground/20 hover:border-primary/40'
             }`}
-            onClick={() => setSelectedId(assignment.id)}
+            onClick={() => {
+              setSelectedId(assignment.id);
+              // Reset discount when switching quotes
+              if (assignment.id !== selectedId) {
+                removeDiscount();
+              }
+            }}
           >
             <CardContent className="p-3 space-y-2">
               {/* Traveler info */}
@@ -178,7 +352,6 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
                       </div>
                     )}
                   </div>
-
                 </>
               )}
             </CardContent>
@@ -215,6 +388,167 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
         );
       })}
 
+      {/* Pre-acceptance fields - only show when a quote is selected */}
+      {selectedId && recalculatedTotal && (
+        <div className="space-y-3 border-t border-muted/50 pt-3">
+          {/* Delivery method toggle */}
+          <div className="bg-muted/30 border border-muted/50 rounded-lg p-3">
+            <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+              <Truck className="w-3.5 h-3.5" /> Método de entrega
+            </p>
+            <RadioGroup 
+              value={selectedDeliveryMethod} 
+              onValueChange={(val) => {
+                setSelectedDeliveryMethod(val);
+                if (discountSuccess) removeDiscount();
+              }}
+              className="space-y-1.5"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="pickup" id="mqs-pickup" />
+                  <Label htmlFor="mqs-pickup" className="text-sm cursor-pointer">
+                    Recoger en punto de entrega
+                  </Label>
+                </div>
+                <span className="text-xs text-emerald-600 font-medium">Gratis</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="delivery" id="mqs-delivery" />
+                  <Label htmlFor="mqs-delivery" className="text-sm cursor-pointer">
+                    Entrega a domicilio
+                  </Label>
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">
+                  {formatCurrency(standardDeliveryFee)}
+                </span>
+              </div>
+            </RadioGroup>
+            {selectedDeliveryMethod !== packageDetails.delivery_method && (
+              <p className="text-[11px] text-primary mt-1.5 font-medium">
+                ✏️ Cambiarás de {packageDetails.delivery_method === 'delivery' ? 'entrega a domicilio' : 'pickup'} a {selectedDeliveryMethod === 'delivery' ? 'entrega a domicilio' : 'pickup'}
+              </p>
+            )}
+          </div>
+
+          {/* Total display */}
+          <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-semibold">Total a pagar:</span>
+              <span className="text-lg font-bold text-primary">
+                {formatCurrency(displayTotal)}
+              </span>
+            </div>
+          </div>
+
+          {/* Discount code section */}
+          <div className="bg-muted/20 border border-muted/50 rounded-lg p-3">
+            <Label className="text-sm font-semibold mb-2 block">
+              💳 ¿Tienes un código de descuento?
+            </Label>
+            
+            {!discountSuccess ? (
+              <>
+                <div className="flex gap-2 mt-2">
+                  <Input 
+                    placeholder="Ingresa tu código"
+                    value={discountCode}
+                    onChange={(e) => {
+                      setDiscountCode(e.target.value.toUpperCase());
+                      setDiscountError(null);
+                    }}
+                    className="flex-1 uppercase font-mono bg-background"
+                    disabled={isValidatingCode}
+                  />
+                  <Button 
+                    onClick={validateDiscountCode} 
+                    disabled={!discountCode.trim() || isValidatingCode}
+                    size="sm"
+                  >
+                    {isValidatingCode ? 'Validando...' : 'Aplicar'}
+                  </Button>
+                </div>
+                {discountError && (
+                  <p className="text-destructive text-sm mt-2 flex items-center gap-1">
+                    <AlertTriangle className="w-4 h-4" />
+                    {discountError}
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className="mt-2 bg-background/80 rounded-lg p-3 border border-muted/50">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <p className="text-primary font-semibold text-sm flex items-center gap-2">
+                      ✅ Código aplicado: <span className="font-mono">{discountCode}</span>
+                    </p>
+                    <div className="mt-2 space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Subtotal:</span>
+                        <span className="line-through text-muted-foreground">{formatCurrency(originalTotal)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-primary font-medium">
+                        <span>Descuento:</span>
+                        <span>-{formatCurrency(discountAmount)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={removeDiscount}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Terms & Conditions checkboxes */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="space-y-3">
+              <div className="flex items-start space-x-3">
+                <Checkbox 
+                  id="mqs-acceptTerms" 
+                  checked={acceptedTerms} 
+                  onCheckedChange={(checked) => setAcceptedTerms(!!checked)} 
+                  className="mt-1" 
+                />
+                <div className="flex-1">
+                  <Label htmlFor="mqs-acceptTerms" className="text-sm font-medium text-blue-900 cursor-pointer">
+                    Entiendo y acepto los términos y condiciones de Favorón
+                  </Label>
+                  <p className="text-xs text-blue-700 mt-1">
+                    Al aceptar esta cotización, confirmas que has leído y aceptas nuestros términos de servicio.
+                  </p>
+                  <Button type="button" variant="link" className="h-auto p-0 text-xs text-blue-600 hover:text-blue-800" onClick={() => setShowTermsModal(true)}>
+                    <FileText className="h-3 w-3 mr-1" />
+                    Leer términos y condiciones
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <Checkbox 
+                  id="mqs-confirmedDeliveryTime" 
+                  checked={confirmedDeliveryTime} 
+                  onCheckedChange={(checked) => setConfirmedDeliveryTime(!!checked)} 
+                  className="mt-1" 
+                />
+                <div className="flex-1">
+                  <Label htmlFor="mqs-confirmedDeliveryTime" className="text-sm font-medium text-blue-900 cursor-pointer">
+                    He revisado que el paquete llega a tiempo a la dirección proporcionada
+                  </Label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sticky confirm button */}
       {quotedAssignments.length > 0 && (
         <div className="sticky bottom-0 pt-3 pb-1 bg-background">
@@ -222,7 +556,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
             variant="shopper"
             className="w-full"
             onClick={handleAccept}
-            disabled={!selectedId || acceptingId !== null}
+            disabled={!canAccept}
           >
             {acceptingId ? (
               <>
@@ -238,6 +572,8 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
           </Button>
         </div>
       )}
+
+      <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
     </div>
   );
 };
