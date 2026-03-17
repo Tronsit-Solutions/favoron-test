@@ -407,7 +407,7 @@ export const useDashboardActions = (
               const { error: assignError } = await supabase
                 .from('package_assignments')
                 .update({
-                  status: 'quote_sent',
+                  status: 'bid_submitted',
                   quote: normalizedQuoteData as any,
                   traveler_address: travelerAddress as any,
                   matched_trip_dates: matchedTripDates as any,
