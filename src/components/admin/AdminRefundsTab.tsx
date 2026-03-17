@@ -100,6 +100,7 @@ const AdminRefundsTab = () => {
       <TableHeader>
         <TableRow>
           <TableHead>Fecha</TableHead>
+          <TableHead>Paquete</TableHead>
           <TableHead>Shopper</TableHead>
           <TableHead>Producto(s)</TableHead>
           <TableHead>Monto</TableHead>
