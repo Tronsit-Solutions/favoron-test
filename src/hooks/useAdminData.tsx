@@ -205,7 +205,8 @@ export const useAdminData = (): AdminData => {
           traveler_address,
           matched_trip_dates,
           payment_receipt,
-          payment_method, recurrente_checkout_id
+          payment_method, recurrente_checkout_id,
+          products_data, package_destination_country
         `)
         .or('matched_trip_id.not.is.null,status.in.(matched,quote_sent)')
         .not('status', 'in', `(${BROKEN_STATUSES.join(',')})`)
@@ -614,6 +615,7 @@ export const useAdminData = (): AdminData => {
         if (existing) {
           // Preserve profiles if existing has it and new one doesn't
           allPackagesMap.set(pkg.id, {
+            ...existing,
             ...pkg,
             profiles: pkg.profiles || existing.profiles
           });
