@@ -111,7 +111,7 @@ serve(async (req) => {
     // Find the package by checkout ID
     const { data: packageData, error: fetchError } = await supabase
       .from('packages')
-      .select('id, status, user_id, item_description, quote')
+      .select('id, status, user_id, item_description, quote, recurrente_payment_id')
       .eq('recurrente_checkout_id', checkoutId)
       .single();
 
