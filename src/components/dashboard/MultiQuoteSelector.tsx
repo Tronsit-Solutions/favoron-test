@@ -75,8 +75,8 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
 
       {quotedAssignments.map((assignment) => {
         const quoteValues = getQuoteValues(assignment.quote);
-        const travelerName = [assignment.traveler_first_name, assignment.traveler_last_name]
-          .filter(Boolean).join(' ') || 'Viajero';
+        const travelerFirstName = assignment.traveler_first_name || 'Viajero';
+        const travelerLastName = assignment.traveler_last_name || '';
         const initials = (assignment.traveler_first_name?.[0] || '') + (assignment.traveler_last_name?.[0] || '');
 
         const tripDates = assignment.matched_trip_dates as any;
