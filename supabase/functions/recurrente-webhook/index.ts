@@ -111,7 +111,7 @@ serve(async (req) => {
     // Find the package by checkout ID
     const { data: packageData, error: fetchError } = await supabase
       .from('packages')
-      .select('id, status, user_id, item_description, quote')
+      .select('id, status, user_id, item_description, quote, recurrente_payment_id')
       .eq('recurrente_checkout_id', checkoutId)
       .single();
 
@@ -123,7 +123,30 @@ serve(async (req) => {
       );
     }
 
-    console.log('Found package:', packageData.id);
+    console.log('Found package:', packageData.id, 'Current status:', packageData.status, 'Current payment ID:', packageData.recurrente_payment_id);
+
+    // If package already processed but webhook has a different/better payment ID, update it
+    if (packageData.status === 'pending_purchase' && paymentId && paymentId !== packageData.recurrente_payment_id) {
+      console.log('Package already processed but payment ID differs. Updating from', packageData.recurrente_payment_id, 'to', paymentId);
+      const { error: updateIdError } = await supabase
+        .from('packages')
+        .update({
+          recurrente_payment_id: paymentId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', packageData.id);
+      
+      if (updateIdError) {
+        console.error('Failed to update payment ID:', updateIdError);
+      } else {
+        console.log('Payment ID corrected successfully');
+      }
+
+      return new Response(
+        JSON.stringify({ received: true, processed: 'payment_id_corrected' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Handle different event types - include Recurrente's payment_intent events
     if (eventType === 'payment.succeeded' || eventType === 'checkout.completed' || eventType === 'payment_intent.succeeded') {

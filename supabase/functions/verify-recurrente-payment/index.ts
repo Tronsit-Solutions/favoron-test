@@ -119,6 +119,14 @@ serve(async (req) => {
 
     const checkoutData = await recResponse.json();
     console.log('Recurrente checkout data:', JSON.stringify(checkoutData));
+    console.log('Recurrente API response keys:', Object.keys(checkoutData));
+    console.log('Payment ID candidates:', {
+      payment_id: checkoutData.payment_id,
+      last_payment_id: checkoutData.last_payment_id,
+      'payment.id': checkoutData.payment?.id,
+      'payments[0].id': checkoutData.payments?.[0]?.id,
+      id: checkoutData.id,
+    });
 
     const paidStatuses = ['paid', 'completed', 'succeeded'];
     const isPaid = paidStatuses.includes(checkoutData.status?.toLowerCase());
@@ -139,7 +147,14 @@ serve(async (req) => {
     // Payment verified — update package with service role
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    const paymentId = checkoutData.payment_id || checkoutData.id || checkoutId;
+    // Extract payment ID from multiple possible fields — do NOT fallback to checkout ID
+    const paymentId = checkoutData.payment_id 
+      || checkoutData.last_payment_id
+      || checkoutData.payment?.id 
+      || checkoutData.payments?.[0]?.id
+      || null;
+    
+    console.log('Resolved payment ID:', paymentId, '(null means no payment ID found in API response)');
 
     const { error: updateError } = await serviceClient
       .from('packages')

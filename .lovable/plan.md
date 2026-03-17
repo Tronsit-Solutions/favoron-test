@@ -1,61 +1,120 @@
+## Onboarding Bottom Sheet — Implementado ✅
 
+### Cambios realizados
 
-## Problema
+**Nuevo: `src/components/onboarding/OnboardingBottomSheet.tsx`**
+- Componente reutilizable con slides tipo bottom-sheet (móvil) / modal centrado (desktop)
+- Swipe entre slides con `react-swipeable`
+- Dots de navegación clickeables
+- Checkbox "No volver a mostrar" en último slide
+- Soporte para variantes `shopper` (azul) y `traveler` (verde)
+- Gradiente configurable para el hero area
 
-El `recurrente_payment_id` que guardamos no coincide con el que aparece en el reporte/dashboard de Recurrente. Esto ocurre por dos razones:
+**Modificado: `src/components/PackageRequestForm.tsx`**
+- Eliminado Step 0 (intro inline) 
+- Agregado `OnboardingBottomSheet` con 4 slides para shoppers
+- El formulario ahora siempre empieza en Step 1
+- Persiste preferencia en `ui_preferences.skip_package_intro`
 
-1. **`verify-recurrente-payment` (callback fallback)**: Extrae el payment ID de la respuesta de `GET /api/checkouts/{id}` con la línea `checkoutData.payment_id || checkoutData.id || checkoutId`. Si `payment_id` no existe en la respuesta del checkout, cae al `checkoutData.id` (que es el ID del checkout, no del pago) o al `checkoutId` mismo.
+**Modificado: `src/components/TripForm.tsx`**
+- Eliminado Step 0 (intro inline)
+- Agregado `OnboardingBottomSheet` con 4 slides para viajeros
+- El formulario ahora siempre empieza en Step 1
+- Persiste preferencia en `ui_preferences.skip_trip_intro`
 
-2. **`recurrente-webhook`**: Extrae el payment ID del payload del webhook (`payload.payment?.id || payload.data?.payment_id || ...`), pero si el webhook llega después del callback y el paquete ya fue actualizado a `pending_purchase`, el webhook no sobreescribe el ID incorrecto que ya guardó el callback.
+### Contenido de slides
 
-**Resultado**: Se guarda un ID que no es el payment ID real de Recurrente.
+**Shoppers:**
+1. "¡Tu primera compra internacional!" — Describe producto y origen
+2. "Recibe una cotización" — Incluye propina y tarifa de servicio
+3. "Compra tu producto" — Envía a dirección del viajero
+4. "¡Recibe tu paquete!" — Oficina o domicilio + mención de impuestos como cargo adicional
 
----
+**Viajeros:**
+1. "¡Conviértete en Viajero!" — Registra viaje con origen, llegada, espacio
+2. "Recibe solicitudes" — Decide cuáles aceptar, define propina
+3. "Cotiza con confianza" — Impuestos se reembolsan
+4. "Entrega y cobra" — Oficina o recolección, pago al completar
 
-## Solución propuesta
+## Multi-Traveler Assignment: Traveler Dashboard Integration — Implementado ✅
 
-### 1. En `verify-recurrente-payment/index.ts` — Mejorar extracción del payment ID
+### Problema
+Cuando un admin asigna un paquete a 2+ viajeros, `matched_trip_id` queda `null` en el paquete. El dashboard del viajero solo filtraba por `matched_trip_id`, así que ningún viajero podía ver el paquete.
 
-Ampliar la búsqueda del payment ID en la respuesta de la API de checkouts. Recurrente puede devolver el ID en diferentes campos según el estado del checkout:
+### Solución implementada
 
-```typescript
-// Línea 142 actual:
-const paymentId = checkoutData.payment_id || checkoutData.id || checkoutId;
+**Modificado: `src/components/Dashboard.tsx`**
+- Agregado `useEffect` que consulta `package_assignments` para los trips del usuario
+- Filtra assignments cuyo paquete NO tiene `matched_trip_id` apuntando a un trip del usuario (evita duplicados)
+- Mapea datos a nivel de assignment (`admin_assigned_tip`, `quote`, `products_data`) sobre el paquete
+- Marca paquetes multi-asignados con `_isMultiAssignment: true`
+- Fusiona con `assignedPackages` existentes usando `useMemo` con dedup por `id_tripId`
 
-// Cambiar a:
-const paymentId = checkoutData.payment_id 
-  || checkoutData.last_payment_id
-  || checkoutData.payment?.id 
-  || checkoutData.payments?.[0]?.id
-  || null; // NO usar checkoutId como fallback
-```
+**Modificado: `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`**
+- Badge "⚡ Compitiendo" (amber) visible cuando `pkg._isMultiAssignment === true`
+- Se muestra junto al status badge existente
 
-**Importante**: Eliminar el fallback a `checkoutData.id` y `checkoutId` para evitar guardar un checkout ID como si fuera un payment ID. Si no hay payment ID disponible, guardar `null` — es preferible no tener dato a tener un dato incorrecto.
+### Compatibilidad
+- Paquetes single-assignment (con `matched_trip_id` directo) siguen funcionando igual
+- RLS de `package_assignments` ya permite SELECT a viajeros con trips propios
 
-### 2. En `recurrente-webhook/index.ts` — Siempre actualizar el payment ID
+## Phase 3: Shopper Quote Comparison & Selection — Implementado ✅
 
-El webhook es la fuente más confiable del payment ID (viene directamente del evento de pago). Modificar para que **siempre actualice** el `recurrente_payment_id` aunque el paquete ya esté en `pending_purchase`:
+### Cambios realizados
 
-Después de encontrar el paquete (~línea 118), antes de verificar el evento, agregar lógica:
-- Si el paquete ya tiene `status = 'pending_purchase'` y el webhook trae un `paymentId` diferente al guardado → actualizar solo el campo `recurrente_payment_id`.
-- Si el paquete no ha sido procesado → flujo normal actual.
+**Migración: `shopper_accept_assignment` RPC**
+- Función SECURITY DEFINER que valida ownership del paquete
+- Promueve datos del assignment ganador al paquete (matched_trip_id, quote, tip, etc.)
+- Acepta el assignment ganador y rechaza todos los demás atómicamente
 
-### 3. Agregar logging estructurado
+**Nuevo: `src/components/dashboard/MultiQuoteSelector.tsx`**
+- Muestra cotizaciones de múltiples viajeros side-by-side
+- Cada cotización con avatar, nombre, ruta, fecha, desglose de precios
+- Botón "Aceptar esta cotización" por viajero
+- Assignments pendientes muestran "Esperando cotización de [Nombre]"
 
-En ambas funciones, loguear la respuesta completa de la API de Recurrente con las keys disponibles para poder diagnosticar futuros casos sin adivinar la estructura:
+**Modificado: `src/components/Dashboard.tsx`**
+- Nuevo useEffect que fetcha `package_assignments` para paquetes del shopper en status `matched` sin `matched_trip_id`
+- Enriquece assignments con datos de perfil del viajero y trip
+- Estado `shopperAssignmentsMap[packageId] → assignment[]` 
+- Pasa props `multiAssignments` y `onAcceptMultiAssignmentQuote` a `CollapsiblePackageCard`
 
-```typescript
-console.log('Recurrente API response keys:', Object.keys(checkoutData));
-console.log('Payment ID candidates:', {
-  payment_id: checkoutData.payment_id,
-  last_payment_id: checkoutData.last_payment_id,
-  'payment.id': checkoutData.payment?.id,
-  'payments[0].id': checkoutData.payments?.[0]?.id,
-  id: checkoutData.id,
-});
-```
+**Modificado: `src/components/dashboard/CollapsiblePackageCard.tsx`**
+- Nuevas props: `multiAssignments`, `onAcceptMultiAssignmentQuote`
+- Renderiza `MultiQuoteSelector` para paquetes multi-asignados en status `matched`
+- Status description cambia a "Cotizaciones recibidas - Compara y elige" cuando hay quotes
 
-### Archivos a modificar
-- `supabase/functions/verify-recurrente-payment/index.ts` — Mejorar extracción + eliminar fallback incorrecto + logging
-- `supabase/functions/recurrente-webhook/index.ts` — Permitir actualización del payment ID en paquetes ya procesados + logging
+**Modificado: `src/hooks/useDashboardActions.tsx`**
+- Nueva función `handleAcceptMultiAssignmentQuote(packageId, assignmentId)`
+- Llama al RPC `shopper_accept_assignment` y refresca paquetes
 
+## Fix: Multi-Assignment Quote Submission — Implementado ✅
+
+### Problema
+Cuando un viajero enviaba cotización en un paquete multi-asignado, se escribía directamente en `packages` (status → `quote_sent`) en vez de en `package_assignments`. El shopper no veía las cotizaciones porque el filtro buscaba `status === 'matched'`.
+
+### Cambios
+
+**Modificado: `src/hooks/useDashboardActions.tsx`**
+- `handleQuoteSubmit` detecta `_isMultiAssignment` y escribe en `package_assignments` (status, quote, traveler_address, matched_trip_dates, quote_expires_at) en vez del paquete directamente
+- El paquete mantiene su status `matched` hasta que el shopper elija ganador
+
+**Modificado: `src/components/Dashboard.tsx`**
+- Filtro de shopper ampliado: incluye paquetes con `status === 'quote_sent'` sin `matched_trip_id` (datos legacy del bug anterior)
+
+## Fix: Admin Quote Generation for Multi-Assignments — Implementado ✅
+
+### Problema
+Cuando admin cambiaba status de `matched` → `quote_sent` en un paquete multi-asignado (sin `matched_trip_id`), la cotización se escribía directamente en la tabla `packages`, rompiendo el flujo de competencia entre viajeros.
+
+### Cambios
+
+**Modificado: `src/components/admin/AdminActionsModal.tsx`**
+- Detecta multi-asignación verificando si `matched_trip_id` es null
+- Para multi-asignaciones: consulta `package_assignments` pendientes, genera cotización por cada una, y las guarda en la tabla de assignments
+- El paquete se mantiene en `status: 'matched'` hasta que el shopper elija ganador
+- Para asignaciones individuales: comportamiento legacy sin cambios
+
+**Modificado: `src/utils/adminQuoteGeneration.ts`**
+- Nuevo parámetro `overrideTripId` en `QuoteGenerationData`
+- Usa `overrideTripId` en vez de `matched_trip_id` para buscar el trip correcto en paquetes multi-asignados
