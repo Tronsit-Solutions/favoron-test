@@ -111,7 +111,7 @@ const AdminMatchingTab = ({
         const { data, error } = await supabase
           .from('package_assignments')
           .select('id, package_id, trip_id, status, quote, admin_assigned_tip, traveler_address, matched_trip_dates, products_data')
-          .not('status', 'eq', 'rejected');
+          .not('status', 'eq', 'bid_lost');
 
         if (error) throw error;
         if (data) {

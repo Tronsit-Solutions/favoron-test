@@ -123,7 +123,7 @@ export const useAdminTips = () => {
         updated_at: new Date().toISOString(),
       })
       .eq('package_id', packageId)
-      .in('status', ['pending', 'quote_sent']);
+      .in('status', ['bid_pending', 'bid_submitted']);
 
     if (assignError) {
       console.error('Error syncing tips to package_assignments:', assignError);
