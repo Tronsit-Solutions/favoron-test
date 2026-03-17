@@ -294,8 +294,8 @@ const Dashboard = ({ user }: DashboardProps) => {
           if (!pkg) return false;
           // Skip if package is already visible via matched_trip_id
           if (pkg.matched_trip_id && tripIds.includes(pkg.matched_trip_id)) return false;
-          // Only show active assignment statuses
-          if (['rejected', 'expired', 'cancelled'].includes(a.status)) return false;
+          // Hide expired/cancelled but keep rejected visible so traveler knows they lost
+          if (['expired', 'cancelled'].includes(a.status)) return false;
           return true;
         })
         .map(a => {
