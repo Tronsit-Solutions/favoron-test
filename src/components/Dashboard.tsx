@@ -311,6 +311,10 @@ const Dashboard = ({ user }: DashboardProps) => {
             _isMultiAssignment: true,
             _assignmentId: a.id,
             _assignmentStatus: a.status,
+            // Assignment-specific fields for QuoteDialog (prevents reading stale package-level data)
+            _assignmentQuote: a.quote,
+            _assignmentTravelerAddress: a.traveler_address,
+            _assignmentMatchedTripDates: a.matched_trip_dates,
           };
         });
       
@@ -1112,15 +1116,21 @@ const Dashboard = ({ user }: DashboardProps) => {
                 ? String(selectedPackageForQuote.admin_assigned_tip)
                 : undefined,
             status: selectedPackageForQuote.status,
-            traveler_address: selectedPackageForQuote.traveler_address || undefined,
+            traveler_address: (quoteUserType === 'user' && (selectedPackageForQuote as any)._assignmentTravelerAddress)
+              ? (selectedPackageForQuote as any)._assignmentTravelerAddress
+              : selectedPackageForQuote.traveler_address || undefined,
             shopper_trust_level: (selectedPackageForQuote as any).profiles?.trust_level || 'basic',
             package_destination: selectedPackageForQuote.package_destination,
             package_destination_country: selectedPackageForQuote.package_destination_country || undefined,
             cityArea: (selectedPackageForQuote.confirmed_delivery_address as any)?.cityArea,
           }}
           userType={quoteUserType}
-          existingQuote={selectedPackageForQuote.quote as any}
-          tripDates={(selectedPackageForQuote.matched_trip_dates as any) as {
+          existingQuote={quoteUserType === 'user' && (selectedPackageForQuote as any)._assignmentQuote
+            ? (selectedPackageForQuote as any)._assignmentQuote
+            : selectedPackageForQuote.quote as any}
+          tripDates={((quoteUserType === 'user' && (selectedPackageForQuote as any)._assignmentMatchedTripDates
+            ? (selectedPackageForQuote as any)._assignmentMatchedTripDates
+            : selectedPackageForQuote.matched_trip_dates) as any) as {
             first_day_packages: string;
             last_day_packages: string;
             delivery_date: string;
