@@ -101,10 +101,8 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         .in('status', allEligibleStates)
         .order('created_at', { ascending: false });
 
-      if (selectedMonthDate) {
-        const monthStart = startOfMonth(selectedMonthDate);
-        const monthEnd = startOfMonth(addMonths(selectedMonthDate, 1));
-        query = query.gte('created_at', monthStart.toISOString()).lt('created_at', monthEnd.toISOString());
+      if (selectedDateRange) {
+        query = query.gte('created_at', selectedDateRange.start.toISOString()).lt('created_at', selectedDateRange.end.toISOString());
       }
 
       const { data, error } = await query;
