@@ -1388,9 +1388,9 @@ export const useDashboardActions = (
           // Also reject all package_assignments for this package
           const { error: rejectAssignErr } = await supabase
             .from('package_assignments')
-            .update({ status: 'rejected', updated_at: new Date().toISOString() })
+            .update({ status: 'bid_lost', updated_at: new Date().toISOString() })
             .eq('package_id', id)
-            .not('status', 'eq', 'rejected');
+            .not('status', 'eq', 'bid_lost');
           
           if (rejectAssignErr) {
             console.warn('Error rejecting assignments during un-match:', rejectAssignErr);
