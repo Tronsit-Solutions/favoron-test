@@ -64,11 +64,16 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string[]>([]);
   const itemsPerPage = 50;
 
-  // Independent query: fetch ALL paid packages for the selected month directly from Supabase
-  const selectedMonthDate = useMemo(() => {
+  // Independent query: fetch ALL paid packages for the selected month/year directly from Supabase
+  const selectedDateRange = useMemo(() => {
     if (selectedMonth === 'all') return null;
+    if (selectedMonth.startsWith('year-')) {
+      const year = parseInt(selectedMonth.split('-')[1]);
+      return { start: new Date(year, 0, 1), end: new Date(year + 1, 0, 1) };
+    }
     // selectedMonth is "YYYY-MM" format
-    return parse(selectedMonth, 'yyyy-MM', new Date());
+    const d = parse(selectedMonth, 'yyyy-MM', new Date());
+    return { start: startOfMonth(d), end: startOfMonth(addMonths(d, 1)) };
   }, [selectedMonth]);
 
   const advancedStates = [
@@ -96,10 +101,8 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         .in('status', allEligibleStates)
         .order('created_at', { ascending: false });
 
-      if (selectedMonthDate) {
-        const monthStart = startOfMonth(selectedMonthDate);
-        const monthEnd = startOfMonth(addMonths(selectedMonthDate, 1));
-        query = query.gte('created_at', monthStart.toISOString()).lt('created_at', monthEnd.toISOString());
+      if (selectedDateRange) {
+        query = query.gte('created_at', selectedDateRange.start.toISOString()).lt('created_at', selectedDateRange.end.toISOString());
       }
 
       const { data, error } = await query;
@@ -513,6 +516,9 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         if (dateParts.length === 3) {
           const month = dateParts[1];
           const year = dateParts[2];
+          if (selectedMonth.startsWith('year-')) {
+            return year === selectedMonth.split('-')[1];
+          }
           return `${year}-${month}` === selectedMonth;
         }
         return false;
@@ -704,6 +710,14 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los meses</SelectItem>
+                {(() => {
+                  const years = [...new Set(availableMonths.map(m => m.split('-')[0]))].sort((a, b) => b.localeCompare(a));
+                  return years.map(year => (
+                    <SelectItem key={`year-${year}`} value={`year-${year}`}>
+                      ── Año {year}
+                    </SelectItem>
+                  ));
+                })()}
                 {availableMonths.map(month => {
                   const [year, monthNum] = month.split('-');
                   const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
