@@ -212,7 +212,7 @@ export const useAdminRefundOrders = () => {
       const packageIds = [...new Set(refunds.map(r => r.package_id))];
       const { data: packages } = await supabase
         .from('packages')
-        .select('id, item_description, status, products_data')
+        .select('id, item_description, status, products_data, label_number')
         .in('id', packageIds);
       
       // Fetch related shoppers

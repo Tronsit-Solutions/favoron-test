@@ -123,6 +123,11 @@ const AdminRefundsTab = () => {
                 {new Date(refund.created_at).toLocaleDateString('es-GT')}
               </TableCell>
               <TableCell>
+                <span className="text-sm font-mono font-medium">
+                  {refund.package?.label_number ? `#${refund.package.label_number}` : refund.package_id?.slice(0, 8)}
+                </span>
+              </TableCell>
+              <TableCell>
                 <div>
                   <p className="font-medium text-sm">
                     {refund.shopper?.first_name} {refund.shopper?.last_name}
