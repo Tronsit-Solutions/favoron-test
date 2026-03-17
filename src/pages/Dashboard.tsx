@@ -45,6 +45,7 @@ const DashboardPage = () => {
     trustLevel: profile.trust_level,
     avatar_url: profile.avatar_url,
     joinedAt: profile.created_at,
+    ui_preferences: profile.ui_preferences,
     // Banking information is now in separate financial data table
     bankAccountHolder: null,
     bankName: null,

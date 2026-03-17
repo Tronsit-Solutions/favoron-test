@@ -498,8 +498,10 @@ const Dashboard = ({ user }: DashboardProps) => {
   useEffect(() => {
     if (!currentUser.id) return;
     if (showAcquisitionSurvey || !isProfileComplete) return;
-    const dismissed = localStorage.getItem(`referral_announcement_dismissed_${currentUser.id}`) === 'true';
-    if (dismissed) return;
+    // Check localStorage (fast) and DB preference
+    const localDismissed = localStorage.getItem(`referral_announcement_dismissed_${currentUser.id}`) === 'true';
+    const dbDismissed = (currentUser as any).ui_preferences?.referral_announcement_dismissed === true;
+    if (localDismissed || dbDismissed) return;
     const timer = setTimeout(() => {
       setShowReferralAnnouncement(true);
     }, 2000);
