@@ -183,7 +183,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
           .from('package_assignments')
           .select('*')
           .eq('package_id', pkg.id)
-          .in('status', ['pending', 'quote_sent']);
+          .in('status', ['bid_pending', 'bid_submitted']);
         
         if (assignErr) throw assignErr;
         if (!assignments || assignments.length === 0) {
