@@ -420,14 +420,9 @@ export const useDashboardActions = (
                 throw assignError;
               }
             } else {
-              // Legacy fallback: no assignment row exists, update package directly
-              console.log('📦 Legacy package: updating package directly');
-              await updatePackage(selectedPackage.id, {
-                status: 'quote_sent',
-                quote: normalizedQuoteData,
-                traveler_address: travelerAddress,
-                matched_trip_dates: matchedTripDates
-              });
+              // No assignment found — this should not happen in the unified flow
+              console.error('❌ No assignmentId found. All matching must go through package_assignments.');
+              throw new Error('No se encontró la asignación. Contacta soporte.');
             }
             
             // 📱 Enviar notificación WhatsApp al shopper
@@ -718,6 +713,15 @@ export const useDashboardActions = (
         }
       } else {
         if (quoteData.message === 'accepted') {
+          // Guard: if package is still in 'matched', shopper must select a traveler first
+          if (selectedPackage.status === 'matched') {
+            toast({
+              title: "Selecciona un viajero primero",
+              description: "Revisa las cotizaciones recibidas y elige un viajero antes de continuar.",
+              variant: "destructive",
+            });
+            return;
+          }
           console.log('✅ Accepting quote via RPC accept_quote');
           
           // Handle delivery method change
