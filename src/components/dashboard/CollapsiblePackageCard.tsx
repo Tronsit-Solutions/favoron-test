@@ -1134,7 +1134,15 @@ const CollapsiblePackageCard = ({
                   <div className="bg-background rounded-lg border border-primary/20 shadow-sm p-3">
                     <MultiQuoteSelector
                       assignments={multiAssignments}
-                      onAcceptQuote={(assignmentId) => onAcceptMultiAssignmentQuote(pkg.id, assignmentId)}
+                      onAcceptQuote={(assignmentId, extras) => onAcceptMultiAssignmentQuote(pkg.id, assignmentId, extras)}
+                      packageDetails={{
+                        delivery_method: pkg.delivery_method || 'pickup',
+                        shopper_trust_level: profile?.trust_level,
+                        cityArea: (pkg.confirmed_delivery_address as any)?.cityArea,
+                        package_destination_country: pkg.package_destination_country || undefined,
+                        products_data: pkg.products_data as any[],
+                      }}
+                      shopperId={profile?.id}
                     />
                   </div>
                 )}
