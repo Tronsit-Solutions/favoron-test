@@ -55,11 +55,39 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Handle GET requests (Recurrente endpoint verification ping)
+  if (req.method === 'GET') {
+    console.log('Recurrente webhook GET verification request received');
+    return new Response(
+      JSON.stringify({ status: 'ok', message: 'Webhook endpoint is active' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
-    const payload = await req.json();
+    // Guard against empty body
+    const bodyText = await req.text();
+    if (!bodyText || bodyText.trim() === '') {
+      console.warn('Recurrente webhook received empty body');
+      return new Response(
+        JSON.stringify({ received: true, warning: 'Empty body' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    let payload;
+    try {
+      payload = JSON.parse(bodyText);
+    } catch (parseError) {
+      console.error('Failed to parse webhook body:', bodyText.substring(0, 500));
+      return new Response(
+        JSON.stringify({ received: true, error: 'Invalid JSON' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     console.log('Recurrente webhook received:', JSON.stringify(payload));
 

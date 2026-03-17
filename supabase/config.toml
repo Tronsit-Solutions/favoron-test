@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.twilio-status-webhook]
 verify_jwt = false
+
+[functions.verify-recurrente-payment]
+verify_jwt = false
