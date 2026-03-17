@@ -619,6 +619,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       'Tip Viajero (Q)': item.travelerTip.toFixed(2),
       'Ingreso Favorón (Q)': item.favoronRevenue.toFixed(2),
       'Pago Mensajero (Q)': item.messengerPayment.toFixed(2),
+      'Recurrente Payment ID': item.package?.recurrente_payment_id || '-',
     }));
 
     // Add totals row
