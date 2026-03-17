@@ -88,7 +88,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
         const city = travelerAddr?.cityArea || travelerAddr?.city || travelerAddr?.ciudad || null;
         const accommodationType = travelerAddr?.accommodationType || null;
         const streetLine = travelerAddr?.streetAddress || travelerAddr?.firstAddressLine || null;
-        const zipCode = travelerAddr?.zipCode || travelerAddr?.codigoPostal || null;
+        const zipCode = travelerAddr?.postalCode || travelerAddr?.zipCode || travelerAddr?.codigoPostal || null;
 
         return (
           <Card key={assignment.id} className="border-primary/20 hover:border-primary/40 transition-colors">
