@@ -800,6 +800,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                 <TableHead className="text-right">Ingreso Favoron</TableHead>
                 <TableHead className="text-right">Pago Mensajero</TableHead>
                 <TableHead className="text-center">Comprobante Pago</TableHead>
+                <TableHead>Recurrente Payment ID</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
