@@ -767,9 +767,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 <Package className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-semibold text-base">Pedido Personal</p>
+                <p className="font-semibold text-base">Ya Tengo el Paquete</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Artículos físicos que un viajero debe recoger o recibir por ti
+                  Ya tengo el artículo y necesito que un viajero lo lleve
                 </p>
               </div>
               {formRequestType === 'personal' && (
