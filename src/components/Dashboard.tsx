@@ -295,7 +295,8 @@ const Dashboard = ({ user }: DashboardProps) => {
           // Skip if package is already visible via matched_trip_id
           if (pkg.matched_trip_id && tripIds.includes(pkg.matched_trip_id)) return false;
           // Hide expired/cancelled but keep rejected visible so traveler knows they lost
-          if (['expired', 'cancelled'].includes(a.status)) return false;
+          // Hide dismissed assignments
+          if (a.dismissed_by_traveler) return false;
           return true;
         })
         .map(a => {

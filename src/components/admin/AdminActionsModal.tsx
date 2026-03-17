@@ -183,7 +183,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
           .from('package_assignments')
           .select('*')
           .eq('package_id', pkg.id)
-          .in('status', ['pending', 'quote_sent']);
+          .in('status', ['bid_pending', 'bid_submitted']);
         
         if (assignErr) throw assignErr;
         if (!assignments || assignments.length === 0) {
@@ -191,7 +191,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
         }
         
         // Generate and save quote for each pending assignment
-        const pendingAssignments = assignments.filter(a => a.status === 'pending');
+        const pendingAssignments = assignments.filter(a => a.status === 'bid_pending');
         if (pendingAssignments.length === 0) {
           throw new Error('No hay asignaciones pendientes. Todos los viajeros ya tienen cotización.');
         }
@@ -221,7 +221,7 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
           const { error: updateAssignErr } = await supabase
             .from('package_assignments')
             .update({
-              status: 'quote_sent',
+              status: 'bid_submitted',
               quote: quoteData.quote as any,
               traveler_address: quoteData.traveler_address as any,
               matched_trip_dates: quoteData.matched_trip_dates as any,

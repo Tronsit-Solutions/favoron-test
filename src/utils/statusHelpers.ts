@@ -34,6 +34,13 @@ export const getStatusBadge = (status: string) => {
     completed_paid: { label: 'Completado y pagado', variant: 'default' },
     archived_by_shopper: { label: 'Archivado', variant: 'secondary' },
     expired: { label: 'Expirado', variant: 'secondary' },
+    // Assignment (bid) statuses
+    bid_pending: { label: 'Asignación pendiente', variant: 'secondary' },
+    bid_submitted: { label: 'Cotización enviada (compitiendo)', variant: 'default' },
+    bid_won: { label: '¡Te eligieron!', variant: 'default' },
+    bid_lost: { label: 'Otro viajero seleccionado', variant: 'destructive' },
+    bid_expired: { label: 'Asignación expirada', variant: 'secondary' },
+    bid_cancelled: { label: 'Asignación cancelada', variant: 'secondary' },
   } as const;
 
   const config = (statusConfig as any)[status] || { 

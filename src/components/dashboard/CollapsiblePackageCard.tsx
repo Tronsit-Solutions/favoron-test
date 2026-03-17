@@ -167,7 +167,7 @@ const CollapsiblePackageCard = ({
     e.stopPropagation();
     setChatModalOpen(true);
   };
-  const hasMultiQuotes = multiAssignments && multiAssignments.some(a => a.status === 'quote_sent');
+  const hasMultiQuotes = multiAssignments && multiAssignments.some(a => a.status === 'bid_submitted');
   const isCompeting = multiAssignments && multiAssignments.length > 0 && pkg.status === 'matched' && !pkg.matched_trip_id;
   const needsAction = viewMode === 'user' && (pkg.status === 'quote_sent' || pkg.status === 'quote_accepted' || pkg.status === 'payment_pending' || pkg.status === 'payment_pending_approval' || pkg.status === 'pending_purchase' || hasMultiQuotes
   // Removed: 'approved' condition - approved packages are pending traveler assignment, no shopper action needed
@@ -186,7 +186,7 @@ const CollapsiblePackageCard = ({
         return "Aprobado - Esperando match con un viajero";
       case 'matched':
         if (multiAssignments && multiAssignments.length > 0 && !pkg.matched_trip_id) {
-          const quotesReceived = multiAssignments.filter(a => a.status === 'quote_sent').length;
+          const quotesReceived = multiAssignments.filter(a => a.status === 'bid_submitted').length;
           if (quotesReceived > 0) {
             return `Cotizaciones recibidas de ${quotesReceived} viajero${quotesReceived > 1 ? 's' : ''} - Compara y elige`;
           }
@@ -671,7 +671,7 @@ const CollapsiblePackageCard = ({
                       e.stopPropagation();
                       setShowMultiQuoteModal(true);
                     }} className="text-xs font-medium w-full">
-                      ⚡ Ver Cotizaciones ({multiAssignments!.filter(a => a.status === 'quote_sent').length})
+                      ⚡ Ver Cotizaciones ({multiAssignments!.filter(a => a.status === 'bid_submitted').length})
                     </Button>
                   )}
                   {isCompeting && !hasMultiQuotes && (
@@ -1008,7 +1008,7 @@ const CollapsiblePackageCard = ({
                       e.stopPropagation();
                       setShowMultiQuoteModal(true);
                     }} className="text-xs font-medium flex-shrink-0 w-full sm:w-auto max-w-full">
-                      <span className="truncate">⚡ Ver Cotizaciones ({multiAssignments!.filter(a => a.status === 'quote_sent').length})</span>
+                      <span className="truncate">⚡ Ver Cotizaciones ({multiAssignments!.filter(a => a.status === 'bid_submitted').length})</span>
                     </Button>
                   )}
                   {isCompeting && !hasMultiQuotes && (

@@ -599,6 +599,7 @@ export type Database = {
         Row: {
           admin_assigned_tip: number | null
           created_at: string
+          dismissed_by_traveler: boolean
           id: string
           matched_trip_dates: Json | null
           package_id: string
@@ -613,6 +614,7 @@ export type Database = {
         Insert: {
           admin_assigned_tip?: number | null
           created_at?: string
+          dismissed_by_traveler?: boolean
           id?: string
           matched_trip_dates?: Json | null
           package_id: string
@@ -627,6 +629,7 @@ export type Database = {
         Update: {
           admin_assigned_tip?: number | null
           created_at?: string
+          dismissed_by_traveler?: boolean
           id?: string
           matched_trip_dates?: Json | null
           package_id?: string

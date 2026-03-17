@@ -129,13 +129,13 @@ const TravelerPackagePriorityActions = ({
           <div className="flex items-center justify-between gap-2">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold">
-                {(pkg as any)._assignmentStatus === 'quote_sent' 
+                {(pkg as any)._assignmentStatus === 'bid_submitted' 
                   ? '✅ Cotización enviada — esperando al comprador'
                   : 'Revisa el pedido y acéptalo si te parece bien'}
               </p>
             </div>
             <div className="flex-shrink-0">
-              {(pkg as any)._assignmentStatus === 'quote_sent' ? (
+              {(pkg as any)._assignmentStatus === 'bid_submitted' ? (
                 <Button size="sm" variant="outline" disabled className="font-medium h-9 text-sm">
                   <CheckCircle className="h-3 w-3 mr-2" />
                   Cotización enviada

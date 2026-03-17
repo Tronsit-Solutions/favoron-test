@@ -216,7 +216,7 @@ const ShopperPackagePriorityActions = ({
           }
         };
       case 'matched': {
-        const quotesReceived = multiAssignments?.filter(a => a.status === 'quote_sent') || [];
+        const quotesReceived = multiAssignments?.filter(a => a.status === 'bid_submitted') || [];
         const totalAssignments = multiAssignments?.length || 0;
 
         if (quotesReceived.length > 0) {

@@ -1,9 +1,12 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, DollarSign, User, Package } from "lucide-react";
+import { MapPin, DollarSign, User, Package, X } from "lucide-react";
 import PurchaseConfirmationViewer from "@/components/admin/PurchaseConfirmationViewer";
 import { normalizeConfirmations } from "@/utils/confirmationHelpers";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface TravelerPackageCardProps {
   pkg: any;
@@ -16,6 +19,27 @@ const TravelerPackageCard = ({
   getStatusBadge, 
   onQuote
 }: TravelerPackageCardProps) => {
+  const [dismissing, setDismissing] = useState(false);
+  const { toast } = useToast();
+
+  const handleDismiss = async () => {
+    if (!pkg._assignmentId) return;
+    setDismissing(true);
+    try {
+      const { error } = await supabase
+        .from('package_assignments')
+        .update({ dismissed_by_traveler: true } as any)
+        .eq('id', pkg._assignmentId);
+      if (error) throw error;
+      toast({ title: "Asignación descartada", description: "Ya no verás este pedido en tu dashboard." });
+      // The parent will refetch and remove it
+      window.location.reload();
+    } catch (err) {
+      toast({ title: "Error", description: "No se pudo descartar", variant: "destructive" });
+    } finally {
+      setDismissing(false);
+    }
+  };
   return (
     <Card key={pkg.id}>
       <CardHeader>
@@ -177,7 +201,7 @@ const TravelerPackageCard = ({
           <div className="flex flex-wrap gap-2">
             {pkg.status === 'matched' && (
               <>
-                {pkg._assignmentStatus === 'quote_sent' ? (
+                {pkg._assignmentStatus === 'bid_submitted' ? (
                   <div className="w-full bg-green-50 border border-green-200 rounded-lg p-3">
                     <p className="text-sm font-medium text-green-800">✅ Cotización enviada</p>
                     {pkg._assignmentQuote && (
@@ -189,19 +213,45 @@ const TravelerPackageCard = ({
                       Esperando que el shopper seleccione un viajero
                     </p>
                   </div>
-                ) : pkg._assignmentStatus === 'quote_accepted' ? (
+                ) : pkg._assignmentStatus === 'bid_won' ? (
                   <div className="w-full bg-green-50 border border-green-200 rounded-lg p-3">
                     <p className="text-sm font-medium text-green-800">🎉 ¡El shopper te eligió!</p>
                     <p className="text-xs text-green-600 mt-1">
                       Esperando confirmación de pago del shopper
                     </p>
                   </div>
-                ) : pkg._assignmentStatus === 'rejected' ? (
+                ) : pkg._assignmentStatus === 'bid_lost' ? (
                   <div className="w-full bg-red-50 border border-red-200 rounded-lg p-3">
                     <p className="text-sm font-medium text-red-800">❌ Otro viajero fue seleccionado</p>
                     <p className="text-xs text-red-600 mt-1">
                       El shopper eligió a otro viajero para este pedido
                     </p>
+                    <Button size="sm" variant="ghost" className="mt-2 text-xs" onClick={handleDismiss} disabled={dismissing}>
+                      <X className="h-3 w-3 mr-1" />
+                      {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
+                    </Button>
+                  </div>
+                ) : pkg._assignmentStatus === 'bid_expired' ? (
+                  <div className="w-full bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <p className="text-sm font-medium text-yellow-800">⏰ Asignación expirada</p>
+                    <p className="text-xs text-yellow-600 mt-1">
+                      El tiempo para esta asignación venció
+                    </p>
+                    <Button size="sm" variant="ghost" className="mt-2 text-xs" onClick={handleDismiss} disabled={dismissing}>
+                      <X className="h-3 w-3 mr-1" />
+                      {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
+                    </Button>
+                  </div>
+                ) : pkg._assignmentStatus === 'bid_cancelled' ? (
+                  <div className="w-full bg-muted border border-border rounded-lg p-3">
+                    <p className="text-sm font-medium text-muted-foreground">Asignación cancelada</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Esta asignación fue cancelada
+                    </p>
+                    <Button size="sm" variant="ghost" className="mt-2 text-xs" onClick={handleDismiss} disabled={dismissing}>
+                      <X className="h-3 w-3 mr-1" />
+                      {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
+                    </Button>
                   </div>
                 ) : (
                   <div className="text-sm text-muted-foreground">
