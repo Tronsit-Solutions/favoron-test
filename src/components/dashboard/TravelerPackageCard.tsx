@@ -19,6 +19,27 @@ const TravelerPackageCard = ({
   getStatusBadge, 
   onQuote
 }: TravelerPackageCardProps) => {
+  const [dismissing, setDismissing] = useState(false);
+  const { toast } = useToast();
+
+  const handleDismiss = async () => {
+    if (!pkg._assignmentId) return;
+    setDismissing(true);
+    try {
+      const { error } = await supabase
+        .from('package_assignments')
+        .update({ dismissed_by_traveler: true } as any)
+        .eq('id', pkg._assignmentId);
+      if (error) throw error;
+      toast({ title: "Asignación descartada", description: "Ya no verás este pedido en tu dashboard." });
+      // The parent will refetch and remove it
+      window.location.reload();
+    } catch (err) {
+      toast({ title: "Error", description: "No se pudo descartar", variant: "destructive" });
+    } finally {
+      setDismissing(false);
+    }
+  };
   return (
     <Card key={pkg.id}>
       <CardHeader>
