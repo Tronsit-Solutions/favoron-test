@@ -793,7 +793,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                 <TableHead>
                   <ColumnFilter title="Método Pago" options={uniquePaymentMethods} selectedValues={paymentMethodFilter} onSelectionChange={setPaymentMethodFilter} />
                 </TableHead>
-                <TableHead>Recurrente ID</TableHead>
+                
                 <TableHead className="text-right">Total a Pagar</TableHead>
                 <TableHead className="text-right">Descuento</TableHead>
                 <TableHead className="text-right">Tip Viajero</TableHead>
