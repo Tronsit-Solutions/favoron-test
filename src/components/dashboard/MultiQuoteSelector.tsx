@@ -133,6 +133,14 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
                     </span>
                   </div>
                 )}
+                {(streetLine || zipCode) && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span>
+                      {[streetLine, zipCode ? `CP ${zipCode}` : null].filter(Boolean).join(', ')}
+                    </span>
+                  </div>
+                )}
                 {firstDay && lastDay && (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Package className="h-3.5 w-3.5 flex-shrink-0" />
