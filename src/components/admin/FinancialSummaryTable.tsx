@@ -989,6 +989,11 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                       )
                     )}
                   </TableCell>
+                  <TableCell className="text-xs text-muted-foreground font-mono">
+                    {item.package?.recurrente_payment_id 
+                      ? item.package.recurrente_payment_id.slice(0, 12) + '...' 
+                      : '-'}
+                  </TableCell>
                 </TableRow>
               ))}
               
