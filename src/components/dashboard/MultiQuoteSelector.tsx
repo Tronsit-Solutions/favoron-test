@@ -104,7 +104,10 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote }: MultiQuoteSelectorPr
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate">{travelerName}</p>
+                  <p className="text-sm font-semibold truncate">
+                    {travelerFirstName}{' '}
+                    {travelerLastName && <span className="blur-[4px] select-none">{travelerLastName}</span>}
+                  </p>
                   {assignment.trip_from_city && assignment.trip_to_city && (
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
                       <MapPin className="h-3 w-3" />
