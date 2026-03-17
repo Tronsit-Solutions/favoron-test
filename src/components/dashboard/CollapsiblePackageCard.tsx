@@ -120,6 +120,8 @@ const CollapsiblePackageCard = ({
   const [chatModalOpen, setChatModalOpen] = React.useState(false);
   const [showStatusModal, setShowStatusModal] = React.useState(false);
   const [showMultiQuoteModal, setShowMultiQuoteModal] = React.useState(false);
+  const [multiQuoteWizardStep, setMultiQuoteWizardStep] = React.useState<'select' | 'payment'>('select');
+  const [multiQuoteAcceptedPkg, setMultiQuoteAcceptedPkg] = React.useState<PackageType | null>(null);
 
   const { data: existingRating } = useQuery({
     queryKey: ['traveler-rating', pkg.id],
