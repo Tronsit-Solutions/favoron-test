@@ -64,11 +64,16 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string[]>([]);
   const itemsPerPage = 50;
 
-  // Independent query: fetch ALL paid packages for the selected month directly from Supabase
-  const selectedMonthDate = useMemo(() => {
+  // Independent query: fetch ALL paid packages for the selected month/year directly from Supabase
+  const selectedDateRange = useMemo(() => {
     if (selectedMonth === 'all') return null;
+    if (selectedMonth.startsWith('year-')) {
+      const year = parseInt(selectedMonth.split('-')[1]);
+      return { start: new Date(year, 0, 1), end: new Date(year + 1, 0, 1) };
+    }
     // selectedMonth is "YYYY-MM" format
-    return parse(selectedMonth, 'yyyy-MM', new Date());
+    const d = parse(selectedMonth, 'yyyy-MM', new Date());
+    return { start: startOfMonth(d), end: startOfMonth(addMonths(d, 1)) };
   }, [selectedMonth]);
 
   const advancedStates = [
