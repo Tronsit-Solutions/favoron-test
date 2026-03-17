@@ -516,6 +516,9 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         if (dateParts.length === 3) {
           const month = dateParts[1];
           const year = dateParts[2];
+          if (selectedMonth.startsWith('year-')) {
+            return year === selectedMonth.split('-')[1];
+          }
           return `${year}-${month}` === selectedMonth;
         }
         return false;
