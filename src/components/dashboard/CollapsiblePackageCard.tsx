@@ -186,7 +186,7 @@ const CollapsiblePackageCard = ({
         return "Aprobado - Esperando match con un viajero";
       case 'matched':
         if (multiAssignments && multiAssignments.length > 0 && !pkg.matched_trip_id) {
-          const quotesReceived = multiAssignments.filter(a => a.status === 'quote_sent').length;
+          const quotesReceived = multiAssignments.filter(a => a.status === 'bid_submitted').length;
           if (quotesReceived > 0) {
             return `Cotizaciones recibidas de ${quotesReceived} viajero${quotesReceived > 1 ? 's' : ''} - Compara y elige`;
           }
