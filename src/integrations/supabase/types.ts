@@ -2274,6 +2274,10 @@ export type Database = {
         Args: { _package_id: string }
         Returns: undefined
       }
+      traveler_has_active_assignment: {
+        Args: { _package_id: string; _user_id: string }
+        Returns: boolean
+      }
       traveler_reject_assignment: {
         Args: {
           _additional_comments?: string
