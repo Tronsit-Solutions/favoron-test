@@ -733,9 +733,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 <ShoppingCart className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-semibold text-base">Compra Online</p>
+                <p className="font-semibold text-base">Compra en Línea</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Productos de tiendas como Amazon, eBay, Best Buy, etc.
+                  Compraré en línea y enviaré el paquete al viajero
                 </p>
               </div>
               {formRequestType === 'online' && (
