@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Loader2, ExternalLink, AlertCircle, CreditCard, ArrowLeft, Shield } from 'lucide-react';
 import { useRecurrenteCheckout } from '@/hooks/useRecurrenteCheckout';
