@@ -27,17 +27,12 @@ export default function RecurrenteCheckout({
   const [checkoutInitiated, setCheckoutInitiated] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Get item description from products_data or item_description
   const getItemDescription = () => {
-    const productsData = (pkg.products_data as any[]) || [];
-    if (productsData.length > 0) {
-      const activeProducts = productsData.filter(p => p.cancelled !== true && p.cancelled !== 'true');
-      if (activeProducts.length === 1) {
-        return activeProducts[0].itemDescription || activeProducts[0].item_description || pkg.item_description;
-      }
-      return `${activeProducts.length} productos de Favorón`;
-    }
-    return pkg.item_description || 'Paquete Favorón';
+    const labelId = pkg.label_number ? `ID${pkg.label_number}` : pkg.id.substring(0, 8);
+    const quote = pkg.quote as any;
+    const deliveryFee = quote?.deliveryFee || 0;
+    const deliveryPart = deliveryFee > 0 ? ` Delivery fee Q${deliveryFee}` : '';
+    return `Servicio Favorón ${labelId}${deliveryPart}`;
   };
 
   // Auto-initiate checkout when embedded
