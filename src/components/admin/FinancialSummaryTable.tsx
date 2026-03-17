@@ -658,6 +658,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         'Tip Viajero (Q)': '0.00',
         'Ingreso Favorón (Q)': `-${totals.totalRefunds.toFixed(2)}`,
         'Pago Mensajero (Q)': '0.00',
+        'Recurrente Payment ID': '',
       });
     }
 
