@@ -246,7 +246,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
         const quoteValues = getQuoteValues(assignment.quote);
         const travelerFirstName = assignment.traveler_first_name || 'Viajero';
         const travelerLastName = assignment.traveler_last_name || '';
-        const initials = (assignment.traveler_first_name?.[0] || '') + (assignment.traveler_last_name?.[0] || '');
+        const initials = assignment.traveler_first_name?.[0] || '';
 
         const tripDates = assignment.matched_trip_dates as any;
         const travelerAddr = assignment.traveler_address as any;
@@ -297,8 +297,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">
-                    {travelerFirstName}{' '}
-                    {travelerLastName && <span className="blur-[4px] select-none">{travelerLastName}</span>}
+                    {travelerFirstName}
                   </p>
                   {assignment.trip_from_city && assignment.trip_to_city && (
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -361,8 +360,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
 
       {/* Pending assignments */}
       {pendingAssignments.map((assignment) => {
-        const travelerName = [assignment.traveler_first_name, assignment.traveler_last_name]
-          .filter(Boolean).join(' ') || 'Viajero';
+        const travelerName = assignment.traveler_first_name || 'Viajero';
 
         return (
           <Card key={assignment.id} className="border-dashed border-muted-foreground/30">
