@@ -360,8 +360,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
 
       {/* Pending assignments */}
       {pendingAssignments.map((assignment) => {
-        const travelerName = [assignment.traveler_first_name, assignment.traveler_last_name]
-          .filter(Boolean).join(' ') || 'Viajero';
+        const travelerName = assignment.traveler_first_name || 'Viajero';
 
         return (
           <Card key={assignment.id} className="border-dashed border-muted-foreground/30">
