@@ -235,8 +235,8 @@ const PendingRequestsTab = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos los tipos</SelectItem>
-              <SelectItem value="online">🛒 Compra Online</SelectItem>
-              <SelectItem value="personal">👤 Personal</SelectItem>
+              <SelectItem value="online">🛒 Compra en Línea</SelectItem>
+              <SelectItem value="personal">📦 Ya Tengo el Paquete</SelectItem>
             </SelectContent>
           </Select>
 
