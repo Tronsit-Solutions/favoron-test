@@ -916,11 +916,6 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground font-mono">
-                    {item.package?.recurrente_payment_id 
-                      ? item.package.recurrente_payment_id.slice(0, 12) + '...' 
-                      : '-'}
-                  </TableCell>
                   <TableCell className={`text-right font-mono ${item.isRefund ? 'text-red-600' : ''}`}>
                     {item.isRefund ? `-${formatCurrency(item.refundAmount || 0)}` : formatCurrency(item.totalToPay)}
                   </TableCell>
