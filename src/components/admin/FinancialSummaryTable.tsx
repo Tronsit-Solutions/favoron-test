@@ -619,6 +619,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       'Tip Viajero (Q)': item.travelerTip.toFixed(2),
       'Ingreso Favorón (Q)': item.favoronRevenue.toFixed(2),
       'Pago Mensajero (Q)': item.messengerPayment.toFixed(2),
+      'Recurrente Payment ID': item.package?.recurrente_payment_id || '-',
     }));
 
     // Add totals row
@@ -637,6 +638,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
       'Tip Viajero (Q)': totals.travelerTip.toFixed(2),
       'Ingreso Favorón (Q)': totals.favoronRevenue.toFixed(2),
       'Pago Mensajero (Q)': totals.messengerPayment.toFixed(2),
+      'Recurrente Payment ID': '',
     });
 
     // Add total refunds row if any
@@ -656,6 +658,7 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
         'Tip Viajero (Q)': '0.00',
         'Ingreso Favorón (Q)': `-${totals.totalRefunds.toFixed(2)}`,
         'Pago Mensajero (Q)': '0.00',
+        'Recurrente Payment ID': '',
       });
     }
 
