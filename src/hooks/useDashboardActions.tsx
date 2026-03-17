@@ -407,7 +407,7 @@ export const useDashboardActions = (
               const { error: assignError } = await supabase
                 .from('package_assignments')
                 .update({
-                  status: 'quote_sent',
+                  status: 'bid_submitted',
                   quote: normalizedQuoteData as any,
                   traveler_address: travelerAddress as any,
                   matched_trip_dates: matchedTripDates as any,
@@ -1388,9 +1388,9 @@ export const useDashboardActions = (
           // Also reject all package_assignments for this package
           const { error: rejectAssignErr } = await supabase
             .from('package_assignments')
-            .update({ status: 'rejected', updated_at: new Date().toISOString() })
+            .update({ status: 'bid_lost', updated_at: new Date().toISOString() })
             .eq('package_id', id)
-            .not('status', 'eq', 'rejected');
+            .not('status', 'eq', 'bid_lost');
           
           if (rejectAssignErr) {
             console.warn('Error rejecting assignments during un-match:', rejectAssignErr);
@@ -1465,7 +1465,7 @@ export const useDashboardActions = (
               await supabase
                 .from('package_assignments')
                 .update({
-                  status: 'quote_sent',
+                  status: 'bid_submitted',
                   quote: quoteData.quote as any,
                   traveler_address: quoteData.traveler_address as any,
                   matched_trip_dates: quoteData.matched_trip_dates as any,

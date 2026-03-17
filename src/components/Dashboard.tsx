@@ -344,7 +344,7 @@ const Dashboard = ({ user }: DashboardProps) => {
         .from('package_assignments')
         .select('*')
         .in('package_id', multiMatchedPkgIds)
-        .in('status', ['pending', 'quote_sent']);
+        .in('status', ['bid_pending', 'bid_submitted']);
 
       if (error || !assignments) {
         console.error('Error fetching shopper assignments:', error);
