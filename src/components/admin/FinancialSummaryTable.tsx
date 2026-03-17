@@ -916,8 +916,8 @@ const FinancialSummaryTable = ({ packages }: FinancialSummaryTableProps) => {
                     )}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground font-mono">
-                    {item.package?.recurrente_checkout_id 
-                      ? item.package.recurrente_checkout_id.slice(0, 12) + '...' 
+                    {item.package?.recurrente_payment_id 
+                      ? item.package.recurrente_payment_id.slice(0, 12) + '...' 
                       : '-'}
                   </TableCell>
                   <TableCell className={`text-right font-mono ${item.isRefund ? 'text-red-600' : ''}`}>
