@@ -17,6 +17,7 @@ import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
 import { Clock, MapPin, DollarSign, Check, Loader2, User, Package, Truck, Home, FileText, AlertTriangle, X } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import QuoteCountdown from "./QuoteCountdown";
 
 interface Assignment {
   id: string;
@@ -94,7 +95,22 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
   const quotedAssignments = assignments.filter(a => a.status === 'bid_submitted' && a.quote);
   const pendingAssignments = assignments.filter(a => a.status === 'bid_pending');
 
+  // Find the nearest expiration among all quoted assignments
+  const nearestExpiration = useMemo(() => {
+    const validDates = quotedAssignments
+      .map(a => a.quote_expires_at)
+      .filter((d): d is string => !!d && new Date(d) > new Date());
+    if (validDates.length === 0) return null;
+    return validDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0];
+  }, [quotedAssignments]);
+
   const selectedAssignment = quotedAssignments.find(a => a.id === selectedId);
+
+  // Check if selected assignment's quote has expired
+  const isSelectedExpired = useMemo(() => {
+    if (!selectedAssignment?.quote_expires_at) return false;
+    return new Date(selectedAssignment.quote_expires_at) <= new Date();
+  }, [selectedAssignment]);
 
   // Compute delivery fees for the selected quote
   const deliveryFees = useMemo(() => ({
@@ -231,7 +247,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
     );
   }
 
-  const canAccept = selectedId && acceptedTerms && confirmedDeliveryTime && !acceptingId;
+  const canAccept = selectedId && acceptedTerms && confirmedDeliveryTime && !acceptingId && !isSelectedExpired;
 
   return (
     <div className="space-y-3">
@@ -241,6 +257,10 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
           Selecciona una cotización ({quotedAssignments.length})
         </h3>
       </div>
+
+      {nearestExpiration && (
+        <QuoteCountdown expiresAt={nearestExpiration} compact={true} />
+      )}
 
       {quotedAssignments.map((assignment) => {
         const quoteValues = getQuoteValues(assignment.quote);
@@ -308,6 +328,9 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className="text-sm font-bold text-primary">{formatPrice(quoteValues.totalPrice)}</span>
+                  {assignment.quote_expires_at && (
+                    <QuoteCountdown expiresAt={assignment.quote_expires_at} micro={true} />
+                  )}
                   {assignment.trip_delivery_date && (
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                       <Clock className="h-2.5 w-2.5 mr-0.5" />
