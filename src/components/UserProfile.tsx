@@ -224,6 +224,14 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
     );
   }
 
+  if (activeSection === "addresses") {
+    return (
+      <div className="space-y-4 mobile-container">
+        <SavedAddressesSection userId={user.id} onBack={() => setActiveSection(null)} />
+      </div>
+    );
+  }
+
   if (activeSection === "customs") {
     return (
       <div className="space-y-4 mobile-container">
