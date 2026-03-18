@@ -1242,6 +1242,7 @@ const CollapsiblePackageCard = ({
           </CardContent>
         </CollapsibleContent>
       </Card>
+    </div>
   );
 
   return (
