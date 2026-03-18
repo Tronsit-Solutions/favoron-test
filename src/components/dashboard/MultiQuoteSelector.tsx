@@ -664,6 +664,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
         initialData={deliveryAddress || undefined}
         destinationCountry={packageDetails.package_destination_country}
         destinationCity={packageDetails.package_destination}
+        userId={shopperId}
       />
     </div>
   );
