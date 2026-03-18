@@ -224,7 +224,7 @@ interface CompactOrderRowProps {
   onShowCelebration?: (order: any) => void;
 }
 
-const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOrder, toast, onConfirmAction, onSelectOrder }: CompactOrderRowProps) => {
+const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOrder, toast, onConfirmAction, onSelectOrder, onShowCelebration }: CompactOrderRowProps) => {
   const [editableNotes, setEditableNotes] = useState(order.notes || '');
   const [savingNotes, setSavingNotes] = useState(false);
   
