@@ -33,6 +33,7 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
     );
   }
 
+  const recipientName = travelerAddress?.recipientName || travelerAddress?.recipient_name || null;
   const addressLine1 = travelerAddress?.streetAddress || travelerAddress?.address_line_1 || travelerAddress?.street_address || travelerAddress?.direccion || null;
   const addressLine2 = travelerAddress?.streetAddress2 || travelerAddress?.address_line_2 || travelerAddress?.street_address_2 || null;
   const city = travelerAddress?.cityArea || travelerAddress?.city || travelerAddress?.ciudad || null;
