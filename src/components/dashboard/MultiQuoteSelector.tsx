@@ -39,6 +39,7 @@ interface Assignment {
 
 export interface MultiQuoteAcceptExtras {
   deliveryMethod: string;
+  deliveryAddress?: DeliveryAddressData;
   discountData?: {
     code: string;
     codeId: string;
