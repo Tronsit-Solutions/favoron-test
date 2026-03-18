@@ -95,6 +95,21 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
   const quotedAssignments = assignments.filter(a => a.status === 'bid_submitted' && a.quote);
   const pendingAssignments = assignments.filter(a => a.status === 'bid_pending');
 
+  // Find the nearest expiration among all quoted assignments
+  const nearestExpiration = useMemo(() => {
+    const validDates = quotedAssignments
+      .map(a => a.quote_expires_at)
+      .filter((d): d is string => !!d && new Date(d) > new Date());
+    if (validDates.length === 0) return null;
+    return validDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0];
+  }, [quotedAssignments]);
+
+  // Check if selected assignment's quote has expired
+  const isSelectedExpired = useMemo(() => {
+    if (!selectedAssignment?.quote_expires_at) return false;
+    return new Date(selectedAssignment.quote_expires_at) <= new Date();
+  }, [selectedAssignment]);
+
   const selectedAssignment = quotedAssignments.find(a => a.id === selectedId);
 
   // Compute delivery fees for the selected quote
