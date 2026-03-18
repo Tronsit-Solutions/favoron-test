@@ -2261,7 +2261,7 @@ export const useDashboardActions = (
   const handleAcceptMultiAssignmentQuote = async (
     packageId: string, 
     assignmentId: string,
-    extras?: { deliveryMethod: string; discountData?: { code: string; codeId: string; amount: number; originalTotal: number; finalTotal: number } }
+    extras?: { deliveryMethod: string; deliveryAddress?: { streetAddress: string; cityArea: string; hotelAirbnbName: string; contactNumber: string }; discountData?: { code: string; codeId: string; amount: number; originalTotal: number; finalTotal: number } }
   ) => {
     try {
       console.log('🎯 Shopper accepting assignment:', { packageId, assignmentId, extras });
