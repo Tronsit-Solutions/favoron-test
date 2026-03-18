@@ -83,6 +83,17 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
           </div>
         )}
 
+        {/* Recipient name - blurred */}
+        {recipientName && (
+          <div className="flex items-center gap-3">
+            <User className="h-4 w-4 text-slate-400/50 flex-shrink-0" />
+            <div className="text-sm">
+              <span className="text-slate-600">Destinatario: </span>
+              <span className="blur-[4px] select-none text-slate-400">{recipientName}</span>
+            </div>
+          </div>
+        )}
+
         {/* City */}
         {city && (
           <div className="flex items-center gap-3">
