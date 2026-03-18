@@ -732,6 +732,7 @@ const AdminTravelerPaymentsTab = () => {
                         toast={toast}
                         onConfirmAction={handleConfirmAction}
                         onSelectOrder={setSelectedOrder}
+                        onShowCelebration={handleShowCelebration}
                       />
                     ))}
                   </TableBody>
