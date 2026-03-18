@@ -17,6 +17,7 @@ import ProfileNavigationCard from "./profile/ProfileNavigationCard";
 import ProfileHistorySection from "./profile/ProfileHistorySection";
 import ProfileNotificationsSection from "./profile/ProfileNotificationsSection";
 import ProfileHelpSection from "./profile/ProfileHelpSection";
+import SavedAddressesSection from "./profile/SavedAddressesSection";
 import PrimeModal from "./PrimeModal";
 
 interface UserProfileProps {
