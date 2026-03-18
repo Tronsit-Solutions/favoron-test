@@ -1142,6 +1142,8 @@ const CollapsiblePackageCard = ({
                         cityArea: (pkg.confirmed_delivery_address as any)?.cityArea,
                         package_destination_country: pkg.package_destination_country || undefined,
                         products_data: pkg.products_data as any[],
+                        confirmedDeliveryAddress: pkg.confirmed_delivery_address,
+                        package_destination: pkg.package_destination,
                       }}
                       shopperId={profile?.id}
                     />
@@ -1437,6 +1439,8 @@ const CollapsiblePackageCard = ({
                     cityArea: (pkg.confirmed_delivery_address as any)?.cityArea,
                     package_destination_country: pkg.package_destination_country || undefined,
                     products_data: pkg.products_data as any[],
+                    confirmedDeliveryAddress: pkg.confirmed_delivery_address,
+                    package_destination: pkg.package_destination,
                   }}
                   shopperId={profile?.id}
                 />

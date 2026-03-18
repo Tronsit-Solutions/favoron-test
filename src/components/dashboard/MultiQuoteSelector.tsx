@@ -14,7 +14,8 @@ import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
-import { Clock, MapPin, DollarSign, Check, Loader2, User, Package, Truck, Home, FileText, AlertTriangle, X } from "lucide-react";
+import DeliveryAddressSheet, { DeliveryAddressData } from "./DeliveryAddressSheet";
+import { Clock, MapPin, DollarSign, Check, Loader2, User, Package, Truck, Home, FileText, AlertTriangle, X, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import QuoteCountdown from "./QuoteCountdown";
@@ -38,6 +39,7 @@ interface Assignment {
 
 export interface MultiQuoteAcceptExtras {
   deliveryMethod: string;
+  deliveryAddress?: DeliveryAddressData;
   discountData?: {
     code: string;
     codeId: string;
@@ -53,6 +55,8 @@ export interface MultiQuotePackageDetails {
   cityArea?: string;
   package_destination_country?: string;
   products_data?: any[];
+  confirmedDeliveryAddress?: any;
+  package_destination?: string;
 }
 
 interface MultiQuoteSelectorProps {
@@ -78,6 +82,17 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [confirmedDeliveryTime, setConfirmedDeliveryTime] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showAddressSheet, setShowAddressSheet] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddressData | null>(
+    packageDetails.confirmedDeliveryAddress
+      ? {
+          streetAddress: packageDetails.confirmedDeliveryAddress.streetAddress || '',
+          cityArea: packageDetails.confirmedDeliveryAddress.cityArea || '',
+          hotelAirbnbName: packageDetails.confirmedDeliveryAddress.hotelAirbnbName || '',
+          contactNumber: packageDetails.confirmedDeliveryAddress.contactNumber || '',
+        }
+      : null
+  );
 
   // Discount code state
   const [discountCode, setDiscountCode] = useState('');
@@ -223,6 +238,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
     try {
       const extras: MultiQuoteAcceptExtras = {
         deliveryMethod: selectedDeliveryMethod,
+        ...(isDeliveryAddressRequired && deliveryAddress ? { deliveryAddress } : {}),
       };
       if (discountSuccess && discountCodeId) {
         extras.discountData = {
@@ -247,7 +263,9 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
     );
   }
 
-  const canAccept = selectedId && acceptedTerms && confirmedDeliveryTime && !acceptingId && !isSelectedExpired;
+  const isDeliveryAddressRequired = selectedDeliveryMethod === 'delivery';
+  const hasValidAddress = deliveryAddress && deliveryAddress.streetAddress.trim() && deliveryAddress.contactNumber.trim();
+  const canAccept = selectedId && acceptedTerms && confirmedDeliveryTime && !acceptingId && !isSelectedExpired && (!isDeliveryAddressRequired || hasValidAddress);
 
   return (
     <div className="space-y-3">
@@ -451,6 +469,44 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
                 ✏️ Cambiarás de {packageDetails.delivery_method === 'delivery' ? 'entrega a domicilio' : 'pickup'} a {selectedDeliveryMethod === 'delivery' ? 'entrega a domicilio' : 'pickup'}
               </p>
             )}
+
+            {/* Delivery address summary when delivery is selected */}
+            {selectedDeliveryMethod === 'delivery' && (
+              <div className="mt-2 bg-background/80 border border-muted/50 rounded-lg p-2.5">
+                {deliveryAddress && deliveryAddress.streetAddress ? (
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-foreground truncate">{deliveryAddress.streetAddress}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">
+                        {[deliveryAddress.cityArea, deliveryAddress.hotelAirbnbName].filter(Boolean).join(' · ')}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">{deliveryAddress.contactNumber}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => setShowAddressSheet(true)}
+                    >
+                      <Pencil className="h-3 w-3 mr-1" />
+                      Editar
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() => setShowAddressSheet(true)}
+                  >
+                    <MapPin className="h-3.5 w-3.5 mr-1.5" />
+                    Agregar dirección de entrega
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Total display */}
@@ -595,6 +651,15 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
       )}
 
       <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
+
+      <DeliveryAddressSheet
+        isOpen={showAddressSheet}
+        onClose={() => setShowAddressSheet(false)}
+        onSave={(data) => setDeliveryAddress(data)}
+        initialData={deliveryAddress || undefined}
+        destinationCountry={packageDetails.package_destination_country}
+        destinationCity={packageDetails.package_destination}
+      />
     </div>
   );
 };

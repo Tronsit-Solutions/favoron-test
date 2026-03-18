@@ -2261,14 +2261,21 @@ export const useDashboardActions = (
   const handleAcceptMultiAssignmentQuote = async (
     packageId: string, 
     assignmentId: string,
-    extras?: { deliveryMethod: string; discountData?: { code: string; codeId: string; amount: number; originalTotal: number; finalTotal: number } }
+    extras?: { deliveryMethod: string; deliveryAddress?: { streetAddress: string; cityArea: string; hotelAirbnbName: string; contactNumber: string }; discountData?: { code: string; codeId: string; amount: number; originalTotal: number; finalTotal: number } }
   ) => {
     try {
       console.log('🎯 Shopper accepting assignment:', { packageId, assignmentId, extras });
       
-      // 1. Update delivery method if changed
+      // 1. Update delivery method and address if provided
+      const packageUpdates: any = {};
       if (extras?.deliveryMethod) {
-        await supabase.from('packages').update({ delivery_method: extras.deliveryMethod }).eq('id', packageId);
+        packageUpdates.delivery_method = extras.deliveryMethod;
+      }
+      if (extras?.deliveryAddress) {
+        packageUpdates.confirmed_delivery_address = extras.deliveryAddress;
+      }
+      if (Object.keys(packageUpdates).length > 0) {
+        await supabase.from('packages').update(packageUpdates).eq('id', packageId);
       }
       
       // 2. Accept assignment (promotes to packages table, status → quote_sent)
