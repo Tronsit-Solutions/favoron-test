@@ -1,5 +1,5 @@
 import { Package as PackageType } from "@/types";
-import { MapPin, Calendar, Clock, Home, AlertCircle } from "lucide-react";
+import { MapPin, Calendar, Clock, Home, AlertCircle, User } from "lucide-react";
 import { formatDateUTC } from "@/lib/formatters";
 
 interface PartialDeliveryInfoProps {
