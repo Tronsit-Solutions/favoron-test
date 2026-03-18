@@ -55,6 +55,8 @@ export interface MultiQuotePackageDetails {
   cityArea?: string;
   package_destination_country?: string;
   products_data?: any[];
+  confirmedDeliveryAddress?: any;
+  package_destination?: string;
 }
 
 interface MultiQuoteSelectorProps {
