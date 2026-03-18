@@ -1,0 +1,1 @@
+ALTER TABLE profiles ADD COLUMN saved_addresses jsonb DEFAULT '[]'::jsonb;

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, Gift, HelpCircle, Bell, ArrowLeft, Landmark, FileText, Shield, Sparkles } from "lucide-react";
+import { Package, Gift, HelpCircle, Bell, ArrowLeft, Landmark, FileText, Shield, Sparkles, MapPin } from "lucide-react";
 import TermsAndConditionsModal from "./TermsAndConditionsModal";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertTriangle } from "lucide-react";
@@ -17,6 +17,7 @@ import ProfileNavigationCard from "./profile/ProfileNavigationCard";
 import ProfileHistorySection from "./profile/ProfileHistorySection";
 import ProfileNotificationsSection from "./profile/ProfileNotificationsSection";
 import ProfileHelpSection from "./profile/ProfileHelpSection";
+import SavedAddressesSection from "./profile/SavedAddressesSection";
 import PrimeModal from "./PrimeModal";
 
 interface UserProfileProps {
@@ -26,7 +27,7 @@ interface UserProfileProps {
   onUpdateUser: (userData: any) => void;
 }
 
-type ActiveSection = null | "history" | "referrals" | "help" | "notifications" | "personal" | "banking" | "customs";
+type ActiveSection = null | "history" | "referrals" | "help" | "notifications" | "personal" | "banking" | "customs" | "addresses";
 
 const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) => {
   const [activeSection, setActiveSection] = useState<ActiveSection>(null);
@@ -223,6 +224,14 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
     );
   }
 
+  if (activeSection === "addresses") {
+    return (
+      <div className="space-y-4 mobile-container">
+        <SavedAddressesSection userId={user.id} onBack={() => setActiveSection(null)} />
+      </div>
+    );
+  }
+
   if (activeSection === "customs") {
     return (
       <div className="space-y-4 mobile-container">
@@ -357,6 +366,12 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
           title="Términos y Condiciones"
           description="Términos y condiciones"
           onClick={() => setShowTermsModal(true)}
+        />
+        <ProfileNavigationCard
+          icon={MapPin}
+          title="Direcciones"
+          description="Direcciones guardadas"
+          onClick={() => toggleSection("addresses")}
         />
         <ProfileNavigationCard
           icon={Shield}

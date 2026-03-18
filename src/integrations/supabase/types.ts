@@ -1133,6 +1133,7 @@ export type Database = {
           prime_expires_at: string | null
           referral_code: string | null
           referrer_name: string | null
+          saved_addresses: Json | null
           traveler_avg_rating: number | null
           traveler_ontime_rate: number | null
           traveler_total_ratings: number | null
@@ -1167,6 +1168,7 @@ export type Database = {
           prime_expires_at?: string | null
           referral_code?: string | null
           referrer_name?: string | null
+          saved_addresses?: Json | null
           traveler_avg_rating?: number | null
           traveler_ontime_rate?: number | null
           traveler_total_ratings?: number | null
@@ -1201,6 +1203,7 @@ export type Database = {
           prime_expires_at?: string | null
           referral_code?: string | null
           referrer_name?: string | null
+          saved_addresses?: Json | null
           traveler_avg_rating?: number | null
           traveler_ontime_rate?: number | null
           traveler_total_ratings?: number | null
