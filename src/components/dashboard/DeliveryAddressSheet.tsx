@@ -27,11 +27,7 @@ const DeliveryAddressSheet = ({ isOpen, onClose, onSave, initialData, destinatio
   const normalizedCountry = destinationCountry?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') || '';
   const isGuatemala = normalizedCountry === 'guatemala';
   const isSpain = normalizedCountry === 'espana' || normalizedCountry === 'españa';
-  const isGuatemalaCityDept = isGuatemala && (
-    destinationCity?.toLowerCase().includes('guatemala city') ||
-    destinationCity?.toLowerCase().includes('ciudad de guatemala') ||
-    !destinationCity
-  );
+  const isGuatemalaCityDept = isGuatemala;
   const hasDropdown = isGuatemalaCityDept || isSpain;
 
   const locationOptions = isGuatemalaCityDept
