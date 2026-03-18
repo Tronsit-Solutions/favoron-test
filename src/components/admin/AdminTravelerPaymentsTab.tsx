@@ -511,6 +511,16 @@ const AdminTravelerPaymentsTab = () => {
     setImageViewerOpen(true);
   };
 
+  const handleShowCelebration = (order: any) => {
+    setCelebrationData({
+      isOpen: true,
+      amount: order.amount || 0,
+      travelerName: `${order.profiles?.first_name || ''} ${order.profiles?.last_name || ''}`.trim() || 'Viajero',
+      fromCity: order.trips?.from_city || '—',
+      toCity: order.trips?.to_city || '—',
+    });
+  };
+
   // Fetch packages when dialog opens
   useEffect(() => {
     const fetchPackages = async () => {
