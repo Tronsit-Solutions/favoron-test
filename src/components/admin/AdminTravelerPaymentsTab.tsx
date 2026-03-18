@@ -350,6 +350,17 @@ const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOr
               <Eye className="h-3 w-3 mr-1" />
               Ver
             </Button>
+            {order.status === 'completed' && onShowCelebration && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-xs"
+                onClick={() => onShowCelebration(order)}
+                title="Ver imagen de celebración"
+              >
+                <PartyPopper className="h-4 w-4 text-amber-500" />
+              </Button>
+            )}
           </div>
         </TableCell>
       </TableRow>
