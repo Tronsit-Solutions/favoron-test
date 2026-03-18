@@ -651,6 +651,15 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
       )}
 
       <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
+
+      <DeliveryAddressSheet
+        isOpen={showAddressSheet}
+        onClose={() => setShowAddressSheet(false)}
+        onSave={(data) => setDeliveryAddress(data)}
+        initialData={deliveryAddress || undefined}
+        destinationCountry={packageDetails.package_destination_country}
+        destinationCity={packageDetails.package_destination}
+      />
     </div>
   );
 };
