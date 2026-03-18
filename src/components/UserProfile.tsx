@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, Gift, HelpCircle, Bell, ArrowLeft, Landmark, FileText, Shield, Sparkles } from "lucide-react";
+import { Package, Gift, HelpCircle, Bell, ArrowLeft, Landmark, FileText, Shield, Sparkles, MapPin } from "lucide-react";
 import TermsAndConditionsModal from "./TermsAndConditionsModal";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertTriangle } from "lucide-react";
