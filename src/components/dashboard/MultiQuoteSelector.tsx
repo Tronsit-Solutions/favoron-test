@@ -238,6 +238,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
     try {
       const extras: MultiQuoteAcceptExtras = {
         deliveryMethod: selectedDeliveryMethod,
+        ...(isDeliveryAddressRequired && deliveryAddress ? { deliveryAddress } : {}),
       };
       if (discountSuccess && discountCodeId) {
         extras.discountData = {
