@@ -104,13 +104,13 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
     return validDates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0];
   }, [quotedAssignments]);
 
+  const selectedAssignment = quotedAssignments.find(a => a.id === selectedId);
+
   // Check if selected assignment's quote has expired
   const isSelectedExpired = useMemo(() => {
     if (!selectedAssignment?.quote_expires_at) return false;
     return new Date(selectedAssignment.quote_expires_at) <= new Date();
   }, [selectedAssignment]);
-
-  const selectedAssignment = quotedAssignments.find(a => a.id === selectedId);
 
   // Compute delivery fees for the selected quote
   const deliveryFees = useMemo(() => ({
