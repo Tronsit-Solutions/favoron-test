@@ -368,6 +368,12 @@ const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) 
           onClick={() => setShowTermsModal(true)}
         />
         <ProfileNavigationCard
+          icon={MapPin}
+          title="Direcciones"
+          description="Direcciones guardadas"
+          onClick={() => toggleSection("addresses")}
+        />
+        <ProfileNavigationCard
           icon={Shield}
           title="Regulación Aduanera"
           description="Regulación aduanera"
