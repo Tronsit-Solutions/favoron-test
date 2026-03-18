@@ -262,7 +262,9 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
     );
   }
 
-  const canAccept = selectedId && acceptedTerms && confirmedDeliveryTime && !acceptingId && !isSelectedExpired;
+  const isDeliveryAddressRequired = selectedDeliveryMethod === 'delivery';
+  const hasValidAddress = deliveryAddress && deliveryAddress.streetAddress.trim() && deliveryAddress.contactNumber.trim();
+  const canAccept = selectedId && acceptedTerms && confirmedDeliveryTime && !acceptingId && !isSelectedExpired && (!isDeliveryAddressRequired || hasValidAddress);
 
   return (
     <div className="space-y-3">
