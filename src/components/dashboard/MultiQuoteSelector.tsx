@@ -258,6 +258,10 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
         </h3>
       </div>
 
+      {nearestExpiration && (
+        <QuoteCountdown expiresAt={nearestExpiration} compact={true} />
+      )}
+
       {quotedAssignments.map((assignment) => {
         const quoteValues = getQuoteValues(assignment.quote);
         const travelerFirstName = assignment.traveler_first_name || 'Viajero';
