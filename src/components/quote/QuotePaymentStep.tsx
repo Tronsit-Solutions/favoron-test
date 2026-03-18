@@ -412,74 +412,51 @@ export default function QuotePaymentStep({
       {/* Conditional Payment Section */}
       {paymentMethod === 'bank_transfer' ? (
         <>
-          {/* Banking Information */}
+          {/* Banking Information — Compact */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Datos Bancarios de Favorón</CardTitle>
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Datos Bancarios de Favorón</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 pb-3 pt-0">
               {bankLoading ? (
-                <p className="text-sm text-muted-foreground">Cargando información bancaria...</p>
+                <p className="text-sm text-muted-foreground">Cargando...</p>
               ) : bankAccount ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Banco</p>
-                        <p className="font-medium">{bankAccount.bank_name}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleCopyToClipboard(bankAccount.bank_name, "Nombre del banco")}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-muted-foreground">Banco: </span>
+                      <span className="font-medium">{bankAccount.bank_name}</span>
                     </div>
-
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Número de Cuenta</p>
-                        <p className="font-medium">{bankAccount.account_number}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleCopyToClipboard(bankAccount.account_number, "Número de cuenta")}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 min-h-0 min-w-0" onClick={() => handleCopyToClipboard(bankAccount.bank_name, "Banco")}>
+                      <Copy className="h-3 w-3" />
+                    </Button>
                   </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Titular de la Cuenta</p>
-                        <p className="font-medium">{bankAccount.account_holder}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleCopyToClipboard(bankAccount.account_holder, "Titular de la cuenta")}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-muted-foreground">Titular: </span>
+                      <span className="font-medium">{bankAccount.account_holder}</span>
                     </div>
-
-                    <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Tipo de Cuenta</p>
-                        <p className="font-medium">{bankAccount.account_type}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleCopyToClipboard(bankAccount.account_type, "Tipo de cuenta")}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 min-h-0 min-w-0" onClick={() => handleCopyToClipboard(bankAccount.account_holder, "Titular")}>
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-muted-foreground">Cuenta: </span>
+                      <span className="font-medium">{bankAccount.account_number}</span>
                     </div>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 min-h-0 min-w-0" onClick={() => handleCopyToClipboard(bankAccount.account_number, "Cuenta")}>
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-muted-foreground">Tipo: </span>
+                      <span className="font-medium">{bankAccount.account_type}</span>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 min-h-0 min-w-0" onClick={() => handleCopyToClipboard(bankAccount.account_type, "Tipo")}>
+                      <Copy className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
               ) : (
@@ -490,25 +467,13 @@ export default function QuotePaymentStep({
             </CardContent>
           </Card>
 
-          {/* Payment Instructions */}
+          {/* Upload Receipt Section (merged with instructions) */}
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Instrucciones de Pago</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <p>1. Realiza una transferencia bancaria por el monto exacto: <strong>Q{totalAmount.toFixed(2)}</strong>{hasDiscount && <span className="text-green-600 ml-1">(con descuento aplicado)</span>}</p>
-                <p>2. Utiliza los datos bancarios de Favorón mostrados arriba</p>
-                <p>3. Una vez completada la transferencia, sube tu comprobante de pago abajo</p>
-                <p>4. Nuestro equipo verificará tu pago en las próximas 24 horas</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Upload Receipt Section */}
-          <Card>
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <CardTitle className="text-lg">Subir Comprobante de Pago</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Transfiere <strong>Q{totalAmount.toFixed(2)}</strong> a la cuenta de arriba y sube tu comprobante aquí. Verificaremos tu pago en 24 horas.
+              </p>
             </CardHeader>
             <CardContent>
               {showSuccessState ? (
