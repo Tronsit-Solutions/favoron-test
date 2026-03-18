@@ -82,6 +82,17 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [confirmedDeliveryTime, setConfirmedDeliveryTime] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showAddressSheet, setShowAddressSheet] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddressData | null>(
+    packageDetails.confirmedDeliveryAddress
+      ? {
+          streetAddress: packageDetails.confirmedDeliveryAddress.streetAddress || '',
+          cityArea: packageDetails.confirmedDeliveryAddress.cityArea || '',
+          hotelAirbnbName: packageDetails.confirmedDeliveryAddress.hotelAirbnbName || '',
+          contactNumber: packageDetails.confirmedDeliveryAddress.contactNumber || '',
+        }
+      : null
+  );
 
   // Discount code state
   const [discountCode, setDiscountCode] = useState('');
