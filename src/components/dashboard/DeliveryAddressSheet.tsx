@@ -31,7 +31,7 @@ const DeliveryAddressSheet = ({ isOpen, onClose, onSave, initialData, destinatio
   const hasDropdown = isGuatemalaCityDept || isSpain;
 
   const locationOptions = isGuatemalaCityDept
-    ? GUATEMALA_MUNICIPALITIES.map(m => ({ value: m.value, label: m.isCapital ? `${m.label} (Q25)` : m.label }))
+    ? GUATEMALA_MUNICIPALITIES.map(m => ({ value: m.value, label: m.isCapital ? `${m.label} (Q25)` : `${m.label} (Q45)` }))
     : isSpain
     ? SPAIN_PROVINCES
     : [];
