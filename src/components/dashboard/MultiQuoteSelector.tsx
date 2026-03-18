@@ -328,6 +328,9 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className="text-sm font-bold text-primary">{formatPrice(quoteValues.totalPrice)}</span>
+                  {assignment.quote_expires_at && (
+                    <QuoteCountdown expiresAt={assignment.quote_expires_at} micro={true} />
+                  )}
                   {assignment.trip_delivery_date && (
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                       <Clock className="h-2.5 w-2.5 mr-0.5" />
