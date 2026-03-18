@@ -114,6 +114,7 @@ export const useOptimizedPackagesData = (userId?: string, rates?: { standard: nu
           products_data,
           purchase_origin,
           package_destination,
+          package_destination_country,
           matched_trip_id,
           created_at,
           updated_at,
