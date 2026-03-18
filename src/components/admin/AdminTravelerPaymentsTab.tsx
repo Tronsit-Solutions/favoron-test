@@ -221,6 +221,7 @@ interface CompactOrderRowProps {
   toast: ReturnType<typeof useToast>['toast'];
   onConfirmAction: (action: 'complete' | 'reject', order: any) => void;
   onSelectOrder: (order: any) => void;
+  onShowCelebration?: (order: any) => void;
 }
 
 const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOrder, toast, onConfirmAction, onSelectOrder }: CompactOrderRowProps) => {
