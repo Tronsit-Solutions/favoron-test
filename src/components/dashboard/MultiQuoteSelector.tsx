@@ -135,6 +135,11 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
     prime_delivery_discount: fees.prime_delivery_discount,
   }), [fees]);
 
+  // Use delivery address cityArea when available, fallback to package cityArea
+  const effectiveCityArea = (selectedDeliveryMethod === 'delivery' && deliveryAddress?.cityArea)
+    ? deliveryAddress.cityArea
+    : packageDetails.cityArea;
+
   // Calculate recalculated total for selected quote
   const recalculatedTotal = useMemo(() => {
     if (!selectedAssignment) return null;
@@ -145,7 +150,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
       basePrice,
       selectedDeliveryMethod,
       packageDetails.shopper_trust_level,
-      packageDetails.cityArea,
+      effectiveCityArea,
       rates,
       deliveryFees,
       packageDetails.package_destination_country
@@ -154,7 +159,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
       ...breakdown,
       quoteValues,
     };
-  }, [selectedAssignment, selectedDeliveryMethod, packageDetails, rates, deliveryFees]);
+  }, [selectedAssignment, selectedDeliveryMethod, packageDetails, rates, deliveryFees, effectiveCityArea]);
 
   const standardDeliveryFee = useMemo(() => {
     if (!selectedAssignment) return 0;
@@ -163,13 +168,13 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
       quoteValues.price,
       'delivery',
       packageDetails.shopper_trust_level,
-      packageDetails.cityArea,
+      effectiveCityArea,
       rates,
       deliveryFees,
       packageDetails.package_destination_country
     );
     return breakdown.deliveryFee;
-  }, [selectedAssignment, packageDetails, rates, deliveryFees]);
+  }, [selectedAssignment, packageDetails, rates, deliveryFees, effectiveCityArea]);
 
   const displayTotal = useMemo(() => {
     if (!recalculatedTotal) return 0;
