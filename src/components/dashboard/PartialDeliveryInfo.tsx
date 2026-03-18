@@ -1,5 +1,5 @@
 import { Package as PackageType } from "@/types";
-import { MapPin, Calendar, Clock, Home, AlertCircle } from "lucide-react";
+import { MapPin, Calendar, Clock, Home, AlertCircle, User } from "lucide-react";
 import { formatDateUTC } from "@/lib/formatters";
 
 interface PartialDeliveryInfoProps {
@@ -33,6 +33,7 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
     );
   }
 
+  const recipientName = travelerAddress?.recipientName || travelerAddress?.recipient_name || null;
   const addressLine1 = travelerAddress?.streetAddress || travelerAddress?.address_line_1 || travelerAddress?.street_address || travelerAddress?.direccion || null;
   const addressLine2 = travelerAddress?.streetAddress2 || travelerAddress?.address_line_2 || travelerAddress?.street_address_2 || null;
   const city = travelerAddress?.cityArea || travelerAddress?.city || travelerAddress?.ciudad || null;
@@ -78,6 +79,17 @@ export const PartialDeliveryInfo = ({ pkg }: PartialDeliveryInfoProps) => {
               <span className="font-medium text-slate-800">
                 {estimatedDelivery.toLocaleDateString('es-GT')}
               </span>
+            </div>
+          </div>
+        )}
+
+        {/* Recipient name - blurred */}
+        {recipientName && (
+          <div className="flex items-center gap-3">
+            <User className="h-4 w-4 text-slate-400/50 flex-shrink-0" />
+            <div className="text-sm">
+              <span className="text-slate-600">Destinatario: </span>
+              <span className="blur-[4px] select-none text-slate-400">{recipientName}</span>
             </div>
           </div>
         )}
