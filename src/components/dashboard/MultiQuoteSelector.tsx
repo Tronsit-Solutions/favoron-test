@@ -247,7 +247,7 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
     );
   }
 
-  const canAccept = selectedId && acceptedTerms && confirmedDeliveryTime && !acceptingId;
+  const canAccept = selectedId && acceptedTerms && confirmedDeliveryTime && !acceptingId && !isSelectedExpired;
 
   return (
     <div className="space-y-3">
