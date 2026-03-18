@@ -469,6 +469,44 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
                 ✏️ Cambiarás de {packageDetails.delivery_method === 'delivery' ? 'entrega a domicilio' : 'pickup'} a {selectedDeliveryMethod === 'delivery' ? 'entrega a domicilio' : 'pickup'}
               </p>
             )}
+
+            {/* Delivery address summary when delivery is selected */}
+            {selectedDeliveryMethod === 'delivery' && (
+              <div className="mt-2 bg-background/80 border border-muted/50 rounded-lg p-2.5">
+                {deliveryAddress && deliveryAddress.streetAddress ? (
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-foreground truncate">{deliveryAddress.streetAddress}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">
+                        {[deliveryAddress.cityArea, deliveryAddress.hotelAirbnbName].filter(Boolean).join(' · ')}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">{deliveryAddress.contactNumber}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => setShowAddressSheet(true)}
+                    >
+                      <Pencil className="h-3 w-3 mr-1" />
+                      Editar
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() => setShowAddressSheet(true)}
+                  >
+                    <MapPin className="h-3.5 w-3.5 mr-1.5" />
+                    Agregar dirección de entrega
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Total display */}
