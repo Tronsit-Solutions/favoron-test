@@ -17,6 +17,7 @@ import TermsAndConditionsModal from "@/components/TermsAndConditionsModal";
 import { Clock, MapPin, DollarSign, Check, Loader2, User, Package, Truck, Home, FileText, AlertTriangle, X } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import QuoteCountdown from "./QuoteCountdown";
 
 interface Assignment {
   id: string;
