@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from "react";
 
 import { Star } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -326,70 +326,92 @@ const Dashboard = ({ user }: DashboardProps) => {
   }, [userTrips.length, packages]); // Re-fetch when trips or packages change
 
   // === Shopper-side: fetch multi-assignments for user's own packages ===
+  // Memoize the list of multi-matched package IDs for reuse
+  const multiMatchedPkgIds = useMemo(() => 
+    userPackages
+      .filter(p => ['matched', 'quote_sent'].includes(p.status) && !p.matched_trip_id)
+      .map(p => p.id),
+    [userPackages]
+  );
+
+  const fetchShopperAssignments = useCallback(async () => {
+    if (multiMatchedPkgIds.length === 0) {
+      setShopperAssignmentsMap({});
+      return;
+    }
+
+    const { data: assignments, error } = await supabase
+      .from('package_assignments')
+      .select('*')
+      .in('package_id', multiMatchedPkgIds)
+      .in('status', ['bid_pending', 'bid_submitted']);
+
+    if (error || !assignments) {
+      console.error('Error fetching shopper assignments:', error);
+      setShopperAssignmentsMap({});
+      return;
+    }
+
+    // Fetch traveler profiles and trip info for these assignments
+    const tripIds = [...new Set(assignments.map(a => a.trip_id))];
+    const [tripsResult, profilesResult] = await Promise.all([
+      supabase.from('trips').select('id, from_city, to_city, delivery_date, user_id').in('id', tripIds),
+      supabase.from('trips').select('id, user_id, profiles:user_id(first_name, last_name, avatar_url)').in('id', tripIds)
+    ]);
+
+    const tripsMap: Record<string, any> = {};
+    (tripsResult.data || []).forEach(t => { tripsMap[t.id] = t; });
+    const profilesMap: Record<string, any> = {};
+    (profilesResult.data || []).forEach((t: any) => {
+      if (t.profiles) profilesMap[t.id] = t.profiles;
+    });
+
+    // Build map: packageId -> enriched assignments[]
+    const map: Record<string, any[]> = {};
+    for (const a of assignments) {
+      const trip = tripsMap[a.trip_id];
+      const profile = profilesMap[a.trip_id];
+      const enriched = {
+        ...a,
+        traveler_first_name: profile?.first_name,
+        traveler_last_name: profile?.last_name,
+        traveler_avatar_url: profile?.avatar_url,
+        trip_from_city: trip?.from_city,
+        trip_to_city: trip?.to_city,
+        trip_delivery_date: trip?.delivery_date,
+      };
+      if (!map[a.package_id]) map[a.package_id] = [];
+      map[a.package_id].push(enriched);
+    }
+
+    setShopperAssignmentsMap(map);
+  }, [multiMatchedPkgIds]);
+
+  // Initial fetch and re-fetch when packages change
   useEffect(() => {
-    const fetchShopperAssignments = async () => {
-      // Find packages owned by this user that are multi-assignment (no matched_trip_id)
-      // Include both 'matched' and 'quote_sent' status — the latter covers packages where
-      // the old code incorrectly set package-level status to quote_sent
-      const multiMatchedPkgIds = userPackages
-        .filter(p => ['matched', 'quote_sent'].includes(p.status) && !p.matched_trip_id)
-        .map(p => p.id);
-      
-      if (multiMatchedPkgIds.length === 0) {
-        setShopperAssignmentsMap({});
-        return;
-      }
-
-      const { data: assignments, error } = await supabase
-        .from('package_assignments')
-        .select('*')
-        .in('package_id', multiMatchedPkgIds)
-        .in('status', ['bid_pending', 'bid_submitted']);
-
-      if (error || !assignments) {
-        console.error('Error fetching shopper assignments:', error);
-        setShopperAssignmentsMap({});
-        return;
-      }
-
-      // Fetch traveler profiles and trip info for these assignments
-      const tripIds = [...new Set(assignments.map(a => a.trip_id))];
-      const [tripsResult, profilesResult] = await Promise.all([
-        supabase.from('trips').select('id, from_city, to_city, delivery_date, user_id').in('id', tripIds),
-        // We need traveler profiles via trips
-        supabase.from('trips').select('id, user_id, profiles:user_id(first_name, last_name, avatar_url)').in('id', tripIds)
-      ]);
-
-      const tripsMap: Record<string, any> = {};
-      (tripsResult.data || []).forEach(t => { tripsMap[t.id] = t; });
-      const profilesMap: Record<string, any> = {};
-      (profilesResult.data || []).forEach((t: any) => {
-        if (t.profiles) profilesMap[t.id] = t.profiles;
-      });
-
-      // Build map: packageId -> enriched assignments[]
-      const map: Record<string, any[]> = {};
-      for (const a of assignments) {
-        const trip = tripsMap[a.trip_id];
-        const profile = profilesMap[a.trip_id];
-        const enriched = {
-          ...a,
-          traveler_first_name: profile?.first_name,
-          traveler_last_name: profile?.last_name,
-          traveler_avatar_url: profile?.avatar_url,
-          trip_from_city: trip?.from_city,
-          trip_to_city: trip?.to_city,
-          trip_delivery_date: trip?.delivery_date,
-        };
-        if (!map[a.package_id]) map[a.package_id] = [];
-        map[a.package_id].push(enriched);
-      }
-
-      setShopperAssignmentsMap(map);
-    };
-
     fetchShopperAssignments();
-  }, [userPackages.length, packages]);
+  }, [fetchShopperAssignments]);
+
+  // Realtime subscription for package_assignments changes (so shopper sees quotes instantly)
+  useEffect(() => {
+    if (multiMatchedPkgIds.length === 0) return;
+
+    const channel = supabase
+      .channel('shopper-assignments-realtime')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'package_assignments',
+      }, (payload) => {
+        const row = (payload.new || payload.old) as any;
+        if (row?.package_id && multiMatchedPkgIds.includes(row.package_id)) {
+          fetchShopperAssignments();
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [multiMatchedPkgIds, fetchShopperAssignments]);
 
   // Get packages assigned to user's trips (for traveler view)
   // Note: traveler_dismissed_at filter removed - we now rely solely on matched_trip_id
