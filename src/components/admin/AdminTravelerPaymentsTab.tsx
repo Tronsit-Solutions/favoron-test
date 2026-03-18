@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
-import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, XCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip, ExternalLink, Receipt, MessageSquare, Save } from "lucide-react";
+import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, XCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip, ExternalLink, Receipt, MessageSquare, Save, PartyPopper } from "lucide-react";
 import PaymentCelebrationModal from "./PaymentCelebrationModal";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
@@ -221,9 +221,10 @@ interface CompactOrderRowProps {
   toast: ReturnType<typeof useToast>['toast'];
   onConfirmAction: (action: 'complete' | 'reject', order: any) => void;
   onSelectOrder: (order: any) => void;
+  onShowCelebration?: (order: any) => void;
 }
 
-const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOrder, toast, onConfirmAction, onSelectOrder }: CompactOrderRowProps) => {
+const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOrder, toast, onConfirmAction, onSelectOrder, onShowCelebration }: CompactOrderRowProps) => {
   const [editableNotes, setEditableNotes] = useState(order.notes || '');
   const [savingNotes, setSavingNotes] = useState(false);
   
@@ -349,6 +350,17 @@ const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOr
               <Eye className="h-3 w-3 mr-1" />
               Ver
             </Button>
+            {order.status === 'completed' && onShowCelebration && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-xs"
+                onClick={() => onShowCelebration(order)}
+                title="Ver imagen de celebración"
+              >
+                <PartyPopper className="h-4 w-4 text-amber-500" />
+              </Button>
+            )}
           </div>
         </TableCell>
       </TableRow>
@@ -497,6 +509,16 @@ const AdminTravelerPaymentsTab = () => {
     setViewingReceiptUrl(url);
     setViewingReceiptFilename(filename);
     setImageViewerOpen(true);
+  };
+
+  const handleShowCelebration = (order: any) => {
+    setCelebrationData({
+      isOpen: true,
+      amount: order.amount || 0,
+      travelerName: `${order.profiles?.first_name || ''} ${order.profiles?.last_name || ''}`.trim() || 'Viajero',
+      fromCity: order.trips?.from_city || '—',
+      toCity: order.trips?.to_city || '—',
+    });
   };
 
   // Fetch packages when dialog opens
@@ -710,6 +732,7 @@ const AdminTravelerPaymentsTab = () => {
                         toast={toast}
                         onConfirmAction={handleConfirmAction}
                         onSelectOrder={setSelectedOrder}
+                        onShowCelebration={handleShowCelebration}
                       />
                     ))}
                   </TableBody>
@@ -754,6 +777,7 @@ const AdminTravelerPaymentsTab = () => {
                         toast={toast}
                         onConfirmAction={handleConfirmAction}
                         onSelectOrder={setSelectedOrder}
+                        onShowCelebration={handleShowCelebration}
                       />
                     ))}
                   </TableBody>
