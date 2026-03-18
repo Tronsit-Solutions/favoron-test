@@ -1276,7 +1276,7 @@ export const useDashboardActions = (
           return {
             package_id: packageId,
             trip_id: tid,
-            status: 'pending',
+            status: 'bid_pending',
             admin_assigned_tip: adminTip,
             traveler_address: travelerAddress,
             matched_trip_dates: matchedTripDates,
