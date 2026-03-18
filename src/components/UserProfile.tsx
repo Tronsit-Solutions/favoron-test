@@ -27,7 +27,7 @@ interface UserProfileProps {
   onUpdateUser: (userData: any) => void;
 }
 
-type ActiveSection = null | "history" | "referrals" | "help" | "notifications" | "personal" | "banking" | "customs";
+type ActiveSection = null | "history" | "referrals" | "help" | "notifications" | "personal" | "banking" | "customs" | "addresses";
 
 const UserProfile = ({ user, packages, trips, onUpdateUser }: UserProfileProps) => {
   const [activeSection, setActiveSection] = useState<ActiveSection>(null);
