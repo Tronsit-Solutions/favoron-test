@@ -20,6 +20,9 @@ const FinancialDashboard = ({
     completedCount: 0, totalCount: 0
   });
 
+  // Boost metrics
+  const [boostMetrics, setBoostMetrics] = useState({ totalBoosted: 0, totalUsages: 0 });
+
   useEffect(() => {
     const fetchReferrals = async () => {
       const { data, error } = await supabase.from('referrals').select('*');
@@ -38,7 +41,17 @@ const FinancialDashboard = ({
       
       setReferralMetrics({ pendingCredit, pendingDiscounts, distributed, completedCount, totalCount: data.length });
     };
+    const fetchBoostMetrics = async () => {
+      const { data } = await supabase.from('boost_code_usage').select('boost_amount');
+      if (data) {
+        setBoostMetrics({
+          totalBoosted: data.reduce((s, u) => s + Number(u.boost_amount), 0),
+          totalUsages: data.length
+        });
+      }
+    };
     fetchReferrals();
+    fetchBoostMetrics();
   }, []);
 
   const [dateFilter, setDateFilter] = useState("all");
