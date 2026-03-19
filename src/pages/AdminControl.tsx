@@ -350,6 +350,23 @@ const AdminControl = () => {
               </CardContent>
             </Card>
 
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/customer-experience')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Headphones className="h-5 w-5" />
+                  Customer Experience
+                </CardTitle>
+                <CardDescription>
+                  Seguimiento de llamadas post-entrega
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" className="w-full">
+                  Ver CX
+                </Button>
+              </CardContent>
+            </Card>
+
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
