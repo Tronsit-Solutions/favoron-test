@@ -14,6 +14,13 @@ const DashboardPage = () => {
     }
   }, [user]);
 
+  // Safety net: retry pending referral registration on dashboard load
+  useEffect(() => {
+    if (user?.id) {
+      retryPendingReferral(user.id);
+    }
+  }, [user?.id]);
+
   // Check if user was previously authenticated (prevents unmount during token refresh)
   const wasAuthenticated = sessionStorage.getItem('was_authenticated') === 'true';
   
