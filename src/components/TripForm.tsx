@@ -394,7 +394,8 @@ const TripForm = ({
         },
         firstDayPackages: null as Date | null,
         lastDayPackages: null as Date | null,
-        messengerPickupLocation: ''
+        messengerPickupLocation: '',
+        boostCode: ''
       };
       
       setFormData(initialFormData);
