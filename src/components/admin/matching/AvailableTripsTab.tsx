@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TripFilters } from "./TripFilters";
 import { TripStatsHeader } from "./TripStatsHeader";
 import { TripCard } from "./TripCard";
 import { EmptyTripsState } from "./EmptyTripsState";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AvailableTripsTabProps {
   trips: any[];
@@ -13,6 +14,19 @@ interface AvailableTripsTabProps {
 const AvailableTripsTab = ({ trips, packages, onViewTripDetail }: AvailableTripsTabProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [originFilter, setOriginFilter] = useState("all");
+  const [boostedTripIds, setBoostedTripIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const fetchBoostedTrips = async () => {
+      const { data } = await supabase
+        .from('boost_code_usage')
+        .select('trip_id');
+      if (data) {
+        setBoostedTripIds(new Set(data.map(d => d.trip_id)));
+      }
+    };
+    fetchBoostedTrips();
+  }, []);
 
   // Function to calculate total value of packages for a specific trip
   const calculateTripPackagesTotal = (tripId: string) => {
@@ -105,6 +119,7 @@ const AvailableTripsTab = ({ trips, packages, onViewTripDetail }: AvailableTrips
               trip={trip}
               packagesTotal={calculateTripPackagesTotal(trip.id)}
               onViewTripDetail={onViewTripDetail}
+              hasBoost={boostedTripIds.has(trip.id)}
             />
           ))
         )}

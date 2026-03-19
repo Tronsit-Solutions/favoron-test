@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Phone, Edit, CheckCircle, MoreHorizontal, MapPin, User, Pencil, Star, FileText, Eye } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -22,9 +23,10 @@ interface TripCardProps {
   travelerProfile?: any;
   onDeliveryConfirmed?: () => void;
   currentUser?: any;
+  isAdmin?: boolean;
 }
 
-const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerProfile, onDeliveryConfirmed, currentUser }: TripCardProps) => {
+const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerProfile, onDeliveryConfirmed, currentUser, isAdmin = false }: TripCardProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -158,8 +160,13 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
               </div>
             )}
 
-            {/* Status Badge - aligned right */}
-            <div className="flex items-center justify-end">
+            {/* Status Badge + Boost - aligned right */}
+            <div className="flex items-center justify-end gap-2">
+              {(isOwner || isAdmin) && tripPayment?.boost_amount > 0 && (
+                <Badge className="bg-amber-100 text-amber-800 border-amber-200">
+                  🚀 Boost
+                </Badge>
+              )}
               {getStatusBadge(trip.status)}
             </div>
           </div>
