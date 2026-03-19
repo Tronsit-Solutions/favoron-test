@@ -74,7 +74,8 @@ const TripForm = ({
       },
       firstDayPackages: null as Date | null,
       lastDayPackages: null as Date | null,
-      messengerPickupLocation: ''
+      messengerPickupLocation: '',
+      boostCode: ''
     },
     messengerData: null as any,
     acceptedTerms: false,
