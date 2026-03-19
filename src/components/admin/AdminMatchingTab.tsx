@@ -136,8 +136,14 @@ const AdminMatchingTab = ({
   const multiAssignedPackageIds = useMemo(() => {
     const ids = new Set<string>();
     packages.forEach(pkg => {
-      if (!pkg.matched_trip_id && assignmentsMap[pkg.id] && assignmentsMap[pkg.id].count > 0) {
-        ids.add(pkg.id);
+      if (!pkg.matched_trip_id && assignmentsMap[pkg.id]) {
+        // Only consider packages with at least one active (non-terminal) assignment
+        const hasActiveAssignment = assignmentsMap[pkg.id].assignments.some(
+          (a: any) => ['bid_pending', 'bid_submitted', 'bid_won'].includes(a.status)
+        );
+        if (hasActiveAssignment) {
+          ids.add(pkg.id);
+        }
       }
     });
     return ids;
