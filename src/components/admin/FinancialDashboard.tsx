@@ -106,8 +106,8 @@ const FinancialDashboard = ({
       return sum + quoteValues.serviceFee;
     }, 0);
 
-    // Restar descuentos de los ingresos de Favorón
-    const favoronRevenue = favoronRevenueGross - totalDiscounts;
+    // Restar descuentos y boosts de los ingresos de Favorón
+    const favoronRevenue = favoronRevenueGross - totalDiscounts - boostMetrics.totalBoosted;
 
     // Tips para viajeros (igual a la cotización completa)
     const travelerTips = completedPackages.reduce((sum, pkg) => {
