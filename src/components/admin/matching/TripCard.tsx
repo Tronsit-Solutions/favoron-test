@@ -15,7 +15,8 @@ interface TripCardProps {
 export const TripCard = ({
   trip,
   packagesTotal,
-  onViewTripDetail
+  onViewTripDetail,
+  hasBoost = false
 }: TripCardProps) => {
   console.log("TripCard trip data:", trip);
   console.log("TripCard profiles data:", trip.public_profiles);
