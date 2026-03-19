@@ -210,11 +210,16 @@ const FinancialDashboard = ({
             </div>
             {financialMetrics.totalDiscounts > 0 && (
               <p className="text-xs text-red-600 font-medium">
-                Descuentos aplicados: -{formatCurrencyGTQ(financialMetrics.totalDiscounts)}
+                Descuentos: -{formatCurrencyGTQ(financialMetrics.totalDiscounts)}
+              </p>
+            )}
+            {boostMetrics.totalBoosted > 0 && (
+              <p className="text-xs text-orange-600 font-medium">
+                Tip Boosts: -{formatCurrencyGTQ(boostMetrics.totalBoosted)}
               </p>
             )}
             <p className="text-xs text-muted-foreground">
-              fees - descuentos
+              fees - descuentos - boosts
             </p>
           </CardContent>
         </Card>
