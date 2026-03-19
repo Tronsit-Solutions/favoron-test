@@ -8,11 +8,12 @@ export interface TripPaymentAccumulator {
   trip_id: string;
   traveler_id: string;
   accumulated_amount: number;
+  boost_amount: number;
   delivered_packages_count: number;
   total_packages_count: number;
   all_packages_delivered: boolean;
   payment_order_created: boolean;
-  payment_status?: string; // Agregar campo opcional para el status del pago
+  payment_status?: string;
   payment_receipt_url?: string;
   payment_receipt_filename?: string;
   payment_completed_at?: string;

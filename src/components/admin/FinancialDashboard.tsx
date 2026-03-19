@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Package } from "@/types";
-import { DollarSign, Backpack, TrendingUp, Gift } from "lucide-react";
+import { DollarSign, Backpack, TrendingUp, Gift, Rocket } from "lucide-react";
 import FinancialTablesSection from "./FinancialTablesSection";
 import { getQuoteValues } from '@/lib/quoteHelpers';
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,9 @@ const FinancialDashboard = ({
     pendingCredit: 0, pendingDiscounts: 0, distributed: 0,
     completedCount: 0, totalCount: 0
   });
+
+  // Boost metrics
+  const [boostMetrics, setBoostMetrics] = useState({ totalBoosted: 0, totalUsages: 0 });
 
   useEffect(() => {
     const fetchReferrals = async () => {
@@ -38,7 +41,17 @@ const FinancialDashboard = ({
       
       setReferralMetrics({ pendingCredit, pendingDiscounts, distributed, completedCount, totalCount: data.length });
     };
+    const fetchBoostMetrics = async () => {
+      const { data } = await supabase.from('boost_code_usage').select('boost_amount');
+      if (data) {
+        setBoostMetrics({
+          totalBoosted: data.reduce((s, u) => s + Number(u.boost_amount), 0),
+          totalUsages: data.length
+        });
+      }
+    };
     fetchReferrals();
+    fetchBoostMetrics();
   }, []);
 
   const [dateFilter, setDateFilter] = useState("all");
@@ -93,8 +106,8 @@ const FinancialDashboard = ({
       return sum + quoteValues.serviceFee;
     }, 0);
 
-    // Restar descuentos de los ingresos de Favorón
-    const favoronRevenue = favoronRevenueGross - totalDiscounts;
+    // Restar descuentos y boosts de los ingresos de Favorón
+    const favoronRevenue = favoronRevenueGross - totalDiscounts - boostMetrics.totalBoosted;
 
     // Tips para viajeros (igual a la cotización completa)
     const travelerTips = completedPackages.reduce((sum, pkg) => {
@@ -197,11 +210,16 @@ const FinancialDashboard = ({
             </div>
             {financialMetrics.totalDiscounts > 0 && (
               <p className="text-xs text-red-600 font-medium">
-                Descuentos aplicados: -{formatCurrencyGTQ(financialMetrics.totalDiscounts)}
+                Descuentos: -{formatCurrencyGTQ(financialMetrics.totalDiscounts)}
+              </p>
+            )}
+            {boostMetrics.totalBoosted > 0 && (
+              <p className="text-xs text-orange-600 font-medium">
+                Tip Boosts: -{formatCurrencyGTQ(boostMetrics.totalBoosted)}
               </p>
             )}
             <p className="text-xs text-muted-foreground">
-              fees - descuentos
+              fees - descuentos - boosts
             </p>
           </CardContent>
         </Card>
@@ -292,6 +310,34 @@ const FinancialDashboard = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Tip Boosts */}
+      {boostMetrics.totalUsages > 0 && (
+        <Card>
+          <CardHeader className="flex flex-row items-center gap-2">
+            <Rocket className="h-5 w-5 text-orange-600" />
+            <CardTitle>Tip Boosts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="font-medium text-orange-700">Total Boost distribuido</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {formatCurrencyGTQ(boostMetrics.totalBoosted)}
+                </p>
+                <p className="text-xs text-muted-foreground">Absorbido por Favorón del service fee</p>
+              </div>
+              <div>
+                <p className="font-medium">Códigos aplicados</p>
+                <p className="text-2xl font-bold text-primary">
+                  {boostMetrics.totalUsages}
+                </p>
+                <p className="text-xs text-muted-foreground">Total de boosts usados</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Financial Tables Section */}
       <FinancialTablesSection packages={filteredPackages} />

@@ -1,66 +1,59 @@
+## Expiración Automática de Assignments (bid_pending → bid_expired)
 
-
-## Tip Booster para Viajeros
-
-### Concepto
-Códigos de boost que aumentan el pago del viajero en un viaje completo. Favoron absorbe el costo. Tanto admin como viajero pueden aplicar el código. El boost se aplica **sobre el tip acumulado del viaje**, no por paquete individual.
-
-### Tipos de boost
-- **Fijo**: Suma un monto fijo al tip acumulado (ej: +Q20)
-- **Porcentual**: Suma un % del tip acumulado (ej: 5% sobre Q500 = +Q25, total Q525)
-- **`max_boost_amount`**: Tope máximo para boosts porcentuales (ej: máximo Q50)
+### Lógica clave
+- Cada assignment en `package_assignments` recibe un `expires_at` al crearse (24h).
+- Si un viajero responde (`bid_submitted`), se limpia su `expires_at`.
+- Si expira sin responder, ese assignment individual pasa a `bid_expired`.
+- **Solo cuando TODOS los assignments de un paquete están en estado terminal (bid_expired, bid_lost, bid_cancelled) Y ninguno en bid_submitted/bid_won**, el paquete vuelve a `approved`.
+- Si al menos un viajero ya respondió (`bid_submitted`), el paquete NO vuelve a approved; queda disponible para que el shopper elija.
 
 ```text
-Ejemplo porcentual:
-  Tip acumulado del viaje: Q500
-  Boost: 5%
-  Boost calculado: Q25
-  Viajero recibe: Q525
-  Favoron absorbe: Q25 menos de service fee
+Paquete X asignado a Viajero A y Viajero B
+├─ A no responde en 24h → A = bid_expired
+├─ B respondió → B = bid_submitted  
+└─ Paquete sigue activo (B tiene bid pendiente para el shopper)
 
-Ejemplo fijo:
-  Tip acumulado del viaje: Q500
-  Boost: Q20 fijo
-  Viajero recibe: Q520
-  Favoron absorbe: Q20 menos de service fee
+Paquete Y asignado a Viajero C y Viajero D
+├─ C no responde → C = bid_expired
+├─ D no responde → D = bid_expired
+└─ Sin bids activos → Paquete vuelve a 'approved'
 ```
 
 ### Cambios en base de datos
 
-1. **Tabla `boost_codes`**:
-   - `id`, `code` (unique), `description`, `boost_type` (enum: 'percentage' | 'fixed'), `boost_value` (numeric), `max_boost_amount` (nullable, para tope en porcentuales), `max_uses`, `single_use_per_user`, `expires_at`, `is_active`, `created_at`, `updated_at`
-   - RLS: admin full CRUD
+1. **Agregar columna `expires_at` a `package_assignments`**
 
-2. **Tabla `boost_code_usage`**:
-   - `id`, `boost_code_id` (FK), `trip_id`, `traveler_id`, `boost_amount` (monto calculado final), `used_at`
-   - RLS: admin full access, travelers SELECT own usage
+2. **Trigger en `package_assignments` INSERT**: setea `expires_at = NOW() + 24h` cuando se crea un assignment con `bid_pending`.
 
-3. **Columna `boost_amount`** en `trip_payment_accumulator` (numeric, default 0)
+3. **Trigger en `package_assignments` UPDATE**: limpia `expires_at` cuando status cambia de `bid_pending` a `bid_submitted`.
 
-4. **RPC `validate_boost_code`**: recibe código + trip_id + traveler_id, valida (activo, no expirado, usos), calcula monto según tipo:
-   - Si `fixed`: `boost_value`
-   - Si `percentage`: `(accumulated_amount * boost_value / 100)`, capped por `max_boost_amount`
-   - Registra en `boost_code_usage` y actualiza `trip_payment_accumulator.boost_amount`
+4. **Actualizar `expire_unresponded_assignments()`** para también:
+   - Buscar `package_assignments` con `status = 'bid_pending'` y `expires_at < NOW()`
+   - Marcarlos como `bid_expired`
+   - Después, para cada paquete afectado, verificar si quedan assignments activos (`bid_pending` o `bid_submitted`)
+   - Si no quedan: resetear el paquete a `approved` (limpiar `matched_trip_id`, etc.)
+   - Enviar notificaciones al viajero expirado y a admins (solo si el paquete vuelve a approved)
 
 ### Cambios en frontend
 
-5. **Página Admin `/admin/boost-codes`**: CRUD de boost codes (similar a AdminDiscounts). Campos: código, descripción, tipo (fijo/porcentual), valor, tope máximo, usos, expiración, activo.
+5. **UI de assignments en ActiveMatchesTab**: mostrar badge "⏰ Expirada" para assignments con `bid_expired` y mostrar tiempo restante para `bid_pending` con `expires_at`.
 
-6. **Aplicación por Admin**: En vista de detalle del viaje/pagos, campo para ingresar boost code → valida con RPC → muestra resultado.
+## Tip Booster para Viajeros ✅ Implementado
 
-7. **Aplicación por Viajero**: En dashboard de viajero (vista de viaje o pagos), campo para ingresar boost code → valida con RPC.
+### Resumen
+- **Tablas**: `boost_codes`, `boost_code_usage` con RLS
+- **Columna**: `boost_amount` en `trip_payment_accumulator`
+- **RPC**: `validate_boost_code` (valida, calcula % o fijo, registra uso)
+- **Admin CRUD**: `/admin/boost-codes` (AdminBoostCodes.tsx)
+- **Componente reutilizable**: `BoostCodeInput.tsx` (para viajero y admin)
+- **Dashboard Financiero**: Card "Tip Boosts" + deducción de ingresos Favorón
+- **Interface**: `TripPaymentAccumulator` actualizada con `boost_amount`
 
-8. **Cálculo del acumulador**: Modificar `useCreateTripPaymentAccumulator` para incluir `boost_amount` en el total: `accumulated_amount = tips + boost_amount`.
+### Pendiente de integración en UI
+- Agregar `BoostCodeInput` en la vista de pagos del viajero (TripPaymentSection)
+- Agregar `BoostCodeInput` en la vista admin de detalle del viaje
+- Agregar columna "Boost" en FinancialSummaryTable (por paquete)
 
-9. **Dashboard Financiero**: Card "Tip Boosts" y columna en `FinancialSummaryTable` restando del ingreso de Favoron.
-
-### Archivos a crear/modificar
-- Nueva migración SQL (tablas, RLS, RPC, columna en accumulator)
-- `src/pages/AdminBoostCodes.tsx` (nueva)
-- `src/hooks/useCreateTripPaymentAccumulator.tsx`
-- `src/hooks/useTripPayments.tsx`
-- `src/components/admin/FinancialDashboard.tsx`
-- `src/components/admin/FinancialSummaryTable.tsx`
-- Componente input boost code para viajero y admin
-- Routing y navegación
-
+### Archivos a modificar
+- Nueva migración SQL (función + trigger + columna)
+- Componentes que muestran assignments para reflejar el estado `bid_expired` y countdown
