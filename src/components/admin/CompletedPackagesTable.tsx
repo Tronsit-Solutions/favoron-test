@@ -115,14 +115,16 @@ const CompletedPackagesTable = ({ packages }: CompletedPackagesTableProps) => {
   }, [packages, profiles]);
 
   const stats = useMemo(() => {
-    if (completedPackages.length === 0) return { totalCompleted: 0, avgDays: 0 };
+    if (completedPackages.length === 0) return { totalCompleted: 0, avgDays: 0, countWithDays: 0 };
     
-    const totalDays = completedPackages.reduce((sum, pkg) => sum + pkg.daysElapsed, 0);
-    const avgDays = Math.round(totalDays / completedPackages.length);
+    const withDays = completedPackages.filter(pkg => pkg.daysElapsed !== null);
+    const totalDays = withDays.reduce((sum, pkg) => sum + (pkg.daysElapsed as number), 0);
+    const avgDays = withDays.length > 0 ? Math.round(totalDays / withDays.length) : 0;
     
     return {
       totalCompleted: completedPackages.length,
       avgDays,
+      countWithDays: withDays.length,
     };
   }, [completedPackages]);
 
