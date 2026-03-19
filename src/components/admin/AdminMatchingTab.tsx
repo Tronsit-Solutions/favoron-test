@@ -110,7 +110,7 @@ const AdminMatchingTab = ({
       try {
         const { data, error } = await supabase
           .from('package_assignments')
-          .select('id, package_id, trip_id, status, quote, admin_assigned_tip, traveler_address, matched_trip_dates, products_data')
+          .select('id, package_id, trip_id, status, quote, admin_assigned_tip, traveler_address, matched_trip_dates, products_data, expires_at')
           .not('status', 'eq', 'bid_lost');
 
         if (error) throw error;
