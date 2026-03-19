@@ -20,6 +20,7 @@ import AdminControl from "./pages/AdminControl";
 import AdminSurveys from "./pages/AdminSurveys";
 import AdminFavoronBanking from "./pages/AdminFavoronBanking";
 import AdminDiscounts from "./pages/AdminDiscounts";
+import AdminBoostCodes from "./pages/AdminBoostCodes";
 import AdminPlatformFees from "./pages/AdminPlatformFees";
 import AdminReports from "./pages/AdminReports";
 import AdminDeliveryPoints from "./pages/AdminDeliveryPoints";
