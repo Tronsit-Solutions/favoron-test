@@ -14,7 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/ui/combobox";
-import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target, ChevronLeft, ChevronRight, Home, Info, Users, User, DollarSign, Truck } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target, ChevronLeft, ChevronRight, Home, Info, Users, User, DollarSign, Truck, Rocket } from "lucide-react";
 import OnboardingBottomSheet from "@/components/onboarding/OnboardingBottomSheet";
 import type { OnboardingSlide } from "@/components/onboarding/OnboardingBottomSheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -74,7 +74,8 @@ const TripForm = ({
       },
       firstDayPackages: null as Date | null,
       lastDayPackages: null as Date | null,
-      messengerPickupLocation: ''
+      messengerPickupLocation: '',
+      boostCode: ''
     },
     messengerData: null as any,
     acceptedTerms: false,
@@ -352,7 +353,8 @@ const TripForm = ({
         fromCity: finalFromCity,
         toCity: finalToCity,
         messengerPickupInfo: formData.deliveryMethod === 'mensajero' ? messengerData : null,
-        client_request_id: requestId
+        client_request_id: requestId,
+        boostCode: formData.boostCode?.trim() || null
       };
 
       console.log('✅ Form validation passed, submitting data');
@@ -392,7 +394,8 @@ const TripForm = ({
         },
         firstDayPackages: null as Date | null,
         lastDayPackages: null as Date | null,
-        messengerPickupLocation: ''
+        messengerPickupLocation: '',
+        boostCode: ''
       };
       
       setFormData(initialFormData);
@@ -1418,6 +1421,23 @@ const TripForm = ({
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Boost Code (opcional) */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium flex items-center gap-1.5">
+            <Rocket className="h-4 w-4 text-primary" />
+            Código de Tip Boost (opcional)
+          </Label>
+          <Input
+            value={formData.boostCode || ''}
+            onChange={(e) => updateField('formData', { ...formData, boostCode: e.target.value.toUpperCase() })}
+            placeholder="Ej: BOOST10 (opcional)"
+            className="font-mono"
+          />
+          <p className="text-xs text-muted-foreground">
+            ¿Tienes un código de boost? Ingrésalo para aumentar tus ganancias en este viaje
+          </p>
         </div>
 
         {/* Terms and Conditions Checkbox */}
