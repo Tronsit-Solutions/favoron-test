@@ -1,5 +1,3 @@
-
-
 ## Expiración Automática de Assignments (bid_pending → bid_expired)
 
 ### Lógica clave
@@ -40,7 +38,22 @@ Paquete Y asignado a Viajero C y Viajero D
 
 5. **UI de assignments en ActiveMatchesTab**: mostrar badge "⏰ Expirada" para assignments con `bid_expired` y mostrar tiempo restante para `bid_pending` con `expires_at`.
 
+## Tip Booster para Viajeros ✅ Implementado
+
+### Resumen
+- **Tablas**: `boost_codes`, `boost_code_usage` con RLS
+- **Columna**: `boost_amount` en `trip_payment_accumulator`
+- **RPC**: `validate_boost_code` (valida, calcula % o fijo, registra uso)
+- **Admin CRUD**: `/admin/boost-codes` (AdminBoostCodes.tsx)
+- **Componente reutilizable**: `BoostCodeInput.tsx` (para viajero y admin)
+- **Dashboard Financiero**: Card "Tip Boosts" + deducción de ingresos Favorón
+- **Interface**: `TripPaymentAccumulator` actualizada con `boost_amount`
+
+### Pendiente de integración en UI
+- Agregar `BoostCodeInput` en la vista de pagos del viajero (TripPaymentSection)
+- Agregar `BoostCodeInput` en la vista admin de detalle del viaje
+- Agregar columna "Boost" en FinancialSummaryTable (por paquete)
+
 ### Archivos a modificar
 - Nueva migración SQL (función + trigger + columna)
 - Componentes que muestran assignments para reflejar el estado `bid_expired` y countdown
-
