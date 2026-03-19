@@ -1,20 +1,17 @@
 
 
-## Agregar Q60 de crédito de referidor a Héctor Beteta
+## Agregar nota interna al paquete 93d97f28
 
-**Usuario encontrado:** Héctor Beteta (`hectorbetetab@gmail.com`, ID: `62453e32-...`)
+**Paquete:** `93d97f28-63b0-4d08-af80-2a88e183d1b1`
+**Descripción:** Pedido de 2 productos (Hannah Montana LP + Ultraviolence Lana Del Rey)
+**Estado actual:** `received_by_traveler`
+**Notas internas actuales:** Ninguna
 
 ### Acción
-Insertar un registro en la tabla `referrals` con:
-- `referrer_id` = Héctor Beteta (él recibe el crédito)
-- `referred_id` = usuario admin (como placeholder, ya que el campo es NOT NULL)
-- `status` = `completed`
-- `reward_amount` = 60
-- `reward_used` = false
-- `completed_at` = now()
+Actualizar el campo `internal_notes` del paquete con el texto:
 
-Esto hará que el hook `useReferralCredit` detecte Q60 disponibles para Héctor, que podrá aplicar como descuento en su próximo pedido.
+> "Solo llegó 1 de 2 pedidos por lo que se le asignó el 50% de su pago como crédito al shopper. El pago total inicial fue de Q120."
 
 ### Archivo a modificar
-Ninguno — es solo una inserción de datos en la base de datos.
+Ninguno — es solo un UPDATE de datos en la base de datos.
 
