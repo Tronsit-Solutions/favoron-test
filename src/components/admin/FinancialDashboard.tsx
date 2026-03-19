@@ -311,6 +311,34 @@ const FinancialDashboard = ({
         </CardContent>
       </Card>
 
+      {/* Tip Boosts */}
+      {boostMetrics.totalUsages > 0 && (
+        <Card>
+          <CardHeader className="flex flex-row items-center gap-2">
+            <Rocket className="h-5 w-5 text-orange-600" />
+            <CardTitle>Tip Boosts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="font-medium text-orange-700">Total Boost distribuido</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {formatCurrencyGTQ(boostMetrics.totalBoosted)}
+                </p>
+                <p className="text-xs text-muted-foreground">Absorbido por Favorón del service fee</p>
+              </div>
+              <div>
+                <p className="font-medium">Códigos aplicados</p>
+                <p className="text-2xl font-bold text-primary">
+                  {boostMetrics.totalUsages}
+                </p>
+                <p className="text-xs text-muted-foreground">Total de boosts usados</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Financial Tables Section */}
       <FinancialTablesSection packages={filteredPackages} />
     </div>;
