@@ -33,6 +33,11 @@ export const TripCard = ({
                   <h4 className="font-medium text-sm">
                     {trip.from_city} → {trip.to_city}
                   </h4>
+                  {hasBoost && (
+                    <Badge className="bg-amber-100 text-amber-800 border-amber-200">
+                      🚀 Boost
+                    </Badge>
+                  )}
                 </div>
                 
                 {/* Traveler name + rating */}

@@ -25,7 +25,7 @@ interface TripCardProps {
   isAdmin?: boolean;
 }
 
-const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerProfile, onDeliveryConfirmed, currentUser }: TripCardProps) => {
+const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerProfile, onDeliveryConfirmed, currentUser, isAdmin = false }: TripCardProps) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
