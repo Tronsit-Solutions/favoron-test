@@ -117,6 +117,11 @@ const App = () => {
                 <AdminApplications />
               </RequireAuth>
             } />
+            <Route path="/admin/customer-experience" element={
+              <RequireAuth>
+                <AdminCustomerExperience />
+              </RequireAuth>
+            } />
             <Route path="/operations" element={
               <RequireOperations>
                 <Operations />
