@@ -1,48 +1,10 @@
 
 
-## Unificar Códigos de Descuento y Boost en una sola página
+## Hacer visible el campo de Tip Boost en Step 4
 
-### Concepto
-Combinar la gestión de Discount Codes y Boost Codes en la página `/admin/discounts` (AdminDiscounts.tsx), usando tabs de nivel superior para separar las dos secciones: "Códigos de Descuento" (shoppers) y "Tip Boost Codes" (viajeros). Eliminar la página separada de AdminBoostCodes.
+El campo de Boost Code existe (línea 1426) pero está debajo del cuadro informativo "¿Cómo funciona para viajeros?", casi al final del formulario. En la captura se ve que el usuario tiene que hacer mucho scroll para llegar a él.
 
-### Cambios
+### Cambio
 
-1. **`src/pages/AdminDiscounts.tsx`** - Refactorizar completamente:
-   - Renombrar titulo a "Códigos Promocionales" (paraguas para ambos tipos)
-   - Agregar tabs principales: "Descuentos" (icono Ticket) y "Tip Boost" (icono Rocket)
-   - Tab "Descuentos": mantiene toda la lógica actual de discount_codes/discount_code_usage
-   - Tab "Tip Boost": integrar toda la lógica de boost_codes/boost_code_usage (copiar del AdminBoostCodes actual)
-   - Cada tab tiene su propio botón "Nuevo", dialog de creación/edición, stats cards, y tabla con sub-tabs activos/inactivos
-   - Agregar estados para boost codes y boost usage, con sus respectivos fetch, CRUD y formularios
-
-2. **`src/pages/AdminBoostCodes.tsx`** - Eliminar (ya no se necesita)
-
-3. **`src/App.tsx`** - Eliminar la ruta `/admin/boost-codes` y el import de AdminBoostCodes
-
-4. **`src/pages/AdminControl.tsx`** - Actualizar la tarjeta de "Códigos de Descuento":
-   - Cambiar título a "Códigos Promocionales"
-   - Cambiar descripción a "Descuentos para shoppers y tip boosts para viajeros"
-   - No agregar tarjeta separada de boost codes
-
-### Estructura de la UI unificada
-
-```text
-Códigos Promocionales
-├── [Tab: Descuentos (Ticket)]
-│   ├── Stats: Usos | Total Descontado | Usuarios
-│   ├── [Botón: + Nuevo Descuento]
-│   └── Sub-tabs: Activos | Inactivos
-│       └── Tabla de discount_codes
-└── [Tab: Tip Boost (Rocket)]
-    ├── Stats: Usos | Total Boost | Viajeros
-    ├── [Botón: + Nuevo Boost]
-    └── Sub-tabs: Activos | Inactivos
-        └── Tabla de boost_codes
-```
-
-### Archivos a modificar
-- `src/pages/AdminDiscounts.tsx` (refactorizar - agregar sección boost)
-- `src/pages/AdminBoostCodes.tsx` (eliminar)
-- `src/App.tsx` (eliminar ruta boost-codes)
-- `src/pages/AdminControl.tsx` (actualizar tarjeta)
+**`src/components/TripForm.tsx`**: Mover el bloque del Boost Code (líneas 1426-1441) hacia arriba, colocándolo **justo después del resumen del viaje y antes del cuadro informativo** (antes de línea 1404). Así será visible sin necesidad de hacer scroll adicional.
 
