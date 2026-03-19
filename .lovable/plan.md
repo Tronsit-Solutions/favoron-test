@@ -1,33 +1,29 @@
 
 
-## Cambiar cálculo de "Promedio de Días" en Paquetes Completados
+## Fix: "Días" muestra N/A porque `office_delivery` no se carga en la query admin
 
-### Contexto actual
-El cálculo actual usa `created_at` → `updated_at`, lo cual no refleja el ciclo operativo real.
+### Problema
+El campo `office_delivery` **no está incluido** en las queries de `useAdminData.tsx` que cargan los paquetes para el dashboard admin. Por eso, cuando `CompletedPackagesTable` intenta leer `office_delivery.admin_confirmation.confirmed_at`, siempre es `undefined` y todos los paquetes muestran "N/A".
 
-### Nuevo cálculo
-- **Inicio**: Fecha en que el pago fue procesado (status → `pending_purchase`)
-  - Campo: `payment_receipt.paid_at` (pagos con tarjeta) o `payment_receipt.uploadedAt` (transferencias bancarias)
-- **Fin**: Fecha en que se confirmó en oficina
-  - Campo: `office_delivery.admin_confirmation.confirmed_at`
+El campo `payment_receipt` sí está incluido, pero `office_delivery` fue omitido.
 
-Si alguno de estos campos no existe en un paquete, se excluye del cálculo de promedio (fallback a `null`).
+### Solución
+Agregar `office_delivery` a las queries SELECT en **`src/hooks/useAdminData.tsx`**:
 
-### Archivo a modificar
-**`src/components/admin/CompletedPackagesTable.tsx`**
+1. **Query principal de paquetes** (~línea 105): agregar `office_delivery` junto a `payment_receipt`
+2. **Query de paquetes matched** (~línea 207): agregar `office_delivery` al SELECT
 
-1. Extraer la fecha de pago de `payment_receipt` (usando `paid_at` o `uploadedAt` como fallback)
-2. Extraer la fecha de confirmación de `office_delivery.admin_confirmation.confirmed_at`
-3. Calcular `daysElapsed` como la diferencia entre ambas fechas
-4. Solo incluir paquetes con ambas fechas en el cálculo del promedio
-5. Mostrar el nuevo valor en la columna "Días" y en la tarjeta "Promedio de Días"
+Ambas queries alimentan el array `packages` que llega a `CompletedPackagesTable`.
 
 ### Detalle técnico
-```text
-paymentDate = payment_receipt.paid_at || payment_receipt.uploadedAt
-officeDate  = office_delivery.admin_confirmation.confirmed_at
-daysElapsed = ceil((officeDate - paymentDate) / 86400000)
+En la línea 105, cambiar:
+```
+payment_receipt, products_data,
+```
+a:
+```
+payment_receipt, office_delivery, products_data,
 ```
 
-Paquetes sin alguna de las dos fechas mostrarán "N/A" en la columna Días y no contarán para el promedio.
+En la línea ~209, agregar `office_delivery` después de `payment_receipt`.
 
