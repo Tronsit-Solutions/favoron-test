@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Users, Package, TrendingUp, Settings, ClipboardList, Building2, Ticket, DollarSign, MapPin, FlaskConical, UserPlus, Briefcase } from "lucide-react";
+import { Shield, Users, Package, TrendingUp, Settings, ClipboardList, Building2, Ticket, DollarSign, MapPin, FlaskConical, UserPlus, Briefcase, Headphones } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { NotificationBadge } from "@/components/ui/notification-badge";
 
