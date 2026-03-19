@@ -9,6 +9,7 @@ interface TripCardProps {
   trip: any;
   packagesTotal?: number;
   onViewTripDetail: (trip: any) => void;
+  hasBoost?: boolean;
 }
 
 export const TripCard = ({
