@@ -130,6 +130,70 @@ export type Database = {
           },
         ]
       }
+      customer_experience_calls: {
+        Row: {
+          call_date: string | null
+          call_status: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          package_id: string
+          rating: number | null
+          target_user_id: string
+          updated_at: string
+          user_type: string
+        }
+        Insert: {
+          call_date?: string | null
+          call_status?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          package_id: string
+          rating?: number | null
+          target_user_id: string
+          updated_at?: string
+          user_type: string
+        }
+        Update: {
+          call_date?: string | null
+          call_status?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          package_id?: string
+          rating?: number | null
+          target_user_id?: string
+          updated_at?: string
+          user_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_experience_calls_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_experience_calls_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_experience_calls_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_photos: {
         Row: {
           consent_date: string | null
