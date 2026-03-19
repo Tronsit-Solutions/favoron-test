@@ -88,6 +88,11 @@ const App = () => {
                 <AdminDiscounts />
               </RequireAuth>
             } />
+            <Route path="/admin/boost-codes" element={
+              <RequireAuth>
+                <AdminBoostCodes />
+              </RequireAuth>
+            } />
             <Route path="/admin/platform-fees" element={
               <RequireAuth>
                 <AdminPlatformFees />
