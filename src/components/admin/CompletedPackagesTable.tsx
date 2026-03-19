@@ -215,9 +215,13 @@ const CompletedPackagesTable = ({ packages }: CompletedPackagesTableProps) => {
                         {formatDate(pkg.updated_at)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className={pkg.daysElapsed > 7 ? "text-amber-600" : "text-green-600"}>
-                          {pkg.daysElapsed}
-                        </span>
+                        {pkg.daysElapsed !== null ? (
+                          <span className={pkg.daysElapsed > 7 ? "text-amber-600" : "text-green-600"}>
+                            {pkg.daysElapsed}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">N/A</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {pkg.estimated_price ? formatCurrency(pkg.estimated_price) : "N/A"}
