@@ -102,7 +102,7 @@ export const useAdminData = (): AdminData => {
           admin_rejection, quote_rejection, traveler_rejection,
           admin_actions_log, internal_notes, admin_assigned_tip,
           confirmed_delivery_address, traveler_address, matched_trip_dates,
-          payment_receipt, products_data,
+          payment_receipt, office_delivery, products_data,
           payment_method, recurrente_checkout_id, recurrente_payment_id
         `, { count: 'exact' })
         .order('created_at', { ascending: false })
@@ -204,7 +204,7 @@ export const useAdminData = (): AdminData => {
           confirmed_delivery_address,
           traveler_address,
           matched_trip_dates,
-          payment_receipt,
+          payment_receipt, office_delivery,
           payment_method, recurrente_checkout_id,
           products_data, package_destination_country
         `)
