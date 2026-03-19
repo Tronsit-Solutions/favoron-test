@@ -1,59 +1,28 @@
-## Expiración Automática de Assignments (bid_pending → bid_expired)
 
-### Lógica clave
-- Cada assignment en `package_assignments` recibe un `expires_at` al crearse (24h).
-- Si un viajero responde (`bid_submitted`), se limpia su `expires_at`.
-- Si expira sin responder, ese assignment individual pasa a `bid_expired`.
-- **Solo cuando TODOS los assignments de un paquete están en estado terminal (bid_expired, bid_lost, bid_cancelled) Y ninguno en bid_submitted/bid_won**, el paquete vuelve a `approved`.
-- Si al menos un viajero ya respondió (`bid_submitted`), el paquete NO vuelve a approved; queda disponible para que el shopper elija.
 
-```text
-Paquete X asignado a Viajero A y Viajero B
-├─ A no responde en 24h → A = bid_expired
-├─ B respondió → B = bid_submitted  
-└─ Paquete sigue activo (B tiene bid pendiente para el shopper)
+## Agregar Boost Code al formulario de registro de viaje (TripForm)
 
-Paquete Y asignado a Viajero C y Viajero D
-├─ C no responde → C = bid_expired
-├─ D no responde → D = bid_expired
-└─ Sin bids activos → Paquete vuelve a 'approved'
-```
+### Concepto
+Agregar un campo opcional de "Código de Tip Boost" en el Step 4 (resumen/confirmación) del TripForm, antes del checkbox de términos y condiciones. El código se guarda como parte del `submitData` y se valida/aplica después de crear el viaje.
 
-### Cambios en base de datos
+### Cambios
 
-1. **Agregar columna `expires_at` a `package_assignments`**
+1. **`src/components/TripForm.tsx`**
+   - Agregar estado `boostCode` al form data (string, opcional)
+   - En Step 4 (renderStep4), agregar un campo de input para el código de boost antes del checkbox de T&C, con icono de Rocket y estilo sutil
+   - Incluir `boostCode` en el `submitData` enviado al submit
 
-2. **Trigger en `package_assignments` INSERT**: setea `expires_at = NOW() + 24h` cuando se crea un assignment con `bid_pending`.
+2. **`src/hooks/useDashboardActions.tsx`** (o donde se procese `handleTripSubmit`)
+   - Después de crear el viaje exitosamente, si `boostCode` tiene valor, llamar a `supabase.rpc('validate_boost_code')` con el trip_id recién creado y el traveler_id
+   - Mostrar toast de éxito/error según resultado
 
-3. **Trigger en `package_assignments` UPDATE**: limpia `expires_at` cuando status cambia de `bid_pending` a `bid_submitted`.
-
-4. **Actualizar `expire_unresponded_assignments()`** para también:
-   - Buscar `package_assignments` con `status = 'bid_pending'` y `expires_at < NOW()`
-   - Marcarlos como `bid_expired`
-   - Después, para cada paquete afectado, verificar si quedan assignments activos (`bid_pending` o `bid_submitted`)
-   - Si no quedan: resetear el paquete a `approved` (limpiar `matched_trip_id`, etc.)
-   - Enviar notificaciones al viajero expirado y a admins (solo si el paquete vuelve a approved)
-
-### Cambios en frontend
-
-5. **UI de assignments en ActiveMatchesTab**: mostrar badge "⏰ Expirada" para assignments con `bid_expired` y mostrar tiempo restante para `bid_pending` con `expires_at`.
-
-## Tip Booster para Viajeros ✅ Implementado
-
-### Resumen
-- **Tablas**: `boost_codes`, `boost_code_usage` con RLS
-- **Columna**: `boost_amount` en `trip_payment_accumulator`
-- **RPC**: `validate_boost_code` (valida, calcula % o fijo, registra uso)
-- **Admin CRUD**: `/admin/boost-codes` (AdminBoostCodes.tsx)
-- **Componente reutilizable**: `BoostCodeInput.tsx` (para viajero y admin)
-- **Dashboard Financiero**: Card "Tip Boosts" + deducción de ingresos Favorón
-- **Interface**: `TripPaymentAccumulator` actualizada con `boost_amount`
-
-### Pendiente de integración en UI
-- Agregar `BoostCodeInput` en la vista de pagos del viajero (TripPaymentSection)
-- Agregar `BoostCodeInput` en la vista admin de detalle del viaje
-- Agregar columna "Boost" en FinancialSummaryTable (por paquete)
+### UX
+- Campo opcional, no bloquea el submit si está vacío
+- Placeholder: "Ej: BOOST10 (opcional)"
+- Texto de ayuda: "¿Tienes un código de boost? Ingresalo para aumentar tus ganancias"
+- Si el código es inválido, se muestra error pero el viaje se crea igual (el boost simplemente no se aplica)
 
 ### Archivos a modificar
-- Nueva migración SQL (función + trigger + columna)
-- Componentes que muestran assignments para reflejar el estado `bid_expired` y countdown
+- `src/components/TripForm.tsx` (agregar campo en Step 4)
+- `src/hooks/useDashboardActions.tsx` (validar boost code post-creación del viaje)
+
