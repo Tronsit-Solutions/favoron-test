@@ -267,10 +267,10 @@ const AdminControl = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Ticket className="h-5 w-5" />
-                  Códigos de Descuento
+                  Códigos Promocionales
                 </CardTitle>
                 <CardDescription>
-                  Gestionar códigos promocionales
+                  Descuentos para shoppers y tip boosts para viajeros
                 </CardDescription>
               </CardHeader>
               <CardContent>
