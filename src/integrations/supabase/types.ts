@@ -68,6 +68,100 @@ export type Database = {
         }
         Relationships: []
       }
+      boost_code_usage: {
+        Row: {
+          boost_amount: number
+          boost_code_id: string
+          id: string
+          traveler_id: string
+          trip_id: string
+          used_at: string | null
+        }
+        Insert: {
+          boost_amount: number
+          boost_code_id: string
+          id?: string
+          traveler_id: string
+          trip_id: string
+          used_at?: string | null
+        }
+        Update: {
+          boost_amount?: number
+          boost_code_id?: string
+          id?: string
+          traveler_id?: string
+          trip_id?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boost_code_usage_boost_code_id_fkey"
+            columns: ["boost_code_id"]
+            isOneToOne: false
+            referencedRelation: "boost_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boost_code_usage_traveler_id_fkey"
+            columns: ["traveler_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boost_code_usage_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      boost_codes: {
+        Row: {
+          boost_type: string
+          boost_value: number
+          code: string
+          created_at: string
+          description: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          max_boost_amount: number | null
+          max_uses: number | null
+          single_use_per_user: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          boost_type?: string
+          boost_value: number
+          code: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_boost_amount?: number | null
+          max_uses?: number | null
+          single_use_per_user?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          boost_type?: string
+          boost_value?: number
+          code?: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_boost_amount?: number | null
+          max_uses?: number | null
+          single_use_per_user?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       client_errors: {
         Row: {
           browser: Json | null
@@ -1554,6 +1648,7 @@ export type Database = {
         Row: {
           accumulated_amount: number
           all_packages_delivered: boolean | null
+          boost_amount: number
           created_at: string
           delivered_packages_count: number
           id: string
@@ -1570,6 +1665,7 @@ export type Database = {
         Insert: {
           accumulated_amount?: number
           all_packages_delivered?: boolean | null
+          boost_amount?: number
           created_at?: string
           delivered_packages_count?: number
           id?: string
@@ -1586,6 +1682,7 @@ export type Database = {
         Update: {
           accumulated_amount?: number
           all_packages_delivered?: boolean | null
+          boost_amount?: number
           created_at?: string
           delivered_packages_count?: number
           id?: string
@@ -2370,6 +2467,10 @@ export type Database = {
           _bank_name: string
         }
         Returns: boolean
+      }
+      validate_boost_code: {
+        Args: { _code: string; _traveler_id: string; _trip_id: string }
+        Returns: Json
       }
       validate_discount_code: {
         Args: { _code: string; _order_amount: number; _user_id: string }
