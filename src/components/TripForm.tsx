@@ -1401,6 +1401,23 @@ const TripForm = ({
           </div>
         </div>
 
+        {/* Boost Code (opcional) */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium flex items-center gap-1.5">
+            <Rocket className="h-4 w-4 text-primary" />
+            Código de Tip Boost (opcional)
+          </Label>
+          <Input
+            value={formData.boostCode || ''}
+            onChange={(e) => updateField('formData', { ...formData, boostCode: e.target.value.toUpperCase() })}
+            placeholder="Ej: BOOST10 (opcional)"
+            className="font-mono"
+          />
+          <p className="text-xs text-muted-foreground">
+            ¿Tienes un código de boost? Ingrésalo para aumentar tus ganancias en este viaje
+          </p>
+        </div>
+
         {/* Info box - Cómo funciona */}
         <div className="bg-traveler/10 border border-traveler/30 rounded-lg p-4">
           <div className="flex items-start space-x-2">
@@ -1421,23 +1438,6 @@ const TripForm = ({
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Boost Code (opcional) */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium flex items-center gap-1.5">
-            <Rocket className="h-4 w-4 text-primary" />
-            Código de Tip Boost (opcional)
-          </Label>
-          <Input
-            value={formData.boostCode || ''}
-            onChange={(e) => updateField('formData', { ...formData, boostCode: e.target.value.toUpperCase() })}
-            placeholder="Ej: BOOST10 (opcional)"
-            className="font-mono"
-          />
-          <p className="text-xs text-muted-foreground">
-            ¿Tienes un código de boost? Ingrésalo para aumentar tus ganancias en este viaje
-          </p>
         </div>
 
         {/* Terms and Conditions Checkbox */}
