@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Package } from "@/types";
-import { DollarSign, Backpack, TrendingUp, Gift } from "lucide-react";
+import { DollarSign, Backpack, TrendingUp, Gift, Rocket } from "lucide-react";
 import FinancialTablesSection from "./FinancialTablesSection";
 import { getQuoteValues } from '@/lib/quoteHelpers';
 import { supabase } from "@/integrations/supabase/client";
