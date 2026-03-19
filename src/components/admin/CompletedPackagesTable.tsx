@@ -182,7 +182,7 @@ const CompletedPackagesTable = ({ packages }: CompletedPackagesTableProps) => {
                     <TableHead>Ruta</TableHead>
                     <TableHead>Fecha Completado</TableHead>
                     <TableHead className="text-right">Días</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
+                    
                   </TableRow>
                 </TableHeader>
                 <TableBody>
