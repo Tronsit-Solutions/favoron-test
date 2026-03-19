@@ -1,6 +1,7 @@
 import Dashboard from "@/components/Dashboard";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
+import { retryPendingReferral } from "@/lib/referralRetry";
 
 const DashboardPage = () => {
   // NOTE: Operations users are redirected by RequireAuth - they never reach this component
@@ -12,6 +13,13 @@ const DashboardPage = () => {
       try { sessionStorage.setItem('was_authenticated', 'true'); } catch {}
     }
   }, [user]);
+
+  // Safety net: retry pending referral registration on dashboard load
+  useEffect(() => {
+    if (user?.id) {
+      retryPendingReferral(user.id);
+    }
+  }, [user?.id]);
 
   // Check if user was previously authenticated (prevents unmount during token refresh)
   const wasAuthenticated = sessionStorage.getItem('was_authenticated') === 'true';
