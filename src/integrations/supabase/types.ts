@@ -664,6 +664,7 @@ export type Database = {
           admin_assigned_tip: number | null
           created_at: string
           dismissed_by_traveler: boolean
+          expires_at: string | null
           id: string
           matched_trip_dates: Json | null
           package_id: string
@@ -679,6 +680,7 @@ export type Database = {
           admin_assigned_tip?: number | null
           created_at?: string
           dismissed_by_traveler?: boolean
+          expires_at?: string | null
           id?: string
           matched_trip_dates?: Json | null
           package_id: string
@@ -694,6 +696,7 @@ export type Database = {
           admin_assigned_tip?: number | null
           created_at?: string
           dismissed_by_traveler?: boolean
+          expires_at?: string | null
           id?: string
           matched_trip_dates?: Json | null
           package_id?: string
