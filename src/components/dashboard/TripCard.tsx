@@ -22,6 +22,7 @@ interface TripCardProps {
   travelerProfile?: any;
   onDeliveryConfirmed?: () => void;
   currentUser?: any;
+  isAdmin?: boolean;
 }
 
 const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerProfile, onDeliveryConfirmed, currentUser }: TripCardProps) => {
