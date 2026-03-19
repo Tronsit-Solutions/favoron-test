@@ -1412,7 +1412,7 @@ const TripForm = ({
                 <li>• Los paquetes llegaran a tu {formData.packageReceivingAddress.accommodationType || 'alojamiento'} en {formData.fromCity || 'tu ciudad de origen'}</li>
                 <li>• Al llegar a {displayToCity || 'destino'}, entregas según el método seleccionado</li>
                 <li>• Favorón coordina la entrega final al comprador</li>
-                <li>• Ganas entre Q150-800+ por viaje</li>
+                <li>• Ganas entre Q100-1,500 por viaje</li>
               </ul>
               <div className="mt-3 pt-2 border-t border-traveler/20">
                 <p className="text-xs font-medium text-traveler">
