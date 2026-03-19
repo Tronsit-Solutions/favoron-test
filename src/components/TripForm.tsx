@@ -353,7 +353,8 @@ const TripForm = ({
         fromCity: finalFromCity,
         toCity: finalToCity,
         messengerPickupInfo: formData.deliveryMethod === 'mensajero' ? messengerData : null,
-        client_request_id: requestId
+        client_request_id: requestId,
+        boostCode: formData.boostCode?.trim() || null
       };
 
       console.log('✅ Form validation passed, submitting data');
