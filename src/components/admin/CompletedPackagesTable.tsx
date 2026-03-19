@@ -182,7 +182,7 @@ const CompletedPackagesTable = ({ packages }: CompletedPackagesTableProps) => {
                     <TableHead>Ruta</TableHead>
                     <TableHead>Fecha Completado</TableHead>
                     <TableHead className="text-right">Días</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
+                    
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -222,9 +222,6 @@ const CompletedPackagesTable = ({ packages }: CompletedPackagesTableProps) => {
                         ) : (
                           <span className="text-muted-foreground">N/A</span>
                         )}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {pkg.estimated_price ? formatCurrency(pkg.estimated_price) : "N/A"}
                       </TableCell>
                     </TableRow>
                   ))}
