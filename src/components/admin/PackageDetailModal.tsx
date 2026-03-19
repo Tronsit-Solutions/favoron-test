@@ -1315,6 +1315,13 @@ const [editForm, setEditForm] = useState({
                         const profile = assignment.profile;
                         const trip = assignment.trip;
                         const assignmentStatusMap: Record<string, { label: string; variant: string }> = {
+                          bid_pending: { label: 'Esperando cotización', variant: 'secondary' },
+                          bid_submitted: { label: 'Cotización enviada', variant: 'default' },
+                          bid_won: { label: 'Ganador', variant: 'success' },
+                          bid_lost: { label: 'No seleccionado', variant: 'destructive' },
+                          bid_expired: { label: '⏰ Expirada', variant: 'warning' },
+                          bid_cancelled: { label: 'Cancelada', variant: 'secondary' },
+                          // Legacy statuses
                           pending: { label: 'Esperando cotización', variant: 'secondary' },
                           quote_sent: { label: 'Cotización enviada', variant: 'default' },
                           quote_accepted: { label: 'Cotización aceptada', variant: 'success' },
