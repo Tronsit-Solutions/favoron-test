@@ -416,8 +416,11 @@ const Auth = () => {
       if (error) throw error;
       
       if (data.user) {
-        // Retry any pending referral before redirecting
-        retryPendingReferral(data.user.id);
+        // Retry any pending referral before redirecting (max 3s wait)
+        await Promise.race([
+          retryPendingReferral(data.user.id),
+          new Promise(resolve => setTimeout(resolve, 3000))
+        ]);
         // Always redirect to production dashboard
         window.location.href = `${APP_URL}/dashboard`;
       }

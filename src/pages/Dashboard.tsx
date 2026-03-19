@@ -1,6 +1,7 @@
 import Dashboard from "@/components/Dashboard";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
+import { retryPendingReferral } from "@/lib/referralRetry";
 
 const DashboardPage = () => {
   // NOTE: Operations users are redirected by RequireAuth - they never reach this component
