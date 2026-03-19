@@ -82,11 +82,21 @@ const CompletedPackagesTable = ({ packages }: CompletedPackagesTableProps) => {
     return packages
       .filter((pkg) => pkg.status === "completed")
       .map((pkg) => {
-        const createdDate = new Date(pkg.created_at);
+        // Extract payment date from payment_receipt
+        const paymentReceipt = pkg.payment_receipt as Record<string, any> | null;
+        const paymentDateStr = paymentReceipt?.paid_at || paymentReceipt?.uploadedAt;
+        const paymentDate = paymentDateStr ? new Date(paymentDateStr) : null;
+
+        // Extract office confirmation date
+        const officeDelivery = pkg.office_delivery as Record<string, any> | null;
+        const officeDateStr = officeDelivery?.admin_confirmation?.confirmed_at;
+        const officeDate = officeDateStr ? new Date(officeDateStr) : null;
+
+        const daysElapsed = paymentDate && officeDate
+          ? Math.ceil((officeDate.getTime() - paymentDate.getTime()) / (1000 * 60 * 60 * 24))
+          : null;
+
         const completedDate = new Date(pkg.updated_at);
-        const daysElapsed = Math.ceil(
-          (completedDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24)
-        );
 
         // Get profile information
         const shopperProfile = profiles?.shopperProfiles?.[pkg.user_id];
@@ -96,7 +106,6 @@ const CompletedPackagesTable = ({ packages }: CompletedPackagesTableProps) => {
         return {
           ...pkg,
           daysElapsed,
-          createdDate,
           completedDate,
           shopperProfile,
           travelerProfile,
@@ -106,14 +115,16 @@ const CompletedPackagesTable = ({ packages }: CompletedPackagesTableProps) => {
   }, [packages, profiles]);
 
   const stats = useMemo(() => {
-    if (completedPackages.length === 0) return { totalCompleted: 0, avgDays: 0 };
+    if (completedPackages.length === 0) return { totalCompleted: 0, avgDays: 0, countWithDays: 0 };
     
-    const totalDays = completedPackages.reduce((sum, pkg) => sum + pkg.daysElapsed, 0);
-    const avgDays = Math.round(totalDays / completedPackages.length);
+    const withDays = completedPackages.filter(pkg => pkg.daysElapsed !== null);
+    const totalDays = withDays.reduce((sum, pkg) => sum + (pkg.daysElapsed as number), 0);
+    const avgDays = withDays.length > 0 ? Math.round(totalDays / withDays.length) : 0;
     
     return {
       totalCompleted: completedPackages.length,
       avgDays,
+      countWithDays: withDays.length,
     };
   }, [completedPackages]);
 
@@ -204,9 +215,13 @@ const CompletedPackagesTable = ({ packages }: CompletedPackagesTableProps) => {
                         {formatDate(pkg.updated_at)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className={pkg.daysElapsed > 7 ? "text-amber-600" : "text-green-600"}>
-                          {pkg.daysElapsed}
-                        </span>
+                        {pkg.daysElapsed !== null ? (
+                          <span className={pkg.daysElapsed > 7 ? "text-amber-600" : "text-green-600"}>
+                            {pkg.daysElapsed}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">N/A</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {pkg.estimated_price ? formatCurrency(pkg.estimated_price) : "N/A"}
