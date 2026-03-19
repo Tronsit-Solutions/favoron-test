@@ -223,9 +223,6 @@ const CompletedPackagesTable = ({ packages }: CompletedPackagesTableProps) => {
                           <span className="text-muted-foreground">N/A</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {pkg.estimated_price ? formatCurrency(pkg.estimated_price) : "N/A"}
-                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
