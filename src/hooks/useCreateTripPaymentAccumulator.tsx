@@ -46,6 +46,21 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
     
     console.log('📊 Summary: delivered_count =', deliveredEligibleCount, 'accumulated =', accumulatedAmount);
 
+    // Fetch existing boost_amount for this trip (boost is managed separately via validate_boost_code RPC)
+    let existingBoostAmount = 0;
+    const { data: existingAcc } = await supabase
+      .from('trip_payment_accumulator')
+      .select('boost_amount')
+      .eq('trip_id', tripId)
+      .eq('traveler_id', travelerId)
+      .maybeSingle();
+    
+    if (existingAcc) {
+      existingBoostAmount = Number(existingAcc.boost_amount) || 0;
+    }
+
+    console.log('🚀 Boost amount for trip:', existingBoostAmount);
+
     // Obtener total de paquetes del viaje con estado igual o posterior a 'in_transit'
     // Excluir paquetes con incidencia del conteo total para no bloquear pagos
     const eligibleStatuses = ['in_transit','received_by_traveler','delivered_to_office','completed','delivered','ready_for_pickup','ready_for_delivery'];
