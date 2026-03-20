@@ -660,7 +660,7 @@ const EditTripModal = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="cityArea">
-                  Ciudad / Estado / Región <span className="text-destructive">*</span>
+                  Ciudad / Estado / Región
                   {changedDot('cityArea', formData.packageReceivingAddress.cityArea)}
                 </Label>
                 <Input id="cityArea" type="text" placeholder="Ej: Miami, FL" value={formData.packageReceivingAddress.cityArea} onChange={e => handleAddressChange('cityArea', e.target.value)} className={errorClass('cityArea')} required />
