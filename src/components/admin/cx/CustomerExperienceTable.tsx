@@ -18,6 +18,7 @@ import CXPackageDetailModal from "./CXPackageDetailModal";
 interface Props {
   rows: CXPackageRow[];
   loading: boolean;
+  userType: "shopper" | "traveler";
   onSave: (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null }) => Promise<void>;
 }
 
