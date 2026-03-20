@@ -1,23 +1,34 @@
 
 
-## Fix: User ID truncado en modal de perfil
+## Fix: Usuarios asignados no se muestran en el diálogo
 
-### Problema
-El campo User ID en `UserDetailModal` muestra solo "4" en vez del UUID completo. La clase `truncate` en el `<code>` corta el texto, y el contenedor no tiene suficiente ancho.
+### Causa raíz
+La query usa un join implícito de PostgREST: `profiles:user_id(first_name, last_name, email)`. Esto requiere una foreign key de `user_custom_roles.user_id` hacia `profiles.id`. Pero la FK apunta a `auth.users(id)`, no a `profiles`. PostgREST no puede resolver el join, devuelve `profiles: null`, y los usuarios aparecen vacíos.
 
-### Solución — `src/components/admin/UserDetailModal.tsx` (línea 67)
+### Solución — `src/pages/AdminRoles.tsx`
 
-Cambiar el `<code>` para que el UUID sea visible completo:
-- Reemplazar `truncate` por `break-all` para que el UUID se muestre en múltiples líneas si es necesario
-- Alternativamente, usar `overflow-x-auto` para scroll horizontal
+Cambiar `openAssignDialog` para hacer dos queries separadas:
 
-```tsx
-// Antes:
-<code className="text-xs font-mono bg-muted px-2 py-1 rounded select-all flex-1 truncate">{userId}</code>
+1. Query `user_custom_roles` filtrado por `custom_role_id` para obtener los `user_id`s
+2. Query `profiles` con `.in('id', userIds)` para obtener nombres y emails
+3. Combinar los resultados manualmente
 
-// Después:
-<code className="text-xs font-mono bg-muted px-2 py-1 rounded select-all flex-1 break-all">{userId}</code>
+```ts
+const { data: assignments } = await supabase
+  .from('user_custom_roles')
+  .select('id, user_id')
+  .eq('custom_role_id', roleId);
+
+if (assignments && assignments.length > 0) {
+  const userIds = assignments.map(a => a.user_id);
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, first_name, last_name, email')
+    .in('id', userIds);
+
+  // Merge assignment id + profile data
+}
 ```
 
-Un solo cambio de clase CSS en una línea.
+Un cambio en una sola función (~15 líneas).
 
