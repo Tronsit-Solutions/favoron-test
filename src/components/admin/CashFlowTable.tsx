@@ -280,7 +280,7 @@ const CashFlowTable = () => {
         <CardContent>
           {isLoading ? (
             <p className="text-sm text-muted-foreground py-8 text-center">Cargando...</p>
-          ) : incomeRows.length === 0 ? (
+          ) : filteredIncomeRows.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">No hay ingresos en este período</p>
           ) : (
             <div className="overflow-x-auto">
