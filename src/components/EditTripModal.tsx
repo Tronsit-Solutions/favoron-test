@@ -615,7 +615,7 @@ const EditTripModal = ({
 
             <div className="space-y-2">
               <Label htmlFor="recipientName">
-                Nombre de la persona que recibe los paquetes <span className="text-destructive">*</span>
+                Nombre de la persona que recibe los paquetes
                 {changedDot('recipientName', formData.packageReceivingAddress.recipientName)}
               </Label>
               <Input id="recipientName" type="text" placeholder="Ej: Juan Pérez" value={formData.packageReceivingAddress.recipientName} onChange={e => handleAddressChange('recipientName', e.target.value)} className={errorClass('recipientName')} required />
