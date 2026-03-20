@@ -347,7 +347,7 @@ const AdminDiscounts = () => {
   );
 
   return (
-    <RequireAdmin>
+    <RequirePermission permission="discounts">
       <div className="min-h-screen bg-background">
         <DashboardHeader user={userData} onShowProfile={() => navigate('/dashboard')} onLogout={handleLogout} onGoHome={() => navigate('/')} />
 
