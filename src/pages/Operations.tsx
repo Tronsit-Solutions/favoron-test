@@ -156,6 +156,7 @@ const Operations = () => {
               onRefresh={operationsData.refresh}
               onRemovePackage={operationsData.removePackage}
               onRemovePackages={operationsData.removePackages}
+              onUpdatePackageStatus={operationsData.updatePackageStatus}
               onUpdateIncidentFlag={operationsData.updatePackageIncidentFlag}
               onAddToLabelCart={operationsData.addToLabelCart}
               onAddManyToLabelCart={operationsData.addManyToLabelCart}

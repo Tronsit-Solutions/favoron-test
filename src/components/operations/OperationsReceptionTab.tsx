@@ -95,7 +95,7 @@ const OperationsReceptionTab = ({
     if (confirmed.length > 0) {
       // Add to label cart before removing from view
       await onAddManyToLabelCart(confirmed);
-      onRemovePackages(confirmed);
+      confirmed.forEach(id => onUpdatePackageStatus(id, 'delivered_to_office'));
       toast.success(`${confirmed.length} paquete${confirmed.length !== 1 ? 's' : ''} confirmado${confirmed.length !== 1 ? 's' : ''}`);
     }
 
