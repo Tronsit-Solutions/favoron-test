@@ -1,20 +1,18 @@
 
 
-## Mostrar Tip Boost en Detalles de Viaje y Preview Cards
+## Fix: Add `boost_code` to admin trips RPC
 
-### Cambios
+### Problem
+The `get_admin_trips_with_user` RPC function doesn't include `boost_code` in its SELECT statement, so admin trip data never has this field — the badge in AdminApprovalsTab can never show.
 
-**1. `src/components/admin/TripDetailModal.tsx`** — Agregar sección de Tip Boost después del bloque de "Información Adicional" (~línea 598):
-- Mostrar un bloque visual (fondo amber) con icono Rocket si `trip.boost_code` existe
-- Mostrar el código aplicado: `trip.boost_code`
-- Si no hay boost, no mostrar nada
-- Importar `Rocket` de lucide-react
+### Solution
+Update the RPC to include `t.boost_code` in the SELECT list.
 
-**2. `src/components/admin/AdminApprovalsTab.tsx`** — En la preview card de viajes (~línea 395):
-- Después del nombre del viajero, si `trip.boost_code` existe, mostrar un Badge amber: `🚀 Boost: {trip.boost_code}`
+### Changes
 
-**3. `src/components/admin/matching/TripCard.tsx`** — Ya tiene prop `hasBoost` y badge implementado (de cambios anteriores). No requiere cambios.
+**1. New Supabase migration** — `CREATE OR REPLACE FUNCTION get_admin_trips_with_user()`:
+- Add `t.boost_code` to the SELECT columns
+- Add `t.boost_code` to the return type (or use `text` type)
 
-### Datos
-El campo `boost_code` ya existe en la tabla `trips` y ya se incluye en los queries de `useOptimizedTripsData` y `useTripsData`. Solo necesitamos verificar que los datos de `AdminApprovalsTab` también lo incluyan.
+The full updated function will mirror the existing one but add `t.boost_code` after `t.available_space`.
 
