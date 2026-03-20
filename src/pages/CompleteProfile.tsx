@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { isProfileComplete } from "@/hooks/useProfileCompletion";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,8 @@ import { Progress } from "@/components/ui/progress";
 
 const CompleteProfile = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isSimulation = searchParams.get("simulate") === "true";
   const { user, profile, loading } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -22,27 +24,27 @@ const CompleteProfile = () => {
   });
   const [saving, setSaving] = useState(false);
 
-  // Pre-fill from profile
+  // Pre-fill from profile (clear phone/doc in simulation mode)
   useEffect(() => {
     if (profile) {
       setFormData({
         firstName: profile.first_name || "",
         lastName: profile.last_name || "",
         username: profile.username || "",
-        phoneNumber: profile.phone_number || "",
+        phoneNumber: isSimulation ? "" : (profile.phone_number || ""),
         countryCode: profile.country_code || "+502",
         idNumber: "",
         avatarUrl: profile.avatar_url || null,
       });
     }
-  }, [profile]);
+  }, [profile, isSimulation]);
 
-  // If profile is already complete, redirect to dashboard
+  // If profile is already complete and NOT simulating, redirect to dashboard
   useEffect(() => {
-    if (profile && isProfileComplete(profile)) {
+    if (!isSimulation && profile && isProfileComplete(profile)) {
       navigate("/dashboard", { replace: true });
     }
-  }, [profile, navigate]);
+  }, [profile, navigate, isSimulation]);
 
   const filledCount = [formData.firstName, formData.lastName, formData.phoneNumber].filter(
     (v) => v && v.trim().length > 0

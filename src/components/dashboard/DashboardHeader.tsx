@@ -103,7 +103,7 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => navigate('/complete-profile')}
+              onClick={() => navigate('/complete-profile?simulate=true')}
               className="hidden sm:flex items-center bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
               title="Simular Google OAuth (ver flujo de perfil incompleto)"
             >
@@ -174,7 +174,7 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
                     <Settings className="h-4 w-4 mr-2" />
                     Control Admin
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/complete-profile')} className="sm:hidden">
+                  <DropdownMenuItem onClick={() => navigate('/complete-profile?simulate=true')} className="sm:hidden">
                     <UserPlus className="h-4 w-4 mr-2" />
                     Simular Google OAuth
                   </DropdownMenuItem>
