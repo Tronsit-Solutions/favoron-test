@@ -1,20 +1,32 @@
 
 
-## Agregar columna "Comprobante" a la tabla de Ingresos
+## Fix: Botón "Ver" comprobante no aparece en Ingresos
 
-### Cambio — `src/components/admin/CashFlowTable.tsx`
+### Causa raíz
+El campo `payment_receipt` en packages guarda la ruta del archivo como `filePath`, no como `url` ni `receipt_url`. El código actual busca:
+```
+receiptData?.url || receiptData?.receipt_url
+```
+Pero el dato real es:
+```
+{ filePath: "user_id/pkg_id_payment_receipt.jpg", uploadedAt: "...", ... }
+```
 
-**Query** (línea 47): agregar `payment_receipt, recurrente_payment_id, label_number` al select de packages.
+### Solución — `src/components/admin/CashFlowTable.tsx`
 
-**incomeRows** (línea 98-113): agregar campos `receiptData` (del jsonb `payment_receipt`) y `recurrentePaymentId` al objeto de cada fila.
+Cambiar la extracción de `receiptUrl` en `incomeRows` (línea ~114):
 
-**Tabla de Ingresos**: agregar columna "Comprobante" después de "Método":
-- Si `paymentMethod === "card"`: mostrar el `recurrente_payment_id` como texto monospace con prefijo "ID:" 
-- Si `paymentMethod === "bank_transfer"` y existe `payment_receipt` con URL: botón "Ver" que abre el `ReceiptViewerModal` (mismo patrón que egresos)
-- Si no hay comprobante: mostrar "—"
+**Antes:**
+```ts
+receiptUrl: receiptData?.url || receiptData?.receipt_url || null,
+receiptFilename: receiptData?.filename || receiptData?.receipt_filename || null,
+```
 
-**Excel export** (línea 150-160): agregar columna "Comprobante" al sheet de ingresos con el ID de Recurrente o "Transferencia" según corresponda.
+**Después:**
+```ts
+receiptUrl: receiptData?.url || receiptData?.receipt_url || receiptData?.filePath || null,
+receiptFilename: receiptData?.filename || receiptData?.receipt_filename || receiptData?.filePath?.split('/').pop() || null,
+```
 
-### Archivos
-- **Modificar**: `src/components/admin/CashFlowTable.tsx`
+Esto cubre tanto el formato antiguo (`url`) como el actual (`filePath`). La función `handleViewReceipt` ya maneja rutas de storage (no-http) generando un signed URL, así que no necesita cambios.
 
