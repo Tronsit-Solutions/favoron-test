@@ -87,7 +87,7 @@ const AdminPlatformFees = () => {
   const primeTotalOutside = formData ? previewBasePrice + primeServiceFee + Math.max(0, formData.delivery_fee_outside_city - formData.prime_delivery_discount) : 0;
 
   return (
-    <RequireAdmin>
+    <RequirePermission permission="platform_fees">
       <div className="container mx-auto py-6 px-4 max-w-4xl">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
