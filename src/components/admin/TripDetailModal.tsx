@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, Phone, Plane, Calendar, MapPin, Package, Truck, CheckCircle, XCircle, Home, ShoppingBag, Download } from "lucide-react";
+import { User, Mail, Phone, Plane, Calendar, MapPin, Package, Truck, CheckCircle, XCircle, Home, ShoppingBag, Download, Rocket } from "lucide-react";
 import { TripHistoryTimeline } from './TripHistoryTimeline';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -594,6 +594,16 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
                   <p className="text-sm text-muted-foreground bg-muted p-3 rounded">
                     {trip.additionalInfo}
                   </p>
+                </div>
+              )}
+
+              {trip.boost_code && (
+                <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <Rocket className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">Tip Booster Activo</p>
+                    <p className="text-xs text-amber-600 font-mono">{trip.boost_code}</p>
+                  </div>
                 </div>
               )}
 

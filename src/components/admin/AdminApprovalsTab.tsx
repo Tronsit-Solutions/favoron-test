@@ -405,7 +405,12 @@ const AdminApprovalsTab = ({
                            </p>
                             <p className="text-xs sm:text-sm text-muted-foreground break-words">
                               Viajero: {trip.traveler_display_name || trip.user_display_name || trip.profiles?.display_name || `${trip.first_name || ''} ${trip.last_name || ''}`.trim() || trip.username || trip.email || `Usuario ${trip.user_id?.slice(0, 8)}`}
-                            </p>
+                              {trip.boost_code && (
+                                <Badge className="bg-amber-100 text-amber-800 border-amber-200 text-[10px] ml-1">
+                                  🚀 Boost: {trip.boost_code}
+                                </Badge>
+                              )}
+                             </p>
                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                              Recepción paquetes: {(() => {
                                const dateFirst = new Date(trip.first_day_packages);
