@@ -10,6 +10,16 @@ export interface CXPackageRow {
   target_user_id: string;
   target_user_name: string;
   target_user_phone: string | null;
+  // Package details
+  estimated_price: number | null;
+  delivery_deadline: string;
+  additional_notes: string | null;
+  created_at: string;
+  label_number: number | null;
+  delivery_method: string | null;
+  package_destination: string;
+  // Counterpart user (traveler for shopper tab, shopper for traveler tab)
+  counterpart_name: string | null;
   // CX call data (may be null if no call record yet)
   cx_id: string | null;
   call_status: string;
