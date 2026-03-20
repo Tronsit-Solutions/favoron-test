@@ -369,8 +369,9 @@ const CashFlowTable = () => {
       {/* Receipt viewer */}
       {receiptUrl && (
         <ReceiptViewerModal
+          isOpen={!!receiptUrl}
           receiptUrl={receiptUrl}
-          receiptFilename={receiptFilename}
+          filename={receiptFilename || undefined}
           onClose={() => { setReceiptUrl(null); setReceiptFilename(null); }}
         />
       )}
