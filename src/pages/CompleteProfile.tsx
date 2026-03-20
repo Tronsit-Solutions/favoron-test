@@ -108,12 +108,23 @@ const CompleteProfile = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b bg-background py-4 px-6">
-        <div className="max-w-lg mx-auto flex items-center gap-3">
+        <div className="max-w-lg mx-auto flex items-center justify-between">
           <img
             src="/lovable-uploads/b4ea91c2-1974-4a3d-b9b6-c538aa52daa7.png"
             alt="Favorón Logo"
             className="h-7 w-auto"
           />
+          {isSimulation && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/dashboard")}
+              className="text-muted-foreground hover:text-foreground gap-1"
+            >
+              <X className="h-4 w-4" />
+              Cerrar simulación
+            </Button>
+          )}
         </div>
       </header>
 
