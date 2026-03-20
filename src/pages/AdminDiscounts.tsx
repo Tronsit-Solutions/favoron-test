@@ -548,7 +548,7 @@ const AdminDiscounts = () => {
           </Tabs>
         </div>
       </div>
-    </RequireAdmin>
+    </RequirePermission>
   );
 };
 

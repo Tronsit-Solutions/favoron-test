@@ -352,7 +352,7 @@ const AdminReferrals = () => {
           )}
         </div>
       </div>
-    </RequireAdmin>
+    </RequirePermission>
   );
 };
 

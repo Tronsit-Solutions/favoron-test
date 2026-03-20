@@ -451,7 +451,7 @@ const AdminPlatformFees = () => {
           </div>
         )}
       </div>
-    </RequireAdmin>
+    </RequirePermission>
   );
 };
 

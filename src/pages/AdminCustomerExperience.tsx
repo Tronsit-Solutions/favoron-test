@@ -128,7 +128,7 @@ const AdminCustomerExperience = () => {
           </Tabs>
         </div>
       </div>
-    </RequireAdmin>
+    </RequirePermission>
   );
 };
 

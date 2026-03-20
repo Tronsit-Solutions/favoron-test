@@ -82,7 +82,7 @@ const AdminReports = () => {
           </Tabs>
         </div>
       </div>
-    </RequireAdmin>
+    </RequirePermission>
   );
 };
 

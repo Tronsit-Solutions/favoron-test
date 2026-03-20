@@ -415,7 +415,7 @@ const AdminDeliveryPoints = () => {
           </Card>
         </main>
       </div>
-    </RequireAdmin>
+    </RequirePermission>
   );
 };
 

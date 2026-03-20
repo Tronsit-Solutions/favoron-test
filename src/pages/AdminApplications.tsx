@@ -55,7 +55,7 @@ const AdminApplications = () => {
           <AdminApplicationsTab />
         </div>
       </div>
-    </RequireAdmin>
+    </RequirePermission>
   );
 };
 

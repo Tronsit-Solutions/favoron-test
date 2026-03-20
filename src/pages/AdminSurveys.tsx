@@ -329,7 +329,7 @@ const AdminSurveys = () => {
           previewMode
         />
       </div>
-    </RequireAdmin>
+    </RequirePermission>
   );
 };
 
