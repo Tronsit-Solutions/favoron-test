@@ -38,7 +38,8 @@ import UserFinancialSummary from "./UserFinancialSummary";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { User as UserIcon, Mail, Phone, Calendar, FileText, Shield } from "lucide-react";
+import { User as UserIcon, Mail, Phone, Calendar, FileText, Shield, Copy, Check } from "lucide-react";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface UserDetailModalProps {
   isOpen: boolean;
