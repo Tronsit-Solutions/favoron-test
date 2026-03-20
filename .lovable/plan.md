@@ -1,31 +1,27 @@
 
 
-## Reemplazar columna "Producto" por botón "Ver Pedido" con modal de detalles
+## Fix: Modal de viajero tarda en abrir
 
-### Problema
-La columna "Producto" muestra texto truncado que no es útil. El usuario quiere ver detalles completos del pedido.
+### Causa raíz
+`handleTravelerClick` (línea 496) ejecuta 3 queries secuenciales a Supabase **antes** de llamar `setShowTravelerInfo(true)` en línea 576. El modal no se abre hasta que todas terminan.
 
-### Solución
+### Solución — `src/components/admin/AdminMatchDialog.tsx`
 
-**1. Ampliar datos en `useCustomerExperience.ts`**
-- Agregar campos al select de packages: `estimated_price, delivery_deadline, additional_notes, created_at, label_number, delivery_method, package_destination`
-- Agregar estos campos a la interfaz `CXPackageRow`
-- Incluir nombre del viajero (para shoppers) y nombre del shopper (para viajeros) en los datos
+Mover `setShowTravelerInfo(true)` al inicio de la función (justo después de `setSelectedTraveler`), para que el modal se abra inmediatamente con los datos del perfil que ya están en `travelerProfiles`. Las queries de referral y packages se ejecutan en background y actualizan el modal cuando terminan.
 
-**2. Crear modal `CXPackageDetailModal.tsx`**
-- Dialog con detalles del pedido:
-  - **Productos**: lista con descripción, precio, cantidad, link (reutilizar `PackageProductDisplay`)
-  - **Info general**: fecha de creación, fecha límite, precio estimado, etiqueta, método de entrega, destino
-  - **Notas adicionales** del pedido
-  - **Viajero/Shopper**: nombre de quién trajo/pidió el paquete
-- Diseño limpio con secciones separadas
+```ts
+const handleTravelerClick = async (trip: any) => {
+  const profile = travelerProfiles[trip.user_id];
+  setSelectedTraveler({ ...profile, trip, referral: null });
+  setTravelerPackages([]); // clear previous
+  setShowTravelerInfo(true); // ← ABRIR INMEDIATAMENTE
 
-**3. Modificar `CustomerExperienceTable.tsx`**
-- Reemplazar la celda de texto truncado de "Producto" por un botón "Ver pedido" (icono `Eye`)
-- Al hacer clic, abrir el modal con los detalles
-- Cambiar header de "Producto" a "Pedido"
+  // Fetch referral y packages en paralelo (background)
+  // ... rest stays the same
+};
+```
 
-### Archivos
-- **Modificar**: `src/hooks/useCustomerExperience.ts`, `src/components/admin/cx/CustomerExperienceTable.tsx`
-- **Crear**: `src/components/admin/cx/CXPackageDetailModal.tsx`
+Adicionalmente, ejecutar las dos queries (referral + packages) en **paralelo** con `Promise.all` en vez de secuencialmente, para que cuando los datos lleguen, lleguen más rápido.
+
+Un cambio en una sola función, ~5 líneas modificadas.
 
