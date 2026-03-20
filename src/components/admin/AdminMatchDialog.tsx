@@ -1906,7 +1906,7 @@ const AdminMatchDialog = ({
         title="Foto de perfil"
         filename="avatar.jpg"
       />
-    </Dialog>
+    </>
   );
 };
 
