@@ -60,39 +60,40 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
         return;
       }
 
-      // 2) For traveler tab, resolve trip -> traveler user_id
+      // 2) Resolve trip -> traveler user_id (needed for both tabs)
       let travelerMap: Record<string, string> = {};
-      if (userType === "traveler") {
-        const tripIds = [...new Set(packages.map((p) => p.matched_trip_id).filter(Boolean))];
-        if (tripIds.length > 0) {
-          const { data: trips } = await supabase
-            .from("trips")
-            .select("id, user_id")
-            .in("id", tripIds as string[]);
-          if (trips) {
-            trips.forEach((t) => {
-              travelerMap[t.id] = t.user_id;
-            });
-          }
+      const tripIds = [...new Set(packages.map((p) => p.matched_trip_id).filter(Boolean))];
+      if (tripIds.length > 0) {
+        const { data: trips } = await supabase
+          .from("trips")
+          .select("id, user_id")
+          .in("id", tripIds as string[]);
+        if (trips) {
+          trips.forEach((t) => {
+            travelerMap[t.id] = t.user_id;
+          });
         }
       }
 
-      // 3) Determine target user IDs
+      // 3) Determine target user IDs + counterpart IDs
       const targetUserIds = new Set<string>();
+      const counterpartUserIds = new Set<string>();
       const packageRows = packages.map((p) => {
         const targetId = userType === "shopper" ? p.user_id : travelerMap[p.matched_trip_id!];
+        const counterpartId = userType === "shopper" ? travelerMap[p.matched_trip_id!] : p.user_id;
         if (targetId) targetUserIds.add(targetId);
-        return { ...p, target_user_id: targetId };
+        if (counterpartId) counterpartUserIds.add(counterpartId);
+        return { ...p, target_user_id: targetId, counterpart_user_id: counterpartId };
       }).filter((p) => p.target_user_id);
 
-      // 4) Fetch profiles
-      const profileIds = [...targetUserIds];
+      // 4) Fetch profiles for both target and counterpart users
+      const allProfileIds = [...new Set([...targetUserIds, ...counterpartUserIds])];
       const profileMap: Record<string, { name: string; phone: string | null }> = {};
-      if (profileIds.length > 0) {
+      if (allProfileIds.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles")
           .select("id, first_name, last_name, phone_number")
-          .in("id", profileIds);
+          .in("id", allProfileIds);
         if (profiles) {
           profiles.forEach((pr) => {
             profileMap[pr.id] = {
