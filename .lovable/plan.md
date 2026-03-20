@@ -1,27 +1,23 @@
 
 
-## Fix: Modal de viajero tarda en abrir
+## Eliminar 3 paquetes duplicados de Julián García
 
-### Causa raíz
-`handleTravelerClick` (línea 496) ejecuta 3 queries secuenciales a Supabase **antes** de llamar `setShowTravelerInfo(true)` en línea 576. El modal no se abre hasta que todas terminan.
+### Acción
+Ejecutar DELETE en la tabla `packages` para los 3 IDs duplicados (todos `pending_approval`, sin match):
 
-### Solución — `src/components/admin/AdminMatchDialog.tsx`
-
-Mover `setShowTravelerInfo(true)` al inicio de la función (justo después de `setSelectedTraveler`), para que el modal se abra inmediatamente con los datos del perfil que ya están en `travelerProfiles`. Las queries de referral y packages se ejecutan en background y actualizan el modal cuando terminan.
-
-```ts
-const handleTravelerClick = async (trip: any) => {
-  const profile = travelerProfiles[trip.user_id];
-  setSelectedTraveler({ ...profile, trip, referral: null });
-  setTravelerPackages([]); // clear previous
-  setShowTravelerInfo(true); // ← ABRIR INMEDIATAMENTE
-
-  // Fetch referral y packages en paralelo (background)
-  // ... rest stays the same
-};
+```sql
+DELETE FROM packages WHERE id IN (
+  '1b414357-a49f-41de-9371-560337dc6b8f',
+  'e66c8b41-d8d9-44d1-b7ef-4bc676e635a2',
+  '56340daf-cb99-4be9-9a9e-624931f28ad0'
+);
 ```
 
-Adicionalmente, ejecutar las dos queries (referral + packages) en **paralelo** con `Promise.all` en vez de secuencialmente, para que cuando los datos lleguen, lleguen más rápido.
+### Se conserva
+- `6c7615f3` — Whoop Peak, status `matched` (el pedido real)
 
-Un cambio en una sola función, ~5 líneas modificadas.
+### Técnico
+- Solo requiere una operación DELETE via el insert tool
+- No hay foreign keys en cascada que afecten otras tablas para estos paquetes (no tienen mensajes, assignments, ni pagos asociados al ser `pending_approval`)
+- No se modifica código
 
