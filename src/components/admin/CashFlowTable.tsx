@@ -43,7 +43,7 @@ const CashFlowTable = () => {
     queryFn: async () => {
       let q = supabase
         .from("packages")
-        .select("id, user_id, status, item_description, quote, payment_method, created_at, matched_trip_id, delivery_method")
+        .select("id, user_id, status, item_description, quote, payment_method, created_at, matched_trip_id, delivery_method, payment_receipt, recurrente_payment_id, label_number")
         .in("status", paidStates)
         .not("quote", "is", null)
         .order("created_at", { ascending: false });
