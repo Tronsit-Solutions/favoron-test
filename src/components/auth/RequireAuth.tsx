@@ -2,14 +2,16 @@ import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { LoadingState } from '@/components/ui/loading-state';
+import { isProfileComplete } from '@/hooks/useProfileCompletion';
 
 interface RequireAuthProps {
   children: ReactNode;
   fallback?: ReactNode;
+  allowIncompleteProfile?: boolean;
 }
 
-export const RequireAuth = ({ children, fallback }: RequireAuthProps) => {
-  const { user, loading, userRole, roleLoaded } = useAuth();
+export const RequireAuth = ({ children, fallback, allowIncompleteProfile = false }: RequireAuthProps) => {
+  const { user, loading, userRole, roleLoaded, profile } = useAuth();
   const location = useLocation();
 
   // Check if user was previously authenticated (preserves UI during token refresh/tab switch)
@@ -44,6 +46,11 @@ export const RequireAuth = ({ children, fallback }: RequireAuthProps) => {
   // Operations users can ONLY access /operations - block all dashboard routes
   if (userRole?.role === 'operations' && location.pathname.startsWith('/dashboard')) {
     return <Navigate to="/operations" replace />;
+  }
+
+  // Profile completeness check — redirect to /complete-profile if incomplete
+  if (!allowIncompleteProfile && profile && !isProfileComplete(profile) && location.pathname !== '/complete-profile') {
+    return <Navigate to="/complete-profile" replace />;
   }
 
   return <>{children}</>;

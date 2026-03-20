@@ -13,6 +13,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import CustomsRegulation from "./pages/CustomsRegulation";
+import CompleteProfile from "./pages/CompleteProfile";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import Dashboard from "./pages/Dashboard";
 import MonthlyPackageDetails from "./pages/MonthlyPackageDetails";
@@ -58,6 +59,11 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/complete-profile" element={
+              <RequireAuth allowIncompleteProfile>
+                <CompleteProfile />
+              </RequireAuth>
+            } />
             <Route path="/dashboard/*" element={
               <RequireAuth>
                 <Dashboard />

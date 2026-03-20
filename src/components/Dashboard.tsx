@@ -212,16 +212,7 @@ const Dashboard = ({ user }: DashboardProps) => {
   const navigate = useNavigate();
   const pendingActions = usePendingActions(packages, trips, currentUser);
   
-  // Auto-show profile completion modal if profile is incomplete
-  useEffect(() => {
-    if (!isProfileComplete && profile && !showProfile && !showProfileCompletionModal) {
-      // Delay to avoid showing immediately on load
-      const timer = setTimeout(() => {
-        setShowProfileCompletionModal(true);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [isProfileComplete, profile, showProfile, showProfileCompletionModal]);
+  // Profile completion is now enforced at route level via RequireAuth → /complete-profile
 
   // Inactive trips are now auto-hidden based on status + feedback
 

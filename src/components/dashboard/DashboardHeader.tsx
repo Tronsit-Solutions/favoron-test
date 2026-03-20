@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Users, Home, Sparkles, Settings, Eye, UserCog, Package, MessageCircle } from "lucide-react";
+import { LogOut, User, Users, Home, Sparkles, Settings, Eye, UserCog, Package, MessageCircle, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -103,6 +103,17 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
             <Button 
               variant="outline" 
               size="sm" 
+              onClick={() => navigate('/complete-profile')}
+              className="hidden sm:flex items-center bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+              title="Simular Google OAuth (ver flujo de perfil incompleto)"
+            >
+              <UserPlus className="h-4 w-4" />
+            </Button>
+          )}
+          {user.role === 'admin' && (
+            <Button 
+              variant="outline" 
+              size="sm" 
               onClick={() => navigate('/admin/control')}
               className="hidden sm:flex items-center bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
             >
@@ -162,6 +173,10 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
                   <DropdownMenuItem onClick={() => navigate('/admin/control')} className="sm:hidden">
                     <Settings className="h-4 w-4 mr-2" />
                     Control Admin
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/complete-profile')} className="sm:hidden">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Simular Google OAuth
                   </DropdownMenuItem>
                 </>
               )}
