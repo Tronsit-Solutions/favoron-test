@@ -14,6 +14,7 @@ interface OperationsReceptionTabProps {
   onRefresh: () => void;
   onRemovePackage: (id: string) => void;
   onRemovePackages: (ids: string[]) => void;
+  onUpdatePackageStatus: (id: string, status: string) => void;
   onUpdateIncidentFlag: (id: string, flag: boolean) => void;
   onAddToLabelCart: (packageId: string) => Promise<void>;
   onAddManyToLabelCart: (packageIds: string[]) => Promise<void>;
@@ -25,6 +26,7 @@ const OperationsReceptionTab = ({
   onRefresh,
   onRemovePackage,
   onRemovePackages,
+  onUpdatePackageStatus,
   onUpdateIncidentFlag,
   onAddToLabelCart,
   onAddManyToLabelCart,
@@ -48,7 +50,7 @@ const OperationsReceptionTab = ({
       toast.success('Paquete confirmado');
       // Add to label cart before removing from view
       await onAddToLabelCart(packageId);
-      onRemovePackage(packageId);
+      onUpdatePackageStatus(packageId, 'delivered_to_office');
     } catch (error: any) {
       console.error('Error confirming package:', error);
       toast.error(error.message || 'Error al confirmar');
@@ -93,7 +95,7 @@ const OperationsReceptionTab = ({
     if (confirmed.length > 0) {
       // Add to label cart before removing from view
       await onAddManyToLabelCart(confirmed);
-      onRemovePackages(confirmed);
+      confirmed.forEach(id => onUpdatePackageStatus(id, 'delivered_to_office'));
       toast.success(`${confirmed.length} paquete${confirmed.length !== 1 ? 's' : ''} confirmado${confirmed.length !== 1 ? 's' : ''}`);
     }
 
