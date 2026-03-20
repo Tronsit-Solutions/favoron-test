@@ -251,7 +251,7 @@ const CashFlowTable = () => {
               <ArrowDownCircle className="h-5 w-5 text-green-600 mx-auto mb-1" />
               <p className="text-xs text-muted-foreground">Total Ingresos</p>
               <p className="text-xl font-bold text-green-700 dark:text-green-400">{formatCurrency(totalIncome)}</p>
-              <p className="text-xs text-muted-foreground">{incomeRows.length} transacciones</p>
+              <p className="text-xs text-muted-foreground">{filteredIncomeRows.length} transacciones</p>
             </div>
             <div className="p-4 rounded-lg border bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800 text-center">
               <ArrowUpCircle className="h-5 w-5 text-red-600 mx-auto mb-1" />
