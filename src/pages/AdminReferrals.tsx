@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { RequireAdmin } from "@/components/auth/RequireAdmin";
+import { RequirePermission } from "@/components/auth/RequirePermission";
 import { useAdminReferrals } from "@/hooks/useAdminReferrals";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";

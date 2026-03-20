@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { RequireAdmin } from "@/components/auth/RequireAdmin";
+import { RequirePermission } from "@/components/auth/RequirePermission";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, BarChart3, TrendingUp, Calculator, Users, Clock } from "lucide-react";

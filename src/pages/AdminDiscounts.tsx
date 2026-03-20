@@ -1,4 +1,4 @@
-import { RequireAdmin } from "@/components/auth/RequireAdmin";
+import { RequirePermission } from "@/components/auth/RequirePermission";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { useNavigate } from "react-router-dom";
