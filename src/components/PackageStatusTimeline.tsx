@@ -1,4 +1,4 @@
-import { Check, Clock, Package, Truck, MapPin, Building, CreditCard } from "lucide-react";
+import { Check, Clock, Package, Truck, Building, CreditCard } from "lucide-react";
 
 interface PackageStatusTimelineProps {
   currentStatus: string;
