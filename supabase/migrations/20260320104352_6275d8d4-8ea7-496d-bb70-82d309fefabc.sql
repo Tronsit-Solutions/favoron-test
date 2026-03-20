@@ -1,0 +1,1 @@
+UPDATE trips SET boost_code = 'LUCAS' WHERE id::text LIKE '2bb2da73%';

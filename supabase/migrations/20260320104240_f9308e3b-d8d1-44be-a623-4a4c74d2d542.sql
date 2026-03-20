@@ -1,0 +1,1 @@
+ALTER TABLE public.trips ADD COLUMN boost_code text DEFAULT NULL;
