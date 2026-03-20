@@ -14,7 +14,8 @@ export const useProfileCompletion = (): ProfileCompletionStatus => {
   const requiredFields = {
     phone_number: 'Número de teléfono',
     first_name: 'Nombre',
-    last_name: 'Apellido'
+    last_name: 'Apellido',
+    document_number: 'Documento de identidad'
   };
 
   const validateFieldValue = (key: string, value: any): boolean => {
