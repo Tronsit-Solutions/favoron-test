@@ -103,6 +103,17 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
             <Button 
               variant="outline" 
               size="sm" 
+              onClick={() => navigate('/complete-profile')}
+              className="hidden sm:flex items-center bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+              title="Simular Google OAuth (ver flujo de perfil incompleto)"
+            >
+              <UserPlus className="h-4 w-4" />
+            </Button>
+          )}
+          {user.role === 'admin' && (
+            <Button 
+              variant="outline" 
+              size="sm" 
               onClick={() => navigate('/admin/control')}
               className="hidden sm:flex items-center bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
             >
