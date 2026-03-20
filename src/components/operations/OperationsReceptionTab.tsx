@@ -26,6 +26,7 @@ const OperationsReceptionTab = ({
   onRefresh,
   onRemovePackage,
   onRemovePackages,
+  onUpdatePackageStatus,
   onUpdateIncidentFlag,
   onAddToLabelCart,
   onAddManyToLabelCart,
