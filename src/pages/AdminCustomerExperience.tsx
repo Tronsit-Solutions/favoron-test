@@ -94,7 +94,7 @@ const AdminCustomerExperience = () => {
   };
 
   return (
-    <RequireAdmin>
+    <RequirePermission permission="cx">
       <div className="min-h-screen bg-background">
         <DashboardHeader
           user={userData}
