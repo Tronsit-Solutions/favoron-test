@@ -100,6 +100,7 @@ const EditTripModal = ({
       deliveryMethod: tripData?.delivery_method || '',
       deliveryDate: tripData?.delivery_date || null,
       additionalInfo: tripData?.additionalInfo || '',
+      boostCode: tripData?.boost_code || '',
       recipientName: tripData?.package_receiving_address?.recipientName || '',
       accommodationType: tripData?.package_receiving_address?.accommodationType || '',
       streetAddress: tripData?.package_receiving_address?.streetAddress || '',
