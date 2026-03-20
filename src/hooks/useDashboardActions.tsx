@@ -2166,6 +2166,7 @@ export const useDashboardActions = (
         delivery_method: editedTripData.deliveryMethod,
         messenger_pickup_info: editedTripData.deliveryMethod === 'mensajero' ? 
           editedTripData.messengerPickupInfo : null,
+        boost_code: editedTripData.boostCode || null,
         status: 'pending_approval' // Always reset to pending approval after edit
       };
 

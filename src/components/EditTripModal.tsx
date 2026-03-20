@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plane, MapPin, Package, Phone, Building2, Target, Mail, Users, AlertCircle, RotateCcw } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, Phone, Building2, Target, Mail, Users, AlertCircle, RotateCcw, Rocket } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -62,6 +62,7 @@ const EditTripModal = ({
     deliveryMethod: tripData?.delivery_method || '',
     deliveryDate: tripData?.delivery_date ? new Date(tripData.delivery_date) : null as Date | null,
     additionalInfo: tripData?.additionalInfo || '',
+    boostCode: tripData?.boost_code || '',
       packageReceivingAddress: {
         accommodationType: tripData?.package_receiving_address?.accommodationType || '',
         streetAddress: tripData?.package_receiving_address?.streetAddress || '',
@@ -99,6 +100,7 @@ const EditTripModal = ({
       deliveryMethod: tripData?.delivery_method || '',
       deliveryDate: tripData?.delivery_date || null,
       additionalInfo: tripData?.additionalInfo || '',
+      boostCode: tripData?.boost_code || '',
       recipientName: tripData?.package_receiving_address?.recipientName || '',
       accommodationType: tripData?.package_receiving_address?.accommodationType || '',
       streetAddress: tripData?.package_receiving_address?.streetAddress || '',
@@ -147,6 +149,7 @@ const EditTripModal = ({
     if (isChanged('firstDayPackages', formData.firstDayPackages)) return true;
     if (isChanged('lastDayPackages', formData.lastDayPackages)) return true;
     if (isChanged('additionalInfo', formData.additionalInfo)) return true;
+    if (isChanged('boostCode', formData.boostCode)) return true;
     return false;
   }, [formData, originalFormData]);
 
@@ -165,6 +168,7 @@ const EditTripModal = ({
         deliveryMethod: tripData?.delivery_method || '',
         deliveryDate: tripData?.delivery_date ? new Date(tripData.delivery_date) : null,
         additionalInfo: tripData?.additionalInfo || '',
+        boostCode: tripData?.boost_code || '',
         packageReceivingAddress: {
           accommodationType: tripData?.package_receiving_address?.accommodationType || '',
           streetAddress: tripData?.package_receiving_address?.streetAddress || '',
@@ -224,14 +228,7 @@ const EditTripModal = ({
     if (!formData.availableSpace) errors.availableSpace = "Obligatorio";
     if (!formData.deliveryMethod) errors.deliveryMethod = "Obligatorio";
     if (!formData.deliveryDate) errors.deliveryDate = "Obligatorio";
-    if (!formData.packageReceivingAddress.accommodationType) errors.accommodationType = "Obligatorio";
-    if (!formData.packageReceivingAddress.streetAddress) errors.streetAddress = "Obligatorio";
-    if (!formData.packageReceivingAddress.cityArea) errors.cityArea = "Obligatorio";
-    if (!formData.packageReceivingAddress.postalCode) errors.postalCode = "Obligatorio";
-    if (!formData.packageReceivingAddress.contactNumber) errors.contactNumber = "Obligatorio";
-    if (!formData.packageReceivingAddress.recipientName) errors.recipientName = "Obligatorio";
-    if (!formData.firstDayPackages) errors.firstDayPackages = "Obligatorio";
-    if (!formData.lastDayPackages) errors.lastDayPackages = "Obligatorio";
+    // Address fields, receiving window dates are optional (aligned with TripForm)
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -250,6 +247,7 @@ const EditTripModal = ({
       ...formData,
       fromCity: finalFromCity,
       toCity: finalToCity,
+      boostCode: formData.boostCode,
       messengerPickupInfo: formData.deliveryMethod === 'mensajero' 
         ? formData.messengerPickupInfo 
         : null
@@ -271,6 +269,7 @@ const EditTripModal = ({
         deliveryMethod: tripData?.delivery_method || '',
         deliveryDate: tripData?.delivery_date ? new Date(tripData.delivery_date) : null,
         additionalInfo: tripData?.additionalInfo || '',
+        boostCode: tripData?.boost_code || '',
         packageReceivingAddress: {
           accommodationType: tripData?.package_receiving_address?.accommodationType || '',
           streetAddress: tripData?.package_receiving_address?.streetAddress || '',
@@ -616,7 +615,7 @@ const EditTripModal = ({
 
             <div className="space-y-2">
               <Label htmlFor="recipientName">
-                Nombre de la persona que recibe los paquetes <span className="text-destructive">*</span>
+                Nombre de la persona que recibe los paquetes
                 {changedDot('recipientName', formData.packageReceivingAddress.recipientName)}
               </Label>
               <Input id="recipientName" type="text" placeholder="Ej: Juan Pérez" value={formData.packageReceivingAddress.recipientName} onChange={e => handleAddressChange('recipientName', e.target.value)} className={errorClass('recipientName')} required />
@@ -625,7 +624,7 @@ const EditTripModal = ({
 
             <div className="space-y-2">
               <Label htmlFor="accommodationType">
-                Tipo de alojamiento <span className="text-destructive">*</span>
+                Tipo de alojamiento
                 {changedDot('accommodationType', formData.packageReceivingAddress.accommodationType)}
               </Label>
               <Select value={formData.packageReceivingAddress.accommodationType} onValueChange={value => handleAddressChange('accommodationType', value)}>
@@ -646,7 +645,7 @@ const EditTripModal = ({
 
             <div className="space-y-2">
               <Label htmlFor="streetAddress">
-                Dirección línea 1 <span className="text-destructive">*</span>
+                Dirección línea 1
                 {changedDot('streetAddress', formData.packageReceivingAddress.streetAddress)}
               </Label>
               <Input id="streetAddress" type="text" placeholder="Ej: 123 Main Street" value={formData.packageReceivingAddress.streetAddress} onChange={e => handleAddressChange('streetAddress', e.target.value)} className={errorClass('streetAddress')} required />
@@ -661,7 +660,7 @@ const EditTripModal = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="cityArea">
-                  Ciudad / Estado / Región <span className="text-destructive">*</span>
+                  Ciudad / Estado / Región
                   {changedDot('cityArea', formData.packageReceivingAddress.cityArea)}
                 </Label>
                 <Input id="cityArea" type="text" placeholder="Ej: Miami, FL" value={formData.packageReceivingAddress.cityArea} onChange={e => handleAddressChange('cityArea', e.target.value)} className={errorClass('cityArea')} required />
@@ -670,7 +669,7 @@ const EditTripModal = ({
 
               <div className="space-y-2">
                 <Label htmlFor="postalCode">
-                  Código postal <span className="text-destructive">*</span>
+                  Código postal
                   {changedDot('postalCode', formData.packageReceivingAddress.postalCode)}
                 </Label>
                 <Input id="postalCode" type="text" placeholder="Ej: 33101" value={formData.packageReceivingAddress.postalCode} onChange={e => handleAddressChange('postalCode', e.target.value)} className={errorClass('postalCode')} required />
@@ -688,7 +687,7 @@ const EditTripModal = ({
 
             <div className="space-y-2">
               <Label htmlFor="contactNumber">
-                Número de contacto <span className="text-destructive">*</span>
+                Número de contacto
                 {changedDot('contactNumber', formData.packageReceivingAddress.contactNumber)}
               </Label>
               <div className="relative">
@@ -704,7 +703,7 @@ const EditTripModal = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>
-                  Primer día para recibir paquetes <span className="text-destructive">*</span>
+                  Primer día para recibir paquetes
                   {changedDot('firstDayPackages', formData.firstDayPackages)}
                 </Label>
                 <Popover>
@@ -725,7 +724,7 @@ const EditTripModal = ({
 
               <div className="space-y-2">
                 <Label>
-                  Último día para recibir paquetes <span className="text-destructive">*</span>
+                  Último día para recibir paquetes
                   {changedDot('lastDayPackages', formData.lastDayPackages)}
                 </Label>
                 <Popover>
@@ -930,6 +929,25 @@ const EditTripModal = ({
                 <span className="text-xs text-primary-foreground font-bold">4</span>
               </div>
               <h3 className="text-lg font-semibold text-primary">Información adicional</h3>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="boostCode" className="flex items-center gap-2">
+                <Rocket className="h-4 w-4 text-amber-600" />
+                Tip Booster Code
+                {changedDot('boostCode', formData.boostCode)}
+              </Label>
+              <Input
+                id="boostCode"
+                type="text"
+                placeholder="Ej: BOOST10"
+                value={formData.boostCode}
+                onChange={e => handleInputChange('boostCode', e.target.value.toUpperCase())}
+                className="font-mono"
+              />
+              <p className="text-xs text-muted-foreground">
+                Código de boost para incrementar las propinas del viajero
+              </p>
             </div>
 
             <div className="space-y-2">
