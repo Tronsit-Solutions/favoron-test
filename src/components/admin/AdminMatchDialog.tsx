@@ -687,6 +687,7 @@ const AdminMatchDialog = ({
   };
 
   return (
+    <>
     <Dialog open={showMatchDialog} onOpenChange={handleCloseDialog}>
       <DialogContent className="w-[98vw] max-w-5xl h-[98vh] sm:h-[95vh] overflow-hidden flex flex-col p-2 sm:p-4">
         <DialogHeader className="pb-4 border-b">
@@ -1622,6 +1623,7 @@ const AdminMatchDialog = ({
           </div>
         </div>
       </DialogContent>
+    </Dialog>
 
       {/* Traveler Info Modal */}
       <Dialog open={showTravelerInfo} onOpenChange={setShowTravelerInfo}>
@@ -1904,7 +1906,7 @@ const AdminMatchDialog = ({
         title="Foto de perfil"
         filename="avatar.jpg"
       />
-    </Dialog>
+    </>
   );
 };
 
