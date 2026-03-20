@@ -367,6 +367,23 @@ const AdminControl = () => {
               </CardContent>
             </Card>
 
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/admin/roles')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <KeyRound className="h-5 w-5" />
+                  Roles y Permisos
+                </CardTitle>
+                <CardDescription>
+                  Crear roles personalizados y asignar permisos a usuarios
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="outline" className="w-full">
+                  Gestionar Roles
+                </Button>
+              </CardContent>
+            </Card>
+
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
