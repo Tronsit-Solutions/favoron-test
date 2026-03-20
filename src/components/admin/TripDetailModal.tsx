@@ -597,6 +597,16 @@ const TripDetailModal = ({ modalId, onApprove, onReject, onEditTrip }: TripDetai
                 </div>
               )}
 
+              {trip.boost_code && (
+                <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <Rocket className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">Tip Booster Activo</p>
+                    <p className="text-xs text-amber-600 font-mono">{trip.boost_code}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="text-xs text-muted-foreground">
                 Viaje registrado el {new Date(trip.created_at).toLocaleDateString('es-GT')} a las {new Date(trip.created_at).toLocaleTimeString('es-GT')}
               </div>
