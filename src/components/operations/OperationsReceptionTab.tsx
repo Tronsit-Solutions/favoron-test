@@ -50,7 +50,7 @@ const OperationsReceptionTab = ({
       toast.success('Paquete confirmado');
       // Add to label cart before removing from view
       await onAddToLabelCart(packageId);
-      onRemovePackage(packageId);
+      onUpdatePackageStatus(packageId, 'delivered_to_office');
     } catch (error: any) {
       console.error('Error confirming package:', error);
       toast.error(error.message || 'Error al confirmar');
