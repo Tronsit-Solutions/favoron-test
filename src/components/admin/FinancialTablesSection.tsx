@@ -31,6 +31,10 @@ const FinancialTablesSection = ({ packages }: FinancialTablesSectionProps) => {
       <TabsContent value="completed" className="mt-6">
         <CompletedPackagesTable packages={packages} />
       </TabsContent>
+      
+      <TabsContent value="cashflow" className="mt-6">
+        <CashFlowTable />
+      </TabsContent>
     </Tabs>
   );
 };
