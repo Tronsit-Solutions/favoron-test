@@ -13,10 +13,11 @@ interface FinancialTablesSectionProps {
 const FinancialTablesSection = ({ packages }: FinancialTablesSectionProps) => {
   return (
     <Tabs defaultValue="general" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-4">
         <TabsTrigger value="general">Resumen General</TabsTrigger>
         <TabsTrigger value="travelers">Por Viajero</TabsTrigger>
         <TabsTrigger value="completed">Completados</TabsTrigger>
+        <TabsTrigger value="cashflow">Flujo de Caja</TabsTrigger>
       </TabsList>
       
       <TabsContent value="general" className="mt-6">
