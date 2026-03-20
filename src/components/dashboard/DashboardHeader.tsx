@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User, Users, Home, Sparkles, Settings, Eye, UserCog, Package, MessageCircle } from "lucide-react";
+import { LogOut, User, Users, Home, Sparkles, Settings, Eye, UserCog, Package, MessageCircle, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
