@@ -285,6 +285,9 @@ const UserDetailModal = ({
                   </div>
                 </div>
 
+                {/* User ID - read only */}
+                <UserIdField userId={user.id} />
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="flex items-center gap-1">
