@@ -135,7 +135,13 @@ const CashFlowTable = () => {
     });
   }, [expenses]);
 
-  const totalIncome = useMemo(() => incomeRows.reduce((s, r) => s + r.totalPaid, 0), [incomeRows]);
+  const filteredIncomeRows = useMemo(() => {
+    if (paymentMethodFilter === "all") return incomeRows;
+    if (paymentMethodFilter === "card") return incomeRows.filter(r => r.paymentMethod === "card");
+    return incomeRows.filter(r => r.paymentMethod !== "card");
+  }, [incomeRows, paymentMethodFilter]);
+
+  const totalIncome = useMemo(() => filteredIncomeRows.reduce((s, r) => s + r.totalPaid, 0), [filteredIncomeRows]);
   const totalExpenses = useMemo(() => expenseRows.reduce((s, r) => s + r.amount, 0), [expenseRows]);
   const net = totalIncome - totalExpenses;
 
