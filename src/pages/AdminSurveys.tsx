@@ -120,7 +120,7 @@ const AdminSurveys = () => {
   };
 
   return (
-    <RequireAdmin>
+    <RequirePermission permission="surveys">
       <div className="min-h-screen bg-background">
         <DashboardHeader 
           user={userData}
