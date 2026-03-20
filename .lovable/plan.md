@@ -1,32 +1,17 @@
 
 
-## Fix: Botón "Ver" comprobante no aparece en Ingresos
+## Agregar filtro por Método de Pago en Flujo de Caja
 
-### Causa raíz
-El campo `payment_receipt` en packages guarda la ruta del archivo como `filePath`, no como `url` ni `receipt_url`. El código actual busca:
-```
-receiptData?.url || receiptData?.receipt_url
-```
-Pero el dato real es:
-```
-{ filePath: "user_id/pkg_id_payment_receipt.jpg", uploadedAt: "...", ... }
-```
+### Cambio — `src/components/admin/CashFlowTable.tsx`
 
-### Solución — `src/components/admin/CashFlowTable.tsx`
+1. Nuevo estado: `const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all")`
 
-Cambiar la extracción de `receiptUrl` en `incomeRows` (línea ~114):
+2. Agregar un `Select` al lado del selector de mes (línea ~163) con opciones: "Todos", "Tarjeta", "Transferencia"
 
-**Antes:**
-```ts
-receiptUrl: receiptData?.url || receiptData?.receipt_url || null,
-receiptFilename: receiptData?.filename || receiptData?.receipt_filename || null,
-```
+3. Filtrar `incomeRows` con `useMemo` antes de renderizar:
+   - `all` → sin filtro
+   - `card` → solo `paymentMethod === "card"`
+   - `bank_transfer` → solo `paymentMethod !== "card"`
 
-**Después:**
-```ts
-receiptUrl: receiptData?.url || receiptData?.receipt_url || receiptData?.filePath || null,
-receiptFilename: receiptData?.filename || receiptData?.receipt_filename || receiptData?.filePath?.split('/').pop() || null,
-```
-
-Esto cubre tanto el formato antiguo (`url`) como el actual (`filePath`). La función `handleViewReceipt` ya maneja rutas de storage (no-http) generando un signed URL, así que no necesita cambios.
+4. Usar las filas filtradas para la tabla de ingresos y el cálculo de Total Ingresos / Balance Neto
 
