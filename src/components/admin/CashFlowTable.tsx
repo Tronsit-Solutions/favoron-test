@@ -300,7 +300,7 @@ const CashFlowTable = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {incomeRows.map(row => (
+                  {filteredIncomeRows.map(row => (
                     <TableRow key={row.id}>
                       <TableCell className="text-xs whitespace-nowrap">{formatDate(row.date)}</TableCell>
                       <TableCell className="text-xs max-w-[120px] truncate">{row.shopper}</TableCell>
