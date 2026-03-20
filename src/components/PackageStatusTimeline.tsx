@@ -90,11 +90,16 @@ const PackageStatusTimeline = ({ currentStatus, deliveryMethod, className = "" }
     return true;
   });
 
-  const currentIndex = filteredStatuses.findIndex(status => status.key === currentStatus);
+  // Map legacy statuses to their current equivalent
+  const effectiveStatus = ['quote_sent', 'quote_accepted'].includes(currentStatus) 
+    ? 'matched' 
+    : currentStatus;
+
+  const currentIndex = filteredStatuses.findIndex(status => status.key === effectiveStatus);
 
   const getStatusState = (index: number) => {
     // Si el paquete está completado, todos los pasos se muestran como completados
-    if (currentStatus === 'completed') return 'completed';
+    if (effectiveStatus === 'completed') return 'completed';
     
     if (index < currentIndex) return 'completed';
     if (index === currentIndex) return 'current';
