@@ -1,4 +1,4 @@
-import { Check, Clock, Package, Truck, MapPin, Building, CreditCard } from "lucide-react";
+import { Check, Clock, Package, Truck, Building, CreditCard } from "lucide-react";
 
 interface PackageStatusTimelineProps {
   currentStatus: string;
@@ -20,23 +20,11 @@ const PackageStatusTimeline = ({ currentStatus, deliveryMethod, className = "" }
       icon: Check,
       description: 'Solicitud aprobada por el equipo'
     },
-    { 
+    {
       key: 'matched', 
-      label: 'Emparejado', 
-      icon: MapPin,
-      description: 'Emparejado con un viajero'
-    },
-    { 
-      key: 'quote_sent', 
-      label: 'Cotización enviada', 
-      icon: Clock,
-      description: 'El viajero envió una cotización'
-    },
-    { 
-      key: 'quote_accepted', 
       label: 'Cotización aceptada', 
       icon: Check,
-      description: 'Aceptaste la cotización del viajero'
+      description: 'Seleccionaste un viajero y aceptaste la cotización'
     },
     { 
       key: 'payment_pending', 
@@ -102,11 +90,16 @@ const PackageStatusTimeline = ({ currentStatus, deliveryMethod, className = "" }
     return true;
   });
 
-  const currentIndex = filteredStatuses.findIndex(status => status.key === currentStatus);
+  // Map legacy statuses to their current equivalent
+  const effectiveStatus = ['quote_sent', 'quote_accepted'].includes(currentStatus) 
+    ? 'matched' 
+    : currentStatus;
+
+  const currentIndex = filteredStatuses.findIndex(status => status.key === effectiveStatus);
 
   const getStatusState = (index: number) => {
     // Si el paquete está completado, todos los pasos se muestran como completados
-    if (currentStatus === 'completed') return 'completed';
+    if (effectiveStatus === 'completed') return 'completed';
     
     if (index < currentIndex) return 'completed';
     if (index === currentIndex) return 'current';
