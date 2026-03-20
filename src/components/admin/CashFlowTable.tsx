@@ -18,6 +18,7 @@ const CashFlowTable = () => {
   const { toast } = useToast();
   const currentMonth = format(new Date(), "yyyy-MM");
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all");
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [receiptFilename, setReceiptFilename] = useState<string | null>(null);
 
