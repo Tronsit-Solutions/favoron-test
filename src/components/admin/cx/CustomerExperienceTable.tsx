@@ -90,7 +90,7 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
           <TableRow>
             <TableHead className="min-w-[100px]">Fecha</TableHead>
             <TableHead className="min-w-[150px]">Usuario</TableHead>
-            <TableHead className="min-w-[150px]">Producto</TableHead>
+            <TableHead className="min-w-[80px]">Pedido</TableHead>
             <TableHead className="min-w-[130px]">Estado</TableHead>
             <TableHead className="min-w-[120px]">Rating</TableHead>
             <TableHead className="min-w-[50px]">Notas</TableHead>
