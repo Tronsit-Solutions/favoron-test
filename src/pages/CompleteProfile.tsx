@@ -22,6 +22,7 @@ const CompleteProfile = () => {
     phoneNumber: "",
     countryCode: "+502",
     idNumber: "",
+    documentType: "dpi" as string,
     avatarUrl: null as string | null,
   });
   const [saving, setSaving] = useState(false);
