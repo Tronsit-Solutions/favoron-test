@@ -1623,6 +1623,7 @@ const AdminMatchDialog = ({
           </div>
         </div>
       </DialogContent>
+    </Dialog>
 
       {/* Traveler Info Modal */}
       <Dialog open={showTravelerInfo} onOpenChange={setShowTravelerInfo}>
