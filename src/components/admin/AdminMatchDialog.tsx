@@ -496,84 +496,80 @@ const AdminMatchDialog = ({
   const handleTravelerClick = async (trip: any) => {
     const profile = travelerProfiles[trip.user_id];
     setSelectedTraveler({ ...profile, trip, referral: null });
+    setTravelerPackages([]);
+    setShowTravelerInfo(true);
 
-    // Fetch referral info for this traveler
-    try {
-      const { data: referralData } = await supabase
-        .from('referrals')
-        .select('referrer_id, status')
-        .eq('referred_id', trip.user_id)
-        .maybeSingle();
+    // Fetch referral and packages in parallel
+    const referralPromise = (async () => {
+      try {
+        const { data: referralData } = await supabase
+          .from('referrals')
+          .select('referrer_id, status')
+          .eq('referred_id', trip.user_id)
+          .maybeSingle();
 
-      if (referralData) {
-        const { data: referrerProfile } = await supabase
-          .from('profiles')
-          .select('first_name, last_name')
-          .eq('id', referralData.referrer_id)
-          .single();
+        if (referralData) {
+          const { data: referrerProfile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', referralData.referrer_id)
+            .single();
 
-        setSelectedTraveler(prev => prev ? ({
-          ...prev,
-          referral: {
-            referrerName: referrerProfile ? `${referrerProfile.first_name || ''} ${referrerProfile.last_name || ''}`.trim() || 'Desconocido' : 'Desconocido',
-            status: referralData.status,
-          }
-        }) : prev);
+          setSelectedTraveler(prev => prev ? ({
+            ...prev,
+            referral: {
+              referrerName: referrerProfile ? `${referrerProfile.first_name || ''} ${referrerProfile.last_name || ''}`.trim() || 'Desconocido' : 'Desconocido',
+              status: referralData.status,
+            }
+          }) : prev);
+        }
+      } catch (err) {
+        console.error('Error fetching traveler referral:', err);
       }
-    } catch (err) {
-      console.error('Error fetching traveler referral:', err);
-    }
+    })();
 
-    // Fetch and filter packages for this trip: only with active timers or with shopper-paid statuses
-    try {
-      const nowIso = new Date().toISOString();
-      const TIMER_STATUSES = ['matched', 'quote_sent', 'payment_pending'];
-      const PAID_OR_POST_PAYMENT = [
-        'pending_purchase',
-        'payment_pending_approval',
-        'paid',
-        
-        'shipped',
-        'in_transit',
-        'received_by_traveler',
-        'pending_office_confirmation',
-        'delivered_to_office',
-        'ready_for_pickup',
-        'ready_for_delivery',
-        'completed'
-      ];
+    const packagesPromise = (async () => {
+      try {
+        const nowIso = new Date().toISOString();
+        const TIMER_STATUSES = ['matched', 'quote_sent', 'payment_pending'];
+        const PAID_OR_POST_PAYMENT = [
+          'pending_purchase', 'payment_pending_approval', 'paid',
+          'shipped', 'in_transit', 'received_by_traveler',
+          'pending_office_confirmation', 'delivered_to_office',
+          'ready_for_pickup', 'ready_for_delivery', 'completed'
+        ];
 
-      // Reduce fetched rows by filtering statuses server-side first
-      const { data, error } = await supabase
-        .from('packages')
-        .select(`
-          *,
-          profiles!packages_user_id_fkey (
-            id, first_name, last_name, email, username
-          )
-        `)
-        .eq('matched_trip_id', trip.id)
-        .in('status', [...TIMER_STATUSES, ...PAID_OR_POST_PAYMENT]);
+        const { data, error } = await supabase
+          .from('packages')
+          .select(`
+            *,
+            profiles!packages_user_id_fkey (
+              id, first_name, last_name, email, username
+            )
+          `)
+          .eq('matched_trip_id', trip.id)
+          .in('status', [...TIMER_STATUSES, ...PAID_OR_POST_PAYMENT]);
 
-      if (error) {
+        if (error) {
+          console.error('Error fetching traveler packages:', error);
+          setTravelerPackages([]);
+        } else {
+          const now = Date.now();
+          const isTimerActive = (pkg: any) => (
+            (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
+            ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
+          );
+          const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
+          const filtered = (data || []).filter((pkg) => isTimerActive(pkg) || isPaidOrPostPayment(pkg.status));
+          setTravelerPackages(filtered);
+        }
+      } catch (error) {
         console.error('Error fetching traveler packages:', error);
         setTravelerPackages([]);
-      } else {
-        const now = Date.now();
-        const isTimerActive = (pkg: any) => (
-          (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
-          ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
-        );
-        const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
-        const filtered = (data || []).filter((pkg) => isTimerActive(pkg) || isPaidOrPostPayment(pkg.status));
-        setTravelerPackages(filtered);
       }
-    } catch (error) {
-      console.error('Error fetching traveler packages:', error);
-      setTravelerPackages([]);
-    }
+    })();
 
-    setShowTravelerInfo(true);
+    await Promise.all([referralPromise, packagesPromise]);
   };
 
   const toggleTripExpansion = (tripId: number) => {
