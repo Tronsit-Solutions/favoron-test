@@ -228,6 +228,16 @@ const CashFlowTable = () => {
                   })}
                 </SelectContent>
               </Select>
+              <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Método de pago" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="card">Tarjeta</SelectItem>
+                  <SelectItem value="bank_transfer">Transferencia</SelectItem>
+                </SelectContent>
+              </Select>
               <Button variant="outline" size="sm" onClick={handleExport} disabled={isLoading}>
                 <Download className="h-4 w-4 mr-1" /> Excel
               </Button>
