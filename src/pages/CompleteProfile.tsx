@@ -64,6 +64,10 @@ const CompleteProfile = () => {
       toast.error("El número de WhatsApp es obligatorio");
       return;
     }
+    if (!formData.idNumber.trim()) {
+      toast.error("El documento de identidad es obligatorio");
+      return;
+    }
 
     setSaving(true);
     try {
