@@ -124,7 +124,7 @@ const AdminDeliveryPoints = () => {
   };
 
   return (
-    <RequireAdmin>
+    <RequirePermission permission="delivery_points">
       <div className="min-h-screen bg-background">
         <DashboardHeader
           user={userData}
