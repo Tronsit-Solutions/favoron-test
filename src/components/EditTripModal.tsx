@@ -247,6 +247,7 @@ const EditTripModal = ({
       ...formData,
       fromCity: finalFromCity,
       toCity: finalToCity,
+      boostCode: formData.boostCode,
       messengerPickupInfo: formData.deliveryMethod === 'mensajero' 
         ? formData.messengerPickupInfo 
         : null
