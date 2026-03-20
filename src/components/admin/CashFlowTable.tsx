@@ -18,6 +18,7 @@ const CashFlowTable = () => {
   const { toast } = useToast();
   const currentMonth = format(new Date(), "yyyy-MM");
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all");
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [receiptFilename, setReceiptFilename] = useState<string | null>(null);
 
@@ -134,7 +135,13 @@ const CashFlowTable = () => {
     });
   }, [expenses]);
 
-  const totalIncome = useMemo(() => incomeRows.reduce((s, r) => s + r.totalPaid, 0), [incomeRows]);
+  const filteredIncomeRows = useMemo(() => {
+    if (paymentMethodFilter === "all") return incomeRows;
+    if (paymentMethodFilter === "card") return incomeRows.filter(r => r.paymentMethod === "card");
+    return incomeRows.filter(r => r.paymentMethod !== "card");
+  }, [incomeRows, paymentMethodFilter]);
+
+  const totalIncome = useMemo(() => filteredIncomeRows.reduce((s, r) => s + r.totalPaid, 0), [filteredIncomeRows]);
   const totalExpenses = useMemo(() => expenseRows.reduce((s, r) => s + r.amount, 0), [expenseRows]);
   const net = totalIncome - totalExpenses;
 
@@ -221,6 +228,16 @@ const CashFlowTable = () => {
                   })}
                 </SelectContent>
               </Select>
+              <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Método de pago" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="card">Tarjeta</SelectItem>
+                  <SelectItem value="bank_transfer">Transferencia</SelectItem>
+                </SelectContent>
+              </Select>
               <Button variant="outline" size="sm" onClick={handleExport} disabled={isLoading}>
                 <Download className="h-4 w-4 mr-1" /> Excel
               </Button>
@@ -234,7 +251,7 @@ const CashFlowTable = () => {
               <ArrowDownCircle className="h-5 w-5 text-green-600 mx-auto mb-1" />
               <p className="text-xs text-muted-foreground">Total Ingresos</p>
               <p className="text-xl font-bold text-green-700 dark:text-green-400">{formatCurrency(totalIncome)}</p>
-              <p className="text-xs text-muted-foreground">{incomeRows.length} transacciones</p>
+              <p className="text-xs text-muted-foreground">{filteredIncomeRows.length} transacciones</p>
             </div>
             <div className="p-4 rounded-lg border bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800 text-center">
               <ArrowUpCircle className="h-5 w-5 text-red-600 mx-auto mb-1" />
@@ -263,7 +280,7 @@ const CashFlowTable = () => {
         <CardContent>
           {isLoading ? (
             <p className="text-sm text-muted-foreground py-8 text-center">Cargando...</p>
-          ) : incomeRows.length === 0 ? (
+          ) : filteredIncomeRows.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">No hay ingresos en este período</p>
           ) : (
             <div className="overflow-x-auto">
@@ -283,7 +300,7 @@ const CashFlowTable = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {incomeRows.map(row => (
+                  {filteredIncomeRows.map(row => (
                     <TableRow key={row.id}>
                       <TableCell className="text-xs whitespace-nowrap">{formatDate(row.date)}</TableCell>
                       <TableCell className="text-xs max-w-[120px] truncate">{row.shopper}</TableCell>
