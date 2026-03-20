@@ -724,7 +724,7 @@ const EditTripModal = ({
 
               <div className="space-y-2">
                 <Label>
-                  Último día para recibir paquetes <span className="text-destructive">*</span>
+                  Último día para recibir paquetes
                   {changedDot('lastDayPackages', formData.lastDayPackages)}
                 </Label>
                 <Popover>
