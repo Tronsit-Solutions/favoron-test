@@ -36,7 +36,8 @@ const CompleteProfile = () => {
         username: profile.username || "",
         phoneNumber: isSimulation ? "" : (profile.phone_number || ""),
         countryCode: profile.country_code || "+502",
-        idNumber: "",
+        idNumber: isSimulation ? "" : (profile.document_number || ""),
+        documentType: profile.document_type || "dpi",
         avatarUrl: profile.avatar_url || null,
       });
     }
