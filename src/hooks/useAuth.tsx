@@ -33,6 +33,8 @@ interface Profile {
   email_notification_preferences: any | null;
   prime_expires_at: string | null;
   ui_preferences: UiPreferences | null;
+  document_number: string | null;
+  document_type: string | null;
 }
 
 interface UserRole {
