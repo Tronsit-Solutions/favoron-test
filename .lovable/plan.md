@@ -1,24 +1,34 @@
 
 
-## Hacer obligatorio el campo de Documento de Identidad (DPI)
+## Nueva Tabla Financiera: Ingresos y Egresos Detallados
+
+### Concepto
+Agregar una **4ta pestaña** ("Flujo de Caja" o "Ingresos y Egresos") en `FinancialTablesSection` con dos secciones:
+
+1. **Ingresos (pagos recibidos de shoppers)**: cada paquete pagado desglosado en columnas: Tip Viajero, Service Fee, Delivery Fee, Descuento/Boost
+2. **Egresos (pagos hechos a viajeros)**: payment_orders completadas/aprobadas con monto, viajero, viaje, comprobante de pago
 
 ### Cambios
 
-**1. `src/hooks/useProfileCompletion.tsx`**
-- Agregar `document_number: 'Documento de identidad'` al objeto `requiredFields` (línea 14-18)
-- Agregar `'document_number'` al array `requiredFields` en la función `isProfileComplete` (línea ~103)
-- Esto hará que `RequireAuth` redirija a `/complete-profile` si falta el DPI
+**1. `src/components/admin/FinancialTablesSection.tsx`**
+- Agregar 4ta pestaña "Flujo de Caja" con `grid-cols-4`
+- Importar nuevo componente `CashFlowTable`
 
-**2. `src/pages/CompleteProfile.tsx`**
-- Incluir `formData.idNumber` en el cálculo de progreso (línea 51-54): cambiar de 3 a 4 campos
-- Agregar validación en `handleSave` (línea 56-66): `if (!formData.idNumber.trim()) toast.error("El documento de identidad es obligatorio")`
-- Incluir `document_number` en el update a Supabase (ya se hace en línea ~78)
+**2. Crear `src/components/admin/CashFlowTable.tsx`**
+- Selector de mes (mismo patrón que FinancialSummaryTable)
+- **Sección Ingresos**: query a `packages` con estados pagados, usando `getQuoteValues()` para extraer:
+  - Fecha, Shopper, ID Pedido, Tip Viajero (`price`), Service Fee (`serviceFee`), Delivery Fee (`deliveryFee`), Descuento (`discountAmount`), Total Pagado (`finalTotalPrice`), Método de Pago
+- **Sección Egresos**: query a `payment_orders` con status `completed` o `approved`:
+  - Fecha, Viajero, Trip ID, Monto, Estado, Comprobante (con botón para ver receipt)
+- Cards de resumen arriba: Total Ingresos, Total Egresos, Neto
+- Botón de descarga Excel (mismo patrón existente)
 
-**3. `src/components/profile/PersonalInfoForm.tsx`**
-- Agregar asterisco `*` al label del campo "Documento de identidad" para indicar visualmente que es obligatorio
+### Datos disponibles
+- **Ingresos**: `packages.quote` ya contiene `price` (tip), `serviceFee`, `deliveryFee`, `discountAmount`, `finalTotalPrice` via `getQuoteValues()`
+- **Egresos**: `payment_orders` tiene `amount`, `traveler_id`, `trip_id`, `status`, `receipt_url`, `receipt_filename`, `completed_at`
+- Boost: `quote.discountAmount` incluye tanto descuentos como boosts aplicados; el código del descuento está en `quote.discountCode`
 
-### Resultado
-- El DPI será obligatorio para completar el perfil
-- Usuarios sin DPI serán redirigidos a `/complete-profile`
-- El progreso se calculará sobre 4 campos en vez de 3
+### Archivos
+- **Crear**: `src/components/admin/CashFlowTable.tsx`
+- **Modificar**: `src/components/admin/FinancialTablesSection.tsx` (agregar pestaña)
 
