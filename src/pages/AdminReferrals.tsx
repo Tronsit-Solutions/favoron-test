@@ -121,7 +121,7 @@ const AdminReferrals = () => {
   };
 
   return (
-    <RequireAdmin>
+    <RequirePermission permission="referrals">
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-6">
