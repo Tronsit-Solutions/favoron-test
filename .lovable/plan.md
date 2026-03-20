@@ -1,14 +1,25 @@
 
 
-## Mover pestaña "Etiquetas" al final de la barra de tabs
+## Fix: Paquetes confirmados no aparecen en Preparación sin hard refresh
 
-### Cambio — `src/pages/Operations.tsx`
+### Causa raíz
+En `OperationsReceptionTab`, al confirmar un paquete se llama `onRemovePackage(id)` que **elimina** el paquete de `allPackages`. Pero el RPC `admin_confirm_office_delivery` cambia el status a `delivered_to_office`, que es el filtro de la pestaña Preparación (`readyPackages`).
 
-Reordenar los `TabsTrigger` dentro del `TabsList` para que "Etiquetas" quede después de "Incidencias":
+Al eliminarlo del estado local, el paquete desaparece de Recepción pero nunca aparece en Preparación hasta hacer refresh.
 
-**Orden actual**: Recepción → Preparación → **Etiquetas** → Completados → Buscar → Incidencias
+### Solución
+En vez de `removePackage`, usar `updatePackageStatus` para cambiar el status local a `delivered_to_office`. Así el paquete sale del filtro de Recepción y entra al de Preparación automáticamente.
 
-**Orden nuevo**: Recepción → Preparación → Completados → Buscar → Incidencias → **Etiquetas**
+### Cambios
 
-Solo se mueven las líneas del TabsTrigger de "labels" al final del TabsList. El contenido (`div` con `OperationsLabelsTab`) no necesita moverse ya que usa renderizado condicional con `className={activeTab !== 'labels' ? 'hidden' : ''}`.
+**1. `src/pages/Operations.tsx`**
+- Pasar `onUpdatePackageStatus={operationsData.updatePackageStatus}` a `OperationsReceptionTab`
+
+**2. `src/components/operations/OperationsReceptionTab.tsx`**
+- Agregar prop `onUpdatePackageStatus: (id: string, status: string) => void`
+- En `handleConfirmPackage`: reemplazar `onRemovePackage(packageId)` → `onUpdatePackageStatus(packageId, 'delivered_to_office')`
+- En `handleConfirmAll`: reemplazar `onRemovePackages(confirmed)` → iterar `confirmed.forEach(id => onUpdatePackageStatus(id, 'delivered_to_office'))`
+
+### Resultado
+Al confirmar recepción, el paquete se mueve instantáneamente a la pestaña Preparación sin necesidad de refresh.
 
