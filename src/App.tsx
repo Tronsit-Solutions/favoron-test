@@ -29,6 +29,7 @@ import AdminWhatsApp from "./pages/AdminWhatsApp";
 import AdminReferrals from "./pages/AdminReferrals";
 import AdminApplications from "./pages/AdminApplications";
 import AdminCustomerExperience from "./pages/AdminCustomerExperience";
+import AdminRoles from "./pages/AdminRoles";
 import Operations from "./pages/Operations";
 import AvisoLegal from "./pages/AvisoLegal";
 import WorkWithUs from "./pages/WorkWithUs";
