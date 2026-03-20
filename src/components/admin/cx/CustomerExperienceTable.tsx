@@ -217,5 +217,14 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
         </TableBody>
       </Table>
     </div>
+
+    <CXPackageDetailModal
+      row={detailRow}
+      open={!!detailRow}
+      onOpenChange={(open) => !open && setDetailRow(null)}
+      userType={userType}
+    />
+    </>
   );
 }
+
