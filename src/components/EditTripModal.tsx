@@ -624,7 +624,7 @@ const EditTripModal = ({
 
             <div className="space-y-2">
               <Label htmlFor="accommodationType">
-                Tipo de alojamiento <span className="text-destructive">*</span>
+                Tipo de alojamiento
                 {changedDot('accommodationType', formData.packageReceivingAddress.accommodationType)}
               </Label>
               <Select value={formData.packageReceivingAddress.accommodationType} onValueChange={value => handleAddressChange('accommodationType', value)}>
