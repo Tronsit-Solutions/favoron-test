@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AtSign, Phone, CreditCard, Save, Globe } from "lucide-react";
 import AvatarUpload from "./AvatarUpload";
 import { PHONE_CONFIG } from "@/lib/constants";
@@ -138,14 +139,30 @@ const PersonalInfoForm = ({ formData, setFormData, onSave, showSaveButton = true
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="idNumber">Documento de identidad *</Label>
+        <Label>Tipo de documento *</Label>
+        <Select
+          value={formData.documentType || "dpi"}
+          onValueChange={(value) => setFormData((prev: any) => ({ ...prev, documentType: value }))}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecciona tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="dpi">DPI / DUI</SelectItem>
+            <SelectItem value="passport">Pasaporte</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="idNumber">Número de documento *</Label>
         <div className="relative">
           <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             id="idNumber"
             value={formData.idNumber}
             onChange={(e) => setFormData((prev: any) => ({ ...prev, idNumber: e.target.value }))}
-            placeholder="Número de identificación"
+            placeholder={formData.documentType === "passport" ? "Número de pasaporte" : "Número de DPI/DUI"}
             className="pl-10"
           />
         </div>
