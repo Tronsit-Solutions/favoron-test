@@ -121,10 +121,6 @@ const Operations = () => {
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="labels" className="flex items-center gap-2">
-              <Tag className="h-4 w-4" />
-              <span className="hidden sm:inline">Etiquetas</span>
-            </TabsTrigger>
             <TabsTrigger value="completed" className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" />
               <span className="hidden sm:inline">Completados</span>
@@ -146,6 +142,10 @@ const Operations = () => {
                   {operationsData.incidentPackages.length}
                 </span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="labels" className="flex items-center gap-2">
+              <Tag className="h-4 w-4" />
+              <span className="hidden sm:inline">Etiquetas</span>
             </TabsTrigger>
           </TabsList>
 
