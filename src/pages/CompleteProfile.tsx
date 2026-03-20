@@ -82,6 +82,7 @@ const CompleteProfile = () => {
           phone_number: formData.phoneNumber.trim(),
           country_code: formData.countryCode,
           document_number: formData.idNumber.trim() || null,
+          document_type: formData.documentType || null,
           avatar_url: formData.avatarUrl,
           updated_at: new Date().toISOString(),
         })
