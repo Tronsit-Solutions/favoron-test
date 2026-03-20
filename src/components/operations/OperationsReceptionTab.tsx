@@ -14,6 +14,7 @@ interface OperationsReceptionTabProps {
   onRefresh: () => void;
   onRemovePackage: (id: string) => void;
   onRemovePackages: (ids: string[]) => void;
+  onUpdatePackageStatus: (id: string, status: string) => void;
   onUpdateIncidentFlag: (id: string, flag: boolean) => void;
   onAddToLabelCart: (packageId: string) => Promise<void>;
   onAddManyToLabelCart: (packageIds: string[]) => Promise<void>;
