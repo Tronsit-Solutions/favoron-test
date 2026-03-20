@@ -1513,6 +1513,17 @@ export const useDashboardActions = (
                 .eq('id', assignment.id);
             }
 
+            // Send WhatsApp notification to each traveler
+            for (const assignment of assignments) {
+              const matchedTrip = trips.find(t => t.id === assignment.trip_id);
+              if (matchedTrip?.user_id) {
+                sendWhatsAppNotification({
+                  userId: matchedTrip.user_id,
+                  templateId: 'package_assigned',
+                });
+              }
+            }
+
             // Don't change package status - stays 'matched'
             toast({
               title: "Cotizaciones enviadas",
