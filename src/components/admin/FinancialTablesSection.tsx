@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FinancialSummaryTable from "./FinancialSummaryTable";
 import FinancialSummaryByTraveler from "./FinancialSummaryByTraveler";
 import CompletedPackagesTable from "./CompletedPackagesTable";
+import CashFlowTable from "./CashFlowTable";
 
 interface FinancialTablesSectionProps {
   packages: Package[];
