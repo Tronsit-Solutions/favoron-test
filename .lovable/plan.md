@@ -1,25 +1,20 @@
 
 
-## Fix: Paquetes confirmados no aparecen en Preparación sin hard refresh
+## Agregar columna "Comprobante" a la tabla de Ingresos
 
-### Causa raíz
-En `OperationsReceptionTab`, al confirmar un paquete se llama `onRemovePackage(id)` que **elimina** el paquete de `allPackages`. Pero el RPC `admin_confirm_office_delivery` cambia el status a `delivered_to_office`, que es el filtro de la pestaña Preparación (`readyPackages`).
+### Cambio — `src/components/admin/CashFlowTable.tsx`
 
-Al eliminarlo del estado local, el paquete desaparece de Recepción pero nunca aparece en Preparación hasta hacer refresh.
+**Query** (línea 47): agregar `payment_receipt, recurrente_payment_id, label_number` al select de packages.
 
-### Solución
-En vez de `removePackage`, usar `updatePackageStatus` para cambiar el status local a `delivered_to_office`. Así el paquete sale del filtro de Recepción y entra al de Preparación automáticamente.
+**incomeRows** (línea 98-113): agregar campos `receiptData` (del jsonb `payment_receipt`) y `recurrentePaymentId` al objeto de cada fila.
 
-### Cambios
+**Tabla de Ingresos**: agregar columna "Comprobante" después de "Método":
+- Si `paymentMethod === "card"`: mostrar el `recurrente_payment_id` como texto monospace con prefijo "ID:" 
+- Si `paymentMethod === "bank_transfer"` y existe `payment_receipt` con URL: botón "Ver" que abre el `ReceiptViewerModal` (mismo patrón que egresos)
+- Si no hay comprobante: mostrar "—"
 
-**1. `src/pages/Operations.tsx`**
-- Pasar `onUpdatePackageStatus={operationsData.updatePackageStatus}` a `OperationsReceptionTab`
+**Excel export** (línea 150-160): agregar columna "Comprobante" al sheet de ingresos con el ID de Recurrente o "Transferencia" según corresponda.
 
-**2. `src/components/operations/OperationsReceptionTab.tsx`**
-- Agregar prop `onUpdatePackageStatus: (id: string, status: string) => void`
-- En `handleConfirmPackage`: reemplazar `onRemovePackage(packageId)` → `onUpdatePackageStatus(packageId, 'delivered_to_office')`
-- En `handleConfirmAll`: reemplazar `onRemovePackages(confirmed)` → iterar `confirmed.forEach(id => onUpdatePackageStatus(id, 'delivered_to_office'))`
-
-### Resultado
-Al confirmar recepción, el paquete se mueve instantáneamente a la pestaña Preparación sin necesidad de refresh.
+### Archivos
+- **Modificar**: `src/components/admin/CashFlowTable.tsx`
 
