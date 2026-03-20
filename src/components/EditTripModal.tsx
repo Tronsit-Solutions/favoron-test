@@ -703,7 +703,7 @@ const EditTripModal = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>
-                  Primer día para recibir paquetes <span className="text-destructive">*</span>
+                  Primer día para recibir paquetes
                   {changedDot('firstDayPackages', formData.firstDayPackages)}
                 </Label>
                 <Popover>
