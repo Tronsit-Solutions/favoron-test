@@ -68,7 +68,7 @@ function CXTab({ userType }: { userType: "shopper" | "traveler" }) {
         </Select>
       </div>
 
-      <CustomerExperienceTable rows={rows} loading={loading} onSave={saveCXCall} />
+      <CustomerExperienceTable rows={rows} loading={loading} userType={userType} onSave={saveCXCall} />
     </div>
   );
 }

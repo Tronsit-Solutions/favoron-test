@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Phone, Save, MessageSquare } from "lucide-react";
+import { CalendarIcon, Phone, Save, MessageSquare, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import StarRating from "@/components/ui/star-rating";
 import { CXPackageRow } from "@/hooks/useCustomerExperience";
 import { Skeleton } from "@/components/ui/skeleton";
+import CXPackageDetailModal from "./CXPackageDetailModal";
 
 interface Props {
   rows: CXPackageRow[];
   loading: boolean;
+  userType: "shopper" | "traveler";
   onSave: (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null }) => Promise<void>;
 }
 
@@ -27,10 +29,11 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
   completed: { label: "Completado", variant: "default" },
 };
 
-export default function CustomerExperienceTable({ rows, loading, onSave }: Props) {
+export default function CustomerExperienceTable({ rows, loading, userType, onSave }: Props) {
   const [editState, setEditState] = useState<Record<string, Partial<CXPackageRow>>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [notesOpen, setNotesOpen] = useState<string | null>(null);
+  const [detailRow, setDetailRow] = useState<CXPackageRow | null>(null);
 
   const getEdit = (pkgId: string) => editState[pkgId] || {};
 
@@ -81,13 +84,14 @@ export default function CustomerExperienceTable({ rows, loading, onSave }: Props
   }
 
   return (
+    <>
     <div className="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="min-w-[100px]">Fecha</TableHead>
             <TableHead className="min-w-[150px]">Usuario</TableHead>
-            <TableHead className="min-w-[150px]">Producto</TableHead>
+            <TableHead className="min-w-[80px]">Pedido</TableHead>
             <TableHead className="min-w-[130px]">Estado</TableHead>
             <TableHead className="min-w-[120px]">Rating</TableHead>
             <TableHead className="min-w-[50px]">Notas</TableHead>
@@ -121,7 +125,17 @@ export default function CustomerExperienceTable({ rows, loading, onSave }: Props
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-sm max-w-[200px] truncate">{getProductName(row)}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 gap-1 text-xs"
+                    onClick={() => setDetailRow(row)}
+                  >
+                    <Eye className="h-4 w-4" />
+                    Ver
+                  </Button>
+                </TableCell>
                 <TableCell>
                   <Select
                     value={currentStatus}
@@ -204,5 +218,14 @@ export default function CustomerExperienceTable({ rows, loading, onSave }: Props
         </TableBody>
       </Table>
     </div>
+
+    <CXPackageDetailModal
+      row={detailRow}
+      open={!!detailRow}
+      onOpenChange={(open) => !open && setDetailRow(null)}
+      userType={userType}
+    />
+    </>
   );
 }
+

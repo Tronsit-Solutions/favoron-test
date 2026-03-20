@@ -10,6 +10,16 @@ export interface CXPackageRow {
   target_user_id: string;
   target_user_name: string;
   target_user_phone: string | null;
+  // Package details
+  estimated_price: number | null;
+  delivery_deadline: string;
+  additional_notes: string | null;
+  created_at: string;
+  label_number: number | null;
+  delivery_method: string | null;
+  package_destination: string;
+  // Counterpart user (traveler for shopper tab, shopper for traveler tab)
+  counterpart_name: string | null;
   // CX call data (may be null if no call record yet)
   cx_id: string | null;
   call_status: string;
@@ -37,7 +47,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
       // 1) Fetch completed packages
       let pkgQuery = supabase
         .from("packages")
-        .select("id, updated_at, item_description, products_data, user_id, matched_trip_id")
+        .select("id, updated_at, item_description, products_data, user_id, matched_trip_id, estimated_price, delivery_deadline, additional_notes, created_at, label_number, delivery_method, package_destination")
         .eq("status", "completed")
         .order("updated_at", { ascending: false });
 
@@ -50,39 +60,40 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
         return;
       }
 
-      // 2) For traveler tab, resolve trip -> traveler user_id
+      // 2) Resolve trip -> traveler user_id (needed for both tabs)
       let travelerMap: Record<string, string> = {};
-      if (userType === "traveler") {
-        const tripIds = [...new Set(packages.map((p) => p.matched_trip_id).filter(Boolean))];
-        if (tripIds.length > 0) {
-          const { data: trips } = await supabase
-            .from("trips")
-            .select("id, user_id")
-            .in("id", tripIds as string[]);
-          if (trips) {
-            trips.forEach((t) => {
-              travelerMap[t.id] = t.user_id;
-            });
-          }
+      const tripIds = [...new Set(packages.map((p) => p.matched_trip_id).filter(Boolean))];
+      if (tripIds.length > 0) {
+        const { data: trips } = await supabase
+          .from("trips")
+          .select("id, user_id")
+          .in("id", tripIds as string[]);
+        if (trips) {
+          trips.forEach((t) => {
+            travelerMap[t.id] = t.user_id;
+          });
         }
       }
 
-      // 3) Determine target user IDs
+      // 3) Determine target user IDs + counterpart IDs
       const targetUserIds = new Set<string>();
+      const counterpartUserIds = new Set<string>();
       const packageRows = packages.map((p) => {
         const targetId = userType === "shopper" ? p.user_id : travelerMap[p.matched_trip_id!];
+        const counterpartId = userType === "shopper" ? travelerMap[p.matched_trip_id!] : p.user_id;
         if (targetId) targetUserIds.add(targetId);
-        return { ...p, target_user_id: targetId };
+        if (counterpartId) counterpartUserIds.add(counterpartId);
+        return { ...p, target_user_id: targetId, counterpart_user_id: counterpartId };
       }).filter((p) => p.target_user_id);
 
-      // 4) Fetch profiles
-      const profileIds = [...targetUserIds];
+      // 4) Fetch profiles for both target and counterpart users
+      const allProfileIds = [...new Set([...targetUserIds, ...counterpartUserIds])];
       const profileMap: Record<string, { name: string; phone: string | null }> = {};
-      if (profileIds.length > 0) {
+      if (allProfileIds.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles")
           .select("id, first_name, last_name, phone_number")
-          .in("id", profileIds);
+          .in("id", allProfileIds);
         if (profiles) {
           profiles.forEach((pr) => {
             profileMap[pr.id] = {
@@ -112,6 +123,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
       const result: CXPackageRow[] = packageRows.map((p) => {
         const cx = cxMap[p.id];
         const profile = profileMap[p.target_user_id] || { name: "Sin nombre", phone: null };
+        const counterpart = p.counterpart_user_id ? profileMap[p.counterpart_user_id] : null;
         return {
           package_id: p.id,
           completed_at: p.updated_at,
@@ -120,6 +132,14 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
           target_user_id: p.target_user_id,
           target_user_name: profile.name,
           target_user_phone: profile.phone,
+          estimated_price: p.estimated_price,
+          delivery_deadline: p.delivery_deadline,
+          additional_notes: p.additional_notes,
+          created_at: p.created_at,
+          label_number: p.label_number,
+          delivery_method: p.delivery_method,
+          package_destination: p.package_destination,
+          counterpart_name: counterpart?.name || null,
           cx_id: cx?.id || null,
           call_status: cx?.call_status || "pending",
           rating: cx?.rating || null,
