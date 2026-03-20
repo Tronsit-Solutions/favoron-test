@@ -105,7 +105,7 @@ const AvailableTripsTab = ({ trips, packages, onViewTripDetail }: AvailableTrips
               trip={trip}
               packagesTotal={calculateTripPackagesTotal(trip.id)}
               onViewTripDetail={onViewTripDetail}
-              hasBoost={boostedTripIds.has(trip.id)}
+              hasBoost={Boolean(trip.boost_code)}
             />
           ))
         )}
