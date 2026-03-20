@@ -219,7 +219,8 @@ export const useDashboardActions = (
         messenger_pickup_info: tripData.messengerPickupInfo || null,
         package_receiving_address: tripData.packageReceivingAddress,
         available_space: tripData.availableSpace ? parseFloat(tripData.availableSpace) : null,
-        status: 'pending_approval'
+        status: 'pending_approval',
+        boost_code: tripData.boostCode?.trim().toUpperCase() || null,
       };
 
       console.log('📊 Transformed data for database:', dbTripData);
