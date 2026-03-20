@@ -228,14 +228,7 @@ const EditTripModal = ({
     if (!formData.availableSpace) errors.availableSpace = "Obligatorio";
     if (!formData.deliveryMethod) errors.deliveryMethod = "Obligatorio";
     if (!formData.deliveryDate) errors.deliveryDate = "Obligatorio";
-    if (!formData.packageReceivingAddress.accommodationType) errors.accommodationType = "Obligatorio";
-    if (!formData.packageReceivingAddress.streetAddress) errors.streetAddress = "Obligatorio";
-    if (!formData.packageReceivingAddress.cityArea) errors.cityArea = "Obligatorio";
-    if (!formData.packageReceivingAddress.postalCode) errors.postalCode = "Obligatorio";
-    if (!formData.packageReceivingAddress.contactNumber) errors.contactNumber = "Obligatorio";
-    if (!formData.packageReceivingAddress.recipientName) errors.recipientName = "Obligatorio";
-    if (!formData.firstDayPackages) errors.firstDayPackages = "Obligatorio";
-    if (!formData.lastDayPackages) errors.lastDayPackages = "Obligatorio";
+    // Address fields, receiving window dates are optional (aligned with TripForm)
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
