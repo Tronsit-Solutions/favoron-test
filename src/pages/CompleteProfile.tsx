@@ -48,10 +48,10 @@ const CompleteProfile = () => {
     }
   }, [profile, navigate, isSimulation]);
 
-  const filledCount = [formData.firstName, formData.lastName, formData.phoneNumber].filter(
+  const filledCount = [formData.firstName, formData.lastName, formData.phoneNumber, formData.idNumber].filter(
     (v) => v && v.trim().length > 0
   ).length;
-  const progress = Math.round((filledCount / 3) * 100);
+  const progress = Math.round((filledCount / 4) * 100);
 
   const handleSave = async () => {
     if (!user) return;
