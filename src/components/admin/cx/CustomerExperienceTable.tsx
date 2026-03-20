@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Phone, Save, MessageSquare } from "lucide-react";
+import { CalendarIcon, Phone, Save, MessageSquare, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import StarRating from "@/components/ui/star-rating";
 import { CXPackageRow } from "@/hooks/useCustomerExperience";
 import { Skeleton } from "@/components/ui/skeleton";
+import CXPackageDetailModal from "./CXPackageDetailModal";
 
 interface Props {
   rows: CXPackageRow[];
