@@ -166,18 +166,32 @@ const AdminRoles = () => {
     setUserSearch("");
     setSearchResults([]);
 
-    const { data } = await supabase
+    const { data: assignments } = await supabase
       .from('user_custom_roles')
-      .select('id, user_id, profiles:user_id(first_name, last_name, email)')
+      .select('id, user_id')
       .eq('custom_role_id', roleId);
 
-    setAssignedUsers((data || []).map((d: any) => ({
-      id: d.id,
-      user_id: d.user_id,
-      first_name: d.profiles?.first_name,
-      last_name: d.profiles?.last_name,
-      email: d.profiles?.email,
-    })));
+    if (assignments && assignments.length > 0) {
+      const userIds = assignments.map(a => a.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .in('id', userIds);
+
+      const profileMap = new Map((profiles || []).map(p => [p.id, p]));
+      setAssignedUsers(assignments.map(a => {
+        const p = profileMap.get(a.user_id);
+        return {
+          id: a.id,
+          user_id: a.user_id,
+          first_name: p?.first_name || null,
+          last_name: p?.last_name || null,
+          email: p?.email || null,
+        };
+      }));
+    } else {
+      setAssignedUsers([]);
+    }
   };
 
   const searchUsers = async (query: string) => {
