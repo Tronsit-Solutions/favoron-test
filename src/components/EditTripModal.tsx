@@ -269,6 +269,7 @@ const EditTripModal = ({
         deliveryMethod: tripData?.delivery_method || '',
         deliveryDate: tripData?.delivery_date ? new Date(tripData.delivery_date) : null,
         additionalInfo: tripData?.additionalInfo || '',
+        boostCode: tripData?.boost_code || '',
         packageReceivingAddress: {
           accommodationType: tripData?.package_receiving_address?.accommodationType || '',
           streetAddress: tripData?.package_receiving_address?.streetAddress || '',
