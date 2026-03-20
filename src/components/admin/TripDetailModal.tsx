@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Mail, Phone, Plane, Calendar, MapPin, Package, Truck, CheckCircle, XCircle, Home, ShoppingBag, Download } from "lucide-react";
+import { User, Mail, Phone, Plane, Calendar, MapPin, Package, Truck, CheckCircle, XCircle, Home, ShoppingBag, Download, Rocket } from "lucide-react";
 import { TripHistoryTimeline } from './TripHistoryTimeline';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
