@@ -241,38 +241,15 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
         // Do NOT change the package status — it stays 'matched'
         await logAction('status_changed', `Cotización(es) enviada(s) a ${pendingAssignments.length} viajero(s)`);
         
-        // Send WhatsApp notification to shopper
-        if (pkg.user_id) {
-          const firstQuoteData = await generateQuoteForAdminStatusChange({
-            packageId: pkg.id,
-            currentPackage: pkg,
-            trips: trips,
-            adminAssignedTip: pendingAssignments[0].admin_assigned_tip || pkg.admin_assigned_tip,
-            overrideTripId: pendingAssignments[0].trip_id,
-            rates: {
-              standard: fees?.service_fee_rate_standard ?? 0.50,
-              prime: fees?.service_fee_rate_prime ?? 0.25
-            },
-            fees: fees ? {
-              delivery_fee_guatemala_city: fees.delivery_fee_guatemala_city,
-              delivery_fee_guatemala_department: fees.delivery_fee_guatemala_department,
-              delivery_fee_outside_city: fees.delivery_fee_outside_city,
-              prime_delivery_discount: fees.prime_delivery_discount,
-            } : undefined,
-            destinationCountry: pkg.package_destination_country
-          });
-          
-          const quoteTotal = firstQuoteData.quote?.totalPrice || 0;
-          const productName = pkg.products_data?.[0]?.itemDescription || pkg.item_description || 'Tu pedido';
-          
-          sendWhatsAppNotification({
-            userId: pkg.user_id,
-            templateId: 'quote_received_v2',
-            variables: {
-              "2": `${Number(quoteTotal).toFixed(2)}`,
-              "3": productName.substring(0, 50)
-            }
-          });
+        // Send WhatsApp notification to each traveler
+        for (const assignment of pendingAssignments) {
+          const matchedTrip = trips.find(t => t.id === assignment.trip_id);
+          if (matchedTrip?.user_id) {
+            sendWhatsAppNotification({
+              userId: matchedTrip.user_id,
+              templateId: 'package_assigned',
+            });
+          }
         }
         
         toast({
