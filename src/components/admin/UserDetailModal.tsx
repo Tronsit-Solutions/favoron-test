@@ -305,7 +305,7 @@ const UserDetailModal = ({
                 </div>
 
                 {/* User ID - read only */}
-                <UserIdField userId={user.id} />
+                <UserIdField userId={String(user.id)} />
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
