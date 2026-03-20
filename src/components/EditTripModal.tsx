@@ -679,10 +679,10 @@ const EditTripModal = ({
 
             <div className="space-y-2">
               <Label htmlFor="hotelAirbnbName">
-                Nombre del lugar (Ej: Hotel Barceló, Condominio El Prado, etc.) *
+                Nombre del lugar (Ej: Hotel Barceló, Condominio El Prado, etc.)
                 {changedDot('hotelAirbnbName', formData.packageReceivingAddress.hotelAirbnbName)}
               </Label>
-              <Input id="hotelAirbnbName" type="text" placeholder="Ej: Hotel InterContinental Miami" value={formData.packageReceivingAddress.hotelAirbnbName} onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} required />
+              <Input id="hotelAirbnbName" type="text" placeholder="Ej: Hotel InterContinental Miami" value={formData.packageReceivingAddress.hotelAirbnbName} onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} />
             </div>
 
             <div className="space-y-2">
