@@ -932,6 +932,25 @@ const EditTripModal = ({
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="boostCode" className="flex items-center gap-2">
+                <Rocket className="h-4 w-4 text-amber-600" />
+                Tip Booster Code
+                {changedDot('boostCode', formData.boostCode)}
+              </Label>
+              <Input
+                id="boostCode"
+                type="text"
+                placeholder="Ej: BOOST10"
+                value={formData.boostCode}
+                onChange={e => handleInputChange('boostCode', e.target.value.toUpperCase())}
+                className="font-mono"
+              />
+              <p className="text-xs text-muted-foreground">
+                Código de boost para incrementar las propinas del viajero
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="additionalInfo">Comentarios opcionales</Label>
               <Textarea id="additionalInfo" placeholder="Horarios de disponibilidad, restricciones, comentarios especiales..." value={formData.additionalInfo} onChange={e => handleInputChange('additionalInfo', e.target.value)} className="min-h-[80px]" />
             </div>
