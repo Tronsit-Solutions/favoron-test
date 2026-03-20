@@ -645,7 +645,7 @@ const EditTripModal = ({
 
             <div className="space-y-2">
               <Label htmlFor="streetAddress">
-                Dirección línea 1 <span className="text-destructive">*</span>
+                Dirección línea 1
                 {changedDot('streetAddress', formData.packageReceivingAddress.streetAddress)}
               </Label>
               <Input id="streetAddress" type="text" placeholder="Ej: 123 Main Street" value={formData.packageReceivingAddress.streetAddress} onChange={e => handleAddressChange('streetAddress', e.target.value)} className={errorClass('streetAddress')} required />
