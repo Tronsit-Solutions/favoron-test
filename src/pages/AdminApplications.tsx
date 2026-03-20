@@ -28,7 +28,7 @@ const AdminApplications = () => {
   };
 
   return (
-    <RequireAdmin>
+    <RequirePermission permission="applications">
       <div className="min-h-screen bg-background">
         <DashboardHeader
           user={userData}
