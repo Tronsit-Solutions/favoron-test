@@ -103,7 +103,7 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => navigate('/complete-profile')}
+              onClick={() => navigate('/complete-profile?simulate=true')}
               className="hidden sm:flex items-center bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
               title="Simular Google OAuth (ver flujo de perfil incompleto)"
             >
