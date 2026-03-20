@@ -29,10 +29,11 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
   completed: { label: "Completado", variant: "default" },
 };
 
-export default function CustomerExperienceTable({ rows, loading, onSave }: Props) {
+export default function CustomerExperienceTable({ rows, loading, userType, onSave }: Props) {
   const [editState, setEditState] = useState<Record<string, Partial<CXPackageRow>>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [notesOpen, setNotesOpen] = useState<string | null>(null);
+  const [detailRow, setDetailRow] = useState<CXPackageRow | null>(null);
 
   const getEdit = (pkgId: string) => editState[pkgId] || {};
 
