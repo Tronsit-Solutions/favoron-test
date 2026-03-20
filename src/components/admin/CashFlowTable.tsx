@@ -111,8 +111,8 @@ const CashFlowTable = () => {
         totalPaid: qv.finalTotalPrice,
         paymentMethod: pkg.payment_method || "bank_transfer",
         recurrentePaymentId: pkg.recurrente_payment_id || null,
-        receiptUrl: receiptData?.url || receiptData?.receipt_url || null,
-        receiptFilename: receiptData?.filename || receiptData?.receipt_filename || null,
+        receiptUrl: receiptData?.url || receiptData?.receipt_url || receiptData?.filePath || null,
+        receiptFilename: receiptData?.filename || receiptData?.receipt_filename || receiptData?.filePath?.split('/').pop() || null,
       };
     });
   }, [incomePackages, shopperProfiles]);
