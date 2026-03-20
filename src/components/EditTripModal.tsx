@@ -149,6 +149,7 @@ const EditTripModal = ({
     if (isChanged('firstDayPackages', formData.firstDayPackages)) return true;
     if (isChanged('lastDayPackages', formData.lastDayPackages)) return true;
     if (isChanged('additionalInfo', formData.additionalInfo)) return true;
+    if (isChanged('boostCode', formData.boostCode)) return true;
     return false;
   }, [formData, originalFormData]);
 
