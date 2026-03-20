@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { TripFilters } from "./TripFilters";
 import { TripStatsHeader } from "./TripStatsHeader";
 import { TripCard } from "./TripCard";
 import { EmptyTripsState } from "./EmptyTripsState";
-import { supabase } from "@/integrations/supabase/client";
 
 interface AvailableTripsTabProps {
   trips: any[];
