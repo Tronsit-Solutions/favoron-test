@@ -1,34 +1,31 @@
 
 
-## Fix: Usuarios asignados no se muestran en el diálogo
+## Reemplazar columna "Producto" por botón "Ver Pedido" con modal de detalles
 
-### Causa raíz
-La query usa un join implícito de PostgREST: `profiles:user_id(first_name, last_name, email)`. Esto requiere una foreign key de `user_custom_roles.user_id` hacia `profiles.id`. Pero la FK apunta a `auth.users(id)`, no a `profiles`. PostgREST no puede resolver el join, devuelve `profiles: null`, y los usuarios aparecen vacíos.
+### Problema
+La columna "Producto" muestra texto truncado que no es útil. El usuario quiere ver detalles completos del pedido.
 
-### Solución — `src/pages/AdminRoles.tsx`
+### Solución
 
-Cambiar `openAssignDialog` para hacer dos queries separadas:
+**1. Ampliar datos en `useCustomerExperience.ts`**
+- Agregar campos al select de packages: `estimated_price, delivery_deadline, additional_notes, created_at, label_number, delivery_method, package_destination`
+- Agregar estos campos a la interfaz `CXPackageRow`
+- Incluir nombre del viajero (para shoppers) y nombre del shopper (para viajeros) en los datos
 
-1. Query `user_custom_roles` filtrado por `custom_role_id` para obtener los `user_id`s
-2. Query `profiles` con `.in('id', userIds)` para obtener nombres y emails
-3. Combinar los resultados manualmente
+**2. Crear modal `CXPackageDetailModal.tsx`**
+- Dialog con detalles del pedido:
+  - **Productos**: lista con descripción, precio, cantidad, link (reutilizar `PackageProductDisplay`)
+  - **Info general**: fecha de creación, fecha límite, precio estimado, etiqueta, método de entrega, destino
+  - **Notas adicionales** del pedido
+  - **Viajero/Shopper**: nombre de quién trajo/pidió el paquete
+- Diseño limpio con secciones separadas
 
-```ts
-const { data: assignments } = await supabase
-  .from('user_custom_roles')
-  .select('id, user_id')
-  .eq('custom_role_id', roleId);
+**3. Modificar `CustomerExperienceTable.tsx`**
+- Reemplazar la celda de texto truncado de "Producto" por un botón "Ver pedido" (icono `Eye`)
+- Al hacer clic, abrir el modal con los detalles
+- Cambiar header de "Producto" a "Pedido"
 
-if (assignments && assignments.length > 0) {
-  const userIds = assignments.map(a => a.user_id);
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, first_name, last_name, email')
-    .in('id', userIds);
-
-  // Merge assignment id + profile data
-}
-```
-
-Un cambio en una sola función (~15 líneas).
+### Archivos
+- **Modificar**: `src/hooks/useCustomerExperience.ts`, `src/components/admin/cx/CustomerExperienceTable.tsx`
+- **Crear**: `src/components/admin/cx/CXPackageDetailModal.tsx`
 
