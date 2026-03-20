@@ -123,6 +123,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
       const result: CXPackageRow[] = packageRows.map((p) => {
         const cx = cxMap[p.id];
         const profile = profileMap[p.target_user_id] || { name: "Sin nombre", phone: null };
+        const counterpart = p.counterpart_user_id ? profileMap[p.counterpart_user_id] : null;
         return {
           package_id: p.id,
           completed_at: p.updated_at,
@@ -131,6 +132,14 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
           target_user_id: p.target_user_id,
           target_user_name: profile.name,
           target_user_phone: profile.phone,
+          estimated_price: p.estimated_price,
+          delivery_deadline: p.delivery_deadline,
+          additional_notes: p.additional_notes,
+          created_at: p.created_at,
+          label_number: p.label_number,
+          delivery_method: p.delivery_method,
+          package_destination: p.package_destination,
+          counterpart_name: counterpart?.name || null,
           cx_id: cx?.id || null,
           call_status: cx?.call_status || "pending",
           rating: cx?.rating || null,
