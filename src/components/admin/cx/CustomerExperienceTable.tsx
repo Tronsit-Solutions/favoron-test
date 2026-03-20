@@ -124,7 +124,17 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-sm max-w-[200px] truncate">{getProductName(row)}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 gap-1 text-xs"
+                    onClick={() => setDetailRow(row)}
+                  >
+                    <Eye className="h-4 w-4" />
+                    Ver
+                  </Button>
+                </TableCell>
                 <TableCell>
                   <Select
                     value={currentStatus}
