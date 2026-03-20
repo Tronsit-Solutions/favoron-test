@@ -279,6 +279,7 @@ const CashFlowTable = () => {
                     <TableHead className="text-right">Descuento</TableHead>
                     <TableHead className="text-right">Total Pagado</TableHead>
                     <TableHead>Método</TableHead>
+                    <TableHead>Comprobante</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
