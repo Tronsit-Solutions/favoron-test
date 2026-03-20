@@ -302,6 +302,22 @@ const CashFlowTable = () => {
                           {row.paymentMethod === "card" ? "Tarjeta" : "Transfer."}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        {row.paymentMethod === "card" && row.recurrentePaymentId ? (
+                          <span className="text-xs font-mono text-muted-foreground">ID: {row.recurrentePaymentId}</span>
+                        ) : row.paymentMethod !== "card" && row.receiptUrl ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => handleViewReceipt(row.receiptUrl!, row.receiptFilename)}
+                          >
+                            <Eye className="h-3 w-3 mr-1" /> Ver
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
