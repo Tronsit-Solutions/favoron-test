@@ -669,7 +669,7 @@ const EditTripModal = ({
 
               <div className="space-y-2">
                 <Label htmlFor="postalCode">
-                  Código postal <span className="text-destructive">*</span>
+                  Código postal
                   {changedDot('postalCode', formData.packageReceivingAddress.postalCode)}
                 </Label>
                 <Input id="postalCode" type="text" placeholder="Ej: 33101" value={formData.packageReceivingAddress.postalCode} onChange={e => handleAddressChange('postalCode', e.target.value)} className={errorClass('postalCode')} required />
