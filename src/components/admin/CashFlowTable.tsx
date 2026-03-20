@@ -98,6 +98,7 @@ const CashFlowTable = () => {
   const incomeRows = useMemo(() => {
     return (incomePackages || []).map(pkg => {
       const qv = getQuoteValues(pkg.quote);
+      const receiptData = pkg.payment_receipt as any;
       return {
         id: pkg.id,
         date: pkg.created_at,
@@ -109,6 +110,9 @@ const CashFlowTable = () => {
         discount: qv.discountAmount,
         totalPaid: qv.finalTotalPrice,
         paymentMethod: pkg.payment_method || "bank_transfer",
+        recurrentePaymentId: pkg.recurrente_payment_id || null,
+        receiptUrl: receiptData?.url || receiptData?.receipt_url || null,
+        receiptFilename: receiptData?.filename || receiptData?.receipt_filename || null,
       };
     });
   }, [incomePackages, shopperProfiles]);
