@@ -38,7 +38,8 @@ import UserFinancialSummary from "./UserFinancialSummary";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { User as UserIcon, Mail, Phone, Calendar, FileText, Shield } from "lucide-react";
+import { User as UserIcon, Mail, Phone, Calendar, FileText, Shield, Copy, Check } from "lucide-react";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface UserDetailModalProps {
   isOpen: boolean;
@@ -53,7 +54,26 @@ interface UserDetailModalProps {
   onUpdateUserRole?: (userId: number, newRole: 'admin' | 'user' | 'operations') => Promise<void>;
 }
 
-const UserDetailModal = ({ 
+const UserIdField = ({ userId }: { userId: string }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    const ok = await copyToClipboard(userId);
+    if (ok) { setCopied(true); setTimeout(() => setCopied(false), 2000); }
+  };
+  return (
+    <div className="space-y-1">
+      <Label className="text-xs text-muted-foreground">User ID</Label>
+      <div className="flex items-center gap-2">
+        <code className="text-xs font-mono bg-muted px-2 py-1 rounded select-all flex-1 truncate">{userId}</code>
+        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={handleCopy}>
+          {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const UserDetailModal = ({
   isOpen, 
   onClose, 
   user, 
@@ -283,6 +303,9 @@ const UserDetailModal = ({
                     )}
                   </div>
                 </div>
+
+                {/* User ID - read only */}
+                <UserIdField userId={String(user.id)} />
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
