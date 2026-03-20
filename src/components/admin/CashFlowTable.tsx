@@ -43,7 +43,7 @@ const CashFlowTable = () => {
     queryFn: async () => {
       let q = supabase
         .from("packages")
-        .select("id, user_id, status, item_description, quote, payment_method, created_at, matched_trip_id, delivery_method")
+        .select("id, user_id, status, item_description, quote, payment_method, created_at, matched_trip_id, delivery_method, payment_receipt, recurrente_payment_id, label_number")
         .in("status", paidStates)
         .not("quote", "is", null)
         .order("created_at", { ascending: false });
@@ -98,6 +98,7 @@ const CashFlowTable = () => {
   const incomeRows = useMemo(() => {
     return (incomePackages || []).map(pkg => {
       const qv = getQuoteValues(pkg.quote);
+      const receiptData = pkg.payment_receipt as any;
       return {
         id: pkg.id,
         date: pkg.created_at,
@@ -109,6 +110,9 @@ const CashFlowTable = () => {
         discount: qv.discountAmount,
         totalPaid: qv.finalTotalPrice,
         paymentMethod: pkg.payment_method || "bank_transfer",
+        recurrentePaymentId: pkg.recurrente_payment_id || null,
+        receiptUrl: receiptData?.url || receiptData?.receipt_url || null,
+        receiptFilename: receiptData?.filename || receiptData?.receipt_filename || null,
       };
     });
   }, [incomePackages, shopperProfiles]);
@@ -157,6 +161,7 @@ const CashFlowTable = () => {
       Descuento: r.discount,
       "Total Pagado": r.totalPaid,
       "Método Pago": r.paymentMethod === "card" ? "Tarjeta" : "Transferencia",
+      Comprobante: r.paymentMethod === "card" ? (r.recurrentePaymentId || "—") : (r.receiptUrl ? "Transferencia" : "—"),
     }));
 
     const expenseSheet = expenseRows.map(r => ({
@@ -274,6 +279,7 @@ const CashFlowTable = () => {
                     <TableHead className="text-right">Descuento</TableHead>
                     <TableHead className="text-right">Total Pagado</TableHead>
                     <TableHead>Método</TableHead>
+                    <TableHead>Comprobante</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -295,6 +301,22 @@ const CashFlowTable = () => {
                         <Badge variant="outline" className="text-xs">
                           {row.paymentMethod === "card" ? "Tarjeta" : "Transfer."}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {row.paymentMethod === "card" && row.recurrentePaymentId ? (
+                          <span className="text-xs font-mono text-muted-foreground">ID: {row.recurrentePaymentId}</span>
+                        ) : row.paymentMethod !== "card" && row.receiptUrl ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => handleViewReceipt(row.receiptUrl!, row.receiptFilename)}
+                          >
+                            <Eye className="h-3 w-3 mr-1" /> Ver
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
