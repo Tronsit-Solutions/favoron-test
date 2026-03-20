@@ -174,6 +174,10 @@ const DashboardHeader = ({ user, onShowProfile, onLogout, onShowUserManagement, 
                     <Settings className="h-4 w-4 mr-2" />
                     Control Admin
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/complete-profile')} className="sm:hidden">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Simular Google OAuth
+                  </DropdownMenuItem>
                 </>
               )}
               {user.role === 'admin' && onShowUserManagement && (
