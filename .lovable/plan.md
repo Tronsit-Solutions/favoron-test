@@ -1,18 +1,46 @@
 
+## Fix: mostrar Tip Boost también en la pestaña de Viajes
 
-## Fix: Add `boost_code` to admin trips RPC
+### Causa raíz
+En la pestaña de **Viajes** (`AdminMatchingTab > AvailableTripsTab`) el preview card no usa `trip.boost_code`.  
+Actualmente calcula `hasBoost` consultando `boost_code_usage`, o sea solo muestra badge cuando el boost ya fue **aplicado** al acumulador.
 
-### Problem
-The `get_admin_trips_with_user` RPC function doesn't include `boost_code` in its SELECT statement, so admin trip data never has this field — the badge in AdminApprovalsTab can never show.
+Eso no coincide con el resto del sistema:
+- `TripDetailModal` ya usa `trip.boost_code`
+- `AdminApprovalsTab` ya usa `trip.boost_code`
+- el diseño actual guarda la **intención** del boost en `trips.boost_code`
 
-### Solution
-Update the RPC to include `t.boost_code` in the SELECT list.
+Por eso el viaje puede tener boost guardado y aun así no mostrar insignia en esa tarjeta.
 
-### Changes
+### Cambios a implementar
 
-**1. New Supabase migration** — `CREATE OR REPLACE FUNCTION get_admin_trips_with_user()`:
-- Add `t.boost_code` to the SELECT columns
-- Add `t.boost_code` to the return type (or use `text` type)
+**1. `src/components/admin/matching/AvailableTripsTab.tsx`**
+- Eliminar la lógica de `boostedTripIds`
+- Eliminar el `useEffect` que consulta `boost_code_usage`
+- Pasar el estado del boost desde el propio viaje:
+  - `hasBoost={Boolean(trip.boost_code)}`
 
-The full updated function will mirror the existing one but add `t.boost_code` after `t.available_space`.
+Esto deja la pestaña alineada con el modelo actual del sistema.
 
+**2. `src/components/admin/matching/TripCard.tsx`**
+- Mantener el badge existente
+- Opcionalmente mejorar el texto para que sea más claro:
+  - `🚀 Boost`
+  - o `🚀 Boost: {trip.boost_code}` si quieres ver el código directamente en la card
+
+### Resultado esperado
+En la pestaña de **Viajes**, cualquier viaje con `trip.boost_code`:
+- mostrará la insignia de boost en el preview card
+- aunque todavía no exista registro en `boost_code_usage`
+- igual que ya sucede en Aprobaciones y en Detalles del viaje
+
+### Detalle técnico
+Hay dos conceptos distintos:
+- `trips.boost_code` = el viajero/admin ingresó un booster
+- `boost_code_usage` = el booster ya fue aplicado económicamente
+
+Para UI de preview/admin, lo correcto es mostrar el badge usando `trips.boost_code`, no `boost_code_usage`.
+
+### Archivos
+- `src/components/admin/matching/AvailableTripsTab.tsx`
+- opcional: `src/components/admin/matching/TripCard.tsx`
