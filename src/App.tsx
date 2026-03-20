@@ -13,6 +13,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import CustomsRegulation from "./pages/CustomsRegulation";
+import CompleteProfile from "./pages/CompleteProfile";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import Dashboard from "./pages/Dashboard";
 import MonthlyPackageDetails from "./pages/MonthlyPackageDetails";
