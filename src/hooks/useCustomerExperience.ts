@@ -47,7 +47,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
       // 1) Fetch completed packages
       let pkgQuery = supabase
         .from("packages")
-        .select("id, updated_at, item_description, products_data, user_id, matched_trip_id")
+        .select("id, updated_at, item_description, products_data, user_id, matched_trip_id, estimated_price, delivery_deadline, additional_notes, created_at, label_number, delivery_method, package_destination")
         .eq("status", "completed")
         .order("updated_at", { ascending: false });
 
