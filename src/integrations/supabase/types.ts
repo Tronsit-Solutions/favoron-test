@@ -2142,6 +2142,7 @@ export type Database = {
         Returns: {
           arrival_date: string
           available_space: number
+          boost_code: string
           created_at: string
           delivery_date: string
           delivery_method: string
