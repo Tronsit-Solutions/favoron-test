@@ -1,46 +1,58 @@
 
-## Fix: mostrar Tip Boost también en la pestaña de Viajes
 
-### Causa raíz
-En la pestaña de **Viajes** (`AdminMatchingTab > AvailableTripsTab`) el preview card no usa `trip.boost_code`.  
-Actualmente calcula `hasBoost` consultando `boost_code_usage`, o sea solo muestra badge cuando el boost ya fue **aplicado** al acumulador.
+## Two Features: Full-Page Profile Completion + Google OAuth Simulator Button
 
-Eso no coincide con el resto del sistema:
-- `TripDetailModal` ya usa `trip.boost_code`
-- `AdminApprovalsTab` ya usa `trip.boost_code`
-- el diseño actual guarda la **intención** del boost en `trips.boost_code`
+### 1. Full-Page Profile Completion for Incomplete Profiles
 
-Por eso el viaje puede tener boost guardado y aun así no mostrar insignia en esa tarjeta.
+**New page: `src/pages/CompleteProfile.tsx`**
+- Full-page branded layout with Favoron logo, welcome message, progress indicator
+- Reuses `PersonalInfoForm` component (same as ProfileCompletionModal)
+- Shows only missing fields (pre-fills what Google already provided: name, email, avatar)
+- Required: phone_number (with WhatsApp validation), first_name, last_name
+- No skip/cancel — must complete to proceed
+- On save → redirect to `/dashboard`
+- Uses `useAuth` for profile data and `updateProfile` to save
 
-### Cambios a implementar
+**Update `src/components/auth/RequireAuth.tsx`**
+- After user exists and role is loaded, check `isProfileComplete(profile)` from `useProfileCompletion`
+- If incomplete AND current path is NOT `/complete-profile` → `<Navigate to="/complete-profile" />`
+- Needs `profile` from `useAuth` context (already available via the hook)
 
-**1. `src/components/admin/matching/AvailableTripsTab.tsx`**
-- Eliminar la lógica de `boostedTripIds`
-- Eliminar el `useEffect` que consulta `boost_code_usage`
-- Pasar el estado del boost desde el propio viaje:
-  - `hasBoost={Boolean(trip.boost_code)}`
+**Update `src/App.tsx`**
+- Add `/complete-profile` route wrapped in a minimal auth check (not full `RequireAuth` to avoid circular redirect)
+- Could use a separate `RequireAuthOnly` wrapper or add an `allowIncompleteProfile` prop to `RequireAuth`
 
-Esto deja la pestaña alineada con el modelo actual del sistema.
+**Cleanup `src/components/Dashboard.tsx`**
+- Remove the auto-show `useEffect` for `ProfileCompletionModal` (lines 216-224) since the full page replaces it
+- Keep the modal component for action-level blocking as secondary safety net
 
-**2. `src/components/admin/matching/TripCard.tsx`**
-- Mantener el badge existente
-- Opcionalmente mejorar el texto para que sea más claro:
-  - `🚀 Boost`
-  - o `🚀 Boost: {trip.boost_code}` si quieres ver el código directamente en la card
+### 2. Google OAuth Simulator Button (Admin Only)
 
-### Resultado esperado
-En la pestaña de **Viajes**, cualquier viaje con `trip.boost_code`:
-- mostrará la insignia de boost en el preview card
-- aunque todavía no exista registro en `boost_code_usage`
-- igual que ya sucede en Aprobaciones y en Detalles del viaje
+**Update `src/components/dashboard/DashboardHeader.tsx`**
+- Add a new button (admin only, next to WhatsApp/Operations buttons) with a Google-style icon or `UserPlus` icon
+- Styled distinctly (e.g., purple/pink background) to indicate it's a dev/test tool
+- On click: creates a test user via Supabase with only name/email filled (no phone), simulating a Google OAuth signup with incomplete profile
+- Or simpler: navigates to `/complete-profile` directly so admin can see/test the flow
+- Hidden on mobile, shown in dropdown for mobile (same pattern as other admin buttons)
 
-### Detalle técnico
-Hay dos conceptos distintos:
-- `trips.boost_code` = el viajero/admin ingresó un booster
-- `boost_code_usage` = el booster ya fue aplicado económicamente
+### Flow after changes
 
-Para UI de preview/admin, lo correcto es mostrar el badge usando `trips.boost_code`, no `boost_code_usage`.
+```text
+Google OAuth → /dashboard → RequireAuth checks profile
+  → incomplete? → redirect /complete-profile
+  → user fills phone + other fields → save → redirect /dashboard
+  → complete? → show dashboard normally
+```
 
-### Archivos
-- `src/components/admin/matching/AvailableTripsTab.tsx`
-- opcional: `src/components/admin/matching/TripCard.tsx`
+### Technical Details
+- Add `allowIncompleteProfile` prop to `RequireAuth` to prevent circular redirect on `/complete-profile`
+- `isProfileComplete` function already exists in `useProfileCompletion.tsx` — checks `phone_number`, `first_name`, `last_name`
+- The simulator button can simply null out the current user's `phone_number` temporarily (with a confirmation dialog) to trigger the flow, or navigate directly to `/complete-profile`
+
+### Files
+- **Create**: `src/pages/CompleteProfile.tsx`
+- **Modify**: `src/components/auth/RequireAuth.tsx` (profile completeness redirect)
+- **Modify**: `src/App.tsx` (add route)
+- **Modify**: `src/components/dashboard/DashboardHeader.tsx` (simulator button)
+- **Modify**: `src/components/Dashboard.tsx` (remove auto-modal logic)
+
