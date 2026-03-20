@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { isProfileComplete } from "@/hooks/useProfileCompletion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
