@@ -687,7 +687,7 @@ const EditTripModal = ({
 
             <div className="space-y-2">
               <Label htmlFor="contactNumber">
-                Número de contacto <span className="text-destructive">*</span>
+                Número de contacto
                 {changedDot('contactNumber', formData.packageReceivingAddress.contactNumber)}
               </Label>
               <div className="relative">
