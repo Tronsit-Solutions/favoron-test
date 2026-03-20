@@ -1,13 +1,14 @@
 
 
-## Agregar botón "Cerrar simulación" en CompleteProfile
+## Mostrar User ID en UserDetailModal
 
-### Cambio — `src/pages/CompleteProfile.tsx`
+### Cambio — `src/components/admin/UserDetailModal.tsx`
 
-Cuando `isSimulation` es `true`, mostrar un botón en la esquina superior derecha (o debajo del header) que permita al admin salir de la simulación y volver al dashboard.
+Agregar un campo "User ID" en la sección de Datos Personales, después del grid de Nombre Completo / Nombre de Usuario (línea ~285).
 
-- Botón con icono `X` y texto "Cerrar simulación"
-- Estilo: `variant="outline"` o ghost, posicionado en el header al lado del logo
-- `onClick={() => navigate("/dashboard")}`
-- Solo visible cuando `isSimulation === true`
+- Nuevo bloque con `Label` "User ID" y el valor `user.id`
+- Texto con `font-mono text-xs` para que se vea como un identificador técnico
+- Agregar un botón pequeño de copiar (icono `Copy`) que copie el ID al clipboard
+- Solo lectura, no editable incluso en modo edición
+- Ocupa el ancho completo (span 2 columnas) para que el UUID largo se vea bien
 
