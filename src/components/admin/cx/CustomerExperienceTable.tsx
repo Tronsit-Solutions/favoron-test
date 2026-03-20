@@ -84,6 +84,7 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
   }
 
   return (
+    <>
     <div className="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
