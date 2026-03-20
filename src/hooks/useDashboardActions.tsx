@@ -227,38 +227,12 @@ export const useDashboardActions = (
 
       const createdTrip = await createTrip(dbTripData);
 
-      // Apply boost code if provided (non-blocking)
+      // Notify about boost code being saved (will be applied when accumulator is created)
       if (tripData.boostCode && createdTrip?.id) {
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            const { data: boostResult, error: boostError } = await supabase.rpc('validate_boost_code', {
-              _code: tripData.boostCode.toUpperCase(),
-              _trip_id: createdTrip.id,
-              _traveler_id: user.id,
-            });
-
-            if (boostError) {
-              console.warn('🚀 Boost code validation error:', boostError);
-            } else {
-              const result = boostResult as any;
-              if (result?.valid) {
-                toast({
-                  title: "🚀 Boost aplicado",
-                  description: `Código de boost activado: +Q${Number(result.boost_amount).toFixed(2)} se agregará a tus ganancias`,
-                });
-              } else {
-                toast({
-                  title: "Código de boost inválido",
-                  description: result?.error || "El código no se pudo aplicar, pero tu viaje fue registrado.",
-                  variant: "destructive",
-                });
-              }
-            }
-          }
-        } catch (boostErr) {
-          console.warn('🚀 Could not apply boost code:', boostErr);
-        }
+        toast({
+          title: "🚀 Código de boost guardado",
+          description: "El boost se aplicará automáticamente cuando se procesen tus entregas.",
+        });
       }
 
       // Send confirmation email (non-blocking)

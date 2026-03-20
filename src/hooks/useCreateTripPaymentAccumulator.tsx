@@ -29,7 +29,7 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
       
       if (!isCompleted && !isDeliveredToOffice && !isReadyForPickup && !isReadyForDelivery) {
         console.log('⏭️ Skipping package (not delivered):', pkg.id, 'status:', pkg.status);
-        return; // Skip paquetes sin confirmación
+        return;
       }
       
       deliveredEligibleCount += 1;
@@ -119,9 +119,63 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
       }
     }
 
+    // Apply pending boost code from trip if not yet applied
+    await applyPendingBoostCode(tripId, travelerId);
+
     return { success: true };
   } catch (error) {
     console.error('Error creating/updating trip payment accumulator:', error);
     return { success: false, error };
+  }
+};
+
+/**
+ * Check if the trip has a boost_code saved but not yet applied (no boost_code_usage record).
+ * If so, call validate_boost_code RPC to apply it now that the accumulator exists.
+ */
+const applyPendingBoostCode = async (tripId: string, travelerId: string) => {
+  try {
+    // Get the trip's boost_code
+    const { data: trip } = await supabase
+      .from('trips')
+      .select('boost_code')
+      .eq('id', tripId)
+      .single();
+
+    if (!trip?.boost_code) return;
+
+    // Check if already applied
+    const { data: existingUsage } = await supabase
+      .from('boost_code_usage')
+      .select('id')
+      .eq('trip_id', tripId)
+      .eq('traveler_id', travelerId)
+      .maybeSingle();
+
+    if (existingUsage) {
+      console.log('🚀 Boost code already applied for trip:', tripId);
+      return;
+    }
+
+    // Apply the boost code via RPC
+    console.log('🚀 Applying pending boost code:', trip.boost_code, 'for trip:', tripId);
+    const { data: result, error } = await supabase.rpc('validate_boost_code', {
+      _code: trip.boost_code,
+      _trip_id: tripId,
+      _traveler_id: travelerId,
+    });
+
+    if (error) {
+      console.warn('🚀 Failed to apply pending boost code:', error);
+    } else {
+      const boostResult = result as any;
+      if (boostResult?.valid) {
+        console.log('🚀 Pending boost code applied successfully:', boostResult.boost_amount);
+      } else {
+        console.warn('🚀 Pending boost code invalid:', boostResult?.error);
+      }
+    }
+  } catch (err) {
+    console.warn('🚀 Error applying pending boost code:', err);
   }
 };

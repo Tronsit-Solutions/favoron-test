@@ -1718,6 +1718,7 @@ export type Database = {
           admin_rejection: Json | null
           arrival_date: string
           available_space: number | null
+          boost_code: string | null
           client_request_id: string | null
           created_at: string
           delivery_date: string
@@ -1744,6 +1745,7 @@ export type Database = {
           admin_rejection?: Json | null
           arrival_date: string
           available_space?: number | null
+          boost_code?: string | null
           client_request_id?: string | null
           created_at?: string
           delivery_date: string
@@ -1770,6 +1772,7 @@ export type Database = {
           admin_rejection?: Json | null
           arrival_date?: string
           available_space?: number | null
+          boost_code?: string | null
           client_request_id?: string | null
           created_at?: string
           delivery_date?: string

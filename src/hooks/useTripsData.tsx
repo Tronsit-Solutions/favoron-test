@@ -32,6 +32,7 @@ export const useTripsData = () => {
           package_receiving_address, status, created_at, updated_at, user_id,
           available_space, last_mile_delivered, rejection_reason, admin_rejection,
           client_request_id, delivery_point_id, trip_history_log, traveler_feedback_completed,
+          boost_code,
           profiles!inner (
             id,
             first_name,
