@@ -20,23 +20,11 @@ const PackageStatusTimeline = ({ currentStatus, deliveryMethod, className = "" }
       icon: Check,
       description: 'Solicitud aprobada por el equipo'
     },
-    { 
+    {
       key: 'matched', 
-      label: 'Emparejado', 
-      icon: MapPin,
-      description: 'Emparejado con un viajero'
-    },
-    { 
-      key: 'quote_sent', 
-      label: 'Cotización enviada', 
-      icon: Clock,
-      description: 'El viajero envió una cotización'
-    },
-    { 
-      key: 'quote_accepted', 
       label: 'Cotización aceptada', 
       icon: Check,
-      description: 'Aceptaste la cotización del viajero'
+      description: 'Seleccionaste un viajero y aceptaste la cotización'
     },
     { 
       key: 'payment_pending', 
