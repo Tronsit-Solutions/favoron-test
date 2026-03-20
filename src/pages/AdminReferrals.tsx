@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { RequireAdmin } from "@/components/auth/RequireAdmin";
+import { RequirePermission } from "@/components/auth/RequirePermission";
 import { useAdminReferrals } from "@/hooks/useAdminReferrals";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -121,7 +121,7 @@ const AdminReferrals = () => {
   };
 
   return (
-    <RequireAdmin>
+    <RequirePermission permission="referrals">
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           <div className="mb-6">
@@ -352,7 +352,7 @@ const AdminReferrals = () => {
           )}
         </div>
       </div>
-    </RequireAdmin>
+    </RequirePermission>
   );
 };
 

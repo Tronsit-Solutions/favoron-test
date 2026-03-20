@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RequireAdmin } from '@/components/auth/RequireAdmin';
+import { RequirePermission } from '@/components/auth/RequirePermission';
 import { usePlatformFees, PlatformFees } from '@/hooks/usePlatformFees';
 
 const AdminPlatformFees = () => {
@@ -87,7 +87,7 @@ const AdminPlatformFees = () => {
   const primeTotalOutside = formData ? previewBasePrice + primeServiceFee + Math.max(0, formData.delivery_fee_outside_city - formData.prime_delivery_discount) : 0;
 
   return (
-    <RequireAdmin>
+    <RequirePermission permission="platform_fees">
       <div className="container mx-auto py-6 px-4 max-w-4xl">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
@@ -451,7 +451,7 @@ const AdminPlatformFees = () => {
           </div>
         )}
       </div>
-    </RequireAdmin>
+    </RequirePermission>
   );
 };
 

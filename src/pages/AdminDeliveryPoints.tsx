@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { RequireAdmin } from "@/components/auth/RequireAdmin";
+import { RequirePermission } from "@/components/auth/RequirePermission";
 import { useAuth } from "@/hooks/useAuth";
 import { useDeliveryPoints, DeliveryPointInsert, DeliveryPointUpdate } from "@/hooks/useDeliveryPoints";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -124,7 +124,7 @@ const AdminDeliveryPoints = () => {
   };
 
   return (
-    <RequireAdmin>
+    <RequirePermission permission="delivery_points">
       <div className="min-h-screen bg-background">
         <DashboardHeader
           user={userData}
@@ -415,7 +415,7 @@ const AdminDeliveryPoints = () => {
           </Card>
         </main>
       </div>
-    </RequireAdmin>
+    </RequirePermission>
   );
 };
 

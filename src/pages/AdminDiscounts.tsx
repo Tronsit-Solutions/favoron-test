@@ -1,4 +1,4 @@
-import { RequireAdmin } from "@/components/auth/RequireAdmin";
+import { RequirePermission } from "@/components/auth/RequirePermission";
 import { useAuth } from "@/hooks/useAuth";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { useNavigate } from "react-router-dom";
@@ -347,7 +347,7 @@ const AdminDiscounts = () => {
   );
 
   return (
-    <RequireAdmin>
+    <RequirePermission permission="discounts">
       <div className="min-h-screen bg-background">
         <DashboardHeader user={userData} onShowProfile={() => navigate('/dashboard')} onLogout={handleLogout} onGoHome={() => navigate('/')} />
 
@@ -548,7 +548,7 @@ const AdminDiscounts = () => {
           </Tabs>
         </div>
       </div>
-    </RequireAdmin>
+    </RequirePermission>
   );
 };
 
