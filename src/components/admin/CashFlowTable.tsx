@@ -161,6 +161,7 @@ const CashFlowTable = () => {
       Descuento: r.discount,
       "Total Pagado": r.totalPaid,
       "Método Pago": r.paymentMethod === "card" ? "Tarjeta" : "Transferencia",
+      Comprobante: r.paymentMethod === "card" ? (r.recurrentePaymentId || "—") : (r.receiptUrl ? "Transferencia" : "—"),
     }));
 
     const expenseSheet = expenseRows.map(r => ({
