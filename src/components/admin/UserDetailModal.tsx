@@ -54,7 +54,26 @@ interface UserDetailModalProps {
   onUpdateUserRole?: (userId: number, newRole: 'admin' | 'user' | 'operations') => Promise<void>;
 }
 
-const UserDetailModal = ({ 
+const UserIdField = ({ userId }: { userId: string }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    const ok = await copyToClipboard(userId);
+    if (ok) { setCopied(true); setTimeout(() => setCopied(false), 2000); }
+  };
+  return (
+    <div className="space-y-1">
+      <Label className="text-xs text-muted-foreground">User ID</Label>
+      <div className="flex items-center gap-2">
+        <code className="text-xs font-mono bg-muted px-2 py-1 rounded select-all flex-1 truncate">{userId}</code>
+        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={handleCopy}>
+          {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const UserDetailModal = ({
   isOpen, 
   onClose, 
   user, 
