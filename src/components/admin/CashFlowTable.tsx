@@ -195,8 +195,20 @@ const CashFlowTable = () => {
       receiptFilename: r.receiptFilename,
       recurrentePaymentId: null,
     }));
-    return [...income, ...expense].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [filteredIncomeRows, expenseRows]);
+    const refunds = (completedRefunds || []).map(r => ({
+      id: r.id,
+      date: r.completed_at!,
+      type: "refund" as const,
+      person: shopperProfiles?.[r.shopper_id] || "—",
+      description: r.reason || "Reembolso",
+      amount: r.amount,
+      paymentMethod: "bank_transfer",
+      receiptUrl: r.receipt_url,
+      receiptFilename: r.receipt_filename,
+      recurrentePaymentId: null,
+    }));
+    return [...income, ...expense, ...refunds].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [filteredIncomeRows, expenseRows, completedRefunds, shopperProfiles]);
 
   // ── MESES DISPONIBLES ──
   const availableMonths = useMemo(() => {
