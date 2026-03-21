@@ -649,14 +649,21 @@ const AdminMatchDialog = ({
     setAdminTip(totalTip.toString());
   };
 
-  const handleMatch = () => {
-    if (selectedTripIds.size > 0) {
-      const tipAmount = getTotalAssignedTip();
-      const tripIdsArray = Array.from(selectedTripIds);
-      if (isMultiProductOrder()) {
-        onMatch(tipAmount, assignedProductsWithTips, tripIdsArray);
-      } else {
-        onMatch(tipAmount, undefined, tripIdsArray);
+  const [isSubmittingMatch, setIsSubmittingMatch] = useState(false);
+
+  const handleMatch = async () => {
+    if (selectedTripIds.size > 0 && !isSubmittingMatch) {
+      setIsSubmittingMatch(true);
+      try {
+        const tipAmount = getTotalAssignedTip();
+        const tripIdsArray = Array.from(selectedTripIds);
+        if (isMultiProductOrder()) {
+          await onMatch(tipAmount, assignedProductsWithTips, tripIdsArray);
+        } else {
+          await onMatch(tipAmount, undefined, tripIdsArray);
+        }
+      } finally {
+        setIsSubmittingMatch(false);
       }
     }
   };
