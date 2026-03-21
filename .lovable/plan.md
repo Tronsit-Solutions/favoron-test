@@ -1,34 +1,55 @@
 
 
-## Agregar pestaña "Consolidado" en Flujo de Caja
+## Diagnóstico: Package Assignment lento
 
-### Qué se construye
-Una nueva pestaña dentro del componente CashFlowTable que muestre **todos los movimientos (ingresos + egresos) en una sola tabla ordenada por fecha**, permitiendo ver cronológicamente cuándo entró dinero y cuándo salió.
+### Causa raíz
 
-### Diseño
+Cuando asignas un paquete a **3 viajeros**, el flujo en `handleMatchPackage` ejecuta todo **secuencialmente**:
 
-La tabla consolidada tendrá estas columnas:
-- **Fecha** — fecha del movimiento
-- **Tipo** — Badge verde "Ingreso" o rojo "Egreso"
-- **Persona** — nombre del shopper (ingreso) o viajero (egreso)
-- **Descripción** — item del paquete (ingreso) o "Pago a viajero" (egreso)
-- **Monto** — positivo verde para ingresos, negativo rojo para egresos
-- **Método/Comprobante** — método de pago o recibo
+1. ✅ Check existing assignments (1 query) — rápido
+2. ✅ Insert assignments (1 query batch) — rápido  
+3. ✅ Update package (1 query) — rápido
+4. ❌ **Loop secuencial por cada viajero** (×3):
+   - `appendTripHistoryEntry`: 2 queries (SELECT + UPDATE) por viajero = **6 queries**
+   - `sendWhatsAppNotification`: 1 edge function call por viajero = **3 edge function calls**
 
-Ordenada por fecha descendente (más reciente primero).
+Total: ~12 operaciones secuenciales. Cada edge function call tarda ~1-3s (Twilio). Esto produce **~5-10s de espera** antes del toast "¡Match exitoso!".
 
-### Implementación
+Además, `appendTripHistoryEntry` hace read-then-write (SELECT + UPDATE) en vez de un append atómico, duplicando las queries.
 
-**Modificar `src/components/admin/CashFlowTable.tsx`**:
+### Solución
 
-1. Agregar estado `activeView` con valores `"detail"` | `"consolidated"`
-2. Agregar un `Tabs` interno debajo de los KPIs de resumen con dos pestañas: "Detalle" (vista actual de ingresos + egresos separados) y "Consolidado"
-3. Crear un `consolidatedRows` memo que combine `filteredIncomeRows` y `expenseRows` en un array unificado con tipo `"income"` | `"expense"`, ordenado por fecha descendente
-4. Renderizar la tabla consolidada cuando `activeView === "consolidated"`, mostrando cada fila con badge de tipo y colores según ingreso/egreso
-5. Incluir las filas consolidadas en el export Excel como una hoja adicional "Consolidado"
+**1. Paralelizar el loop de notificaciones en `useDashboardActions.tsx`**
 
-### Detalle técnico
-- Se reutilizan los mismos datos ya cargados (incomeRows, expenseRows) — sin queries adicionales
-- El memo `consolidatedRows` mapea ambos arrays a una interfaz común `{ date, type, person, description, amount, paymentMethod?, receiptUrl? }` y ordena con `.sort()` por fecha
-- Los filtros de mes y método de pago siguen aplicando igual
+Reemplazar el `for...of` secuencial (líneas 1334-1363) por `Promise.all` para que las 3 notificaciones + historiales se ejecuten en paralelo:
+
+```ts
+// Antes: for (const tid of tripIdsToAssign) { await append... await send... }
+// Después:
+await Promise.all(tripIdsToAssign.map(async (tid) => {
+  appendTripHistoryEntry(tid, historyEntry); // fire-and-forget
+  sendWhatsAppNotification({...});           // fire-and-forget
+}));
+```
+
+**2. Hacer notificaciones fire-and-forget**
+
+Las notificaciones WhatsApp y el history log no deben bloquear el flujo principal. Ejecutarlos sin `await` para que el toast aparezca inmediatamente después del insert + update:
+
+```ts
+// No await — run in background
+for (const tid of tripIdsToAssign) {
+  appendTripHistoryEntry(tid, historyEntry);
+  sendWhatsAppNotification({...});
+}
+```
+
+### Resultado esperado
+- El match pasa de ~5-10s a ~1-2s (solo las 3 queries esenciales: check, insert, update)
+- Notificaciones WhatsApp e historial se procesan en background sin bloquear la UI
+
+### Archivos
+- **Modificar**: `src/hooks/useDashboardActions.tsx` — hacer fire-and-forget el loop de líneas 1334-1363
+
+Un cambio en ~10 líneas de un solo archivo.
 
