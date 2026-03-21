@@ -166,7 +166,8 @@ const CashFlowTable = () => {
 
   const totalIncome = useMemo(() => filteredIncomeRows.reduce((s, r) => s + r.totalPaid, 0), [filteredIncomeRows]);
   const totalExpenses = useMemo(() => expenseRows.reduce((s, r) => s + r.amount, 0), [expenseRows]);
-  const net = totalIncome - totalExpenses;
+  const totalRefunds = useMemo(() => (completedRefunds || []).reduce((s, r) => s + r.amount, 0), [completedRefunds]);
+  const net = totalIncome - totalExpenses - totalRefunds;
 
   // ── CONSOLIDADO ──
   const consolidatedRows = useMemo(() => {
