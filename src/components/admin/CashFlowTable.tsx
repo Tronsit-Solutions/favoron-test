@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Download, ArrowDownCircle, ArrowUpCircle, Eye } from "lucide-react";
+import { Calendar, Download, ArrowDownCircle, ArrowUpCircle, Eye, RotateCcw } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency, formatDate } from "@/lib/formatters";
@@ -83,8 +83,29 @@ const CashFlowTable = () => {
     },
   });
 
-  // Fetch shopper profiles
-  const shopperIds = useMemo(() => [...new Set((incomePackages || []).map(p => p.user_id))], [incomePackages]);
+  // ── REEMBOLSOS: refund_orders completadas ──
+  const { data: completedRefunds, isLoading: loadingRefunds } = useQuery({
+    queryKey: ["cashflow-refunds", selectedMonth],
+    queryFn: async () => {
+      let q = supabase
+        .from("refund_orders")
+        .select("id, amount, reason, completed_at, shopper_id, package_id, receipt_url, receipt_filename")
+        .eq("status", "completed")
+        .not("completed_at", "is", null)
+        .order("completed_at", { ascending: false });
+
+      if (selectedDateRange) {
+        q = q.gte("completed_at", selectedDateRange.start.toISOString()).lt("completed_at", selectedDateRange.end.toISOString());
+      }
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Fetch shopper profiles (include refund shoppers too)
+  const refundShopperIds = useMemo(() => [...new Set((completedRefunds || []).map(r => r.shopper_id))], [completedRefunds]);
+  const shopperIds = useMemo(() => [...new Set([...(incomePackages || []).map(p => p.user_id), ...refundShopperIds])], [incomePackages, refundShopperIds]);
   const { data: shopperProfiles } = useQuery({
     queryKey: ["cashflow-shoppers", shopperIds],
     queryFn: async () => {
@@ -145,7 +166,8 @@ const CashFlowTable = () => {
 
   const totalIncome = useMemo(() => filteredIncomeRows.reduce((s, r) => s + r.totalPaid, 0), [filteredIncomeRows]);
   const totalExpenses = useMemo(() => expenseRows.reduce((s, r) => s + r.amount, 0), [expenseRows]);
-  const net = totalIncome - totalExpenses;
+  const totalRefunds = useMemo(() => (completedRefunds || []).reduce((s, r) => s + r.amount, 0), [completedRefunds]);
+  const net = totalIncome - totalExpenses - totalRefunds;
 
   // ── CONSOLIDADO ──
   const consolidatedRows = useMemo(() => {
@@ -173,8 +195,20 @@ const CashFlowTable = () => {
       receiptFilename: r.receiptFilename,
       recurrentePaymentId: null,
     }));
-    return [...income, ...expense].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [filteredIncomeRows, expenseRows]);
+    const refunds = (completedRefunds || []).map(r => ({
+      id: r.id,
+      date: r.completed_at!,
+      type: "refund" as const,
+      person: shopperProfiles?.[r.shopper_id] || "—",
+      description: r.reason || "Reembolso",
+      amount: r.amount,
+      paymentMethod: "bank_transfer",
+      receiptUrl: r.receipt_url,
+      receiptFilename: r.receipt_filename,
+      recurrentePaymentId: null,
+    }));
+    return [...income, ...expense, ...refunds].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [filteredIncomeRows, expenseRows, completedRefunds, shopperProfiles]);
 
   // ── MESES DISPONIBLES ──
   const availableMonths = useMemo(() => {
@@ -213,7 +247,7 @@ const CashFlowTable = () => {
 
     const consolidatedSheet = consolidatedRows.map(r => ({
       Fecha: formatDate(r.date),
-      Tipo: r.type === "income" ? "Ingreso" : "Egreso",
+      Tipo: r.type === "income" ? "Ingreso" : r.type === "refund" ? "Reembolso" : "Egreso",
       Persona: r.person,
       Descripción: r.description,
       Monto: r.type === "income" ? r.amount : -r.amount,
@@ -241,7 +275,7 @@ const CashFlowTable = () => {
     }
   };
 
-  const isLoading = loadingIncome || loadingExpenses;
+  const isLoading = loadingIncome || loadingExpenses || loadingRefunds;
 
   return (
     <div className="space-y-6">
@@ -287,7 +321,7 @@ const CashFlowTable = () => {
         </CardHeader>
         <CardContent>
           {/* Summary cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="p-4 rounded-lg border bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 text-center">
               <ArrowDownCircle className="h-5 w-5 text-green-600 mx-auto mb-1" />
               <p className="text-xs text-muted-foreground">Total Ingresos</p>
@@ -299,6 +333,12 @@ const CashFlowTable = () => {
               <p className="text-xs text-muted-foreground">Total Egresos</p>
               <p className="text-xl font-bold text-red-700 dark:text-red-400">{formatCurrency(totalExpenses)}</p>
               <p className="text-xs text-muted-foreground">{expenseRows.length} pagos</p>
+            </div>
+            <div className="p-4 rounded-lg border bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800 text-center">
+              <RotateCcw className="h-5 w-5 text-orange-600 mx-auto mb-1" />
+              <p className="text-xs text-muted-foreground">Total Reembolsos</p>
+              <p className="text-xl font-bold text-orange-700 dark:text-orange-400">{formatCurrency(totalRefunds)}</p>
+              <p className="text-xs text-muted-foreground">{(completedRefunds || []).length} devoluciones</p>
             </div>
             <div className={`p-4 rounded-lg border text-center ${net >= 0 ? "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800" : "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800"}`}>
               <p className="text-xs text-muted-foreground">Balance Neto</p>
@@ -347,6 +387,10 @@ const CashFlowTable = () => {
                               <Badge className="text-xs bg-green-100 text-green-800 border-green-300 dark:bg-green-950 dark:text-green-300 dark:border-green-700">
                                 <ArrowDownCircle className="h-3 w-3 mr-1" /> Ingreso
                               </Badge>
+                            ) : row.type === "refund" ? (
+                              <Badge className="text-xs bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-700">
+                                <RotateCcw className="h-3 w-3 mr-1" /> Reembolso
+                              </Badge>
                             ) : (
                               <Badge className="text-xs bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-700">
                                 <ArrowUpCircle className="h-3 w-3 mr-1" /> Egreso
@@ -355,7 +399,7 @@ const CashFlowTable = () => {
                           </TableCell>
                           <TableCell className="text-xs max-w-[120px] truncate">{row.person}</TableCell>
                           <TableCell className="text-xs max-w-[150px] truncate">{row.description}</TableCell>
-                          <TableCell className={`text-right text-xs font-medium tabular-nums ${row.type === "income" ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
+                          <TableCell className={`text-right text-xs font-medium tabular-nums ${row.type === "income" ? "text-green-700 dark:text-green-400" : row.type === "refund" ? "text-orange-700 dark:text-orange-400" : "text-red-700 dark:text-red-400"}`}>
                             {row.type === "income" ? "+" : "-"}{formatCurrency(row.amount)}
                           </TableCell>
                           <TableCell>
