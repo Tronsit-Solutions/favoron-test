@@ -1,32 +1,23 @@
 
 
-## Agregar reembolsos al Consolidado del Flujo de Caja
+## Agregar columnas de desglose a filas de ingreso en el Consolidado
 
 ### Qué cambia
-Agregar un tercer tipo de movimiento "Reembolso" (naranja) al consolidado, mostrando las devoluciones completadas junto a ingresos y egresos, ordenadas cronológicamente.
+Las filas de tipo "Ingreso" en la tabla consolidada mostrarán las columnas adicionales: **Tip Viajero**, **Service Fee**, **Delivery Fee** y **Descuento**, igual que en la vista detallada de ingresos. Las filas de Egreso y Reembolso mostrarán "—" en esas columnas.
 
 ### Implementación — `src/components/admin/CashFlowTable.tsx`
 
-**1. Nueva query: reembolsos completados**
-- Agregar `useQuery` para `refund_orders` con `status = 'completed'`, filtrado por `completed_at` según el mes seleccionado
-- Hacer join con `profiles` para obtener nombre del shopper
-- Campos: id, amount, reason, completed_at, shopper_id, package_id, receipt_url, receipt_filename
+**1. Ampliar la interfaz de `consolidatedRows`**
+Agregar campos opcionales `tipViajero`, `serviceFee`, `deliveryFee`, `discount` al mapeo de income rows (líneas 174-185). Para expense y refund, dejar en 0/undefined.
 
-**2. Agregar filas de reembolso al `consolidatedRows`**
-- Mapear refunds a la interfaz común con `type: "refund"`, fecha = `completed_at`, persona = nombre del shopper, descripción = razón de cancelación
-- Incluir en el spread junto a income y expense, mismo sort por fecha
+**2. Agregar columnas al header de la tabla consolidada** (línea 372-379)
+Insertar 4 columnas entre "Descripción" y "Monto": Tip Viajero, Service Fee, Delivery Fee, Descuento.
 
-**3. Actualizar KPIs**
-- Agregar `totalRefunds` al cálculo
-- Ajustar Balance Neto: `totalIncome - totalExpenses - totalRefunds`
-- Opcionalmente mostrar un cuarto KPI card para reembolsos (naranja)
+**3. Renderizar celdas en el body** (líneas 400-401)
+Para filas `income`: mostrar los valores con `formatCurrency`. Para `expense`/`refund`: mostrar "—".
 
-**4. UI del consolidado**
-- Nuevo badge naranja "Reembolso" con icono `RotateCcw`
-- Monto en naranja con signo negativo (`-Q...`)
-
-**5. Excel export**
-- Incluir filas de reembolso en la hoja "Consolidado"
+**4. Actualizar Excel export** (líneas 248-255)
+Agregar las 4 columnas al `consolidatedSheet`, con valores para income y vacío/0 para los demás.
 
 ### Archivos
 - **Modificar**: `src/components/admin/CashFlowTable.tsx`
