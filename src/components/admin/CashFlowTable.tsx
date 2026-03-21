@@ -381,13 +381,17 @@ const CashFlowTable = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Fecha</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Persona</TableHead>
-                        <TableHead>Descripción</TableHead>
-                        <TableHead className="text-right">Monto</TableHead>
-                        <TableHead>Método</TableHead>
-                        <TableHead>Comprobante</TableHead>
+                         <TableHead>Fecha</TableHead>
+                         <TableHead>Tipo</TableHead>
+                         <TableHead>Persona</TableHead>
+                         <TableHead>Descripción</TableHead>
+                         <TableHead className="text-right">Tip Viajero</TableHead>
+                         <TableHead className="text-right">Service Fee</TableHead>
+                         <TableHead className="text-right">Delivery Fee</TableHead>
+                         <TableHead className="text-right">Descuento</TableHead>
+                         <TableHead className="text-right">Monto Total</TableHead>
+                         <TableHead>Método</TableHead>
+                         <TableHead>Comprobante</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
