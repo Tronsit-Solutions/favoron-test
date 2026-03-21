@@ -1,55 +1,25 @@
 
 
-## Diagnóstico: Package Assignment lento
+## Agregar timer en vivo a cada asignación de viajero
 
-### Causa raíz
-
-Cuando asignas un paquete a **3 viajeros**, el flujo en `handleMatchPackage` ejecuta todo **secuencialmente**:
-
-1. ✅ Check existing assignments (1 query) — rápido
-2. ✅ Insert assignments (1 query batch) — rápido  
-3. ✅ Update package (1 query) — rápido
-4. ❌ **Loop secuencial por cada viajero** (×3):
-   - `appendTripHistoryEntry`: 2 queries (SELECT + UPDATE) por viajero = **6 queries**
-   - `sendWhatsAppNotification`: 1 edge function call por viajero = **3 edge function calls**
-
-Total: ~12 operaciones secuenciales. Cada edge function call tarda ~1-3s (Twilio). Esto produce **~5-10s de espera** antes del toast "¡Match exitoso!".
-
-Además, `appendTripHistoryEntry` hace read-then-write (SELECT + UPDATE) en vez de un append atómico, duplicando las queries.
+### Problema
+Actualmente la sección "Viajeros Asignados" en `PackageDetailModal.tsx` muestra la fecha/hora de expiración como texto estático ("Expira: 22/3/2026 14:30") y solo para `bid_pending`. El usuario quiere un countdown en vivo.
 
 ### Solución
 
-**1. Paralelizar el loop de notificaciones en `useDashboardActions.tsx`**
+**Modificar `src/components/admin/PackageDetailModal.tsx`**:
 
-Reemplazar el `for...of` secuencial (líneas 1334-1363) por `Promise.all` para que las 3 notificaciones + historiales se ejecuten en paralelo:
+1. Importar el hook `useCountdown` que ya existe en el proyecto
+2. Crear un mini-componente `AssignmentCountdown` dentro del archivo que use `useCountdown` con el `expires_at` de cada assignment
+3. Reemplazar el texto estático de expiración (líneas 1379-1384) por el countdown en vivo mostrando `HH:MM:SS` restante
+4. Mostrar el timer para assignments en estados `bid_pending` y `bid_submitted` (los que aún están activos)
+5. Colorear: amarillo/amber si queda tiempo, rojo si quedan menos de 2 horas, gris si ya expiró
 
-```ts
-// Antes: for (const tid of tripIdsToAssign) { await append... await send... }
-// Después:
-await Promise.all(tripIdsToAssign.map(async (tid) => {
-  appendTripHistoryEntry(tid, historyEntry); // fire-and-forget
-  sendWhatsAppNotification({...});           // fire-and-forget
-}));
-```
-
-**2. Hacer notificaciones fire-and-forget**
-
-Las notificaciones WhatsApp y el history log no deben bloquear el flujo principal. Ejecutarlos sin `await` para que el toast aparezca inmediatamente después del insert + update:
-
-```ts
-// No await — run in background
-for (const tid of tripIdsToAssign) {
-  appendTripHistoryEntry(tid, historyEntry);
-  sendWhatsAppNotification({...});
-}
-```
-
-### Resultado esperado
-- El match pasa de ~5-10s a ~1-2s (solo las 3 queries esenciales: check, insert, update)
-- Notificaciones WhatsApp e historial se procesan en background sin bloquear la UI
+### Detalle
+- Se reutiliza `useCountdown` de `src/hooks/useCountdown.tsx` — no se crea lógica nueva de timer
+- El mini-componente es necesario porque hooks no se pueden llamar dentro de un `.map()` directamente
+- Formato: `⏱ 23h 45m 12s` o `⏱ Expirado` si ya pasó
 
 ### Archivos
-- **Modificar**: `src/hooks/useDashboardActions.tsx` — hacer fire-and-forget el loop de líneas 1334-1363
-
-Un cambio en ~10 líneas de un solo archivo.
+- **Modificar**: `src/components/admin/PackageDetailModal.tsx` (~20 líneas)
 
