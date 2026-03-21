@@ -178,6 +178,10 @@ const CashFlowTable = () => {
       person: r.shopper,
       description: r.description,
       amount: r.totalPaid,
+      tipViajero: r.tipViajero,
+      serviceFee: r.serviceFee,
+      deliveryFee: r.deliveryFee,
+      discount: r.discount,
       paymentMethod: r.paymentMethod,
       receiptUrl: r.receiptUrl,
       receiptFilename: r.receiptFilename,
@@ -190,6 +194,10 @@ const CashFlowTable = () => {
       person: r.traveler,
       description: `Pago a viajero`,
       amount: r.amount,
+      tipViajero: undefined as number | undefined,
+      serviceFee: undefined as number | undefined,
+      deliveryFee: undefined as number | undefined,
+      discount: undefined as number | undefined,
       paymentMethod: "bank_transfer",
       receiptUrl: r.receiptUrl,
       receiptFilename: r.receiptFilename,
@@ -202,6 +210,10 @@ const CashFlowTable = () => {
       person: shopperProfiles?.[r.shopper_id] || "—",
       description: r.reason || "Reembolso",
       amount: r.amount,
+      tipViajero: undefined as number | undefined,
+      serviceFee: undefined as number | undefined,
+      deliveryFee: undefined as number | undefined,
+      discount: undefined as number | undefined,
       paymentMethod: "bank_transfer",
       receiptUrl: r.receipt_url,
       receiptFilename: r.receipt_filename,
@@ -250,7 +262,11 @@ const CashFlowTable = () => {
       Tipo: r.type === "income" ? "Ingreso" : r.type === "refund" ? "Reembolso" : "Egreso",
       Persona: r.person,
       Descripción: r.description,
-      Monto: r.type === "income" ? r.amount : -r.amount,
+      "Tip Viajero": r.type === "income" ? (r.tipViajero ?? 0) : "",
+      "Service Fee": r.type === "income" ? (r.serviceFee ?? 0) : "",
+      "Delivery Fee": r.type === "income" ? (r.deliveryFee ?? 0) : "",
+      Descuento: r.type === "income" ? (r.discount ?? 0) : "",
+      "Monto Total": r.type === "income" ? r.amount : -r.amount,
       "Método Pago": r.paymentMethod === "card" ? "Tarjeta" : "Transferencia",
     }));
 
@@ -369,13 +385,17 @@ const CashFlowTable = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Fecha</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Persona</TableHead>
-                        <TableHead>Descripción</TableHead>
-                        <TableHead className="text-right">Monto</TableHead>
-                        <TableHead>Método</TableHead>
-                        <TableHead>Comprobante</TableHead>
+                         <TableHead>Fecha</TableHead>
+                         <TableHead>Tipo</TableHead>
+                         <TableHead>Persona</TableHead>
+                         <TableHead>Descripción</TableHead>
+                         <TableHead className="text-right">Tip Viajero</TableHead>
+                         <TableHead className="text-right">Service Fee</TableHead>
+                         <TableHead className="text-right">Delivery Fee</TableHead>
+                         <TableHead className="text-right">Descuento</TableHead>
+                         <TableHead className="text-right">Monto Total</TableHead>
+                         <TableHead>Método</TableHead>
+                         <TableHead>Comprobante</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -398,10 +418,22 @@ const CashFlowTable = () => {
                             )}
                           </TableCell>
                           <TableCell className="text-xs max-w-[120px] truncate">{row.person}</TableCell>
-                          <TableCell className="text-xs max-w-[150px] truncate">{row.description}</TableCell>
-                          <TableCell className={`text-right text-xs font-medium tabular-nums ${row.type === "income" ? "text-green-700 dark:text-green-400" : row.type === "refund" ? "text-orange-700 dark:text-orange-400" : "text-red-700 dark:text-red-400"}`}>
-                            {row.type === "income" ? "+" : "-"}{formatCurrency(row.amount)}
-                          </TableCell>
+                           <TableCell className="text-xs max-w-[150px] truncate">{row.description}</TableCell>
+                           <TableCell className="text-right text-xs tabular-nums">
+                             {row.type === "income" ? formatCurrency(row.tipViajero) : "—"}
+                           </TableCell>
+                           <TableCell className="text-right text-xs tabular-nums">
+                             {row.type === "income" ? formatCurrency(row.serviceFee) : "—"}
+                           </TableCell>
+                           <TableCell className="text-right text-xs tabular-nums">
+                             {row.type === "income" ? formatCurrency(row.deliveryFee) : "—"}
+                           </TableCell>
+                           <TableCell className="text-right text-xs tabular-nums">
+                             {row.type === "income" && row.discount ? `-${formatCurrency(row.discount)}` : "—"}
+                           </TableCell>
+                           <TableCell className={`text-right text-xs font-medium tabular-nums ${row.type === "income" ? "text-green-700 dark:text-green-400" : row.type === "refund" ? "text-orange-700 dark:text-orange-400" : "text-red-700 dark:text-red-400"}`}>
+                             {row.type === "income" ? "+" : "-"}{formatCurrency(row.amount)}
+                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className="text-xs">
                               {row.paymentMethod === "card" ? "Tarjeta" : "Transfer."}
