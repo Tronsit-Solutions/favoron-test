@@ -429,9 +429,16 @@ export const useDashboardActions = (
                 throw assignError;
               }
             } else {
-              // No assignment found — this should not happen in the unified flow
-              console.error('❌ No assignmentId found. All matching must go through package_assignments.');
-              throw new Error('No se encontró la asignación. Contacta soporte.');
+              // Legacy match without assignment — update package directly
+              console.log('📦 Legacy match (no assignment), updating package directly');
+              const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+              await updatePackage(selectedPackage.id, {
+                status: 'quote_sent',
+                quote: normalizedQuoteData as any,
+                traveler_address: travelerAddress as any,
+                matched_trip_dates: matchedTripDates as any,
+                quote_expires_at: expiresAt
+              });
             }
             
             // 📱 Enviar notificación WhatsApp al shopper
