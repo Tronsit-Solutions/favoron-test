@@ -310,141 +310,224 @@ const CashFlowTable = () => {
         </CardContent>
       </Card>
 
-      {/* INGRESOS */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <ArrowDownCircle className="h-5 w-5 text-green-600" />
-            Ingresos (Pagos de Shoppers)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">Cargando...</p>
-          ) : filteredIncomeRows.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">No hay ingresos en este período</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Shopper</TableHead>
-                    <TableHead>Descripción</TableHead>
-                    <TableHead className="text-right">Tip Viajero</TableHead>
-                    <TableHead className="text-right">Service Fee</TableHead>
-                    <TableHead className="text-right">Delivery Fee</TableHead>
-                    <TableHead className="text-right">Descuento</TableHead>
-                    <TableHead className="text-right">Total Pagado</TableHead>
-                    <TableHead>Método</TableHead>
-                    <TableHead>Comprobante</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredIncomeRows.map(row => (
-                    <TableRow key={row.id}>
-                      <TableCell className="text-xs whitespace-nowrap">{formatDate(row.date)}</TableCell>
-                      <TableCell className="text-xs max-w-[120px] truncate">{row.shopper}</TableCell>
-                      <TableCell className="text-xs max-w-[150px] truncate">{row.description}</TableCell>
-                      <TableCell className="text-right text-xs tabular-nums">{formatCurrency(row.tipViajero)}</TableCell>
-                      <TableCell className="text-right text-xs tabular-nums">{formatCurrency(row.serviceFee)}</TableCell>
-                      <TableCell className="text-right text-xs tabular-nums">{formatCurrency(row.deliveryFee)}</TableCell>
-                      <TableCell className="text-right text-xs tabular-nums">
-                        {row.discount > 0 ? (
-                          <span className="text-green-600">-{formatCurrency(row.discount)}</span>
-                        ) : "—"}
-                      </TableCell>
-                      <TableCell className="text-right text-xs font-medium tabular-nums">{formatCurrency(row.totalPaid)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {row.paymentMethod === "card" ? "Tarjeta" : "Transfer."}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {row.paymentMethod === "card" && row.recurrentePaymentId ? (
-                          <span className="text-xs font-mono text-muted-foreground">ID: {row.recurrentePaymentId}</span>
-                        ) : row.paymentMethod !== "card" && row.receiptUrl ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 px-2 text-xs"
-                            onClick={() => handleViewReceipt(row.receiptUrl!, row.receiptFilename)}
-                          >
-                            <Eye className="h-3 w-3 mr-1" /> Ver
-                          </Button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="consolidated">Consolidado</TabsTrigger>
+          <TabsTrigger value="detail">Detalle</TabsTrigger>
+        </TabsList>
 
-      {/* EGRESOS */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <ArrowUpCircle className="h-5 w-5 text-red-600" />
-            Egresos (Pagos a Viajeros)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">Cargando...</p>
-          ) : expenseRows.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">No hay egresos en este período</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Viajero</TableHead>
-                    <TableHead>ID Viaje</TableHead>
-                    <TableHead className="text-right">Monto</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Comprobante</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {expenseRows.map(row => (
-                    <TableRow key={row.id}>
-                      <TableCell className="text-xs whitespace-nowrap">{formatDate(row.date)}</TableCell>
-                      <TableCell className="text-xs">{row.traveler}</TableCell>
-                      <TableCell className="text-xs font-mono">{row.tripId?.slice(0, 8) || "—"}</TableCell>
-                      <TableCell className="text-right text-xs font-medium tabular-nums">{formatCurrency(row.amount)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                          Completado
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {row.receiptUrl ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 px-2 text-xs"
-                            onClick={() => handleViewReceipt(row.receiptUrl!, row.receiptFilename)}
-                          >
-                            <Eye className="h-3 w-3 mr-1" /> Ver
-                          </Button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        {/* CONSOLIDATED VIEW */}
+        <TabsContent value="consolidated">
+          <Card>
+            <CardContent className="pt-6">
+              {isLoading ? (
+                <p className="text-sm text-muted-foreground py-8 text-center">Cargando...</p>
+              ) : consolidatedRows.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-8 text-center">No hay movimientos en este período</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Persona</TableHead>
+                        <TableHead>Descripción</TableHead>
+                        <TableHead className="text-right">Monto</TableHead>
+                        <TableHead>Método</TableHead>
+                        <TableHead>Comprobante</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {consolidatedRows.map(row => (
+                        <TableRow key={`${row.type}-${row.id}`}>
+                          <TableCell className="text-xs whitespace-nowrap">{formatDate(row.date)}</TableCell>
+                          <TableCell>
+                            {row.type === "income" ? (
+                              <Badge className="text-xs bg-green-100 text-green-800 border-green-300 dark:bg-green-950 dark:text-green-300 dark:border-green-700">
+                                <ArrowDownCircle className="h-3 w-3 mr-1" /> Ingreso
+                              </Badge>
+                            ) : (
+                              <Badge className="text-xs bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-700">
+                                <ArrowUpCircle className="h-3 w-3 mr-1" /> Egreso
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-xs max-w-[120px] truncate">{row.person}</TableCell>
+                          <TableCell className="text-xs max-w-[150px] truncate">{row.description}</TableCell>
+                          <TableCell className={`text-right text-xs font-medium tabular-nums ${row.type === "income" ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
+                            {row.type === "income" ? "+" : "-"}{formatCurrency(row.amount)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {row.paymentMethod === "card" ? "Tarjeta" : "Transfer."}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {row.type === "income" && row.paymentMethod === "card" && row.recurrentePaymentId ? (
+                              <span className="text-xs font-mono text-muted-foreground">ID: {row.recurrentePaymentId}</span>
+                            ) : row.receiptUrl ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => handleViewReceipt(row.receiptUrl!, row.receiptFilename)}
+                              >
+                                <Eye className="h-3 w-3 mr-1" /> Ver
+                              </Button>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* DETAIL VIEW */}
+        <TabsContent value="detail" className="space-y-6">
+          {/* INGRESOS */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <ArrowDownCircle className="h-5 w-5 text-green-600" />
+                Ingresos (Pagos de Shoppers)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <p className="text-sm text-muted-foreground py-8 text-center">Cargando...</p>
+              ) : filteredIncomeRows.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-8 text-center">No hay ingresos en este período</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead>Shopper</TableHead>
+                        <TableHead>Descripción</TableHead>
+                        <TableHead className="text-right">Tip Viajero</TableHead>
+                        <TableHead className="text-right">Service Fee</TableHead>
+                        <TableHead className="text-right">Delivery Fee</TableHead>
+                        <TableHead className="text-right">Descuento</TableHead>
+                        <TableHead className="text-right">Total Pagado</TableHead>
+                        <TableHead>Método</TableHead>
+                        <TableHead>Comprobante</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredIncomeRows.map(row => (
+                        <TableRow key={row.id}>
+                          <TableCell className="text-xs whitespace-nowrap">{formatDate(row.date)}</TableCell>
+                          <TableCell className="text-xs max-w-[120px] truncate">{row.shopper}</TableCell>
+                          <TableCell className="text-xs max-w-[150px] truncate">{row.description}</TableCell>
+                          <TableCell className="text-right text-xs tabular-nums">{formatCurrency(row.tipViajero)}</TableCell>
+                          <TableCell className="text-right text-xs tabular-nums">{formatCurrency(row.serviceFee)}</TableCell>
+                          <TableCell className="text-right text-xs tabular-nums">{formatCurrency(row.deliveryFee)}</TableCell>
+                          <TableCell className="text-right text-xs tabular-nums">
+                            {row.discount > 0 ? (
+                              <span className="text-green-600">-{formatCurrency(row.discount)}</span>
+                            ) : "—"}
+                          </TableCell>
+                          <TableCell className="text-right text-xs font-medium tabular-nums">{formatCurrency(row.totalPaid)}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {row.paymentMethod === "card" ? "Tarjeta" : "Transfer."}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {row.paymentMethod === "card" && row.recurrentePaymentId ? (
+                              <span className="text-xs font-mono text-muted-foreground">ID: {row.recurrentePaymentId}</span>
+                            ) : row.paymentMethod !== "card" && row.receiptUrl ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => handleViewReceipt(row.receiptUrl!, row.receiptFilename)}
+                              >
+                                <Eye className="h-3 w-3 mr-1" /> Ver
+                              </Button>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* EGRESOS */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <ArrowUpCircle className="h-5 w-5 text-red-600" />
+                Egresos (Pagos a Viajeros)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <p className="text-sm text-muted-foreground py-8 text-center">Cargando...</p>
+              ) : expenseRows.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-8 text-center">No hay egresos en este período</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead>Viajero</TableHead>
+                        <TableHead>ID Viaje</TableHead>
+                        <TableHead className="text-right">Monto</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead>Comprobante</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {expenseRows.map(row => (
+                        <TableRow key={row.id}>
+                          <TableCell className="text-xs whitespace-nowrap">{formatDate(row.date)}</TableCell>
+                          <TableCell className="text-xs">{row.traveler}</TableCell>
+                          <TableCell className="text-xs font-mono">{row.tripId?.slice(0, 8) || "—"}</TableCell>
+                          <TableCell className="text-right text-xs font-medium tabular-nums">{formatCurrency(row.amount)}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                              Completado
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {row.receiptUrl ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => handleViewReceipt(row.receiptUrl!, row.receiptFilename)}
+                              >
+                                <Eye className="h-3 w-3 mr-1" /> Ver
+                              </Button>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Receipt viewer */}
       {receiptUrl && (
