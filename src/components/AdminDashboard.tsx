@@ -248,16 +248,13 @@ const AdminDashboard = ({
           )
         );
 
+        // Close modal immediately for snappy feedback
+        setSelectedPackage(null);
+        setMatchingTrip("");
+        setShowMatchDialog(false);
+
         // Execute the match — now supports multiple trips
         await onMatchPackage(selectedPackage.id, tripIds[0], adminTip, productsWithTips, tripIds);
-        
-        // Force refresh admin data to ensure consistency
-        console.log('🔄 Forcing admin data refresh after match...');
-        if (refreshAdminData) {
-          setTimeout(async () => {
-            await refreshAdminData();
-          }, 500);
-        }
         
         const isMultiProduct = productsWithTips && productsWithTips.length > 1;
         toast({
@@ -269,9 +266,10 @@ const AdminDashboard = ({
               : `Paquete emparejado con viaje con tip de Q${adminTip}`,
         });
         
-        setSelectedPackage(null);
-        setMatchingTrip("");
-        setShowMatchDialog(false);
+        // Deferred lightweight refresh
+        if (refreshAdminData) {
+          setTimeout(() => refreshAdminData(), 2000);
+        }
       } catch (error) {
         console.error('Error during match:', error);
         toast({
