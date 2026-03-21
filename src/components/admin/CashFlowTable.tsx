@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Download, ArrowDownCircle, ArrowUpCircle, Eye } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,7 @@ const CashFlowTable = () => {
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>("all");
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [receiptFilename, setReceiptFilename] = useState<string | null>(null);
+  const [activeView, setActiveView] = useState<string>("detail");
 
   const selectedDateRange = useMemo(() => {
     if (selectedMonth === "all") return null;
