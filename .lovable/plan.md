@@ -1,25 +1,33 @@
 
 
-## Agregar timer en vivo a cada asignación de viajero
+## Agregar reembolsos al Consolidado del Flujo de Caja
 
-### Problema
-Actualmente la sección "Viajeros Asignados" en `PackageDetailModal.tsx` muestra la fecha/hora de expiración como texto estático ("Expira: 22/3/2026 14:30") y solo para `bid_pending`. El usuario quiere un countdown en vivo.
+### Qué cambia
+Agregar un tercer tipo de movimiento "Reembolso" (naranja) al consolidado, mostrando las devoluciones completadas junto a ingresos y egresos, ordenadas cronológicamente.
 
-### Solución
+### Implementación — `src/components/admin/CashFlowTable.tsx`
 
-**Modificar `src/components/admin/PackageDetailModal.tsx`**:
+**1. Nueva query: reembolsos completados**
+- Agregar `useQuery` para `refund_orders` con `status = 'completed'`, filtrado por `completed_at` según el mes seleccionado
+- Hacer join con `profiles` para obtener nombre del shopper
+- Campos: id, amount, reason, completed_at, shopper_id, package_id, receipt_url, receipt_filename
 
-1. Importar el hook `useCountdown` que ya existe en el proyecto
-2. Crear un mini-componente `AssignmentCountdown` dentro del archivo que use `useCountdown` con el `expires_at` de cada assignment
-3. Reemplazar el texto estático de expiración (líneas 1379-1384) por el countdown en vivo mostrando `HH:MM:SS` restante
-4. Mostrar el timer para assignments en estados `bid_pending` y `bid_submitted` (los que aún están activos)
-5. Colorear: amarillo/amber si queda tiempo, rojo si quedan menos de 2 horas, gris si ya expiró
+**2. Agregar filas de reembolso al `consolidatedRows`**
+- Mapear refunds a la interfaz común con `type: "refund"`, fecha = `completed_at`, persona = nombre del shopper, descripción = razón de cancelación
+- Incluir en el spread junto a income y expense, mismo sort por fecha
 
-### Detalle
-- Se reutiliza `useCountdown` de `src/hooks/useCountdown.tsx` — no se crea lógica nueva de timer
-- El mini-componente es necesario porque hooks no se pueden llamar dentro de un `.map()` directamente
-- Formato: `⏱ 23h 45m 12s` o `⏱ Expirado` si ya pasó
+**3. Actualizar KPIs**
+- Agregar `totalRefunds` al cálculo
+- Ajustar Balance Neto: `totalIncome - totalExpenses - totalRefunds`
+- Opcionalmente mostrar un cuarto KPI card para reembolsos (naranja)
+
+**4. UI del consolidado**
+- Nuevo badge naranja "Reembolso" con icono `RotateCcw`
+- Monto en naranja con signo negativo (`-Q...`)
+
+**5. Excel export**
+- Incluir filas de reembolso en la hoja "Consolidado"
 
 ### Archivos
-- **Modificar**: `src/components/admin/PackageDetailModal.tsx` (~20 líneas)
+- **Modificar**: `src/components/admin/CashFlowTable.tsx`
 
