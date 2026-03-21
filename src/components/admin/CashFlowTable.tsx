@@ -275,7 +275,7 @@ const CashFlowTable = () => {
     }
   };
 
-  const isLoading = loadingIncome || loadingExpenses;
+  const isLoading = loadingIncome || loadingExpenses || loadingRefunds;
 
   return (
     <div className="space-y-6">
