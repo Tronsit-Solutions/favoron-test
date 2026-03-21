@@ -211,7 +211,17 @@ const CashFlowTable = () => {
       Notas: r.notes || "",
     }));
 
+    const consolidatedSheet = consolidatedRows.map(r => ({
+      Fecha: formatDate(r.date),
+      Tipo: r.type === "income" ? "Ingreso" : "Egreso",
+      Persona: r.person,
+      Descripción: r.description,
+      Monto: r.type === "income" ? r.amount : -r.amount,
+      "Método Pago": r.paymentMethod === "card" ? "Tarjeta" : "Transferencia",
+    }));
+
     const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(consolidatedSheet), "Consolidado");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(incomeSheet), "Ingresos");
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(expenseSheet), "Egresos");
     XLSX.writeFile(wb, `flujo_caja_${selectedMonth}.xlsx`);
