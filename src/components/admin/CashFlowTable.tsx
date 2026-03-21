@@ -83,8 +83,29 @@ const CashFlowTable = () => {
     },
   });
 
-  // Fetch shopper profiles
-  const shopperIds = useMemo(() => [...new Set((incomePackages || []).map(p => p.user_id))], [incomePackages]);
+  // ── REEMBOLSOS: refund_orders completadas ──
+  const { data: completedRefunds, isLoading: loadingRefunds } = useQuery({
+    queryKey: ["cashflow-refunds", selectedMonth],
+    queryFn: async () => {
+      let q = supabase
+        .from("refund_orders")
+        .select("id, amount, reason, completed_at, shopper_id, package_id, receipt_url, receipt_filename")
+        .eq("status", "completed")
+        .not("completed_at", "is", null)
+        .order("completed_at", { ascending: false });
+
+      if (selectedDateRange) {
+        q = q.gte("completed_at", selectedDateRange.start.toISOString()).lt("completed_at", selectedDateRange.end.toISOString());
+      }
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Fetch shopper profiles (include refund shoppers too)
+  const refundShopperIds = useMemo(() => [...new Set((completedRefunds || []).map(r => r.shopper_id))], [completedRefunds]);
+  const shopperIds = useMemo(() => [...new Set([...(incomePackages || []).map(p => p.user_id), ...refundShopperIds])], [incomePackages, refundShopperIds]);
   const { data: shopperProfiles } = useQuery({
     queryKey: ["cashflow-shoppers", shopperIds],
     queryFn: async () => {
