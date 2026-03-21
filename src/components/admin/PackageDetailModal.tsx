@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
+import { useGlobalCountdown } from "@/hooks/useGlobalCountdown";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -96,6 +97,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatPhoneDisplay } from "@/lib/phoneUtils";
 import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
+
+// Mini-component for live countdown on each assignment
+const AssignmentCountdown = memo(({ expiresAt }: { expiresAt: string }) => {
+  const { hours, minutes, seconds, isExpired } = useGlobalCountdown(expiresAt);
+  if (isExpired) {
+    return (
+      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+        <Clock className="h-3.5 w-3.5" />
+        <span>Expirado</span>
+      </div>
+    );
+  }
+  const isUrgent = hours < 2;
+  return (
+    <div className={`flex items-center gap-2 text-xs mt-1 ${isUrgent ? 'text-destructive' : 'text-amber-600'}`}>
+      <Clock className="h-3.5 w-3.5" />
+      <span className="font-mono">
+        ⏱ {String(hours).padStart(2, '0')}h {String(minutes).padStart(2, '0')}m {String(seconds).padStart(2, '0')}s
+      </span>
+    </div>
+  );
+});
+AssignmentCountdown.displayName = 'AssignmentCountdown';
 
 // Component to display a single product photo with signed URL resolution
 const ProductPhoto = ({ photo, idx, productId, productDescription, onImageClick }: { 
@@ -1376,11 +1400,8 @@ const [editForm, setEditForm] = useState({
                               </div>
                             )}
 
-                            {assignment.status === 'bid_pending' && assignment.expires_at && (
-                              <div className="flex items-center gap-2 text-xs text-amber-600 mt-1">
-                                <Clock className="h-3.5 w-3.5" />
-                                <span>Expira: {new Date(assignment.expires_at).toLocaleString('es-GT', { dateStyle: 'short', timeStyle: 'short' })}</span>
-                              </div>
+                            {['bid_pending', 'bid_submitted'].includes(assignment.status) && assignment.expires_at && (
+                              <AssignmentCountdown expiresAt={assignment.expires_at} />
                             )}
                           </div>
                         );
