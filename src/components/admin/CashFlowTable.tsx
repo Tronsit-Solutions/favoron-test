@@ -147,6 +147,35 @@ const CashFlowTable = () => {
   const totalExpenses = useMemo(() => expenseRows.reduce((s, r) => s + r.amount, 0), [expenseRows]);
   const net = totalIncome - totalExpenses;
 
+  // ── CONSOLIDADO ──
+  const consolidatedRows = useMemo(() => {
+    const income = filteredIncomeRows.map(r => ({
+      id: r.id,
+      date: r.date,
+      type: "income" as const,
+      person: r.shopper,
+      description: r.description,
+      amount: r.totalPaid,
+      paymentMethod: r.paymentMethod,
+      receiptUrl: r.receiptUrl,
+      receiptFilename: r.receiptFilename,
+      recurrentePaymentId: r.recurrentePaymentId,
+    }));
+    const expense = expenseRows.map(r => ({
+      id: r.id,
+      date: r.date,
+      type: "expense" as const,
+      person: r.traveler,
+      description: `Pago a viajero`,
+      amount: r.amount,
+      paymentMethod: "bank_transfer",
+      receiptUrl: r.receiptUrl,
+      receiptFilename: r.receiptFilename,
+      recurrentePaymentId: null,
+    }));
+    return [...income, ...expense].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [filteredIncomeRows, expenseRows]);
+
   // ── MESES DISPONIBLES ──
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
