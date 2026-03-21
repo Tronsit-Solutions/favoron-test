@@ -321,7 +321,7 @@ const CashFlowTable = () => {
         </CardHeader>
         <CardContent>
           {/* Summary cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="p-4 rounded-lg border bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 text-center">
               <ArrowDownCircle className="h-5 w-5 text-green-600 mx-auto mb-1" />
               <p className="text-xs text-muted-foreground">Total Ingresos</p>
@@ -333,6 +333,12 @@ const CashFlowTable = () => {
               <p className="text-xs text-muted-foreground">Total Egresos</p>
               <p className="text-xl font-bold text-red-700 dark:text-red-400">{formatCurrency(totalExpenses)}</p>
               <p className="text-xs text-muted-foreground">{expenseRows.length} pagos</p>
+            </div>
+            <div className="p-4 rounded-lg border bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800 text-center">
+              <RotateCcw className="h-5 w-5 text-orange-600 mx-auto mb-1" />
+              <p className="text-xs text-muted-foreground">Total Reembolsos</p>
+              <p className="text-xl font-bold text-orange-700 dark:text-orange-400">{formatCurrency(totalRefunds)}</p>
+              <p className="text-xs text-muted-foreground">{(completedRefunds || []).length} devoluciones</p>
             </div>
             <div className={`p-4 rounded-lg border text-center ${net >= 0 ? "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800" : "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800"}`}>
               <p className="text-xs text-muted-foreground">Balance Neto</p>
