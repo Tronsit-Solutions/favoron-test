@@ -1608,13 +1608,22 @@ const AdminMatchDialog = ({
             <Button 
               onClick={handleMatch} 
               className="flex-1 sm:flex-none sm:w-auto h-11"
-              disabled={selectedTripIds.size === 0 || getTotalAssignedTip() <= 0}
+              disabled={selectedTripIds.size === 0 || getTotalAssignedTip() <= 0 || isSubmittingMatch}
               variant="shopper"
             >
-              <Zap className="h-4 w-4 mr-2" />
-              {selectedTripIds.size > 1 
-                ? `Confirmar Match (${selectedTripIds.size} viajes)` 
-                : 'Confirmar Match'}
+              {isSubmittingMatch ? (
+                <>
+                  <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Confirmando...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4 mr-2" />
+                  {selectedTripIds.size > 1 
+                    ? `Confirmar Match (${selectedTripIds.size} viajes)` 
+                    : 'Confirmar Match'}
+                </>
+              )}
             </Button>
             <Button 
               variant="outline" 

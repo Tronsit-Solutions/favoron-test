@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,29 +12,30 @@ import { toast } from "sonner";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-import CustomsRegulation from "./pages/CustomsRegulation";
-import CompleteProfile from "./pages/CompleteProfile";
-import TermsAndConditions from "./pages/TermsAndConditions";
-import Dashboard from "./pages/Dashboard";
-import MonthlyPackageDetails from "./pages/MonthlyPackageDetails";
-import AdminControl from "./pages/AdminControl";
-import AdminSurveys from "./pages/AdminSurveys";
-import AdminFavoronBanking from "./pages/AdminFavoronBanking";
-import AdminDiscounts from "./pages/AdminDiscounts";
-
-import AdminPlatformFees from "./pages/AdminPlatformFees";
-import AdminReports from "./pages/AdminReports";
-import AdminDeliveryPoints from "./pages/AdminDeliveryPoints";
-import AdminWhatsApp from "./pages/AdminWhatsApp";
-import AdminReferrals from "./pages/AdminReferrals";
-import AdminApplications from "./pages/AdminApplications";
-import AdminCustomerExperience from "./pages/AdminCustomerExperience";
-import AdminRoles from "./pages/AdminRoles";
-import Operations from "./pages/Operations";
-import AvisoLegal from "./pages/AvisoLegal";
-import WorkWithUs from "./pages/WorkWithUs";
-import PaymentCallback from "./pages/PaymentCallback";
 import SupportBubble from "./components/SupportBubble";
+
+// Lazy-loaded pages
+const CustomsRegulation = lazy(() => import("./pages/CustomsRegulation"));
+const CompleteProfile = lazy(() => import("./pages/CompleteProfile"));
+const TermsAndConditions = lazy(() => import("./pages/TermsAndConditions"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const MonthlyPackageDetails = lazy(() => import("./pages/MonthlyPackageDetails"));
+const AdminControl = lazy(() => import("./pages/AdminControl"));
+const AdminSurveys = lazy(() => import("./pages/AdminSurveys"));
+const AdminFavoronBanking = lazy(() => import("./pages/AdminFavoronBanking"));
+const AdminDiscounts = lazy(() => import("./pages/AdminDiscounts"));
+const AdminPlatformFees = lazy(() => import("./pages/AdminPlatformFees"));
+const AdminReports = lazy(() => import("./pages/AdminReports"));
+const AdminDeliveryPoints = lazy(() => import("./pages/AdminDeliveryPoints"));
+const AdminWhatsApp = lazy(() => import("./pages/AdminWhatsApp"));
+const AdminReferrals = lazy(() => import("./pages/AdminReferrals"));
+const AdminApplications = lazy(() => import("./pages/AdminApplications"));
+const AdminCustomerExperience = lazy(() => import("./pages/AdminCustomerExperience"));
+const AdminRoles = lazy(() => import("./pages/AdminRoles"));
+const Operations = lazy(() => import("./pages/Operations"));
+const AvisoLegal = lazy(() => import("./pages/AvisoLegal"));
+const WorkWithUs = lazy(() => import("./pages/WorkWithUs"));
+const PaymentCallback = lazy(() => import("./pages/PaymentCallback"));
 
 const queryClient = new QueryClient();
 
