@@ -247,7 +247,7 @@ const CashFlowTable = () => {
 
     const consolidatedSheet = consolidatedRows.map(r => ({
       Fecha: formatDate(r.date),
-      Tipo: r.type === "income" ? "Ingreso" : "Egreso",
+      Tipo: r.type === "income" ? "Ingreso" : r.type === "refund" ? "Reembolso" : "Egreso",
       Persona: r.person,
       Descripción: r.description,
       Monto: r.type === "income" ? r.amount : -r.amount,
