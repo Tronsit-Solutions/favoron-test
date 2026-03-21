@@ -414,10 +414,22 @@ const CashFlowTable = () => {
                             )}
                           </TableCell>
                           <TableCell className="text-xs max-w-[120px] truncate">{row.person}</TableCell>
-                          <TableCell className="text-xs max-w-[150px] truncate">{row.description}</TableCell>
-                          <TableCell className={`text-right text-xs font-medium tabular-nums ${row.type === "income" ? "text-green-700 dark:text-green-400" : row.type === "refund" ? "text-orange-700 dark:text-orange-400" : "text-red-700 dark:text-red-400"}`}>
-                            {row.type === "income" ? "+" : "-"}{formatCurrency(row.amount)}
-                          </TableCell>
+                           <TableCell className="text-xs max-w-[150px] truncate">{row.description}</TableCell>
+                           <TableCell className="text-right text-xs tabular-nums">
+                             {row.type === "income" ? formatCurrency(row.tipViajero) : "—"}
+                           </TableCell>
+                           <TableCell className="text-right text-xs tabular-nums">
+                             {row.type === "income" ? formatCurrency(row.serviceFee) : "—"}
+                           </TableCell>
+                           <TableCell className="text-right text-xs tabular-nums">
+                             {row.type === "income" ? formatCurrency(row.deliveryFee) : "—"}
+                           </TableCell>
+                           <TableCell className="text-right text-xs tabular-nums">
+                             {row.type === "income" && row.discount ? `-${formatCurrency(row.discount)}` : "—"}
+                           </TableCell>
+                           <TableCell className={`text-right text-xs font-medium tabular-nums ${row.type === "income" ? "text-green-700 dark:text-green-400" : row.type === "refund" ? "text-orange-700 dark:text-orange-400" : "text-red-700 dark:text-red-400"}`}>
+                             {row.type === "income" ? "+" : "-"}{formatCurrency(row.amount)}
+                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className="text-xs">
                               {row.paymentMethod === "card" ? "Tarjeta" : "Transfer."}
