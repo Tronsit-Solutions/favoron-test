@@ -387,6 +387,10 @@ const CashFlowTable = () => {
                               <Badge className="text-xs bg-green-100 text-green-800 border-green-300 dark:bg-green-950 dark:text-green-300 dark:border-green-700">
                                 <ArrowDownCircle className="h-3 w-3 mr-1" /> Ingreso
                               </Badge>
+                            ) : row.type === "refund" ? (
+                              <Badge className="text-xs bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-700">
+                                <RotateCcw className="h-3 w-3 mr-1" /> Reembolso
+                              </Badge>
                             ) : (
                               <Badge className="text-xs bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-700">
                                 <ArrowUpCircle className="h-3 w-3 mr-1" /> Egreso
@@ -395,7 +399,7 @@ const CashFlowTable = () => {
                           </TableCell>
                           <TableCell className="text-xs max-w-[120px] truncate">{row.person}</TableCell>
                           <TableCell className="text-xs max-w-[150px] truncate">{row.description}</TableCell>
-                          <TableCell className={`text-right text-xs font-medium tabular-nums ${row.type === "income" ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
+                          <TableCell className={`text-right text-xs font-medium tabular-nums ${row.type === "income" ? "text-green-700 dark:text-green-400" : row.type === "refund" ? "text-orange-700 dark:text-orange-400" : "text-red-700 dark:text-red-400"}`}>
                             {row.type === "income" ? "+" : "-"}{formatCurrency(row.amount)}
                           </TableCell>
                           <TableCell>
