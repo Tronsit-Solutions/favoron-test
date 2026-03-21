@@ -1377,11 +1377,8 @@ const [editForm, setEditForm] = useState({
                               </div>
                             )}
 
-                            {assignment.status === 'bid_pending' && assignment.expires_at && (
-                              <div className="flex items-center gap-2 text-xs text-amber-600 mt-1">
-                                <Clock className="h-3.5 w-3.5" />
-                                <span>Expira: {new Date(assignment.expires_at).toLocaleString('es-GT', { dateStyle: 'short', timeStyle: 'short' })}</span>
-                              </div>
+                            {['bid_pending', 'bid_submitted'].includes(assignment.status) && assignment.expires_at && (
+                              <AssignmentCountdown expiresAt={assignment.expires_at} />
                             )}
                           </div>
                         );
