@@ -1,23 +1,35 @@
 
 
-## Eliminar 3 paquetes duplicados de Julián García
+## Fix: "No se pudo procesar la cotización" para Anika Erichsen
 
-### Acción
-Ejecutar DELETE en la tabla `packages` para los 3 IDs duplicados (todos `pending_approval`, sin match):
+### Causa raíz
+El paquete Whoop Peak (`6c7615f3`) fue matched directamente via `matched_trip_id` sin crear un registro en `package_assignments`. Cuando Anika intenta aceptar el tip, el código en `useDashboardActions.tsx` línea 412 busca `selectedPackage._assignmentId`, no lo encuentra, y lanza el error en línea 434.
 
-```sql
-DELETE FROM packages WHERE id IN (
-  '1b414357-a49f-41de-9371-560337dc6b8f',
-  'e66c8b41-d8d9-44d1-b7ef-4bc676e635a2',
-  '56340daf-cb99-4be9-9a9e-624931f28ad0'
-);
+Este es exactamente el bug del plan ya aprobado anteriormente.
+
+### Solución — `src/hooks/useDashboardActions.tsx`
+
+En el bloque `else` (líneas 431-435), en lugar de lanzar error, hacer fallback para paquetes legacy sin assignment:
+
+```ts
+} else {
+  // Legacy match without assignment — update package directly
+  console.log('📦 Legacy match (no assignment), updating package directly');
+  const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+  await updatePackage(selectedPackage.id, {
+    status: 'quote_sent',
+    quote: normalizedQuoteData,
+    traveler_address: travelerAddress,
+    matched_trip_dates: matchedTripDates,
+    quote_expires_at: expiresAt
+  });
+}
 ```
 
-### Se conserva
-- `6c7615f3` — Whoop Peak, status `matched` (el pedido real)
+Esto permite que paquetes matched sin `package_assignments` (como el de Anika) procedan normalmente — el paquete se actualiza directamente a `quote_sent` con la cotización y datos de entrega, y el shopper recibe la notificación de pago.
 
-### Técnico
-- Solo requiere una operación DELETE via el insert tool
-- No hay foreign keys en cascada que afecten otras tablas para estos paquetes (no tienen mensajes, assignments, ni pagos asociados al ser `pending_approval`)
-- No se modifica código
+### Archivos
+- **Modificar**: `src/hooks/useDashboardActions.tsx` — reemplazar el `throw` en líneas 431-435 por fallback a `updatePackage`
+
+Un cambio de ~8 líneas en un solo archivo.
 
