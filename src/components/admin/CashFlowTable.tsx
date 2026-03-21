@@ -262,7 +262,11 @@ const CashFlowTable = () => {
       Tipo: r.type === "income" ? "Ingreso" : r.type === "refund" ? "Reembolso" : "Egreso",
       Persona: r.person,
       Descripción: r.description,
-      Monto: r.type === "income" ? r.amount : -r.amount,
+      "Tip Viajero": r.type === "income" ? (r.tipViajero ?? 0) : "",
+      "Service Fee": r.type === "income" ? (r.serviceFee ?? 0) : "",
+      "Delivery Fee": r.type === "income" ? (r.deliveryFee ?? 0) : "",
+      Descuento: r.type === "income" ? (r.discount ?? 0) : "",
+      "Monto Total": r.type === "income" ? r.amount : -r.amount,
       "Método Pago": r.paymentMethod === "card" ? "Tarjeta" : "Transferencia",
     }));
 
