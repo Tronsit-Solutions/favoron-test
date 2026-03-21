@@ -98,6 +98,29 @@ import { useToast } from "@/hooks/use-toast";
 import { formatPhoneDisplay } from "@/lib/phoneUtils";
 import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
 
+// Mini-component for live countdown on each assignment
+const AssignmentCountdown = memo(({ expiresAt }: { expiresAt: string }) => {
+  const { hours, minutes, seconds, isExpired } = useGlobalCountdown(expiresAt);
+  if (isExpired) {
+    return (
+      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+        <Clock className="h-3.5 w-3.5" />
+        <span>Expirado</span>
+      </div>
+    );
+  }
+  const isUrgent = hours < 2;
+  return (
+    <div className={`flex items-center gap-2 text-xs mt-1 ${isUrgent ? 'text-destructive' : 'text-amber-600'}`}>
+      <Clock className="h-3.5 w-3.5" />
+      <span className="font-mono">
+        ⏱ {String(hours).padStart(2, '0')}h {String(minutes).padStart(2, '0')}m {String(seconds).padStart(2, '0')}s
+      </span>
+    </div>
+  );
+});
+AssignmentCountdown.displayName = 'AssignmentCountdown';
+
 // Component to display a single product photo with signed URL resolution
 const ProductPhoto = ({ photo, idx, productId, productDescription, onImageClick }: { 
   photo: string | { bucket: string; filePath: string; previewUrl?: string };
