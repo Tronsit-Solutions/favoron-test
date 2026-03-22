@@ -36,20 +36,10 @@ export const useAdminTips = () => {
     // Calculate total tip from all products
     const totalTip = products.reduce((sum, p) => sum + (p.adminAssignedTip || 0), 0);
 
-    // Normalize products to the expected JSON shape
-    const normalizedProducts = products.map((p) => ({
-      itemDescription: p.itemDescription ?? '',
-      estimatedPrice: (p.estimatedPrice ?? '0').toString(),
-      itemLink: p.itemLink || null,
-      quantity: (p.quantity ?? '1').toString(),
-      adminAssignedTip: Number.isFinite(p.adminAssignedTip) ? p.adminAssignedTip : 0,
-      additionalNotes: p.additionalNotes ?? null,
-    }));
-
-    // Fetch current package data to get quote and log
+    // Fetch current package data to get quote, log, and existing products_data
     const { data: currentPkg, error: fetchError } = await supabase
       .from('packages')
-      .select('quote, admin_actions_log, matched_trip_id')
+      .select('quote, admin_actions_log, matched_trip_id, products_data')
       .eq('id', packageId)
       .single();
 
@@ -57,6 +47,24 @@ export const useAdminTips = () => {
       console.error('Error fetching package:', fetchError);
       throw fetchError;
     }
+
+    // Normalize products: preserve ALL existing fields, only overlay tip values
+    const currentProductsArr = Array.isArray(currentPkg?.products_data) ? currentPkg.products_data : [];
+
+    const normalizedProducts = products.map((p, idx) => {
+      const existing = (currentProductsArr[idx] && typeof currentProductsArr[idx] === 'object') 
+        ? currentProductsArr[idx] as Record<string, any>
+        : {};
+      return {
+        ...existing,
+        itemDescription: p.itemDescription ?? existing.itemDescription ?? '',
+        estimatedPrice: (p.estimatedPrice ?? existing.estimatedPrice ?? '0').toString(),
+        itemLink: p.itemLink || existing.itemLink || null,
+        quantity: (p.quantity ?? existing.quantity ?? '1').toString(),
+        adminAssignedTip: Number.isFinite(p.adminAssignedTip) ? p.adminAssignedTip : 0,
+        additionalNotes: p.additionalNotes ?? existing.additionalNotes ?? null,
+      };
+    });
 
     // Cast quote to object type
     const currentQuote = (typeof currentPkg?.quote === 'object' && currentPkg?.quote !== null && !Array.isArray(currentPkg?.quote))
