@@ -27,6 +27,7 @@ interface ProductTipAssignmentModalProps {
   tripId?: string | null;
   travelerId?: string | null;
   trustLevel?: string;
+  persistOnSave?: boolean;
 }
 
 const ProductTipAssignmentModal = ({ 
@@ -37,7 +38,8 @@ const ProductTipAssignmentModal = ({
   packageId,
   tripId,
   travelerId,
-  trustLevel
+  trustLevel,
+  persistOnSave = true
 }: ProductTipAssignmentModalProps) => {
   console.log('🔍 DEBUG ProductTipAssignmentModal - initialProducts:', initialProducts);
   console.log('🔍 DEBUG ProductTipAssignmentModal - packageId:', packageId);
@@ -114,17 +116,25 @@ const ProductTipAssignmentModal = ({
       return;
     }
 
+    // Create products with current tip values
+    const productsWithTips = products.map((product, index) => ({
+      ...product,
+      adminAssignedTip: parseFloat(tipValues[index]) || 0
+    }));
+    const totalTip = calculateTotalTip();
+
+    // Draft mode: skip DB, just pass data back
+    if (!persistOnSave) {
+      if (onSave) {
+        await onSave(productsWithTips, totalTip);
+      }
+      onClose();
+      return;
+    }
+
+    // Persist mode: save to DB
     setIsLoading(true);
     try {
-      // Create products with current tip values
-      const productsWithTips = products.map((product, index) => ({
-        ...product,
-        adminAssignedTip: parseFloat(tipValues[index]) || 0
-      }));
-      
-      const totalTip = calculateTotalTip();
-
-      // Persist tips with 15s timeout protection
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('La operación tardó demasiado. Intenta de nuevo.')), 15000)
       );
@@ -145,7 +155,6 @@ const ProductTipAssignmentModal = ({
         timeoutPromise
       ]);
 
-      // Keep parent callback for UI refresh/side-effects (doesn't need to write)
       if (onSave) {
         await onSave(productsWithTips, totalTip);
       }
@@ -371,7 +380,7 @@ const ProductTipAssignmentModal = ({
                disabled={isLoading || calculateTotalTip() === 0}
                className="flex-1 h-12 md:h-8 text-base md:text-xs min-h-[48px] md:min-h-[32px]"
              >
-               {isLoading ? 'Guardando...' : `Confirmar Match`}
+               {isLoading ? 'Guardando...' : persistOnSave ? 'Guardar Tips' : 'Aplicar Tips'}
              </Button>
            </div>
         </div>

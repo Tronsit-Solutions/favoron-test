@@ -1909,6 +1909,7 @@ const AdminMatchDialog = ({
         onSave={handleProductTipSave}
         products={getProductsForModal()}
         packageId={selectedPackage?.id || ''}
+        persistOnSave={false}
       />
 
       <ImageViewerModal
