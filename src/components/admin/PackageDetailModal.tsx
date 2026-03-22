@@ -121,6 +121,29 @@ const AssignmentCountdown = memo(({ expiresAt }: { expiresAt: string }) => {
 });
 AssignmentCountdown.displayName = 'AssignmentCountdown';
 
+// Mini-component for quote expiration countdown
+const QuoteExpirationCountdown = memo(({ expiresAt }: { expiresAt: string }) => {
+  const { hours, minutes, seconds, isExpired } = useGlobalCountdown(expiresAt);
+  if (isExpired) {
+    return (
+      <div className="flex items-center gap-2 text-xs text-destructive/70 mt-1">
+        <Clock className="h-3.5 w-3.5" />
+        <span>Cotización expirada</span>
+      </div>
+    );
+  }
+  const isUrgent = hours < 2;
+  return (
+    <div className={`flex items-center gap-2 text-xs mt-1 ${isUrgent ? 'text-destructive' : 'text-primary'}`}>
+      <Clock className="h-3.5 w-3.5" />
+      <span className="font-mono">
+        💬 {String(hours).padStart(2, '0')}h {String(minutes).padStart(2, '0')}m {String(seconds).padStart(2, '0')}s
+      </span>
+    </div>
+  );
+});
+QuoteExpirationCountdown.displayName = 'QuoteExpirationCountdown';
+
 // Component to display a single product photo with signed URL resolution
 const ProductPhoto = ({ photo, idx, productId, productDescription, onImageClick }: { 
   photo: string | { bucket: string; filePath: string; previewUrl?: string };
@@ -1402,6 +1425,10 @@ const [editForm, setEditForm] = useState({
 
                             {['bid_pending', 'bid_submitted'].includes(assignment.status) && assignment.expires_at && (
                               <AssignmentCountdown expiresAt={assignment.expires_at} />
+                            )}
+
+                            {assignment.status === 'bid_submitted' && assignment.quote_expires_at && (
+                              <QuoteExpirationCountdown expiresAt={assignment.quote_expires_at} />
                             )}
                           </div>
                         );
