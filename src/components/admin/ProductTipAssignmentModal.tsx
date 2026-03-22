@@ -38,7 +38,8 @@ const ProductTipAssignmentModal = ({
   packageId,
   tripId,
   travelerId,
-  trustLevel
+  trustLevel,
+  persistOnSave = true
 }: ProductTipAssignmentModalProps) => {
   console.log('🔍 DEBUG ProductTipAssignmentModal - initialProducts:', initialProducts);
   console.log('🔍 DEBUG ProductTipAssignmentModal - packageId:', packageId);
