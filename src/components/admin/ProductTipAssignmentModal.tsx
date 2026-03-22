@@ -27,6 +27,7 @@ interface ProductTipAssignmentModalProps {
   tripId?: string | null;
   travelerId?: string | null;
   trustLevel?: string;
+  persistOnSave?: boolean;
 }
 
 const ProductTipAssignmentModal = ({ 
