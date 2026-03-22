@@ -116,17 +116,25 @@ const ProductTipAssignmentModal = ({
       return;
     }
 
+    // Create products with current tip values
+    const productsWithTips = products.map((product, index) => ({
+      ...product,
+      adminAssignedTip: parseFloat(tipValues[index]) || 0
+    }));
+    const totalTip = calculateTotalTip();
+
+    // Draft mode: skip DB, just pass data back
+    if (!persistOnSave) {
+      if (onSave) {
+        await onSave(productsWithTips, totalTip);
+      }
+      onClose();
+      return;
+    }
+
+    // Persist mode: save to DB
     setIsLoading(true);
     try {
-      // Create products with current tip values
-      const productsWithTips = products.map((product, index) => ({
-        ...product,
-        adminAssignedTip: parseFloat(tipValues[index]) || 0
-      }));
-      
-      const totalTip = calculateTotalTip();
-
-      // Persist tips with 15s timeout protection
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('La operación tardó demasiado. Intenta de nuevo.')), 15000)
       );
@@ -147,7 +155,6 @@ const ProductTipAssignmentModal = ({
         timeoutPromise
       ]);
 
-      // Keep parent callback for UI refresh/side-effects (doesn't need to write)
       if (onSave) {
         await onSave(productsWithTips, totalTip);
       }
