@@ -380,7 +380,7 @@ const ProductTipAssignmentModal = ({
                disabled={isLoading || calculateTotalTip() === 0}
                className="flex-1 h-12 md:h-8 text-base md:text-xs min-h-[48px] md:min-h-[32px]"
              >
-               {isLoading ? 'Guardando...' : `Confirmar Match`}
+               {isLoading ? 'Guardando...' : persistOnSave ? 'Guardar Tips' : 'Aplicar Tips'}
              </Button>
            </div>
         </div>
