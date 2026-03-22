@@ -124,19 +124,26 @@ const ProductTipAssignmentModal = ({
       
       const totalTip = calculateTotalTip();
 
-      // Persist tips into packages.products_data and update quote
-      await saveProductTips(
-        packageId, 
-        productsWithTips.map(p => ({
-          itemDescription: p.itemDescription,
-          estimatedPrice: p.estimatedPrice,
-          itemLink: p.itemLink,
-          quantity: p.quantity,
-          adminAssignedTip: p.adminAssignedTip || 0,
-          additionalNotes: (p as any).additionalNotes || null,
-        })),
-        { tripId, travelerId, trustLevel }
+      // Persist tips with 15s timeout protection
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('La operación tardó demasiado. Intenta de nuevo.')), 15000)
       );
+
+      await Promise.race([
+        saveProductTips(
+          packageId, 
+          productsWithTips.map(p => ({
+            itemDescription: p.itemDescription,
+            estimatedPrice: p.estimatedPrice,
+            itemLink: p.itemLink,
+            quantity: p.quantity,
+            adminAssignedTip: p.adminAssignedTip || 0,
+            additionalNotes: (p as any).additionalNotes || null,
+          })),
+          { tripId, travelerId, trustLevel }
+        ),
+        timeoutPromise
+      ]);
 
       // Keep parent callback for UI refresh/side-effects (doesn't need to write)
       if (onSave) {

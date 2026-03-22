@@ -58,7 +58,7 @@ export const useAdminTips = () => {
     // Fetch current package data to get quote and log
     const { data: currentPkg, error: fetchError } = await supabase
       .from('packages')
-      .select('quote, admin_actions_log, matched_trip_id')
+      .select('quote, admin_actions_log, matched_trip_id, products_data')
       .eq('id', packageId)
       .single();
 
