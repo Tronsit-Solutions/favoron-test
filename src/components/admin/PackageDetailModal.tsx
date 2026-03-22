@@ -1426,6 +1426,10 @@ const [editForm, setEditForm] = useState({
                             {['bid_pending', 'bid_submitted'].includes(assignment.status) && assignment.expires_at && (
                               <AssignmentCountdown expiresAt={assignment.expires_at} />
                             )}
+
+                            {assignment.status === 'bid_submitted' && assignment.quote_expires_at && (
+                              <QuoteExpirationCountdown expiresAt={assignment.quote_expires_at} />
+                            )}
                           </div>
                         );
                       })}
