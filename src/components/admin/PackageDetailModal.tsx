@@ -375,7 +375,7 @@ const [editForm, setEditForm] = useState({
       try {
         const { data: assignments, error } = await supabase
           .from('package_assignments')
-          .select('id, package_id, trip_id, status, quote, admin_assigned_tip, traveler_address, matched_trip_dates, products_data, created_at')
+          .select('id, package_id, trip_id, status, quote, admin_assigned_tip, traveler_address, matched_trip_dates, products_data, created_at, expires_at, quote_expires_at')
           .eq('package_id', pkg.id)
           .not('status', 'eq', 'rejected');
 
