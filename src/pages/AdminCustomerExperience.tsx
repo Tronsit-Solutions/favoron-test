@@ -60,6 +60,15 @@ function CXTab({ userType }: { userType: "shopper" | "traveler" }) {
 
       {/* Filter */}
       <div className="flex items-center gap-2">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nombre..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
         <span className="text-sm text-muted-foreground">Filtrar:</span>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[160px]">
@@ -75,7 +84,7 @@ function CXTab({ userType }: { userType: "shopper" | "traveler" }) {
         </Select>
       </div>
 
-      <CustomerExperienceTable rows={rows} loading={loading} userType={userType} onSave={saveCXCall} />
+      <CustomerExperienceTable rows={filteredRows} loading={loading} userType={userType} onSave={saveCXCall} />
     </div>
   );
 }
