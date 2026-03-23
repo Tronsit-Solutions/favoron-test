@@ -114,9 +114,9 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
                 <TableCell className="text-sm">
                   {format(new Date(row.completed_at), "dd MMM yyyy", { locale: es })}
                 </TableCell>
-                <TableCell>
+                <TableCell className="max-w-[150px]">
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">{row.target_user_name}</span>
+                    <span className="text-sm font-medium truncate">{row.target_user_name}</span>
                     {row.target_user_phone && (
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
                         <Phone className="h-3 w-3" />
