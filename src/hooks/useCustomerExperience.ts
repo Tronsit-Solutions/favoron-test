@@ -171,6 +171,17 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
     fetchData();
   }, [fetchData]);
 
+  const recalcStats = (updatedRows: CXPackageRow[]) => {
+    const completedCalls = updatedRows.filter((r) => r.call_status === "completed");
+    const ratings = completedCalls.map((r) => r.rating).filter(Boolean) as number[];
+    setStats({
+      total: updatedRows.length,
+      pending: updatedRows.filter((r) => r.call_status === "pending").length,
+      completed: completedCalls.length,
+      avgRating: ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null,
+    });
+  };
+
   const saveCXCall = async (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null }) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -188,6 +199,8 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
         created_by: user.id,
       };
 
+      let newCxId = row.cx_id;
+
       if (row.cx_id) {
         const { error } = await supabase
           .from("customer_experience_calls")
@@ -195,14 +208,34 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
           .eq("id", row.cx_id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("customer_experience_calls")
-          .insert(payload);
+          .insert(payload)
+          .select("id")
+          .single();
         if (error) throw error;
+        newCxId = data.id;
       }
 
+      // Optimistic local update
+      setRows(prev => {
+        const updated = prev.map(r =>
+          r.package_id === row.package_id
+            ? {
+                ...r,
+                call_status: payload.call_status,
+                rating: payload.rating,
+                notes: payload.notes,
+                call_date: payload.call_date,
+                cx_id: newCxId,
+              }
+            : r
+        );
+        recalcStats(updated);
+        return updated;
+      });
+
       toast.success("Guardado exitosamente");
-      await fetchData();
     } catch (err: any) {
       console.error("CX save error:", err);
       toast.error("Error al guardar: " + err.message);
