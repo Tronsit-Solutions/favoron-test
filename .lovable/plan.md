@@ -1,52 +1,52 @@
 
 
-## Agregar notificación al shopper cuando su paquete pase a "ready_for_pickup" o "ready_for_delivery"
+## Fix: RLS error "new row violates row-level security policy" para usuarios de Operaciones
 
-### Problema actual
-Cuando un admin cambia el estado de un paquete a `ready_for_pickup` o `ready_for_delivery` (desde AdminActionsModal), se llama `handleStatusUpdate` en `useDashboardActions.tsx`, que es una función genérica sin notificaciones para estos estados. El shopper no recibe ningún aviso.
+### Causa raíz
 
-### Solución — `src/hooks/useDashboardActions.tsx`
+La función `has_operations_role()` busca en la tabla `user_roles` un rol llamado `'operations'`, pero el enum `user_role` solo tiene dos valores: `'admin'` y `'user'`. El valor `'operations'` **no existe en el enum**, por lo que la función siempre retorna `false` para usuarios no-admin.
 
-Agregar un bloque en `handleStatusUpdate` (después del `await updatePackage`) que detecte cuando el nuevo estado es `ready_for_pickup` o `ready_for_delivery`, y:
+Los usuarios de operaciones (como Vida Villaseñor) están asignados a través del sistema de custom roles (`custom_roles` + `user_custom_roles` + `role_permissions`), no a través de `user_roles`. Esto significa que:
+- **SELECT funciona** porque hay otras policies permisivas (ej. "Users can view packages optimized")
+- **UPDATE falla** porque la única policy que permite a operaciones hacer updates (`Operations can confirm office delivery`) depende de `has_operations_role()`, que nunca retorna true
 
-1. **Crear notificación in-app** — insertar en tabla `notifications` con `type: 'delivery'`, `priority: 'high'`
-2. **Enviar email** — invocar `send-notification-email` edge function
+### Solución — Migración SQL
 
-Mensajes personalizados:
-- `ready_for_pickup`: "Tu paquete [descripción] está listo para recoger en nuestra oficina."
-- `ready_for_delivery`: "Tu paquete [descripción] está listo para ser enviado a tu dirección."
+Actualizar la función `has_operations_role` para verificar **ambas** fuentes de roles:
 
-### Detalle técnico
-
-En `handleStatusUpdate`, después de la línea `await updatePackage(id, updateData)` (aprox. línea 1381), agregar:
-
-```ts
-// Notificar al shopper cuando el paquete está listo
-if (status === 'ready_for_pickup' || status === 'ready_for_delivery') {
-  const pkg = packages.find(p => p.id === id);
-  if (pkg?.user_id) {
-    const isPickup = status === 'ready_for_pickup';
-    const title = isPickup ? '📦 Paquete listo para recoger' : '🚛 Paquete listo para envío';
-    const message = isPickup
-      ? `Tu paquete "${pkg.item_description || 'tu pedido'}" está listo para recoger en nuestra oficina.`
-      : `Tu paquete "${pkg.item_description || 'tu pedido'}" está listo para ser enviado a tu dirección.`;
-
-    // In-app notification
-    await supabase.from('notifications').insert({
-      user_id: pkg.user_id,
-      title, message,
-      type: 'delivery',
-      priority: 'high',
-    });
-
-    // Email notification
-    await supabase.functions.invoke('send-notification-email', {
-      body: { user_id: pkg.user_id, title, message, type: 'delivery', priority: 'high' }
-    });
-  }
-}
+```sql
+CREATE OR REPLACE FUNCTION public.has_operations_role(_user_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    -- Admin en user_roles
+    SELECT 1
+    FROM public.user_roles
+    WHERE user_id = _user_id
+      AND role = 'admin'
+  )
+  OR EXISTS (
+    -- Custom role con permiso 'operations'
+    SELECT 1
+    FROM public.user_custom_roles ucr
+    JOIN public.custom_roles cr ON cr.id = ucr.custom_role_id
+    JOIN public.role_permissions rp ON rp.custom_role_id = cr.id
+    WHERE ucr.user_id = _user_id
+      AND rp.permission_key = 'operations'
+  )
+$$;
 ```
 
+Esto hace que la función retorne `true` si el usuario:
+1. Es admin (en `user_roles`), o
+2. Tiene un custom role con el permiso `'operations'`
+
 ### Archivos
-- **Modificar**: `src/hooks/useDashboardActions.tsx` — dentro de `handleStatusUpdate`, después del updatePackage exitoso
+- **Migración SQL**: actualizar función `has_operations_role`
+
+No se requieren cambios en código frontend - todas las policies RLS ya usan esta función.
 
