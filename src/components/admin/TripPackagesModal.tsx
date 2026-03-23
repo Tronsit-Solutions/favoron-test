@@ -20,10 +20,33 @@ interface TripPackagesModalProps {
 
 const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModalProps) => {
   const { getStatusBadge } = useStatusHelpers();
+  const [assignmentPackageIds, setAssignmentPackageIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!trip || !isOpen) {
+      setAssignmentPackageIds([]);
+      return;
+    }
+    const fetchAssignments = async () => {
+      const { data } = await supabase
+        .from('package_assignments')
+        .select('package_id')
+        .eq('trip_id', trip.id)
+        .in('status', ['bid_pending', 'bid_submitted']);
+      setAssignmentPackageIds((data || []).map(a => a.package_id));
+    };
+    fetchAssignments();
+  }, [trip?.id, isOpen]);
 
   if (!trip) return null;
 
-  const tripPackages = packages.filter(pkg => pkg.matched_trip_id === trip.id);
+  const directPackages = packages.filter(pkg => pkg.matched_trip_id === trip.id);
+  const biddingPackages = packages.filter(pkg =>
+    assignmentPackageIds.includes(pkg.id) && pkg.matched_trip_id !== trip.id
+  );
+  const biddingPackageIds = new Set(biddingPackages.map(p => p.id));
+  const tripPackages = [...directPackages, ...biddingPackages];
+
   const completedPackages = tripPackages.filter(pkg => ['delivered_to_office', 'completed'].includes(pkg.status));
   const totalValue = tripPackages.reduce((sum, pkg) => sum + (Number(pkg.estimated_price) || 0), 0);
   const totalTips = tripPackages.reduce((sum, pkg) => {
