@@ -1,9 +1,10 @@
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, CalendarDays, Plane, Star } from "lucide-react";
-import { formatPrice, formatDateUTC } from "@/lib/formatters";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Eye, Plane, Star, CalendarDays, PackageCheck, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
+import { formatDateUTC } from "@/lib/formatters";
 
 interface TripCardProps {
   trip: any;
@@ -18,87 +19,84 @@ export const TripCard = ({
   onViewTripDetail,
   hasBoost = false
 }: TripCardProps) => {
-  console.log("TripCard trip data:", trip);
-  console.log("TripCard profiles data:", trip.public_profiles);
-  
-  return <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start">
-          <div className="flex-1 space-y-2">
-            {/* Main route info */}
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Plane className="h-4 w-4 text-blue-500" />
-                  <h4 className="font-medium text-sm">
-                    {trip.from_city} → {trip.to_city}
-                  </h4>
-                  {hasBoost && (
-                    <Badge className="bg-amber-100 text-amber-800 border-amber-200">
-                      🚀 Boost
-                    </Badge>
-                  )}
-                </div>
-                
-                {/* Traveler name + rating */}
-                <div className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
-                  <span>👤 {trip.first_name && trip.last_name 
-                    ? `${trip.first_name} ${trip.last_name}` 
-                    : trip.username || 'Usuario sin nombre'}</span>
-                  {trip.traveler_avg_rating && (
-                    <Badge variant="outline" className="text-xs gap-0.5 px-1.5 py-0">
-                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      {Number(trip.traveler_avg_rating).toFixed(1)}
-                    </Badge>
-                  )}
-                </div>
-                
-                {/* Packages total badge */}
-                {packagesTotal !== undefined && packagesTotal > 0 && (
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                      💰 Total: ${packagesTotal.toFixed(2)}
-                    </Badge>
-                  </div>
-                )}
-              </div>
-            </div>
+  const name = trip.first_name && trip.last_name
+    ? `${trip.first_name} ${trip.last_name}`
+    : trip.username || 'Usuario sin nombre';
 
-            {/* Important dates - chronological order */}
-            <div className="space-y-1 text-xs">
-              <div className="flex items-center space-x-1">
-                <CalendarDays className="h-3 w-3 text-blue-500" />
-                <span className="text-blue-600">
-                  Fecha de viaje: {formatDateUTC(new Date(trip.arrival_date))}
-                </span>
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                <span className="text-green-600">
-                  📥 Primer día: {formatDateUTC(new Date(trip.first_day_packages))}
-                </span>
-                <span className="text-red-600">
-                  📤 Último día: {formatDateUTC(new Date(trip.last_day_packages))}
-                </span>
-              </div>
+  const initials = name
+    .split(' ')
+    .map((n: string) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
-              <div className="flex items-center space-x-1">
-                <CalendarDays className="h-3 w-3 text-primary" />
-                <span className="text-primary font-medium">
-                  Entrega: {formatDateUTC(new Date(trip.delivery_date))}
-                </span>
-              </div>
-            </div>
+  return (
+    <Card className="overflow-hidden hover:shadow-md transition-shadow">
+      {/* Header — Route */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-primary/5 border-b border-primary/10">
+        <div className="flex items-center gap-2">
+          <Plane className="h-4 w-4 text-primary" />
+          <span className="font-semibold text-sm text-foreground">
+            {trip.from_city} → {trip.to_city}
+          </span>
+          {hasBoost && (
+            <Badge className="bg-amber-100 text-amber-800 border-amber-200 text-[10px] px-1.5 py-0">
+              🚀 Boost
+            </Badge>
+          )}
+        </div>
+        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onViewTripDetail(trip)}>
+          <Eye className="h-4 w-4 text-muted-foreground" />
+        </Button>
+      </div>
+
+      {/* Body */}
+      <div className="px-4 py-3 space-y-3">
+        {/* Traveler */}
+        <div className="flex items-center gap-2.5">
+          <Avatar className="h-7 w-7">
+            <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-medium">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-sm font-medium text-foreground truncate">{name}</span>
+          {trip.traveler_avg_rating && (
+            <Badge variant="outline" className="text-xs gap-0.5 px-1.5 py-0 ml-auto shrink-0">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              {Number(trip.traveler_avg_rating).toFixed(1)}
+            </Badge>
+          )}
+        </div>
+
+        {/* Dates grid */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+          <div className="flex items-center gap-1 text-primary">
+            <CalendarDays className="h-3 w-3" />
+            <span>Viaje: {formatDateUTC(new Date(trip.arrival_date))}</span>
           </div>
-
-          {/* Actions */}
-          <div className="ml-4">
-            <Button size="sm" variant="outline" onClick={() => onViewTripDetail(trip)}>
-              <Eye className="h-4 w-4 mr-1" />
-              Ver
-            </Button>
+          <div className="flex items-center gap-1 text-primary font-medium">
+            <PackageCheck className="h-3 w-3" />
+            <span>Entrega: {formatDateUTC(new Date(trip.delivery_date))}</span>
+          </div>
+          <div className="flex items-center gap-1 text-green-600">
+            <ArrowDownToLine className="h-3 w-3" />
+            <span>Desde: {formatDateUTC(new Date(trip.first_day_packages))}</span>
+          </div>
+          <div className="flex items-center gap-1 text-destructive">
+            <ArrowUpFromLine className="h-3 w-3" />
+            <span>Hasta: {formatDateUTC(new Date(trip.last_day_packages))}</span>
           </div>
         </div>
-      </CardContent>
-    </Card>;
+      </div>
+
+      {/* Footer — Total */}
+      {packagesTotal !== undefined && packagesTotal > 0 && (
+        <div className="px-4 py-2 bg-green-50 dark:bg-green-950/20 border-t border-green-200 dark:border-green-800">
+          <span className="text-xs font-semibold text-green-700 dark:text-green-300">
+            💰 Total asignado: ${packagesTotal.toFixed(2)}
+          </span>
+        </div>
+      )}
+    </Card>
+  );
 };
