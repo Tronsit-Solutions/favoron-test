@@ -408,6 +408,35 @@ const AdminMatchDialog = ({
         }
       };
       fetchExistingAssignments();
+    }
+  }, [selectedPackage?.id, showMatchDialog]);
+
+  // Load all active assignments grouped by trip for value calculations
+  useEffect(() => {
+    if (!showMatchDialog || availableTrips.length === 0) {
+      setTripAssignmentsMap({});
+      return;
+    }
+    
+    const tripIds = availableTrips.map(t => t.id);
+    
+    const fetchTripAssignments = async () => {
+      const { data, error } = await supabase
+        .from('package_assignments')
+        .select('trip_id, package_id')
+        .in('trip_id', tripIds)
+        .in('status', ['bid_pending', 'bid_submitted']);
+      
+      if (!error && data) {
+        const map: Record<string, string[]> = {};
+        data.forEach(row => {
+          if (!map[row.trip_id]) map[row.trip_id] = [];
+          map[row.trip_id].push(row.package_id);
+        });
+        setTripAssignmentsMap(map);
+      }
+    };
+    fetchTripAssignments();
       
       // Pre-populate admin tip from existing package
       if (selectedPackage.admin_assigned_tip && !adminTip) {
