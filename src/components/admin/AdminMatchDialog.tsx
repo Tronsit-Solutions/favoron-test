@@ -583,19 +583,28 @@ const AdminMatchDialog = ({
           'ready_for_pickup', 'ready_for_delivery', 'completed'
         ];
 
-        const { data, error } = await supabase
-          .from('packages')
-          .select(`
-            *,
-            profiles!packages_user_id_fkey (
-              id, first_name, last_name, email, username
-            )
-          `)
-          .eq('matched_trip_id', trip.id)
-          .in('status', [...TIMER_STATUSES, ...PAID_OR_POST_PAYMENT]);
+        // 1. Direct packages (matched_trip_id)
+        const [directResult, assignmentsResult] = await Promise.all([
+          supabase
+            .from('packages')
+            .select(`
+              *,
+              profiles!packages_user_id_fkey (
+                id, first_name, last_name, email, username
+              )
+            `)
+            .eq('matched_trip_id', trip.id)
+            .in('status', [...TIMER_STATUSES, ...PAID_OR_POST_PAYMENT]),
+          // 2. Bidding packages via assignments
+          supabase
+            .from('package_assignments')
+            .select('package_id, status')
+            .eq('trip_id', trip.id)
+            .in('status', ['bid_pending', 'bid_submitted'])
+        ]);
 
-        if (error) {
-          console.error('Error fetching traveler packages:', error);
+        if (directResult.error) {
+          console.error('Error fetching traveler packages:', directResult.error);
           setTravelerPackages([]);
         } else {
           const now = Date.now();
@@ -604,8 +613,38 @@ const AdminMatchDialog = ({
             ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
           );
           const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
-          const filtered = (data || []).filter((pkg) => isTimerActive(pkg) || isPaidOrPostPayment(pkg.status));
-          setTravelerPackages(filtered);
+          const filtered = (directResult.data || []).filter((pkg) => isTimerActive(pkg) || isPaidOrPostPayment(pkg.status));
+
+          // 3. Fetch bidding packages not already in direct results
+          const directIds = new Set(filtered.map((p: any) => p.id));
+          const assignmentPkgIds = (assignmentsResult.data || [])
+            .map(a => a.package_id)
+            .filter(id => !directIds.has(id));
+
+          let biddingPkgs: any[] = [];
+          if (assignmentPkgIds.length > 0) {
+            const { data: biddingData } = await supabase
+              .from('packages')
+              .select(`
+                *,
+                profiles!packages_user_id_fkey (
+                  id, first_name, last_name, email, username
+                )
+              `)
+              .in('id', assignmentPkgIds);
+            
+            // Build a map of assignment statuses
+            const assignmentStatusMap = new Map(
+              (assignmentsResult.data || []).map(a => [a.package_id, a.status])
+            );
+            biddingPkgs = (biddingData || []).map(p => ({ 
+              ...p, 
+              _isBidding: true, 
+              _assignmentStatus: assignmentStatusMap.get(p.id) || 'bid_pending' 
+            }));
+          }
+
+          setTravelerPackages([...filtered, ...biddingPkgs]);
         }
       } catch (error) {
         console.error('Error fetching traveler packages:', error);
