@@ -445,6 +445,7 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
                 <TableHead>Usuario</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>WhatsApp</TableHead>
+                <TableHead>Documento</TableHead>
                 <TableHead>Registro</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>Nivel de Confianza</TableHead>
@@ -454,7 +455,7 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8">
                     <div className="flex items-center justify-center space-x-2">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                       <span>Cargando usuarios...</span>
@@ -496,6 +497,18 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
                     <TableCell className="text-sm">{user.email}</TableCell>
                     <TableCell className="text-sm">
                       {user.whatsappNumber || 'No registrado'}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {user.documentNumber ? (
+                        <div>
+                          <span className="text-xs text-muted-foreground uppercase">
+                            {user.documentType === 'passport' ? 'Pasaporte' : user.documentType?.toUpperCase() || 'ID'}
+                          </span>
+                          <p className="font-mono text-xs">{user.documentNumber}</p>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-sm">
                       {user.registrationDate ? 
