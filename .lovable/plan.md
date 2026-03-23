@@ -1,41 +1,36 @@
 
 
-## Mejorar diseño del TripCard en admin matching
+## Incluir paquetes de package_assignments en TripPackagesModal
 
-### Cambios visuales propuestos para `src/components/admin/matching/TripCard.tsx`
+### Problema
+Línea 24: `tripPackages` solo filtra por `pkg.matched_trip_id === trip.id`, ignorando paquetes en fase de bidding que solo existen en `package_assignments`.
 
-**1. Estructura con header visual claro**
-- Separar la ruta (from_city -> to_city) como un header destacado con fondo sutil azul/gradient
-- Mover el botón "Ver" como icono en la esquina superior derecha
+### Solución — `src/components/admin/TripPackagesModal.tsx`
 
-**2. Sección de viajero mejorada**
-- Avatar placeholder con iniciales + nombre + rating en una fila más limpia
-- Badge de Boost junto al nombre
+**1. Agregar query a `package_assignments`**
+- Usar `useEffect` + `useState` para cargar assignments con `trip_id = trip.id` y `status in (bid_pending, bid_submitted)` desde Supabase
+- Traer `package_id` de cada assignment
 
-**3. Fechas en layout de grid compacto**
-- Usar un grid de 2 columnas para las 4 fechas en vez de lista vertical
-- Iconos consistentes con colores semánticos
-- Labels más cortos y legibles
+**2. Combinar ambas fuentes en `tripPackages`**
+```ts
+// Paquetes confirmados (matched_trip_id)
+const directPackages = packages.filter(pkg => pkg.matched_trip_id === trip.id);
 
-**4. Total de paquetes destacado**
-- Mover el badge de total al footer de la card como un accent bar
+// Paquetes en bidding (desde assignments)
+const assignmentPackageIds = assignments.map(a => a.package_id);
+const biddingPackages = packages.filter(pkg => 
+  assignmentPackageIds.includes(pkg.id) && pkg.matched_trip_id !== trip.id
+);
 
-**5. Limpiar console.logs**
-
-### Layout propuesto
-```text
-┌──────────────────────────────────────┐
-│ ✈  Miami → Guatemala City    🚀  👁 │  <- header con fondo sutil
-│──────────────────────────────────────│
-│ 👤 Anika Erichsen        ⭐ 4.8     │  <- traveler row
-│──────────────────────────────────────│
-│ 🛬 Viaje: 15 Mar    📦 Entrega: 20  │  <- dates grid
-│ 📥 Desde: 10 Mar    📤 Hasta: 14    │
-│──────────────────────────────────────│
-│ 💰 Total asignado: $125.50          │  <- footer accent
-└──────────────────────────────────────┘
+const tripPackages = [...directPackages, ...biddingPackages];
 ```
 
+**3. Marcar paquetes en bidding visualmente**
+- Agregar un badge `⚡ Compitiendo` junto al estado para paquetes que vienen de assignments (no de `matched_trip_id`)
+
+**4. Recalcular totales**
+- Los stats (total, valor, tips) se calculan sobre el `tripPackages` combinado
+
 ### Archivos
-- **Modificar**: `src/components/admin/matching/TripCard.tsx`
+- **Modificar**: `src/components/admin/TripPackagesModal.tsx` — agregar import de `supabase`, `useState`, `useEffect`, query de assignments, merge de paquetes
 
