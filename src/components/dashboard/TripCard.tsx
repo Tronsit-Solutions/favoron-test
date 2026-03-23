@@ -162,7 +162,7 @@ const TripCard = ({ trip, getStatusBadge, onEditTrip, packages = [], travelerPro
 
             {/* Status Badge + Boost - aligned right */}
             <div className="flex items-center justify-end gap-2">
-              {(isOwner || isAdmin) && tripPayment?.boost_amount > 0 && (
+              {(isOwner || isAdmin) && (tripPayment?.boost_amount > 0 || trip.boost_code) && (
                 <Badge className="bg-amber-100 text-amber-800 border-amber-200">
                   🚀 Boost
                 </Badge>
