@@ -375,6 +375,8 @@ const AdminMatchDialog = ({
   useEffect(() => {
     setShowAllTrips(false);
     setShowOtherCities(false);
+    setSelectedTripIds(new Set());
+    setSelectedTripId(null);
     
     // Fetch existing assignments for this package (for "assign more" flow)
     if (showMatchDialog && selectedPackage?.id) {
@@ -1604,34 +1606,52 @@ const AdminMatchDialog = ({
             </div>
           )}
 
-          <div className="flex w-full sm:w-auto items-center gap-3">
-            <Button 
-              onClick={handleMatch} 
-              className="flex-1 sm:flex-none sm:w-auto h-11"
-              disabled={selectedTripIds.size === 0 || getTotalAssignedTip() <= 0 || isSubmittingMatch}
-              variant="shopper"
-            >
-              {isSubmittingMatch ? (
-                <>
-                  <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Confirmando...
-                </>
-              ) : (
-                <>
-                  <Zap className="h-4 w-4 mr-2" />
-                  {selectedTripIds.size > 1 
-                    ? `Confirmar Match (${selectedTripIds.size} viajes)` 
-                    : 'Confirmar Match'}
-                </>
-              )}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowMatchDialog(false)}
-              className="px-8 h-11"
-            >
-              Cancelar
-            </Button>
+          <div className="flex flex-col w-full sm:w-auto gap-2">
+            {selectedTripIds.size > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-xs text-muted-foreground font-medium">Seleccionados:</span>
+                {Array.from(selectedTripIds).map(tripId => {
+                  const allTrips = [...(validTrips || []), ...(otherCityTrips || []), ...(otherUSCityTrips || []), ...(otherSpainCityTrips || [])];
+                  const trip = allTrips.find(t => String(t.id) === tripId);
+                  const name = trip ? getTravelerName(trip.user_id) : 'Desconocido';
+                  return (
+                    <Badge key={tripId} variant="secondary" className="text-xs gap-1">
+                      <Users className="h-3 w-3" />
+                      {name}
+                    </Badge>
+                  );
+                })}
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <Button 
+                onClick={handleMatch} 
+                className="flex-1 sm:flex-none sm:w-auto h-11"
+                disabled={selectedTripIds.size === 0 || getTotalAssignedTip() <= 0 || isSubmittingMatch}
+                variant="shopper"
+              >
+                {isSubmittingMatch ? (
+                  <>
+                    <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    Confirmando...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-4 w-4 mr-2" />
+                    {selectedTripIds.size > 1 
+                      ? `Confirmar Match (${selectedTripIds.size} viajes)` 
+                      : 'Confirmar Match'}
+                  </>
+                )}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowMatchDialog(false)}
+                className="px-8 h-11"
+              >
+                Cancelar
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
