@@ -1,36 +1,24 @@
 
 
-## Incluir paquetes de package_assignments en TripPackagesModal
+## Mostrar badge de Boost en TripCard del dashboard usando `boost_code`
 
 ### Problema
-Línea 24: `tripPackages` solo filtra por `pkg.matched_trip_id === trip.id`, ignorando paquetes en fase de bidding que solo existen en `package_assignments`.
+El badge 🚀 Boost en el TripCard del dashboard solo se muestra cuando `tripPayment?.boost_amount > 0`. Pero el acumulador (`trip_payment_accumulator`) se crea tardíamente, así que viajes con un `boost_code` registrado pero sin acumulador no muestran el badge.
 
-### Solución — `src/components/admin/TripPackagesModal.tsx`
+### Solución — `src/components/dashboard/TripCard.tsx`
 
-**1. Agregar query a `package_assignments`**
-- Usar `useEffect` + `useState` para cargar assignments con `trip_id = trip.id` y `status in (bid_pending, bid_submitted)` desde Supabase
-- Traer `package_id` de cada assignment
+Ampliar la condición del badge de Boost (línea 165) para incluir también `trip.boost_code`:
 
-**2. Combinar ambas fuentes en `tripPackages`**
 ```ts
-// Paquetes confirmados (matched_trip_id)
-const directPackages = packages.filter(pkg => pkg.matched_trip_id === trip.id);
+// Antes:
+{(isOwner || isAdmin) && tripPayment?.boost_amount > 0 && (
 
-// Paquetes en bidding (desde assignments)
-const assignmentPackageIds = assignments.map(a => a.package_id);
-const biddingPackages = packages.filter(pkg => 
-  assignmentPackageIds.includes(pkg.id) && pkg.matched_trip_id !== trip.id
-);
-
-const tripPackages = [...directPackages, ...biddingPackages];
+// Después:
+{(isOwner || isAdmin) && (tripPayment?.boost_amount > 0 || trip.boost_code) && (
 ```
 
-**3. Marcar paquetes en bidding visualmente**
-- Agregar un badge `⚡ Compitiendo` junto al estado para paquetes que vienen de assignments (no de `matched_trip_id`)
-
-**4. Recalcular totales**
-- Los stats (total, valor, tips) se calculan sobre el `tripPackages` combinado
+Esto es consistente con cómo lo manejan `AdminApprovals` y `AvailableTripsTab` según la documentación del sistema.
 
 ### Archivos
-- **Modificar**: `src/components/admin/TripPackagesModal.tsx` — agregar import de `supabase`, `useState`, `useEffect`, query de assignments, merge de paquetes
+- **Modificar**: `src/components/dashboard/TripCard.tsx` — línea 165, ampliar condición
 
