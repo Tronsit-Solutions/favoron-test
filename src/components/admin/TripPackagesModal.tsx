@@ -1,13 +1,15 @@
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
-import { Package as PackageIcon, MapPin, DollarSign, Calendar, User } from "lucide-react";
+import { Package as PackageIcon, MapPin, DollarSign, Calendar, User, Zap } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Trip, Package } from "@/types";
 import { formatDateUTC } from "@/lib/formatters";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TripPackagesModalProps {
   trip: Trip | null;
