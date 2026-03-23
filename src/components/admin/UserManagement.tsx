@@ -445,6 +445,7 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
                 <TableHead>Usuario</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>WhatsApp</TableHead>
+                <TableHead>Documento</TableHead>
                 <TableHead>Registro</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>Nivel de Confianza</TableHead>
