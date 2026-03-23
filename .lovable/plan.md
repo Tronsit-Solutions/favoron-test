@@ -1,36 +1,24 @@
 
 
-## Agregar columna ID/DPI/Pasaporte a la tabla de usuarios
+## Fix: Documento no se muestra en tabla de usuarios
 
-### Cambio
-Agregar una nueva columna "Documento" entre "WhatsApp" y "Registro" que muestre el tipo y número de documento de identidad de cada usuario.
+### Causa raíz
+Los datos de documento (`document_type`, `document_number`) se guardan correctamente en la tabla `profiles` durante el registro. Sin embargo, `useUserManagement` lee estos campos exclusivamente desde `user_financial_data`, donde están vacíos para todos los usuarios recientes.
 
-### Implementación — `src/components/admin/UserManagement.tsx`
+Los datos en DB lo confirman: los 10 usuarios más recientes con documento tienen valores en `profiles.document_number` pero `user_financial_data.document_number` es NULL.
 
-**1. Agregar header** (línea ~447, entre WhatsApp y Registro):
-```
-<TableHead>Documento</TableHead>
-```
+### Solución — `src/hooks/useUserManagement.tsx`
 
-**2. Agregar celda** (línea ~499, después de WhatsApp):
-Mostrar tipo (DPI/Pasaporte) + número. Si no tiene, mostrar "Sin documento".
-```tsx
-<TableCell className="text-sm">
-  {user.documentNumber ? (
-    <div>
-      <span className="text-xs text-muted-foreground uppercase">
-        {user.documentType === 'passport' ? 'Pasaporte' : user.documentType?.toUpperCase() || 'ID'}
-      </span>
-      <p className="font-mono text-xs">{user.documentNumber}</p>
-    </div>
-  ) : (
-    <span className="text-muted-foreground">—</span>
-  )}
-</TableCell>
+Agregar `document_type` y `document_number` al SELECT de `profiles` en las 3 queries (fetchUsers, searchUsersInDatabase, loadMore), y usarlos como fuente primaria con fallback a `user_financial_data`:
+
+```ts
+// En el merge de datos:
+document_type: profile.document_type || financial?.document_type,
+document_number: profile.document_number || financial?.document_number,
 ```
 
-**3. Actualizar `colSpan`** del loading state de 8 a 9 (línea 457).
+Esto se aplica en las líneas donde se construye `profilesWithRoles` (~líneas 120, 175, 225).
 
 ### Archivos
-- **Modificar**: `src/components/admin/UserManagement.tsx`
+- **Modificar**: `src/hooks/useUserManagement.tsx` — agregar `document_type, document_number` al SELECT de profiles y priorizar esos valores sobre los de `user_financial_data`
 
