@@ -63,6 +63,7 @@ const AdminMatchDialog = ({
   const [showAllTrips, setShowAllTrips] = useState(false);
   const [showOtherCities, setShowOtherCities] = useState(false);
   const [alreadyAssignedTripIds, setAlreadyAssignedTripIds] = useState<Set<string>>(new Set());
+  const [tripAssignmentsMap, setTripAssignmentsMap] = useState<Record<string, string[]>>({});
 
   const MODAL_ID = 'admin-match-dialog';
 
@@ -101,18 +102,31 @@ const AdminMatchDialog = ({
     const pendingStatuses = ['matched', 'quote_sent', 'payment_pending', 'payment_pending_approval'];
     const confirmedStatuses = ['paid', 'pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
     
-    const tripPackages = packages.filter(pkg => pkg.matched_trip_id === tripId);
+    // Direct matches (winner assigned via matched_trip_id)
+    const directPackages = packages.filter(pkg => pkg.matched_trip_id === tripId);
+    const directPackageIds = new Set(directPackages.map(pkg => pkg.id));
+    
+    // Assignment-based packages (bidding phase, not yet matched_trip_id)
+    const assignmentPackageIds = tripAssignmentsMap[tripId] || [];
+    const assignmentPackages = packages.filter(pkg => 
+      assignmentPackageIds.includes(pkg.id) && !directPackageIds.has(pkg.id)
+    );
     
     let pendingTotal = 0;
     let confirmedTotal = 0;
     
-    tripPackages.forEach(pkg => {
+    directPackages.forEach(pkg => {
       const value = calculatePackageValue(pkg);
       if (pendingStatuses.includes(pkg.status)) {
         pendingTotal += value;
       } else if (confirmedStatuses.includes(pkg.status)) {
         confirmedTotal += value;
       }
+    });
+    
+    // Assignment packages always count as pending (they're in bidding phase)
+    assignmentPackages.forEach(pkg => {
+      pendingTotal += calculatePackageValue(pkg);
     });
     
     return { pendingTotal, confirmedTotal };
@@ -394,13 +408,41 @@ const AdminMatchDialog = ({
         }
       };
       fetchExistingAssignments();
+    }
+  }, [selectedPackage?.id, showMatchDialog]);
+
+  // Load all active assignments grouped by trip for value calculations
+  useEffect(() => {
+    if (!showMatchDialog || availableTrips.length === 0) {
+      setTripAssignmentsMap({});
+      return;
+    }
+    
+    const tripIds = availableTrips.map(t => t.id);
+    
+    const fetchTripAssignments = async () => {
+      const { data, error } = await supabase
+        .from('package_assignments')
+        .select('trip_id, package_id')
+        .in('trip_id', tripIds)
+        .in('status', ['bid_pending', 'bid_submitted']);
       
-      // Pre-populate admin tip from existing package
-      if (selectedPackage.admin_assigned_tip && !adminTip) {
-        setAdminTip(String(selectedPackage.admin_assigned_tip));
+      if (!error && data) {
+        const map: Record<string, string[]> = {};
+        data.forEach(row => {
+          if (!map[row.trip_id]) map[row.trip_id] = [];
+          map[row.trip_id].push(row.package_id);
+        });
+        setTripAssignmentsMap(map);
       }
-    } else {
-      setAlreadyAssignedTripIds(new Set());
+    };
+    fetchTripAssignments();
+  }, [showMatchDialog, availableTrips]);
+
+  // Pre-populate admin tip from existing package
+  useEffect(() => {
+    if (showMatchDialog && selectedPackage?.admin_assigned_tip && !adminTip) {
+      setAdminTip(String(selectedPackage.admin_assigned_tip));
     }
   }, [selectedPackage?.id, showMatchDialog]);
 
