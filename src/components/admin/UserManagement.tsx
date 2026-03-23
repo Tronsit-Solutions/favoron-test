@@ -499,6 +499,18 @@ const UserManagement = ({ packages, trips }: UserManagementProps) => {
                       {user.whatsappNumber || 'No registrado'}
                     </TableCell>
                     <TableCell className="text-sm">
+                      {user.documentNumber ? (
+                        <div>
+                          <span className="text-xs text-muted-foreground uppercase">
+                            {user.documentType === 'passport' ? 'Pasaporte' : user.documentType?.toUpperCase() || 'ID'}
+                          </span>
+                          <p className="font-mono text-xs">{user.documentNumber}</p>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm">
                       {user.registrationDate ? 
                         formatDistanceToNow(new Date(user.registrationDate), { addSuffix: true, locale: es }) :
                         'No disponible'
