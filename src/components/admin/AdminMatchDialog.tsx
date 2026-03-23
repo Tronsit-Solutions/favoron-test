@@ -437,13 +437,12 @@ const AdminMatchDialog = ({
       }
     };
     fetchTripAssignments();
-      
-      // Pre-populate admin tip from existing package
-      if (selectedPackage.admin_assigned_tip && !adminTip) {
-        setAdminTip(String(selectedPackage.admin_assigned_tip));
-      }
-    } else {
-      setAlreadyAssignedTripIds(new Set());
+  }, [showMatchDialog, availableTrips]);
+
+  // Pre-populate admin tip from existing package
+  useEffect(() => {
+    if (showMatchDialog && selectedPackage?.admin_assigned_tip && !adminTip) {
+      setAdminTip(String(selectedPackage.admin_assigned_tip));
     }
   }, [selectedPackage?.id, showMatchDialog]);
 
