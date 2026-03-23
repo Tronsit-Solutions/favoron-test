@@ -6,12 +6,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Headphones, Phone, CheckCircle, Clock, Star } from "lucide-react";
+import { Headphones, Phone, CheckCircle, Clock, Star, Search } from "lucide-react";
 import { useCustomerExperience } from "@/hooks/useCustomerExperience";
 import CustomerExperienceTable from "@/components/admin/cx/CustomerExperienceTable";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 function CXTab({ userType }: { userType: "shopper" | "traveler" }) {
   const { rows, loading, stats, saveCXCall, statusFilter, setStatusFilter } = useCustomerExperience(userType);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredRows = rows.filter(r =>
+    !searchTerm || r.target_user_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-4">
