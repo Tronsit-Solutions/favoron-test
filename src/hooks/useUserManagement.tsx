@@ -101,6 +101,8 @@ export const useUserManagement = () => {
           country_code,
           created_at,
           trust_level,
+          document_type,
+          document_number,
           is_banned,
           banned_until,
           ban_reason,
@@ -140,8 +142,8 @@ export const useUserManagement = () => {
           bank_account_type: financial?.bank_account_type,
           bank_account_number: financial?.bank_account_number,
           bank_swift_code: financial?.bank_swift_code,
-          document_type: financial?.document_type,
-          document_number: financial?.document_number
+          document_type: profile.document_type || financial?.document_type,
+          document_number: profile.document_number || financial?.document_number
         };
       }) || [];
 
