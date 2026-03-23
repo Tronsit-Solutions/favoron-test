@@ -1,13 +1,15 @@
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
-import { Package as PackageIcon, MapPin, DollarSign, Calendar, User } from "lucide-react";
+import { Package as PackageIcon, MapPin, DollarSign, Calendar, User, Zap } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Trip, Package } from "@/types";
 import { formatDateUTC } from "@/lib/formatters";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TripPackagesModalProps {
   trip: Trip | null;
@@ -18,10 +20,33 @@ interface TripPackagesModalProps {
 
 const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModalProps) => {
   const { getStatusBadge } = useStatusHelpers();
+  const [assignmentPackageIds, setAssignmentPackageIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!trip || !isOpen) {
+      setAssignmentPackageIds([]);
+      return;
+    }
+    const fetchAssignments = async () => {
+      const { data } = await supabase
+        .from('package_assignments')
+        .select('package_id')
+        .eq('trip_id', trip.id)
+        .in('status', ['bid_pending', 'bid_submitted']);
+      setAssignmentPackageIds((data || []).map(a => a.package_id));
+    };
+    fetchAssignments();
+  }, [trip?.id, isOpen]);
 
   if (!trip) return null;
 
-  const tripPackages = packages.filter(pkg => pkg.matched_trip_id === trip.id);
+  const directPackages = packages.filter(pkg => pkg.matched_trip_id === trip.id);
+  const biddingPackages = packages.filter(pkg =>
+    assignmentPackageIds.includes(pkg.id) && pkg.matched_trip_id !== trip.id
+  );
+  const biddingPackageIds = new Set(biddingPackages.map(p => p.id));
+  const tripPackages = [...directPackages, ...biddingPackages];
+
   const completedPackages = tripPackages.filter(pkg => ['delivered_to_office', 'completed'].includes(pkg.status));
   const totalValue = tripPackages.reduce((sum, pkg) => sum + (Number(pkg.estimated_price) || 0), 0);
   const totalTips = tripPackages.reduce((sum, pkg) => {
@@ -150,7 +175,15 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
                           </TableCell>
                           
                           <TableCell>
-                            {getStatusBadge(pkg.status)}
+                            <div className="flex items-center gap-1">
+                              {getStatusBadge(pkg.status)}
+                              {biddingPackageIds.has(pkg.id) && (
+                                <Badge variant="warning" className="text-[10px] px-1.5 py-0">
+                                  <Zap className="h-3 w-3 mr-0.5" />
+                                  Compitiendo
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
                           
                           <TableCell>
