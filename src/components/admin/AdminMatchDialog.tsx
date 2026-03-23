@@ -1984,6 +1984,11 @@ const AdminMatchDialog = ({
                               <p className="text-xs text-muted-foreground mt-1">
                                 Estado: {getStatusLabel(pkg.status)}
                               </p>
+                              {(pkg as any)._isBidding && (
+                                <Badge variant="warning" className="text-xs mt-1">
+                                  ⚡ {(pkg as any)._assignmentStatus === 'bid_submitted' ? 'Cotización Enviada' : 'Compitiendo'}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                           {pkg.additional_notes && (
