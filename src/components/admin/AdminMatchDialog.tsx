@@ -375,6 +375,8 @@ const AdminMatchDialog = ({
   useEffect(() => {
     setShowAllTrips(false);
     setShowOtherCities(false);
+    setSelectedTripIds(new Set());
+    setSelectedTripId(null);
     
     // Fetch existing assignments for this package (for "assign more" flow)
     if (showMatchDialog && selectedPackage?.id) {
