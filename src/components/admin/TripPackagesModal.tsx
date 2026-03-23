@@ -175,7 +175,15 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
                           </TableCell>
                           
                           <TableCell>
-                            {getStatusBadge(pkg.status)}
+                            <div className="flex items-center gap-1">
+                              {getStatusBadge(pkg.status)}
+                              {biddingPackageIds.has(pkg.id) && (
+                                <Badge variant="warning" className="text-[10px] px-1.5 py-0">
+                                  <Zap className="h-3 w-3 mr-0.5" />
+                                  Compitiendo
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
                           
                           <TableCell>
