@@ -1,24 +1,26 @@
 
 
-## Mostrar badge de Boost en TripCard del dashboard usando `boost_code`
+## Agregar labels correctos a la dirección de recepción en PackageDetailModal
 
-### Problema
-El badge 🚀 Boost en el TripCard del dashboard solo se muestra cuando `tripPayment?.boost_amount > 0`. Pero el acumulador (`trip_payment_accumulator`) se crea tardíamente, así que viajes con un `boost_code` registrado pero sin acumulador no muestran el badge.
+### Cambio
+En `src/components/admin/PackageDetailModal.tsx`, líneas 1311-1322, la dirección se muestra sin labels descriptivos. Agregar los títulos correctos: "Dirección 1", "Dirección 2", "Ciudad", "Estado" (o separar cityArea), "Código postal".
 
-### Solución — `src/components/dashboard/TripCard.tsx`
+### Implementación — líneas 1311-1322
 
-Ampliar la condición del badge de Boost (línea 165) para incluir también `trip.boost_code`:
+Reemplazar el bloque actual:
+```tsx
+// Antes: se muestran los valores sin labels
+<p>{streetAddress}</p>
+<p>{streetAddress2}</p>
+<p>{cityArea}, {postalCode}</p>
 
-```ts
-// Antes:
-{(isOwner || isAdmin) && tripPayment?.boost_amount > 0 && (
-
-// Después:
-{(isOwner || isAdmin) && (tripPayment?.boost_amount > 0 || trip.boost_code) && (
+// Después: con labels descriptivos
+<p><strong>Dirección 1:</strong> {streetAddress}</p>
+<p><strong>Dirección 2:</strong> {streetAddress2}</p>
+<p><strong>Ciudad/Estado:</strong> {cityArea}</p>
+<p><strong>Código postal:</strong> {postalCode}</p>
 ```
 
-Esto es consistente con cómo lo manejan `AdminApprovals` y `AvailableTripsTab` según la documentación del sistema.
-
 ### Archivos
-- **Modificar**: `src/components/dashboard/TripCard.tsx` — línea 165, ampliar condición
+- **Modificar**: `src/components/admin/PackageDetailModal.tsx` — líneas 1311-1322
 
