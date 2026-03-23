@@ -1308,17 +1308,19 @@ const [editForm, setEditForm] = useState({
                                     {matchedTrip.package_receiving_address.recipientName && (
                                       <p><strong>Destinatario:</strong> {matchedTrip.package_receiving_address.recipientName}</p>
                                     )}
-                                    <div>
+                                    <div className="space-y-1">
                                       {matchedTrip.package_receiving_address.streetAddress && (
-                                        <p>{matchedTrip.package_receiving_address.streetAddress}</p>
+                                        <p><strong>Dirección 1:</strong> {matchedTrip.package_receiving_address.streetAddress}</p>
                                       )}
                                       {matchedTrip.package_receiving_address.streetAddress2 && (
-                                        <p>{matchedTrip.package_receiving_address.streetAddress2}</p>
+                                        <p><strong>Dirección 2:</strong> {matchedTrip.package_receiving_address.streetAddress2}</p>
                                       )}
-                                      <p>
-                                        {matchedTrip.package_receiving_address.cityArea}
-                                        {matchedTrip.package_receiving_address.postalCode && `, ${matchedTrip.package_receiving_address.postalCode}`}
-                                      </p>
+                                      {matchedTrip.package_receiving_address.cityArea && (
+                                        <p><strong>Ciudad/Estado:</strong> {matchedTrip.package_receiving_address.cityArea}</p>
+                                      )}
+                                      {matchedTrip.package_receiving_address.postalCode && (
+                                        <p><strong>Código postal:</strong> {matchedTrip.package_receiving_address.postalCode}</p>
+                                      )}
                                     </div>
                                     {matchedTrip.package_receiving_address.accommodationType && matchedTrip.package_receiving_address.hotelAirbnbName && (
                                       <p><strong>{matchedTrip.package_receiving_address.accommodationType}:</strong> {matchedTrip.package_receiving_address.hotelAirbnbName}</p>
