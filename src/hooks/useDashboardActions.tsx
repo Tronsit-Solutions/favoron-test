@@ -1582,6 +1582,31 @@ export const useDashboardActions = (
         }
 
         await updatePackage(id, updateData);
+
+        // 📧 Notificar al shopper cuando el paquete está listo para recoger o envío
+        if ((status === 'ready_for_pickup' || status === 'ready_for_delivery') && currentPackage?.user_id) {
+          const isPickup = status === 'ready_for_pickup';
+          const notifTitle = isPickup ? '📦 Paquete listo para recoger' : '🚛 Paquete listo para envío';
+          const notifMessage = isPickup
+            ? `Tu paquete "${currentPackage.item_description || 'tu pedido'}" está listo para recoger en nuestra oficina.`
+            : `Tu paquete "${currentPackage.item_description || 'tu pedido'}" está listo para ser enviado a tu dirección.`;
+
+          // In-app notification
+          supabase.from('notifications').insert({
+            user_id: currentPackage.user_id,
+            title: notifTitle,
+            message: notifMessage,
+            type: 'delivery',
+            priority: 'high',
+          }).then(({ error }) => {
+            if (error) console.error('Error creating ready notification:', error);
+          });
+
+          // Email notification
+          supabase.functions.invoke('send-notification-email', {
+            body: { user_id: currentPackage.user_id, title: notifTitle, message: notifMessage, type: 'delivery', priority: 'high' }
+          }).catch(err => console.error('Error sending ready email:', err));
+        }
         
         // 📱 Enviar notificación WhatsApp cuando admin cambia a quote_sent
         if (status === 'quote_sent' && currentPackage?.user_id && updateData.quote) {
