@@ -6,12 +6,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Headphones, Phone, CheckCircle, Clock, Star } from "lucide-react";
+import { Headphones, Phone, CheckCircle, Clock, Star, Search } from "lucide-react";
 import { useCustomerExperience } from "@/hooks/useCustomerExperience";
 import CustomerExperienceTable from "@/components/admin/cx/CustomerExperienceTable";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 function CXTab({ userType }: { userType: "shopper" | "traveler" }) {
   const { rows, loading, stats, saveCXCall, statusFilter, setStatusFilter } = useCustomerExperience(userType);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredRows = rows.filter(r =>
+    !searchTerm || r.target_user_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-4">
@@ -53,6 +60,15 @@ function CXTab({ userType }: { userType: "shopper" | "traveler" }) {
 
       {/* Filter */}
       <div className="flex items-center gap-2">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nombre..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
         <span className="text-sm text-muted-foreground">Filtrar:</span>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[160px]">
@@ -68,7 +84,7 @@ function CXTab({ userType }: { userType: "shopper" | "traveler" }) {
         </Select>
       </div>
 
-      <CustomerExperienceTable rows={rows} loading={loading} userType={userType} onSave={saveCXCall} />
+      <CustomerExperienceTable rows={filteredRows} loading={loading} userType={userType} onSave={saveCXCall} />
     </div>
   );
 }
