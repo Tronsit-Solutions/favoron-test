@@ -1,30 +1,41 @@
 
 
-## Fix: refresh agresivo al guardar CX call
+## Mejorar diseño del TripCard en admin matching
 
-### Problema
-Al guardar un CX call, `saveCXCall` llama `await fetchData()` (línea 205), que hace `setLoading(true)` → re-fetch de **todos** los paquetes completados + profiles + trips + CX calls → `setRows(result)`. Esto causa un flash completo de la tabla (loading skeletons) para actualizar una sola fila.
+### Cambios visuales propuestos para `src/components/admin/matching/TripCard.tsx`
 
-### Solución — actualización optimista en `src/hooks/useCustomerExperience.ts`
+**1. Estructura con header visual claro**
+- Separar la ruta (from_city -> to_city) como un header destacado con fondo sutil azul/gradient
+- Mover el botón "Ver" como icono en la esquina superior derecha
 
-**1. Actualizar el estado local inmediatamente** después de confirmar el insert/update exitoso, sin llamar `fetchData()`:
+**2. Sección de viajero mejorada**
+- Avatar placeholder con iniciales + nombre + rating en una fila más limpia
+- Badge de Boost junto al nombre
 
-```ts
-// Después del insert/update exitoso:
-setRows(prev => prev.map(r => 
-  r.package_id === row.package_id 
-    ? { ...r, ...updates, cx_id: r.cx_id || 'temp' } 
-    : r
-));
-// Recalcular stats desde el nuevo rows
+**3. Fechas en layout de grid compacto**
+- Usar un grid de 2 columnas para las 4 fechas en vez de lista vertical
+- Iconos consistentes con colores semánticos
+- Labels más cortos y legibles
+
+**4. Total de paquetes destacado**
+- Mover el badge de total al footer de la card como un accent bar
+
+**5. Limpiar console.logs**
+
+### Layout propuesto
+```text
+┌──────────────────────────────────────┐
+│ ✈  Miami → Guatemala City    🚀  👁 │  <- header con fondo sutil
+│──────────────────────────────────────│
+│ 👤 Anika Erichsen        ⭐ 4.8     │  <- traveler row
+│──────────────────────────────────────│
+│ 🛬 Viaje: 15 Mar    📦 Entrega: 20  │  <- dates grid
+│ 📥 Desde: 10 Mar    📤 Hasta: 14    │
+│──────────────────────────────────────│
+│ 💰 Total asignado: $125.50          │  <- footer accent
+└──────────────────────────────────────┘
 ```
 
-**2. Para inserts**, hacer `.insert(payload).select().single()` para obtener el `cx_id` real y usarlo en el estado local.
-
-**3. Recalcular stats** inline después de la actualización optimista, sin necesidad de re-fetch.
-
-**4. Eliminar** el `await fetchData()` de `saveCXCall`.
-
 ### Archivos
-- **Modificar**: `src/hooks/useCustomerExperience.ts`
+- **Modificar**: `src/components/admin/matching/TripCard.tsx`
 
