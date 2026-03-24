@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, RotateCcw, Banknote, Clock } from "lucide-react";
+import { CreditCard, RotateCcw, Banknote, Clock, FileSpreadsheet } from "lucide-react";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import { useAdminRefundOrders } from "@/hooks/useRefundOrders";
 import AdminTravelerPaymentsTab from "./AdminTravelerPaymentsTab";
 import AdminRefundsTab from "./AdminRefundsTab";
+import AdminBankFileTab from "./AdminBankFileTab";
 import { formatCurrency } from "@/lib/formatters";
 
 const AdminPaymentsUnifiedTab = () => {
@@ -80,7 +81,7 @@ const AdminPaymentsUnifiedTab = () => {
 
       {/* Sub-tabs */}
       <Tabs value={activeSection} onValueChange={setActiveSection}>
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsList className="grid w-full grid-cols-3 max-w-xl">
           <TabsTrigger value="traveler-payments" className="flex items-center gap-2">
             <CreditCard className="h-4 w-4" />
             Pagos Viajeros
@@ -99,6 +100,10 @@ const AdminPaymentsUnifiedTab = () => {
               </Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="bank-file" className="flex items-center gap-2">
+            <FileSpreadsheet className="h-4 w-4" />
+            Archivo Banco
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="traveler-payments" className="mt-4">
@@ -107,6 +112,10 @@ const AdminPaymentsUnifiedTab = () => {
 
         <TabsContent value="refunds" className="mt-4">
           <AdminRefundsTab />
+        </TabsContent>
+
+        <TabsContent value="bank-file" className="mt-4">
+          <AdminBankFileTab />
         </TabsContent>
       </Tabs>
     </div>
