@@ -266,10 +266,7 @@ const AdminDashboard = ({
               : `Paquete emparejado con viaje con tip de Q${adminTip}`,
         });
         
-        // Deferred lightweight refresh
-        if (refreshAdminData) {
-          setTimeout(() => refreshAdminData(), 2000);
-        }
+        // Realtime subscription + optimistic update handle refresh — no manual refresh needed
       } catch (error) {
         console.error('Error during match:', error);
         toast({

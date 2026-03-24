@@ -202,6 +202,7 @@ export const usePackagesData = () => {
       .subscribe();
 
     return () => {
+      clearTimeout(debounceRef.current);
       supabase.removeChannel(channel);
     };
   }, []);
