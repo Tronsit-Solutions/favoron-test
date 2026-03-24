@@ -22,12 +22,6 @@ const AvailableTripsCard = ({ onViewTrips }: AvailableTripsCardProps) => {
     return arrivalDate >= today && arrivalDate <= nextWeek;
   });
 
-  // Log the counts for debugging
-  console.log('📊 Trip counts:', {
-    totalTrips: trips.length,
-    tripsThisWeek: tripsThisWeek.length,
-    loading
-  });
 
   return (
     <Card className="overflow-hidden bg-gradient-to-br from-teal-300 via-cyan-200 to-emerald-300 border-0 shadow-lg mobile-content">
