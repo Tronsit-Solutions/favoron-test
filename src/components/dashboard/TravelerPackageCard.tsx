@@ -84,7 +84,15 @@ const TravelerPackageCard = ({
               )}
             </CardDescription>
           </div>
-          {getStatusBadge(pkg.status, pkg.package_destination)}
+          {['bid_expired', 'bid_lost', 'bid_cancelled'].includes(pkg._assignmentStatus) ? (
+            pkg._assignmentStatus === 'bid_expired' ? (
+              <Badge variant="warning">⏰ Expirado</Badge>
+            ) : pkg._assignmentStatus === 'bid_lost' ? (
+              <Badge variant="destructive">❌ No seleccionado</Badge>
+            ) : (
+              <Badge variant="muted">Cancelado</Badge>
+            )
+          ) : getStatusBadge(pkg.status, pkg.package_destination)}
         </div>
       </CardHeader>
       <CardContent>
