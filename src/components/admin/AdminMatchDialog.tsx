@@ -538,7 +538,6 @@ const AdminMatchDialog = ({
 
   const getTravelerName = (userId: string) => {
     const profile = travelerProfiles[userId];
-    console.log('Getting traveler name for:', userId, 'Profile found:', profile);
     if (profile?.first_name && profile?.last_name) {
       return `${profile.first_name} ${profile.last_name}`;
     }
