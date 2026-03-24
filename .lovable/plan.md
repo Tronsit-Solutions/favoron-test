@@ -1,37 +1,47 @@
 
 
-## Fix: Matching lento + "Cargando" bloquea tips
+## Fix: No se puede seleccionar viajeros en AdminMatchDialog
 
-### Problemas identificados
+### Causa raíz
 
-1. **"Cargando..." bloquea el botón de tips** — `usePackageDetails` siempre hace un fetch a la DB aunque `selectedPackage` ya tiene `products_data`. El botón queda disabled hasta que ese fetch termine.
+El `useEffect` en la línea 408 de `AdminMatchDialog.tsx` tiene `availableTrips` en su array de dependencias. Como `availableTrips` es un array que se recrea en cada render del componente padre, este efecto se re-ejecuta constantemente. Las primeras líneas del efecto son:
 
-2. **Console.logs de debug en cada render** — `getProductsForModal()` tiene 6 `console.log` que se ejecutan cada vez que se llama (líneas 709-733).
+```ts
+setSelectedTripIds(new Set());  // ← BORRA la selección
+setSelectedTripId(null);        // ← BORRA la selección
+```
 
-3. **3 queries Supabase secuenciales al abrir el dialog** — Los useEffects de líneas 408, 434 y 496 lanzan queries independientes que podrían correr en paralelo.
+**Resultado**: cada vez que el componente padre re-renderiza, la selección del usuario se borra inmediatamente.
 
 ### Solución
 
-#### 1) `AdminMatchDialog.tsx` — No bloquear tips si ya hay datos
+**Archivo: `src/components/admin/AdminMatchDialog.tsx`**
 
-Cambiar la lógica del botón "Asignar Tips": habilitarlo inmediatamente si `selectedPackage.products_data` ya existe, sin esperar a `usePackageDetails`. Solo mostrar "Cargando" si NO hay `products_data` en el paquete local Y el fetch está en curso.
+1. **Separar el reset de la selección del fetch de assignments**: Mover `setSelectedTripIds(new Set())` y `setSelectedTripId(null)` a un efecto que solo dependa de `selectedPackage?.id` (cuando cambia el paquete seleccionado), NO de `availableTrips`.
+
+2. **Estabilizar la dependencia de `availableTrips`**: Usar `useRef` para almacenar los IDs de los trips y solo re-ejecutar el fetch cuando los IDs realmente cambien (comparación por valor, no por referencia).
 
 ```tsx
-// Línea 1661: cambiar disabled condition
-disabled={!fullPackage?.products_data && loadingDetails}
+// Efecto de RESET — solo cuando cambia el paquete
+useEffect(() => {
+  setShowAllTrips(false);
+  setShowOtherCities(false);
+  setSelectedTripIds(new Set());
+  setSelectedTripId(null);
+}, [selectedPackage?.id]);
 
-// Línea 1664: cambiar texto
-{(!fullPackage?.products_data && loadingDetails) ? 'Cargando...' : `Asignar Tips...`}
+// Efecto de FETCH — cuando se abre el dialog o cambian datos relevantes
+useEffect(() => {
+  if (!showMatchDialog || !selectedPackage?.id) {
+    setAlreadyAssignedTripIds(new Set());
+    setTripAssignmentsMap({});
+    return;
+  }
+  // ... fetch logic sin resetear selección
+}, [selectedPackage?.id, showMatchDialog, availableTrips]);
 ```
 
-#### 2) `AdminMatchDialog.tsx` — Eliminar console.logs de debug
-
-Eliminar los 6 `console.log` dentro de `getProductsForModal()` (líneas 709-733).
-
-#### 3) `AdminMatchDialog.tsx` — Paralelizar queries iniciales
-
-Combinar los 3 useEffects separados (fetch existing assignments, fetch trip assignments map, fetch traveler profiles) en un solo useEffect que lance las 3 queries con `Promise.all` cuando el dialog se abre.
-
-### Archivos
-- **Modificar**: `src/components/admin/AdminMatchDialog.tsx`
+### Resultado esperado
+- El usuario puede seleccionar viajeros sin que la selección se borre
+- El fetch de assignments sigue funcionando correctamente cuando cambian los datos
 
