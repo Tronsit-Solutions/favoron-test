@@ -1,89 +1,28 @@
 
-## Fix propuesto: permitir re-asignar viajeros con historial previo del mismo pedido
 
-### Hallazgo
-No es solo un problema del “match” en sí; hay 2 bloqueos distintos:
+## Agregar botón "Volver" en la segunda hoja del modal de aceptación (trip confirmation)
 
-1. **Bloqueo en UI**
-   En `src/components/admin/AdminMatchDialog.tsx`, el modal marca como `✅ Ya asignado` cualquier viaje que tenga un `package_assignment` previo porque sigue usando:
-   ```ts
-   .not('status', 'eq', 'rejected')
-   ```
-   Pero ahora los statuses reales son `bid_pending`, `bid_submitted`, `bid_won`, `bid_lost`, `bid_expired`, `bid_cancelled`. Como casi nunca existe `rejected`, el modal termina bloqueando también assignments históricos/terminales.
+### Problema
+Cuando el viajero acepta un paquete, el modal tiene dos pasos:
+1. **Paso 1**: Detalles del producto, tip, etc.
+2. **Paso 2**: Confirmación de información de viaje (`showTripConfirmation = true`)
 
-2. **Bloqueo en persistencia**
-   La tabla `package_assignments` tiene:
-   ```sql
-   UNIQUE(package_id, trip_id)
-   ```
-   Entonces aunque el modal dejara seleccionarlo, `handleMatchPackage` en `src/hooks/useDashboardActions.tsx` intenta hacer `insert` de una nueva fila. Si ese viajero ya tuvo un assignment para ese pedido, el insert puede fallar por duplicado.
+En el paso 2 no hay forma de regresar al paso 1 para revisar los detalles del producto/tip.
 
-### Solución simple pero correcta
-No crear una fila nueva cuando ya existe historial para ese `package_id + trip_id`. En su lugar:
-- si el assignment previo está en status terminal, **reciclar esa misma fila** y volverla a `bid_pending`
-- si está activo, sí mantenerlo como “ya asignado” para no resetear una puja vigente por accidente
+### Solución — `src/components/QuoteDialog.tsx`
 
-### Cambios propuestos
+En la sección de "Action Buttons" del trip confirmation step (línea ~875), agregar un botón "Volver" que haga `setShowTripConfirmation(false)`:
 
-#### 1) `src/components/admin/AdminMatchDialog.tsx`
-Cambiar la lógica de `fetchExistingAssignments` para que `alreadyAssignedTripIds` solo incluya statuses realmente activos:
+**Cambiar** el layout de botones (líneas 875-893) para incluir un botón de regreso:
 
-```ts
-.in('status', ['bid_pending', 'bid_submitted', 'bid_won'])
+```
+[← Volver]  [Editar viaje]  [Confirmar y enviar]
 ```
 
-Con eso:
-- `bid_lost`
-- `bid_expired`
-- `bid_cancelled`
+- Agregar un botón con ícono `ArrowLeft` que ejecute `setShowTripConfirmation(false)`
+- Ajustar el layout a 3 botones: "Volver" (ghost/outline pequeño), "Editar viaje" (outline), "Confirmar y enviar" (success)
+- En mobile, usar layout de 2 filas: "Volver" arriba solo, y los otros 2 abajo
 
-ya no bloquearán la selección del viajero en el modal.
+### Archivo
+- **Modificar**: `src/components/QuoteDialog.tsx` — sección de botones del trip confirmation step (~línea 875)
 
-#### 2) `src/hooks/useDashboardActions.tsx`
-Refactorizar `handleMatchPackage` para que, antes de insertar, consulte assignments existentes del paquete para los viajes seleccionados:
-
-```ts
-select('id, trip_id, status')
-.eq('package_id', packageId)
-.in('trip_id', tripIdsToAssign)
-```
-
-Luego separar en 3 grupos:
-
-- **Activos**: `bid_pending`, `bid_submitted`, `bid_won`
-  - no reinsertar
-  - mantener bloqueados o ignorarlos
-
-- **Reutilizables**: `bid_lost`, `bid_expired`, `bid_cancelled` (y legacy `rejected` si aún existiera)
-  - hacer `update` sobre esa misma fila:
-    - `status = 'bid_pending'`
-    - `admin_assigned_tip = adminTip`
-    - `traveler_address = ...`
-    - `matched_trip_dates = ...`
-    - `products_data = ...`
-    - `quote = null`
-    - `quote_expires_at = null`
-    - `dismissed_by_traveler = false`
-    - `updated_at = now()`
-    - `expires_at = null` para que el trigger la regenere
-
-- **Nuevos**:
-  - hacer `insert` normal
-
-Así resolvemos el problema sin tocar esquema ni migraciones.
-
-### Por qué esta solución es la adecuada
-- Respeta el historial de assignments
-- Evita violar el `UNIQUE(package_id, trip_id)`
-- No reabre accidentalmente bids activos
-- Permite re-asignar a viajeros que antes perdieron, expiraron o fueron cancelados
-- Es consistente con el flujo actual de multi-assignment
-
-### Archivos
-- **Modificar**: `src/components/admin/AdminMatchDialog.tsx`
-- **Modificar**: `src/hooks/useDashboardActions.tsx`
-
-### Nota técnica
-No propongo cambiar la base de datos porque no hace falta. El problema real es que hoy el frontend:
-- bloquea demasiado en el modal
-- e intenta `insert` donde debería reutilizar la fila histórica
