@@ -355,6 +355,18 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
             </div>
           )}
 
+          {/* Boost Code Input */}
+          {!paymentAlreadyRequested && (!boostInfo || boostInfo.amount <= 0) && (
+            <BoostCodeInput
+              tripId={trip.id}
+              travelerId={currentUser?.id}
+              existingBoost={boostInfo?.amount}
+              onBoostApplied={(amount) => {
+                setBoostInfo({ amount, type: '', value: 0, pending: false });
+              }}
+            />
+          )}
+
           {/* Action Section - Always visible */}
           <div className="pt-2 space-y-2">
             {paymentAlreadyRequested ? (
