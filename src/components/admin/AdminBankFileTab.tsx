@@ -71,6 +71,11 @@ const AdminBankFileTab = () => {
     [paymentOrders]
   );
 
+  const visibleOrders = useMemo(() =>
+    pendingOrders.filter(o => !hiddenIds.has(o.id)),
+    [pendingOrders, hiddenIds]
+  );
+
   useEffect(() => {
     setSelectedIds(new Set(pendingOrders.map(o => o.id)));
     const rows: Record<string, RowData> = {};
