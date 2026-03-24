@@ -1135,7 +1135,6 @@ const MonthlyPackageDetails = () => {
 
       <TripPackagesModal
         trip={selectedTripForModal}
-        packages={packages as any}
         isOpen={isTripModalOpen}
         onClose={() => setIsTripModalOpen(false)}
       />
