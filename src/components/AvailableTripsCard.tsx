@@ -19,27 +19,9 @@ const AvailableTripsCard = ({ onViewTrips }: AvailableTripsCardProps) => {
     nextWeek.setDate(today.getDate() + 7);
     nextWeek.setHours(23, 59, 59, 999); // End of the 7th day
     
-    const isInRange = arrivalDate >= today && arrivalDate <= nextWeek;
-    
-    console.log('📅 This week filter:', {
-      today: today.toISOString().split('T')[0],
-      nextWeek: nextWeek.toISOString().split('T')[0],
-      trip: {
-        id: trip.id.slice(0, 8),
-        arrival: trip.arrival_date,
-        isInRange
-      }
-    });
-    
-    return isInRange;
+    return arrivalDate >= today && arrivalDate <= nextWeek;
   });
 
-  // Log the counts for debugging
-  console.log('📊 Trip counts:', {
-    totalTrips: trips.length,
-    tripsThisWeek: tripsThisWeek.length,
-    loading
-  });
 
   return (
     <Card className="overflow-hidden bg-gradient-to-br from-teal-300 via-cyan-200 to-emerald-300 border-0 shadow-lg mobile-content">
