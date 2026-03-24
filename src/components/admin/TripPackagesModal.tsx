@@ -1,15 +1,33 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useStatusHelpers } from "@/hooks/useStatusHelpers";
-import { Package as PackageIcon, MapPin, DollarSign, Calendar, User, Zap } from "lucide-react";
+import { Package as PackageIcon, MapPin, DollarSign, Calendar, User, Zap, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Trip, Package } from "@/types";
 import { formatDateUTC } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
+
+interface BiddingAssignment {
+  id: string;
+  package_id: string;
+  status: string;
+  admin_assigned_tip: number | null;
+  quote: any;
+  packages: {
+    id: string;
+    item_description: string;
+    estimated_price: number | null;
+    purchase_origin: string;
+    package_destination: string;
+    user_id: string;
+    status: string;
+    updated_at: string;
+  } | null;
+}
 
 interface TripPackagesModalProps {
   trip: Trip | null;
@@ -20,45 +38,46 @@ interface TripPackagesModalProps {
 
 const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModalProps) => {
   const { getStatusBadge } = useStatusHelpers();
-  const [assignmentPackageIds, setAssignmentPackageIds] = useState<string[]>([]);
+  const [biddingAssignments, setBiddingAssignments] = useState<BiddingAssignment[]>([]);
+  const [loadingBids, setLoadingBids] = useState(false);
+
+  // Confirmed packages from local data (instant)
+  const directPackages = trip ? packages.filter(pkg => pkg.matched_trip_id === trip?.id) : [];
 
   useEffect(() => {
     if (!trip || !isOpen) {
-      setAssignmentPackageIds([]);
+      setBiddingAssignments([]);
       return;
     }
-    const fetchAssignments = async () => {
+    const fetchBiddingAssignments = async () => {
+      setLoadingBids(true);
       const { data } = await supabase
         .from('package_assignments')
-        .select('package_id')
+        .select(`
+          id, package_id, status, admin_assigned_tip, quote,
+          packages:package_id (id, item_description, estimated_price, purchase_origin, package_destination, user_id, status, updated_at)
+        `)
         .eq('trip_id', trip.id)
         .in('status', ['bid_pending', 'bid_submitted']);
-      setAssignmentPackageIds((data || []).map(a => a.package_id));
+      setBiddingAssignments((data as any) || []);
+      setLoadingBids(false);
     };
-    fetchAssignments();
+    fetchBiddingAssignments();
   }, [trip?.id, isOpen]);
 
   if (!trip) return null;
 
-  const directPackages = packages.filter(pkg => pkg.matched_trip_id === trip.id);
-  const biddingPackages = packages.filter(pkg =>
-    assignmentPackageIds.includes(pkg.id) && pkg.matched_trip_id !== trip.id
-  );
-  const biddingPackageIds = new Set(biddingPackages.map(p => p.id));
-  const tripPackages = [...directPackages, ...biddingPackages];
-
-  const completedPackages = tripPackages.filter(pkg => ['delivered_to_office', 'completed'].includes(pkg.status));
-  const totalValue = tripPackages.reduce((sum, pkg) => sum + (Number(pkg.estimated_price) || 0), 0);
-  const totalTips = tripPackages.reduce((sum, pkg) => {
+  const completedPackages = directPackages.filter(pkg => ['delivered_to_office', 'completed'].includes(pkg.status));
+  const totalConfirmedValue = directPackages.reduce((sum, pkg) => sum + (Number(pkg.estimated_price) || 0), 0);
+  const totalConfirmedTips = directPackages.reduce((sum, pkg) => {
     const quote = pkg.quote as any;
-    const tipAmount = quote?.price || pkg.admin_assigned_tip || 0;
-    return sum + Number(tipAmount);
+    return sum + Number(quote?.price || pkg.admin_assigned_tip || 0);
   }, 0);
 
   const getPackageProgress = (pkg: Package) => {
     const statusOrder = [
-      'pending_approval', 'approved', 'matched', 'quote_sent', 'payment_pending', 
-      'paid', 'pending_purchase', 'in_transit', 
+      'pending_approval', 'approved', 'matched', 'quote_sent', 'payment_pending',
+      'paid', 'pending_purchase', 'in_transit',
       'delivered_to_office', 'completed'
     ];
     const currentIndex = statusOrder.indexOf(pkg.status);
@@ -90,23 +109,23 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">{tripPackages.length}</div>
-                  <div className="text-sm text-muted-foreground">Total Paquetes</div>
+                  <div className="text-2xl font-bold text-primary">{directPackages.length}</div>
+                  <div className="text-sm text-muted-foreground">Confirmados</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-600">{biddingAssignments.length}</div>
+                  <div className="text-sm text-muted-foreground">En Competencia</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">{completedPackages.length}</div>
                   <div className="text-sm text-muted-foreground">Completados</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">${totalValue.toFixed(2)}</div>
-                  <div className="text-sm text-muted-foreground">Valor Total</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-yellow-600">Q{totalTips.toFixed(2)}</div>
-                  <div className="text-sm text-muted-foreground">Propinas Ganadas</div>
+                  <div className="text-2xl font-bold text-blue-600">Q{totalConfirmedTips.toFixed(2)}</div>
+                  <div className="text-sm text-muted-foreground">Tips Confirmados</div>
                 </div>
               </div>
-              
+
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
@@ -128,16 +147,20 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
             </CardContent>
           </Card>
 
-          {/* Packages Table */}
+          {/* Section 1: Confirmed Packages */}
           <Card>
             <CardHeader>
-              <CardTitle>Detalle de Paquetes</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <PackageIcon className="h-4 w-4" />
+                Paquetes Confirmados
+                <Badge variant="default" className="ml-1">{directPackages.length}</Badge>
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              {tripPackages.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <PackageIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No hay paquetes asignados a este viaje</p>
+              {directPackages.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  <PackageIcon className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                  <p>No hay paquetes confirmados en este viaje</p>
                 </div>
               ) : (
                 <Table>
@@ -152,11 +175,11 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {tripPackages.map((pkg) => {
+                    {directPackages.map((pkg) => {
                       const quote = pkg.quote as any;
                       const tipAmount = quote?.price || pkg.admin_assigned_tip || 0;
                       const progress = getPackageProgress(pkg);
-                      
+
                       return (
                         <TableRow key={pkg.id}>
                           <TableCell>
@@ -173,19 +196,7 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
                               </div>
                             </div>
                           </TableCell>
-                          
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              {getStatusBadge(pkg.status)}
-                              {biddingPackageIds.has(pkg.id) && (
-                                <Badge variant="warning" className="text-[10px] px-1.5 py-0">
-                                  <Zap className="h-3 w-3 mr-0.5" />
-                                  Compitiendo
-                                </Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          
+                          <TableCell>{getStatusBadge(pkg.status)}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <DollarSign className="h-3 w-3" />
@@ -194,7 +205,6 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
                               </span>
                             </div>
                           </TableCell>
-                          
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <span className="text-green-600 font-semibold text-xs">Q</span>
@@ -203,11 +213,10 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
                               </span>
                             </div>
                           </TableCell>
-                          
                           <TableCell>
                             <div className="space-y-1">
                               <div className="w-full bg-muted rounded-full h-2">
-                                <div 
+                                <div
                                   className="bg-primary h-2 rounded-full transition-all duration-300"
                                   style={{ width: `${progress}%` }}
                                 />
@@ -217,13 +226,108 @@ const TripPackagesModal = ({ trip, packages, isOpen, onClose }: TripPackagesModa
                               </div>
                             </div>
                           </TableCell>
-                          
                           <TableCell>
                             <div className="text-sm text-muted-foreground">
                               {pkg.updated_at && !isNaN(new Date(pkg.updated_at).getTime()) ? (
-                                formatDistanceToNow(new Date(pkg.updated_at), { 
-                                  addSuffix: true, 
-                                  locale: es 
+                                formatDistanceToNow(new Date(pkg.updated_at), {
+                                  addSuffix: true,
+                                  locale: es
+                                })
+                              ) : (
+                                "Fecha no disponible"
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Section 2: Bidding Packages */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-yellow-600" />
+                Paquetes en Competencia
+                <Badge variant="warning" className="ml-1">{biddingAssignments.length}</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingBids ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  <Loader2 className="h-8 w-8 mx-auto mb-3 animate-spin opacity-50" />
+                  <p>Cargando asignaciones...</p>
+                </div>
+              ) : biddingAssignments.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  <Zap className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                  <p>No hay paquetes en competencia</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Producto</TableHead>
+                      <TableHead>Estado Bid</TableHead>
+                      <TableHead>Valor Est.</TableHead>
+                      <TableHead>Tip Asignado</TableHead>
+                      <TableHead>Última Actualización</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {biddingAssignments.map((assignment) => {
+                      const pkg = assignment.packages;
+                      if (!pkg) return null;
+                      const tipAmount = assignment.quote?.price || assignment.admin_assigned_tip || 0;
+
+                      return (
+                        <TableRow key={assignment.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium text-sm">
+                                {pkg.item_description || 'Sin descripción'}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {pkg.purchase_origin} → {pkg.package_destination}
+                              </div>
+                              <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                <User className="h-3 w-3" />
+                                Shopper: #{pkg.user_id?.slice(-8)}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="warning" className="text-xs">
+                              <Zap className="h-3 w-3 mr-1" />
+                              {assignment.status === 'bid_pending' ? 'Pendiente' : 'Enviado'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="h-3 w-3" />
+                              <span className="font-medium">
+                                ${Number(pkg.estimated_price || 0).toFixed(2)}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <span className="text-green-600 font-semibold text-xs">Q</span>
+                              <span className={`font-medium ${tipAmount > 0 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                {Number(tipAmount).toFixed(2)}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm text-muted-foreground">
+                              {pkg.updated_at && !isNaN(new Date(pkg.updated_at).getTime()) ? (
+                                formatDistanceToNow(new Date(pkg.updated_at), {
+                                  addSuffix: true,
+                                  locale: es
                                 })
                               ) : (
                                 "Fecha no disponible"
