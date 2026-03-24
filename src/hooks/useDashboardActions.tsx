@@ -1355,15 +1355,16 @@ export const useDashboardActions = (
         });
 
         parallelOps.push(
-          supabase
-            .from('package_assignments')
-            .insert(assignmentRows)
-            .then(({ error }: any) => {
-              if (error) {
-                console.error('Error inserting package_assignments:', error);
-                throw error;
-              }
-            })
+          Promise.resolve(
+            supabase
+              .from('package_assignments')
+              .insert(assignmentRows)
+          ).then(({ error }: any) => {
+            if (error) {
+              console.error('Error inserting package_assignments:', error);
+              throw error;
+            }
+          })
         );
       }
 
