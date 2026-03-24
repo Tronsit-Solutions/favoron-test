@@ -113,6 +113,10 @@ const AdminPaymentsUnifiedTab = () => {
         <TabsContent value="refunds" className="mt-4">
           <AdminRefundsTab />
         </TabsContent>
+
+        <TabsContent value="bank-file" className="mt-4">
+          <AdminBankFileTab />
+        </TabsContent>
       </Tabs>
     </div>
   );
