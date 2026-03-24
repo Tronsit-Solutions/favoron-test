@@ -1,56 +1,49 @@
 
 
-## Fix: Match tarda 3+ minutos
+## Fix: Match lento — 4 queries secuenciales bloqueantes
 
 ### Causa raíz
 
-El problema principal es que `fetchPackages()` en `usePackagesData.tsx` es una query pesada (SELECT * con 3 niveles de JOINs anidados: packages → profiles, packages → trips → trip.profiles) que se ejecuta SIN ningún control:
+En `handleMatchPackage` (líneas 1271-1379), hay **4 operaciones de DB secuenciales** donde solo la primera es realmente bloqueante:
 
-1. **Sin debounce en realtime**: Cada vez que CUALQUIER paquete cambia en la DB, la suscripción realtime (línea 191) ejecuta `fetchPackages()` inmediatamente — sin debounce, sin deduplicación
-2. **Múltiples triggers durante un match**: Un match genera al menos 2 cambios en la tabla packages (insert assignments no genera trigger, pero el `updatePackage` en línea 1379 sí), más el `refreshAdminData` a los 2 segundos (línea 271)
-3. **Query sin filtro**: `fetchPackages()` carga TODOS los paquetes de la DB con joins anidados. Si hay cientos de paquetes, esta query puede tardar varios segundos cada vez
-4. **`updatePackage` hace `.select()` redundante**: En línea 113-118, después de hacer update hace `.select().maybeSingle()` para obtener los datos actualizados — pero luego el realtime subscription vuelve a hacer un fetch completo de TODOS los paquetes
+1. `await` query existing assignments (línea 1271) — **necesario** antes de decidir recycle vs insert
+2. `await Promise.all(recyclePromises)` (línea 1331) — reciclar assignments
+3. `await supabase.insert(assignmentRows)` (línea 1359) — insertar nuevos assignments
+4. `await updatePackage(packageId, updateData)` (línea 1379) — actualizar status del paquete
+
+**Los pasos 2, 3 y 4 son independientes entre sí** pero se ejecutan uno tras otro. Además, `updatePackage` pasa por el hook que hace `.select().maybeSingle()` innecesariamente (ya sabemos qué datos enviamos).
 
 ### Solución
 
-#### 1) `src/hooks/usePackagesData.tsx` — Debounce en la suscripción realtime
+**Archivo: `src/hooks/useDashboardActions.tsx`**
 
-Agregar un debounce de 1 segundo al handler de realtime para evitar múltiples refetches seguidos:
+1. **Paralelizar pasos 2, 3 y 4**: Después de obtener existing assignments (paso 1), lanzar recycle, insert y updatePackage **en paralelo** con `Promise.all`.
 
-```tsx
-// Usar useRef para el timeout
-const debounceRef = useRef<NodeJS.Timeout>();
+2. **Usar supabase directo para el update del paquete**: En lugar de `await updatePackage(packageId, updateData)` que pasa por el hook (con `.select().maybeSingle()` extra), hacer un `supabase.from('packages').update(updateData).eq('id', id)` directo sin `.select()`. El realtime subscription ya se encarga de actualizar el estado local.
 
-// En la suscripción:
-(payload) => {
-  clearTimeout(debounceRef.current);
-  debounceRef.current = setTimeout(() => fetchPackages(), 1000);
+```ts
+// DESPUÉS del paso 1 (query existing assignments):
+const parallelOps: Promise<any>[] = [];
+
+// Paso 2: Recycle (si hay)
+if (recyclableIds.length > 0) {
+  parallelOps.push(Promise.all(recyclePromises));
 }
+
+// Paso 3: Insert (si hay)
+if (newTripIds.length > 0) {
+  parallelOps.push(supabase.from('package_assignments').insert(assignmentRows));
+}
+
+// Paso 4: Update package status — directo sin .select()
+parallelOps.push(
+  supabase.from('packages').update(updateData).eq('id', packageId)
+);
+
+await Promise.all(parallelOps);
 ```
-
-#### 2) `src/hooks/usePackagesData.tsx` — Deduplicar fetches concurrentes
-
-Agregar un guard para evitar que se ejecuten múltiples `fetchPackages()` simultáneos:
-
-```tsx
-const fetchInProgressRef = useRef(false);
-
-const fetchPackages = async () => {
-  if (fetchInProgressRef.current) return;
-  fetchInProgressRef.current = true;
-  try { ... } finally { fetchInProgressRef.current = false; }
-};
-```
-
-#### 3) `src/components/AdminDashboard.tsx` — Eliminar refresh redundante
-
-Eliminar el `setTimeout(() => refreshAdminData(), 2000)` en línea 271 — ya no es necesario porque el realtime subscription se encarga del refresh, y la actualización optimista ya mueve el paquete en la UI inmediatamente.
-
-### Archivos
-- **Modificar**: `src/hooks/usePackagesData.tsx` — debounce + deduplicación
-- **Modificar**: `src/components/AdminDashboard.tsx` — eliminar refresh redundante
 
 ### Resultado esperado
-- Match se completa en 1-3 segundos en vez de 3+ minutos
-- Un solo refetch después del match en vez de múltiples cascadas
+- El match pasa de ~4 queries secuenciales (~2-4s) a 1 query + 1 batch paralelo (~1s)
+- La UI muestra "Match exitoso" casi inmediatamente después de cerrar el dialog
 
