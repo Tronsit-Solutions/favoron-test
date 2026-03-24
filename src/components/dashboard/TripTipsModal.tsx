@@ -269,15 +269,40 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
             </DialogDescription>
           </DialogHeader>
 
-          {/* Total tips from shoppers */}
-          <div className="bg-muted/40 rounded-lg p-4 text-center">
-            <p className="text-xs text-muted-foreground mb-1">Total tips de shoppers</p>
-            <p className="text-2xl font-bold text-foreground">{formatCurrency(totalTipsFromPackages)}</p>
+          {/* Total breakdown */}
+          <div className="bg-muted/40 rounded-lg p-4 space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Tips de shoppers</span>
+              <span className="font-medium text-foreground">{formatCurrency(totalTipsFromPackages)}</span>
+            </div>
+            {boostInfo && boostInfo.amount > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground flex items-center gap-1">
+                  🚀 Tip Booster
+                  {boostInfo.type === 'percentage' && ` (${boostInfo.value}%)`}
+                  {boostInfo.pending && (
+                    <span className="text-[10px] text-amber-600">(estimado)</span>
+                  )}
+                </span>
+                <span className="font-medium text-green-600">+ {formatCurrency(boostInfo.amount)}</span>
+              </div>
+            )}
+            {(boostInfo && boostInfo.amount > 0) && (
+              <div className="border-t border-border pt-2 flex items-center justify-between">
+                <span className="text-sm font-semibold text-foreground">Total a cobrar</span>
+                <span className="text-xl font-bold text-foreground">{formatCurrency(totalWithBoost)}</span>
+              </div>
+            )}
+            {(!boostInfo || boostInfo.amount <= 0) && (
+              <div className="text-center pt-1">
+                <span className="text-xl font-bold text-foreground">{formatCurrency(totalTipsFromPackages)}</span>
+              </div>
+            )}
             {tripPayment?.payment_status === 'completed' && (
-              <Badge className="mt-1 bg-green-600 text-white">Pagado</Badge>
+              <div className="text-center"><Badge className="bg-green-600 text-white">Pagado</Badge></div>
             )}
             {tripPayment?.payment_status === 'pending' && (
-              <Badge className="mt-1" variant="default">Cobro solicitado</Badge>
+              <div className="text-center"><Badge variant="default">Cobro solicitado</Badge></div>
             )}
           </div>
 
