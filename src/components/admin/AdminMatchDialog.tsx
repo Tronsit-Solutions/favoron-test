@@ -619,7 +619,7 @@ const AdminMatchDialog = ({
           console.error('Error fetching traveler packages:', directResult.error);
           setTravelerPackages([]);
         } else {
-          console.log('[TravelerPackages] Direct query for trip', trip.id, ':', directResult.data?.length, 'results', directResult.data?.map((p: any) => ({ id: p.id, status: p.status, desc: p.item_description })));
+          // Filter direct packages by timer/payment status
           const now = Date.now();
           const isTimerActive = (pkg: any) => (
             (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
