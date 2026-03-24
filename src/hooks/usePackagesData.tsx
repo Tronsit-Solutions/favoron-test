@@ -194,8 +194,9 @@ export const usePackagesData = () => {
           table: 'packages'
         },
         (payload) => {
-          // Immediate refetch for real-time updates
-          fetchPackages();
+          // Debounced refetch to avoid cascading queries during match
+          clearTimeout(debounceRef.current);
+          debounceRef.current = setTimeout(() => fetchPackages(), 1000);
         }
       )
       .subscribe();
