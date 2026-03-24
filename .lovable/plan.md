@@ -1,18 +1,22 @@
 
 
-## Agregar headers al archivo XLS
+## Celdas editables en la tabla de Archivo Banco
 
-### Cambio
+### Enfoque
+Agregar un estado `editedRows` (un Map de `orderId → objeto con valores editados`) que permite sobreescribir cualquier celda antes de descargar. Cada celda se convierte en un `<Input>` inline que lee del estado editado o del valor original como fallback.
 
-**Archivo: `src/components/admin/AdminBankFileTab.tsx`**
+### Cambios — `src/components/admin/AdminBankFileTab.tsx`
 
-Insertar una fila de headers antes de los datos en el array que se pasa a `aoa_to_sheet`:
+1. **Nuevo estado**: `editedRows` — `Record<string, Record<string, any>>` donde las keys son el ID de la orden y los valores son objetos con las columnas editadas (holder, account, type, code, ref1, ref2, amount).
 
-```ts
-const headers = ["Titular", "", "Cuenta", "Tipo", "Código", "", "Referencia 1", "Referencia 2", "Monto"];
+2. **Inicializar** `editedRows` cuando cargan las órdenes, mapeando cada orden a sus valores por defecto (holder, account number, tipo, "1", refs, monto).
 
-const rows = [headers, ...selected.map(order => [...])];
-```
+3. **Reemplazar cada `<TableCell>` estático** por un `<Input>` sin bordes que muestra el valor del `editedRows` y actualiza el estado al cambiar. Las columnas B y F (vacías) también serán editables por si el usuario necesita agregar algo.
 
-Solo se modifica la función `handleDownload`, líneas 51-63.
+4. **`handleDownload`** lee de `editedRows` en vez de directamente de las órdenes, asegurando que los valores editados se exporten al XLS.
+
+### Resultado
+- Todas las celdas son editables inline con inputs transparentes
+- Los cambios se reflejan inmediatamente en la descarga XLS
+- No se persisten a la base de datos (solo para la sesión de descarga)
 
