@@ -420,27 +420,25 @@ const AdminMatchDialog = ({
     const fetchAllAssignments = async () => {
       const tripIds = availableTrips.map(t => t.id);
       
-      const queries: Promise<any>[] = [
-        // 1) Existing assignments for this package
-        supabase
-          .from('package_assignments')
-          .select('trip_id')
-          .eq('package_id', selectedPackage.id)
-          .in('status', ['bid_pending', 'bid_submitted', 'bid_won']),
-      ];
+      // 1) Existing assignments for this package
+      const existingPromise = supabase
+        .from('package_assignments')
+        .select('trip_id')
+        .eq('package_id', selectedPackage.id)
+        .in('status', ['bid_pending', 'bid_submitted', 'bid_won'])
+        .then(r => r);
       
       // 2) Trip assignments map (only if we have trips)
-      if (tripIds.length > 0) {
-        queries.push(
-          supabase
+      const tripAssignmentsPromise = tripIds.length > 0
+        ? supabase
             .from('package_assignments')
             .select('trip_id, package_id')
             .in('trip_id', tripIds)
             .in('status', ['bid_pending', 'bid_submitted'])
-        );
-      }
+            .then(r => r)
+        : Promise.resolve({ data: null });
 
-      const results = await Promise.all(queries);
+      const [existingResult, tripResult] = await Promise.all([existingPromise, tripAssignmentsPromise]);
       
       // Process existing assignments
       const existingData = results[0]?.data;
