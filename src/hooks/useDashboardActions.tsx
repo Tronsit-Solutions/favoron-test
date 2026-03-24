@@ -1267,70 +1267,19 @@ export const useDashboardActions = (
         }
       }
 
-      // Check for existing assignments to separate into recyclable vs new
-      const { data: existingAssignments } = await supabase
+      // Filter out trips that already have an ACTIVE assignment for this package
+      const { data: activeAssignments } = await supabase
         .from('package_assignments')
-        .select('id, trip_id, status')
+        .select('trip_id')
         .eq('package_id', packageId)
-        .in('trip_id', tripIdsToAssign);
-      
-      const terminalStatuses = ['bid_lost', 'bid_expired', 'bid_cancelled', 'rejected'];
-      const activeStatuses = ['bid_pending', 'bid_submitted', 'bid_won'];
-      
-      const recyclableIds: string[] = [];
-      const alreadyActiveTripIds = new Set<string>();
-      const existingTripIds = new Set<string>();
-      
-      for (const a of (existingAssignments || [])) {
-        existingTripIds.add(a.trip_id);
-        if (activeStatuses.includes(a.status)) {
-          alreadyActiveTripIds.add(a.trip_id);
-        } else if (terminalStatuses.includes(a.status)) {
-          recyclableIds.push(a.id);
-        }
-      }
+        .in('trip_id', tripIdsToAssign)
+        .in('status', ['bid_pending', 'bid_submitted', 'bid_won']);
+
+      const activeTripIds = new Set((activeAssignments || []).map(a => a.trip_id));
+      const newTripIds = tripIdsToAssign.filter(tid => !activeTripIds.has(tid));
       
       // Build all parallel operations
       const parallelOps: Promise<any>[] = [];
-
-      // Recycle terminal assignments back to bid_pending
-      if (recyclableIds.length > 0) {
-        const recyclePromises = recyclableIds.map(rid => {
-          const assignment = (existingAssignments || []).find(a => a.id === rid);
-          if (!assignment) return Promise.resolve();
-          const matchedTrip = trips.find(trip => trip.id === assignment.trip_id);
-          const travelerAddress = buildTravelerAddress(matchedTrip);
-          const matchedTripDates = matchedTrip ? {
-            first_day_packages: matchedTrip.first_day_packages,
-            last_day_packages: matchedTrip.last_day_packages,
-            delivery_date: matchedTrip.delivery_date,
-            arrival_date: matchedTrip.arrival_date
-          } : null;
-          
-          return supabase
-            .from('package_assignments')
-            .update({
-              status: 'bid_pending',
-              admin_assigned_tip: adminTip,
-              traveler_address: travelerAddress,
-              matched_trip_dates: matchedTripDates,
-              products_data: updatedProductsData || null,
-              quote: null,
-              quote_expires_at: null,
-              expires_at: null,
-              dismissed_by_traveler: false,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', rid)
-            .then(({ error }) => {
-              if (error) console.error('Error recycling assignment:', error);
-            });
-        });
-        parallelOps.push(Promise.all(recyclePromises));
-      }
-      
-      // Insert only truly new assignments
-      const newTripIds = tripIdsToAssign.filter(tid => !existingTripIds.has(tid));
 
       if (newTripIds.length > 0) {
         const assignmentRows = newTripIds.map(tid => {
