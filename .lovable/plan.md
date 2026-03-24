@@ -1,47 +1,43 @@
 
 
-## Fix: No se puede seleccionar viajeros en AdminMatchDialog
+## Fix: "Procesando match..." se queda colgado
 
 ### Causa raíz
+En `useDashboardActions.tsx` (líneas 1390-1419), después de completar el match exitosamente, hay un `for` loop **secuencial** que por cada viajero:
+1. Hace `appendTripHistoryEntry()` — lee y escribe en la DB (2 queries)
+2. Llama `sendWhatsAppNotification()` — invoca un edge function
 
-El `useEffect` en la línea 408 de `AdminMatchDialog.tsx` tiene `availableTrips` en su array de dependencias. Como `availableTrips` es un array que se recrea en cada render del componente padre, este efecto se re-ejecuta constantemente. Las primeras líneas del efecto son:
-
-```ts
-setSelectedTripIds(new Set());  // ← BORRA la selección
-setSelectedTripId(null);        // ← BORRA la selección
-```
-
-**Resultado**: cada vez que el componente padre re-renderiza, la selección del usuario se borra inmediatamente.
+Para 2 viajeros = 4+ llamadas de red secuenciales. Todo esto ocurre **dentro** del `await` de `AdminDashboard.tsx` línea 257, así que el toast de "Procesando match..." no se reemplaza hasta que TODO termina.
 
 ### Solución
 
-**Archivo: `src/components/admin/AdminMatchDialog.tsx`**
+**Archivo: `src/hooks/useDashboardActions.tsx`**
 
-1. **Separar el reset de la selección del fetch de assignments**: Mover `setSelectedTripIds(new Set())` y `setSelectedTripId(null)` a un efecto que solo dependa de `selectedPackage?.id` (cuando cambia el paquete seleccionado), NO de `availableTrips`.
+Hacer las operaciones post-match (history log + WhatsApp) **fire-and-forget**: no esperarlas. El match ya se completó exitosamente en la DB, así que estas son operaciones auxiliares que no deben bloquear la UI.
 
-2. **Estabilizar la dependencia de `availableTrips`**: Usar `useRef` para almacenar los IDs de los trips y solo re-ejecutar el fetch cuando los IDs realmente cambien (comparación por valor, no por referencia).
+```ts
+// Líneas 1390-1419: Cambiar de for-loop secuencial a fire-and-forget paralelo
+// ANTES:
+for (const tid of tripIdsToAssign) {
+  appendTripHistoryEntry(tid, historyEntry);  // await implícito
+  sendWhatsAppNotification({...});
+}
 
-```tsx
-// Efecto de RESET — solo cuando cambia el paquete
-useEffect(() => {
-  setShowAllTrips(false);
-  setShowOtherCities(false);
-  setSelectedTripIds(new Set());
-  setSelectedTripId(null);
-}, [selectedPackage?.id]);
-
-// Efecto de FETCH — cuando se abre el dialog o cambian datos relevantes
-useEffect(() => {
-  if (!showMatchDialog || !selectedPackage?.id) {
-    setAlreadyAssignedTripIds(new Set());
-    setTripAssignmentsMap({});
-    return;
+// DESPUÉS:
+Promise.all(tripIdsToAssign.map(tid => {
+  const historyEntry = createHistoryEntry(...);
+  appendTripHistoryEntry(tid, historyEntry);
+  const matchedTrip = trips.find(trip => trip.id === tid);
+  if (matchedTrip?.user_id) {
+    sendWhatsAppNotification({...});
   }
-  // ... fetch logic sin resetear selección
-}, [selectedPackage?.id, showMatchDialog, availableTrips]);
+})).catch(err => console.error('Post-match side effects error:', err));
+// No await — fire and forget
 ```
 
-### Resultado esperado
-- El usuario puede seleccionar viajeros sin que la selección se borre
-- El fetch de assignments sigue funcionando correctamente cuando cambian los datos
+Esto hace que el match se resuelva inmediatamente después de actualizar el paquete (línea 1379), y las notificaciones corren en background.
+
+### Resultado
+- El toast "Procesando match..." desaparece casi instantáneamente
+- Las notificaciones y logs se envían en paralelo sin bloquear la UI
 
