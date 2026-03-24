@@ -350,7 +350,10 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <span className="text-sm font-bold text-primary">{formatPrice(quoteValues.totalPrice)}</span>
+                  <div className="flex flex-col items-end">
+                    <span className="text-sm font-bold text-primary">{formatCurrency(quoteValues.price + quoteValues.serviceFee)}</span>
+                    <span className="text-[10px] text-muted-foreground">+ envío según método</span>
+                  </div>
                   {assignment.quote_expires_at && (
                     <QuoteCountdown expiresAt={assignment.quote_expires_at} micro={true} />
                   )}
@@ -515,12 +518,26 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
           </div>
 
           {/* Total display */}
-          <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-semibold">Total a pagar:</span>
-              <span className="text-lg font-bold text-primary">
-                {formatCurrency(displayTotal)}
+          <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-1.5">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Subtotal (tip + comisión):</span>
+              <span className="font-medium">{formatCurrency(recalculatedTotal.basePrice + recalculatedTotal.serviceFee)}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Envío:</span>
+              <span className="font-medium">
+                {recalculatedTotal.deliveryFee > 0 ? formatCurrency(recalculatedTotal.deliveryFee) : 'Gratis'}
               </span>
+            </div>
+            {discountSuccess && discountAmount > 0 && (
+              <div className="flex justify-between items-center text-sm text-primary">
+                <span>Descuento:</span>
+                <span className="font-medium">-{formatCurrency(discountAmount)}</span>
+              </div>
+            )}
+            <div className="border-t border-primary/20 pt-1.5 flex justify-between items-center">
+              <span className="text-sm font-semibold">Total a pagar:</span>
+              <span className="text-lg font-bold text-primary">{formatCurrency(displayTotal)}</span>
             </div>
           </div>
 
