@@ -1290,13 +1290,11 @@ export const useDashboardActions = (
         }
       }
       
+      // Build all parallel operations
+      const parallelOps: Promise<any>[] = [];
+
       // Recycle terminal assignments back to bid_pending
       if (recyclableIds.length > 0) {
-        const recyclableTripIds = (existingAssignments || [])
-          .filter(a => terminalStatuses.includes(a.status))
-          .map(a => a.trip_id);
-        
-        // Build recycled data per trip — run updates in parallel
         const recyclePromises = recyclableIds.map(rid => {
           const assignment = (existingAssignments || []).find(a => a.id === rid);
           if (!assignment) return Promise.resolve();
@@ -1328,7 +1326,7 @@ export const useDashboardActions = (
               if (error) console.error('Error recycling assignment:', error);
             });
         });
-        await Promise.all(recyclePromises);
+        parallelOps.push(Promise.all(recyclePromises));
       }
       
       // Insert only truly new assignments
@@ -1356,17 +1354,20 @@ export const useDashboardActions = (
           };
         });
 
-        const { error: assignError } = await supabase
-          .from('package_assignments')
-          .insert(assignmentRows);
-
-        if (assignError) {
-          console.error('Error inserting package_assignments:', assignError);
-          throw assignError;
-        }
+        parallelOps.push(
+          supabase
+            .from('package_assignments')
+            .insert(assignmentRows)
+            .then(({ error }) => {
+              if (error) {
+                console.error('Error inserting package_assignments:', error);
+                throw error;
+              }
+            })
+        );
       }
 
-      // Unified: always use assignment-based flow. matched_trip_id stays null until shopper accepts.
+      // Update package status — direct supabase call without .select()
       const updateData: any = {
         status: 'matched',
         admin_assigned_tip: adminTip,
@@ -1376,7 +1377,26 @@ export const useDashboardActions = (
       if (updatedProductsData) {
         updateData.products_data = updatedProductsData;
       }
-      await updatePackage(packageId, updateData);
+      parallelOps.push(
+        supabase
+          .from('packages')
+          .update(updateData)
+          .eq('id', packageId)
+          .then(({ error }) => {
+            if (error) throw error;
+          })
+      );
+
+      // Execute all DB operations in parallel
+      await Promise.all(parallelOps);
+
+      // Optimistic local state update
+      setAdminData(prev => ({
+        ...prev,
+        packages: prev.packages.map(pkg =>
+          pkg.id === packageId ? { ...pkg, ...updateData } : pkg
+        )
+      }));
 
       // Log package assignment to trip history for each trip
       const adminName = currentUser?.first_name
