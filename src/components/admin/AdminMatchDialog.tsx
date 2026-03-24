@@ -404,22 +404,33 @@ const AdminMatchDialog = ({
     }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
   }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
 
-  // Reset showAllTrips, showOtherCities and fetch existing assignments + trip assignments in parallel
+  // Reset selection only when the selected package changes
   useEffect(() => {
     setShowAllTrips(false);
     setShowOtherCities(false);
     setSelectedTripIds(new Set());
     setSelectedTripId(null);
-    
+  }, [selectedPackage?.id]);
+
+  // Fetch existing assignments + trip assignments in parallel (without resetting selection)
+  const prevTripIdsRef = useRef<string>('');
+  useEffect(() => {
     if (!showMatchDialog || !selectedPackage?.id) {
       setAlreadyAssignedTripIds(new Set());
       setTripAssignmentsMap({});
       return;
     }
 
+    const tripIds = availableTrips.map(t => t.id);
+    const tripIdsKey = tripIds.sort().join(',');
+    
+    // Skip if trips haven't actually changed
+    if (tripIdsKey === prevTripIdsRef.current && alreadyAssignedTripIds.size > 0) {
+      return;
+    }
+    prevTripIdsRef.current = tripIdsKey;
+
     const fetchAllAssignments = async () => {
-      const tripIds = availableTrips.map(t => t.id);
-      
       // 1) Existing assignments for this package
       const existingPromise = supabase
         .from('package_assignments')
