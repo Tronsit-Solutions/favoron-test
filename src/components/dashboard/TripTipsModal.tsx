@@ -371,7 +371,7 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
                   {canRequestPayment && <Banknote className="h-4 w-4 mr-2" />}
                   {isCreating || creatingAccumulator
                     ? 'Procesando...'
-                    : `Solicitar cobro ${formatCurrency(totalTipsFromPackages)}`}
+                    : `Solicitar cobro ${formatCurrency(totalWithBoost)}`}
                 </Button>
 
                 {!isAllDelivered && packageCounts.total > 0 && (
