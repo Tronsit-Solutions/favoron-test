@@ -11,8 +11,12 @@ export const usePackagesData = () => {
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const fetchInProgressRef = useRef(false);
+  const debounceRef = useRef<NodeJS.Timeout>();
 
   const fetchPackages = async () => {
+    if (fetchInProgressRef.current) return;
+    fetchInProgressRef.current = true;
     try {
       const { data, error } = await supabase
         .from('packages')
