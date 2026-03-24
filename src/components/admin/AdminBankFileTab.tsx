@@ -17,10 +17,7 @@ const AdminBankFileTab = () => {
     [paymentOrders]
   );
 
-  useMemo(() => {
-    setSelectedIds(new Set(pendingOrders.map(o => o.id)));
-  }, [pendingOrders]);
-
+  // Auto-select all pending orders when they load
   useMemo(() => {
     setSelectedIds(new Set(pendingOrders.map(o => o.id)));
   }, [pendingOrders]);
@@ -102,9 +99,13 @@ const AdminBankFileTab = () => {
                     />
                   </TableHead>
                   <TableHead>A: Titular</TableHead>
+                  <TableHead>B:</TableHead>
                   <TableHead>C: Cuenta</TableHead>
                   <TableHead>D: Tipo</TableHead>
-                  <TableHead>G/H: Referencia</TableHead>
+                  <TableHead>E:</TableHead>
+                  <TableHead>F:</TableHead>
+                  <TableHead>G: Ref</TableHead>
+                  <TableHead>H: Ref</TableHead>
                   <TableHead className="text-right">I: Monto</TableHead>
                 </TableRow>
               </TableHeader>
@@ -118,8 +119,12 @@ const AdminBankFileTab = () => {
                       />
                     </TableCell>
                     <TableCell className="font-medium">{order.bank_account_holder}</TableCell>
+                    <TableCell></TableCell>
                     <TableCell className="font-mono text-xs">{order.bank_account_number}</TableCell>
                     <TableCell>{getAccountTypeCode(order.bank_account_type) === 1 ? 'Monetaria (1)' : 'Ahorros (2)'}</TableCell>
+                    <TableCell>1</TableCell>
+                    <TableCell></TableCell>
+                    <TableCell>Tip {order.trip_id.slice(0, 8)}</TableCell>
                     <TableCell>Tip {order.trip_id.slice(0, 8)}</TableCell>
                     <TableCell className="text-right font-semibold">{formatCurrency(order.amount)}</TableCell>
                   </TableRow>
