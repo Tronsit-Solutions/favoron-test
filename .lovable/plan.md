@@ -1,46 +1,49 @@
 
 
-## Fix: Admin status update no refleja en la card sin hard refresh
+## Mostrar Tip Booster en el TripTipsModal
 
-### Causa raíz
+### Problema
+1. El TripTipsModal no muestra información del tip booster — el viajero no sabe que tiene un boost activo
+2. El boost se aplica recién al crear el acumulador (`applyPendingBoostCode`), que se llama al solicitar cobro. Si el viajero aún no solicitó cobro, el boost no se ha calculado ni mostrado
 
-En `useDashboardState.tsx` línea 162, el admin usa `regularPackagesData.updatePackage`, que internamente hace `setPackages` sobre el estado de `regularPackagesData` — pero la vista admin lee de `adminData.packages` (un estado completamente separado). Además, línea 165: `setPackages: () => {}` — es un no-op.
+### Cuándo se aplica el boost (flujo actual)
+- El viajero o admin guarda un `boost_code` en `trips.boost_code`
+- Al crear/actualizar el acumulador (botón "Solicitar cobro"), se llama `applyPendingBoostCode` que ejecuta el RPC `validate_boost_code`
+- El RPC inserta en `boost_code_usage` y actualiza `trip_payment_accumulator.boost_amount`
 
-Resultado: el update se graba en Supabase correctamente, pero el estado local admin nunca se actualiza. Solo se refleja cuando llega el evento de realtime (que pierde relaciones profiles/trips) o con hard refresh.
+### Solución
 
-### Solución — `src/hooks/useDashboardState.tsx`
+**Archivo: `src/components/dashboard/TripTipsModal.tsx`**
 
-Crear un wrapper `adminUpdatePackage` que:
-1. Llame a `regularPackagesData.updatePackage(id, updates)` (que hace el update en Supabase)
-2. Tras éxito, actualice localmente `adminData.packages` con el merge
+#### 1) Obtener info del boost para mostrar en el modal
+- Si ya existe `tripPayment?.boost_amount > 0`: usar ese valor directamente
+- Si no hay acumulador pero `trip.boost_code` existe: mostrar que hay un boost pendiente de aplicar (se aplicará al solicitar cobro)
+- Fetch del boost code details (tipo y valor) desde `boost_codes` table usando `trip.boost_code` para mostrar el badge descriptivo
 
-Cambiar línea 162 de:
-```ts
-updatePackage: regularPackagesData.updatePackage,
+#### 2) Agregar sección de desglose en el total
+Cambiar la sección de "Total tips de shoppers" para mostrar un desglose:
+
 ```
-a:
-```ts
-updatePackage: async (id: string, updates: any) => {
-  const result = await regularPackagesData.updatePackage(id, updates);
-  // Also update admin local state, preserving relations
-  adminData.setPackages(prev => prev.map(pkg => 
-    pkg.id === id ? { ...pkg, ...updates, ...(result || {}) } : pkg
-  ));
-  return result;
-},
+Tips de shoppers:           Q100.00
+🚀 Tip Booster (20%):     + Q20.00
+────────────────────────────────────
+Total a cobrar:             Q120.00
 ```
 
-Esto requiere que `useAdminData` exponga `setPackages`. Actualmente no lo hace.
+- Si el boost ya está aplicado (`tripPayment.boost_amount > 0`): mostrar el monto real
+- Si hay boost_code pendiente pero no aplicado: calcular un estimado basado en el tipo de boost (fijo o porcentual) y mostrarlo como "estimado" con texto muted
 
-### Cambios
+#### 3) Actualizar el botón de "Solicitar cobro"
+- El monto mostrado en el botón debe incluir el boost (si ya se conoce)
+- `Solicitar cobro Q120.00` en lugar de `Q100.00`
 
-#### 1) `src/hooks/useAdminData.tsx`
-- Exponer `setPackages` en el return del hook (ya existe internamente como `useState`, solo agregar al return y al tipo `AdminData`)
+### Cambios específicos
 
-#### 2) `src/hooks/useDashboardState.tsx`  
-- Línea 162: reemplazar `updatePackage: regularPackagesData.updatePackage` con el wrapper que también actualiza `adminData.packages` localmente tras el update exitoso
+1. **Estado nuevo**: `boostInfo` con `{ amount, type, value, pending }` obtenido de `boost_code_usage` + `boost_codes` o estimado desde `trip.boost_code`
+2. **Fetch adicional en `fetchPackageDetails`**: consultar `boost_codes` si `trip.boost_code` existe para obtener tipo/valor del boost
+3. **UI**: Reemplazar el bloque simple de total (líneas 230-240) con desglose que incluya tips base + boost + total
+4. **Botón**: Usar `totalTipsFromPackages + boostAmount` como monto del botón
 
-### Archivos
-- **Modificar**: `src/hooks/useAdminData.tsx` — exponer `setPackages`
-- **Modificar**: `src/hooks/useDashboardState.tsx` — wrapper de `updatePackage` para admin
+### Archivo
+- **Modificar**: `src/components/dashboard/TripTipsModal.tsx`
 
