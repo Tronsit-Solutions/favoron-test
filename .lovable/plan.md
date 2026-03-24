@@ -1,30 +1,22 @@
 
 
-## Agregar pestaña "Archivo Banco" con descarga XLS
+## Mostrar todas las columnas en la tabla preview
 
-### Cambios
+### Cambio
 
-#### 1) `src/components/admin/AdminPaymentsUnifiedTab.tsx`
-- Agregar tercera sub-pestaña "Archivo Banco" con icono `FileSpreadsheet`
-- Ampliar `TabsList` a `grid-cols-3`
-- Renderizar nuevo componente `AdminBankFileTab`
+**Archivo: `src/components/admin/AdminBankFileTab.tsx`**
 
-#### 2) Nuevo: `src/components/admin/AdminBankFileTab.tsx`
-- Muestra tabla preview de órdenes de pago pendientes con checkboxes de selección
-- Mapeo de columnas:
-  - A: `bank_account_holder`
-  - B: vacía
-  - C: `bank_account_number`
-  - D: `monetaria` → 1, `ahorros` → 2
-  - E: 1 (fijo)
-  - F: vacía
-  - G/H: `"Tip " + trip_id` (8 chars)
-  - I: `amount`
-- Botón "Descargar XLS" genera archivo **.xls** usando SheetJS con `bookType: 'xls'`
-- Sin headers en el archivo (solo datos, listo para el banco)
-- Usa `usePaymentOrders()` para datos
+Actualizar la tabla para mostrar las 9 columnas (A-I) tal como aparecerán en el archivo XLS, incluyendo las columnas vacías B y F, la columna E (siempre "1"), y separar G y H en dos columnas distintas.
 
-### Archivos
-- **Modificar**: `AdminPaymentsUnifiedTab.tsx`
-- **Crear**: `AdminBankFileTab.tsx`
+**Headers:**
+`A: Titular | B: (vacía) | C: Cuenta | D: Tipo | E: (1) | F: (vacía) | G: Referencia | H: Referencia | I: Monto`
+
+**Celdas:**
+- B: vacío
+- E: "1"
+- F: vacío
+- G: `Tip {trip_id corto}`
+- H: `Tip {trip_id corto}`
+
+También se corrige el bug de los dos `useMemo` duplicados que hacen `setSelectedIds` (líneas 20-26) — se reemplazarán por un solo `useEffect`.
 
