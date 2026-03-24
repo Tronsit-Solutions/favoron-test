@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, FileSpreadsheet } from "lucide-react";
+import { Download, FileSpreadsheet, Trash2 } from "lucide-react";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import * as XLSX from "xlsx";
 
