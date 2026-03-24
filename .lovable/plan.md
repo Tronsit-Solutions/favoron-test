@@ -1,51 +1,29 @@
 
 
-## Dividir paquetes del viaje en 2 secciones: Confirmados vs En competencia
+## Fix: Paquetes confirmados no aparecen en AdminMatchDialog
 
-### Problema actual
-El modal carga assignments y luego busca esos package IDs en el array `packages` pasado como prop. Esto es lento porque depende de que el array completo de packages esté disponible, y mezcla paquetes confirmados con los que están en fase de puja en una sola tabla.
+### Problema
+El screenshot del usuario muestra "0 Paquetes en este Viaje" a pesar de que hay paquetes asignados. Mi plan anterior proponía quitar el filtro de timer, pero el usuario aclara: **los paquetes con timer expirado NO deben contar** — ya no están activos para ese viaje.
 
-### Solución
+### Causa raíz real
+La lógica actual (línea 616) es correcta en su intención: solo muestra paquetes con timer activo o post-pago. Si aparecen 0 paquetes, es porque:
+- Los paquetes están en estado `matched`/`quote_sent` con timers expirados (correctamente excluidos)
+- Los paquetes están en bidding (`bid_pending`/`bid_submitted`) — estos SÍ se traen via assignments (línea 599-603) pero **solo se muestran si el segundo fetch funciona**
 
-**Archivo: `src/components/admin/TripPackagesModal.tsx`**
+El problema real es probablemente que los paquetes están en la sección de **bidding** (assignments) pero la UI no los distingue claramente, o el conteo de "Paquetes en este Viaje" solo cuenta `filtered` (directos) y no incluye `biddingPkgs`.
 
-#### 1) Separar en 2 secciones visuales
+Necesito ver cómo se muestra el conteo en la UI para confirmar.
 
-**Sección 1 — "Paquetes Confirmados"**: Paquetes donde `matched_trip_id === trip.id` (ya asignados, en proceso o completados). Estos se obtienen directamente del array `packages` sin query adicional.
+### Solución — `src/components/admin/AdminMatchDialog.tsx`
 
-**Sección 2 — "Paquetes en Competencia"**: Assignments con status `bid_pending` o `bid_submitted`. En lugar de buscar en el array `packages`, hacer un query directo a `package_assignments` con join a `packages` para traer los datos necesarios (descripción, valor, tip del assignment).
+1. **Verificar el conteo**: El título "Paquetes en este Viaje" probablemente usa `travelerPackages.length`. Si `filtered` está vacío (timers expirados) y `biddingPkgs` tiene datos, el total debería ser correcto ya que línea 647 concatena ambos. El issue puede ser que los assignments tampoco retornan datos (quizás RLS o estado incorrecto).
 
-#### 2) Optimizar el fetch de assignments
+2. **Asegurar que el conteo incluya ambas categorías**: Confirmar que la UI muestra `travelerPackages.length` que ya incluye ambos arrays.
 
-Cambiar el `useEffect` actual para que traiga datos completos de la asignación en un solo query:
+3. **Agregar logging temporal** para debug: Si el query de assignments no retorna datos, verificar que los assignments existen con el status correcto.
 
-```ts
-supabase
-  .from('package_assignments')
-  .select(`
-    id, package_id, status, admin_assigned_tip, quote,
-    packages:package_id (id, item_description, estimated_price, purchase_origin, package_destination, user_id, status, updated_at)
-  `)
-  .eq('trip_id', trip.id)
-  .in('status', ['bid_pending', 'bid_submitted'])
-```
+### Cambio concreto
+Dado que los matched con timer expirado NO cuentan (correcto), el fix real es **no cambiar el filtro**. En su lugar, investigar por qué los bidding packages tampoco aparecen. Lo más probable es que el viaje tenga paquetes con `matched_trip_id` seteado pero con timer expirado, y no tenga assignments activos — en cuyo caso 0 es correcto.
 
-Así los datos de la sección 2 son autocontenidos y no dependen del array `packages`.
-
-#### 3) UI de las 2 secciones
-
-- **Confirmados**: Tabla actual con todos los campos (estado, valor, tip, progreso)
-- **En Competencia**: Tabla más simple con badge de status del assignment (`bid_pending` / `bid_submitted`), descripción del producto, valor estimado, y tip asignado. Badge `⚡ Compitiendo` ya existente.
-
-#### 4) Actualizar métricas del resumen
-
-Separar los contadores:
-- "Confirmados: X" — paquetes directos
-- "En competencia: X" — assignments activos
-- Mantener totales de valor y tips pero distinguir cuáles son confirmados vs pendientes
-
-### Resultado
-- Carga más rápida: los paquetes confirmados se muestran inmediatamente desde el array local
-- Los assignments se cargan aparte sin bloquear la vista principal
-- Clara separación visual entre lo confirmado y lo que está en fase de puja
+**Pregunta para el usuario**: ¿Puedes confirmar si ese viaje tiene paquetes con assignments activos (`bid_pending`/`bid_submitted`) en la tabla `package_assignments`? Si los paquetes tienen `matched_trip_id` pero timer expirado y no hay assignments activos, entonces 0 es el resultado correcto — esos paquetes deberían haber vuelto a `approved` por el sistema de expiración automática.
 
