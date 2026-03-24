@@ -294,7 +294,6 @@ const UserTripsTab = ({ trips, allPackages, loadingTrips }: UserTripsTabProps) =
       {/* Trip Packages Modal */}
       <TripPackagesModal
         trip={selectedTrip}
-        packages={allPackages}
         isOpen={showPackagesModal}
         onClose={() => {
           setShowPackagesModal(false);
