@@ -404,59 +404,64 @@ const AdminMatchDialog = ({
     }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
   }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
 
-  // Reset showAllTrips, showOtherCities and fetch existing assignments when selected package changes
+  // Reset showAllTrips, showOtherCities and fetch existing assignments + trip assignments in parallel
   useEffect(() => {
     setShowAllTrips(false);
     setShowOtherCities(false);
     setSelectedTripIds(new Set());
     setSelectedTripId(null);
     
-    // Fetch existing assignments for this package (for "assign more" flow)
-    if (showMatchDialog && selectedPackage?.id) {
-      const fetchExistingAssignments = async () => {
-        const { data, error } = await supabase
-          .from('package_assignments')
-          .select('trip_id')
-          .eq('package_id', selectedPackage.id)
-          .in('status', ['bid_pending', 'bid_submitted', 'bid_won']);
-        
-        if (!error && data) {
-          setAlreadyAssignedTripIds(new Set(data.map(a => a.trip_id)));
-        } else {
-          setAlreadyAssignedTripIds(new Set());
-        }
-      };
-      fetchExistingAssignments();
-    }
-  }, [selectedPackage?.id, showMatchDialog]);
-
-  // Load all active assignments grouped by trip for value calculations
-  useEffect(() => {
-    if (!showMatchDialog || availableTrips.length === 0) {
+    if (!showMatchDialog || !selectedPackage?.id) {
+      setAlreadyAssignedTripIds(new Set());
       setTripAssignmentsMap({});
       return;
     }
-    
-    const tripIds = availableTrips.map(t => t.id);
-    
-    const fetchTripAssignments = async () => {
-      const { data, error } = await supabase
-        .from('package_assignments')
-        .select('trip_id, package_id')
-        .in('trip_id', tripIds)
-        .in('status', ['bid_pending', 'bid_submitted']);
+
+    const fetchAllAssignments = async () => {
+      const tripIds = availableTrips.map(t => t.id);
       
-      if (!error && data) {
+      // 1) Existing assignments for this package
+      const existingPromise = supabase
+        .from('package_assignments')
+        .select('trip_id')
+        .eq('package_id', selectedPackage.id)
+        .in('status', ['bid_pending', 'bid_submitted', 'bid_won'])
+        .then(r => r);
+      
+      // 2) Trip assignments map (only if we have trips)
+      const tripAssignmentsPromise = tripIds.length > 0
+        ? supabase
+            .from('package_assignments')
+            .select('trip_id, package_id')
+            .in('trip_id', tripIds)
+            .in('status', ['bid_pending', 'bid_submitted'])
+            .then(r => r)
+        : Promise.resolve({ data: null });
+
+      const [existingResult, tripResult] = await Promise.all([existingPromise, tripAssignmentsPromise]);
+      
+      // Process existing assignments
+      if (existingResult.data) {
+        setAlreadyAssignedTripIds(new Set(existingResult.data.map((a: any) => a.trip_id)));
+      } else {
+        setAlreadyAssignedTripIds(new Set());
+      }
+      
+      // Process trip assignments map
+      if (tripResult.data) {
         const map: Record<string, string[]> = {};
-        data.forEach(row => {
+        tripResult.data.forEach((row: any) => {
           if (!map[row.trip_id]) map[row.trip_id] = [];
           map[row.trip_id].push(row.package_id);
         });
         setTripAssignmentsMap(map);
+      } else {
+        setTripAssignmentsMap({});
       }
     };
-    fetchTripAssignments();
-  }, [showMatchDialog, availableTrips]);
+    
+    fetchAllAssignments();
+  }, [selectedPackage?.id, showMatchDialog, availableTrips]);
 
   // Pre-populate admin tip from existing package
   useEffect(() => {
@@ -706,32 +711,15 @@ const AdminMatchDialog = ({
   };
 
   const getProductsForModal = () => {
-    console.log('🔍 DEBUG getProductsForModal - fullPackage:', fullPackage);
-    console.log('🔍 DEBUG products_data:', fullPackage?.products_data);
+    if (!fullPackage?.products_data) return [];
     
-    if (!fullPackage?.products_data) {
-      console.log('❌ No products_data found');
-      return [];
-    }
-    
-    const products = fullPackage.products_data.map((product: any, index: number) => {
-      console.log(`🔍 DEBUG Product ${index}:`, product);
-      
-      // Handle different data structure possibilities - use ?? to preserve existing quantity
-      const mappedProduct = {
-        itemDescription: product.itemDescription || product.item_description || product.description || '',
-        estimatedPrice: product.estimatedPrice || product.estimated_price || product.price || '0',
-        itemLink: product.itemLink || product.item_link || product.link || fullPackage.item_link || '',
-        quantity: product.quantity ?? product.qty ?? '1', // Use ?? to preserve '0' or other falsy values
-        adminAssignedTip: product.adminAssignedTip || 0
-      };
-      
-      console.log(`🔍 DEBUG Mapped Product ${index}:`, mappedProduct);
-      return mappedProduct;
-    });
-    
-    console.log('🔍 DEBUG Final products for modal:', products);
-    return products;
+    return fullPackage.products_data.map((product: any) => ({
+      itemDescription: product.itemDescription || product.item_description || product.description || '',
+      estimatedPrice: product.estimatedPrice || product.estimated_price || product.price || '0',
+      itemLink: product.itemLink || product.item_link || product.link || fullPackage.item_link || '',
+      quantity: product.quantity ?? product.qty ?? '1',
+      adminAssignedTip: product.adminAssignedTip || 0
+    }));
   };
 
   const getTotalAssignedTip = () => {
@@ -1658,10 +1646,10 @@ const AdminMatchDialog = ({
                     variant="outline"
                     onClick={() => setShowProductTipModal(true)}
                     className="w-full sm:w-auto shrink-0"
-                    disabled={loadingDetails}
+                    disabled={!fullPackage?.products_data && loadingDetails}
                   >
                     <Settings className="h-4 w-4 mr-2" />
-                    {loadingDetails ? 'Cargando...' : `Asignar Tips por Producto (${fullPackage?.products_data?.length || 0} productos)`}
+                    {(!fullPackage?.products_data && loadingDetails) ? 'Cargando...' : `Asignar Tips por Producto (${fullPackage?.products_data?.length || 0} productos)`}
                   </Button>
                   {getTotalAssignedTip() > 0 && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex-1">
