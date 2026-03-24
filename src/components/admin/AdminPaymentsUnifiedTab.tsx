@@ -81,7 +81,7 @@ const AdminPaymentsUnifiedTab = () => {
 
       {/* Sub-tabs */}
       <Tabs value={activeSection} onValueChange={setActiveSection}>
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsList className="grid w-full grid-cols-3 max-w-xl">
           <TabsTrigger value="traveler-payments" className="flex items-center gap-2">
             <CreditCard className="h-4 w-4" />
             Pagos Viajeros
@@ -99,6 +99,10 @@ const AdminPaymentsUnifiedTab = () => {
                 {pendingRefunds}
               </Badge>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="bank-file" className="flex items-center gap-2">
+            <FileSpreadsheet className="h-4 w-4" />
+            Archivo Banco
           </TabsTrigger>
         </TabsList>
 
