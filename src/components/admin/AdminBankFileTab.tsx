@@ -167,7 +167,7 @@ const AdminBankFileTab = () => {
         </Button>
       </CardHeader>
       <CardContent>
-        {pendingOrders.length === 0 ? (
+        {visibleOrders.length === 0 ? (
           <p className="text-sm text-muted-foreground">No hay órdenes de pago pendientes.</p>
         ) : (
           <div className="rounded-md border overflow-auto">
