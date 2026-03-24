@@ -246,7 +246,9 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
 
   const isAllDelivered = packageCounts.total > 0 && packageCounts.delivered === packageCounts.total;
   const hasAccumulator = !!tripPayment;
-  const accumulatedAmount = tripPayment?.accumulated_amount ?? totalTipsFromPackages;
+  const boostAmount = boostInfo?.amount ?? 0;
+  const totalWithBoost = totalTipsFromPackages + boostAmount;
+  const accumulatedAmount = tripPayment?.accumulated_amount ? Number(tripPayment.accumulated_amount) + (tripPayment?.boost_amount ? Number(tripPayment.boost_amount) : 0) : totalWithBoost;
   const paymentAlreadyRequested = tripPayment?.payment_order_created === true;
   const canRequestPayment = isAllDelivered && totalTipsFromPackages > 0 && !paymentAlreadyRequested;
   const progressPercent = packageCounts.total > 0 ? (packageCounts.delivered / packageCounts.total) * 100 : 0;
