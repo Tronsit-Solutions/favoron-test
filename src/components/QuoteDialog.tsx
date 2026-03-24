@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2, DollarSign, Calculator, Sparkles, Banknote, Gift, CheckCircle2, Plane, Phone, Edit, Plus, Truck, CreditCard } from "lucide-react";
+import { Calendar, Clock, Package, MapPin, ExternalLink, X, FileText, AlertTriangle, Star, Home, Crown, Trash2, DollarSign, Calculator, Sparkles, Banknote, Gift, CheckCircle2, Plane, Phone, Edit, Plus, Truck, CreditCard, ArrowLeft } from "lucide-react";
 import { formatDateUTC } from "@/lib/formatters";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
@@ -872,24 +872,34 @@ const QuoteDialog = ({
               )}
               
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-2">
+              <div className="flex flex-col gap-2 pt-2">
                 <Button 
-                  variant="outline" 
-                  onClick={() => setShowInlineEditSelection(true)}
-                  className="flex-1"
-                  disabled={tripEditPending}
+                  variant="ghost" 
+                  onClick={() => setShowTripConfirmation(false)}
+                  className="self-start"
                 >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Editar viaje
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Volver a detalles
                 </Button>
-                <Button 
-                  onClick={handleSubmit}
-                  className="flex-1 bg-gradient-to-r from-success via-emerald-500 to-green-600 hover:from-success/90 hover:via-emerald-500/90 hover:to-green-600/90 text-white shadow-lg shadow-success/25"
-                  disabled={tripEditPending}
-                >
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  {tripEditPending ? 'Esperando aprobación' : 'Confirmar y enviar'}
-                </Button>
+                <div className="flex gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowInlineEditSelection(true)}
+                    className="flex-1"
+                    disabled={tripEditPending}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Editar viaje
+                  </Button>
+                  <Button 
+                    onClick={handleSubmit}
+                    className="flex-1 bg-gradient-to-r from-success via-emerald-500 to-green-600 hover:from-success/90 hover:via-emerald-500/90 hover:to-green-600/90 text-white shadow-lg shadow-success/25"
+                    disabled={tripEditPending}
+                  >
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                    {tripEditPending ? 'Esperando aprobación' : 'Confirmar y enviar'}
+                  </Button>
+                </div>
               </div>
             </div>
           ) : (
