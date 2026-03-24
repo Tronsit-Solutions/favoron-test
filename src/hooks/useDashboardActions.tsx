@@ -1387,7 +1387,8 @@ export const useDashboardActions = (
         ? `${shopperProfile.first_name} ${shopperProfile.last_name || ''}`.trim()
         : 'Shopper';
 
-      for (const tid of tripIdsToAssign) {
+      // Fire-and-forget: history logs + WhatsApp notifications in parallel, non-blocking
+      Promise.all(tripIdsToAssign.map(tid => {
         const historyEntry = createHistoryEntry(
           'package_assigned',
           currentUser?.id || null,
@@ -1403,7 +1404,6 @@ export const useDashboardActions = (
         );
         appendTripHistoryEntry(tid, historyEntry);
 
-        // Send WhatsApp notification to each traveler
         const matchedTrip = trips.find(trip => trip.id === tid);
         if (matchedTrip?.user_id) {
           const destination = currentPackage?.package_destination || 'Guatemala';
@@ -1416,7 +1416,7 @@ export const useDashboardActions = (
             }
           });
         }
-      }
+      })).catch(err => console.error('Post-match side effects error:', err));
       
       toast({
         title: "¡Match realizado!",
