@@ -404,59 +404,67 @@ const AdminMatchDialog = ({
     }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
   }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
 
-  // Reset showAllTrips, showOtherCities and fetch existing assignments when selected package changes
+  // Reset showAllTrips, showOtherCities and fetch existing assignments + trip assignments in parallel
   useEffect(() => {
     setShowAllTrips(false);
     setShowOtherCities(false);
     setSelectedTripIds(new Set());
     setSelectedTripId(null);
     
-    // Fetch existing assignments for this package (for "assign more" flow)
-    if (showMatchDialog && selectedPackage?.id) {
-      const fetchExistingAssignments = async () => {
-        const { data, error } = await supabase
-          .from('package_assignments')
-          .select('trip_id')
-          .eq('package_id', selectedPackage.id)
-          .in('status', ['bid_pending', 'bid_submitted', 'bid_won']);
-        
-        if (!error && data) {
-          setAlreadyAssignedTripIds(new Set(data.map(a => a.trip_id)));
-        } else {
-          setAlreadyAssignedTripIds(new Set());
-        }
-      };
-      fetchExistingAssignments();
-    }
-  }, [selectedPackage?.id, showMatchDialog]);
-
-  // Load all active assignments grouped by trip for value calculations
-  useEffect(() => {
-    if (!showMatchDialog || availableTrips.length === 0) {
+    if (!showMatchDialog || !selectedPackage?.id) {
+      setAlreadyAssignedTripIds(new Set());
       setTripAssignmentsMap({});
       return;
     }
-    
-    const tripIds = availableTrips.map(t => t.id);
-    
-    const fetchTripAssignments = async () => {
-      const { data, error } = await supabase
-        .from('package_assignments')
-        .select('trip_id, package_id')
-        .in('trip_id', tripIds)
-        .in('status', ['bid_pending', 'bid_submitted']);
+
+    const fetchAllAssignments = async () => {
+      const tripIds = availableTrips.map(t => t.id);
       
-      if (!error && data) {
+      const queries: Promise<any>[] = [
+        // 1) Existing assignments for this package
+        supabase
+          .from('package_assignments')
+          .select('trip_id')
+          .eq('package_id', selectedPackage.id)
+          .in('status', ['bid_pending', 'bid_submitted', 'bid_won']),
+      ];
+      
+      // 2) Trip assignments map (only if we have trips)
+      if (tripIds.length > 0) {
+        queries.push(
+          supabase
+            .from('package_assignments')
+            .select('trip_id, package_id')
+            .in('trip_id', tripIds)
+            .in('status', ['bid_pending', 'bid_submitted'])
+        );
+      }
+
+      const results = await Promise.all(queries);
+      
+      // Process existing assignments
+      const existingData = results[0]?.data;
+      if (existingData) {
+        setAlreadyAssignedTripIds(new Set(existingData.map((a: any) => a.trip_id)));
+      } else {
+        setAlreadyAssignedTripIds(new Set());
+      }
+      
+      // Process trip assignments map
+      if (results[1]?.data) {
         const map: Record<string, string[]> = {};
-        data.forEach(row => {
+        results[1].data.forEach((row: any) => {
           if (!map[row.trip_id]) map[row.trip_id] = [];
           map[row.trip_id].push(row.package_id);
         });
         setTripAssignmentsMap(map);
+      } else {
+        setTripAssignmentsMap({});
       }
     };
-    fetchTripAssignments();
-  }, [showMatchDialog, availableTrips]);
+    
+    fetchAllAssignments();
+  }, [selectedPackage?.id, showMatchDialog, availableTrips]);
 
   // Pre-populate admin tip from existing package
   useEffect(() => {
