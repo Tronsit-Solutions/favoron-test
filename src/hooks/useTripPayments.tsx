@@ -139,14 +139,16 @@ export const useTripPayments = (tripId?: string) => {
       // Leer el acumulador actualizado de la base de datos
       const { data: freshAccumulator, error: accError } = await supabase
         .from('trip_payment_accumulator')
-        .select('accumulated_amount')
+        .select('accumulated_amount, boost_amount')
         .eq('trip_id', tripId)
         .eq('traveler_id', user.id)
         .maybeSingle();
 
       if (accError) throw accError;
 
-      const freshAmount = freshAccumulator?.accumulated_amount ?? tripPayment.accumulated_amount;
+      const baseAmount = freshAccumulator?.accumulated_amount ?? tripPayment.accumulated_amount;
+      const boostAmount = Number(freshAccumulator?.boost_amount) || 0;
+      const freshAmount = baseAmount + boostAmount;
       console.log('💰 Monto recalculado:', freshAmount, '(anterior:', tripPayment.accumulated_amount, ')');
 
       if (freshAmount <= 0) {
