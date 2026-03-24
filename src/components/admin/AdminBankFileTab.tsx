@@ -190,7 +190,7 @@ const AdminBankFileTab = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pendingOrders.map(order => {
+                {visibleOrders.map(order => {
                   const r = editedRows[order.id];
                   if (!r) return null;
                   return (
