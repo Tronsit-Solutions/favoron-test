@@ -97,42 +97,61 @@ const AdminMatchDialog = ({
     return parseFloat(pkg.estimated_price || '0');
   };
 
-  // Function to calculate totals by category (pending vs confirmed)
-  const calculateTripPackagesTotals = (tripId: string) => {
+  // Memoized totals for all trips — O(packages) once instead of O(trips × packages) per render
+  const tripTotalsMap = useMemo(() => {
     const pendingStatuses = ['matched', 'quote_sent', 'payment_pending', 'payment_pending_approval'];
     const confirmedStatuses = ['paid', 'pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
     
-    // Direct matches (winner assigned via matched_trip_id)
-    const directPackages = packages.filter(pkg => pkg.matched_trip_id === tripId);
-    const directPackageIds = new Set(directPackages.map(pkg => pkg.id));
+    const map: Record<string, { pendingTotal: number; confirmedTotal: number }> = {};
     
-    // Assignment-based packages (bidding phase, not yet matched_trip_id)
-    const assignmentPackageIds = tripAssignmentsMap[tripId] || [];
-    const assignmentPackages = packages.filter(pkg => 
-      assignmentPackageIds.includes(pkg.id) && !directPackageIds.has(pkg.id)
-    );
-    
-    let pendingTotal = 0;
-    let confirmedTotal = 0;
-    
-    directPackages.forEach(pkg => {
-      const value = calculatePackageValue(pkg);
-      if (pendingStatuses.includes(pkg.status)) {
-        pendingTotal += value;
-      } else if (confirmedStatuses.includes(pkg.status)) {
-        confirmedTotal += value;
+    // Index packages by matched_trip_id
+    const pkgByTrip: Record<string, any[]> = {};
+    const pkgById: Record<string, any> = {};
+    for (const pkg of packages) {
+      pkgById[pkg.id] = pkg;
+      if (pkg.matched_trip_id) {
+        if (!pkgByTrip[pkg.matched_trip_id]) pkgByTrip[pkg.matched_trip_id] = [];
+        pkgByTrip[pkg.matched_trip_id].push(pkg);
       }
-    });
+    }
     
-    // Assignment packages always count as pending (they're in bidding phase)
-    assignmentPackages.forEach(pkg => {
-      pendingTotal += calculatePackageValue(pkg);
-    });
+    // Collect all relevant trip IDs
+    const allTripIds = new Set([
+      ...Object.keys(pkgByTrip),
+      ...Object.keys(tripAssignmentsMap),
+    ]);
     
-    return { pendingTotal, confirmedTotal };
+    for (const tripId of allTripIds) {
+      let pendingTotal = 0;
+      let confirmedTotal = 0;
+      
+      const directPackages = pkgByTrip[tripId] || [];
+      const directPackageIds = new Set(directPackages.map(pkg => pkg.id));
+      
+      for (const pkg of directPackages) {
+        const value = calculatePackageValue(pkg);
+        if (pendingStatuses.includes(pkg.status)) pendingTotal += value;
+        else if (confirmedStatuses.includes(pkg.status)) confirmedTotal += value;
+      }
+      
+      // Assignment packages always count as pending
+      const assignmentPackageIds = tripAssignmentsMap[tripId] || [];
+      for (const pkgId of assignmentPackageIds) {
+        if (directPackageIds.has(pkgId)) continue;
+        const pkg = pkgById[pkgId];
+        if (pkg) pendingTotal += calculatePackageValue(pkg);
+      }
+      
+      map[tripId] = { pendingTotal, confirmedTotal };
+    }
+    
+    return map;
+  }, [packages, tripAssignmentsMap]);
+
+  const calculateTripPackagesTotals = (tripId: string) => {
+    return tripTotalsMap[tripId] || { pendingTotal: 0, confirmedTotal: 0 };
   };
 
-  // Legacy function for backward compatibility
   const calculateTripPackagesTotal = (tripId: string) => {
     const { pendingTotal, confirmedTotal } = calculateTripPackagesTotals(tripId);
     return pendingTotal + confirmedTotal;
@@ -446,10 +465,9 @@ const AdminMatchDialog = ({
     }
   }, [selectedPackage?.id, showMatchDialog]);
 
-  // Handle modal state persistence
+  // Handle modal state persistence — only track open/close, not every keystroke
   useEffect(() => {
     if (showMatchDialog && selectedPackage) {
-      // Register this modal as open
       openModal(MODAL_ID, 'admin-match-dialog', {
         selectedPackage,
         matchingTrip,
@@ -458,10 +476,9 @@ const AdminMatchDialog = ({
         assignedProductsWithTips
       });
     } else if (!showMatchDialog && isModalOpen(MODAL_ID)) {
-      // Close the modal in the context
       closeModal(MODAL_ID);
     }
-  }, [showMatchDialog, selectedPackage, matchingTrip, selectedTripId, adminTip, assignedProductsWithTips]);
+  }, [showMatchDialog, selectedPackage?.id]);
 
   // Restore modal state if it exists
   useEffect(() => {
@@ -486,9 +503,7 @@ const AdminMatchDialog = ({
         const userIds = [...new Set(allTrips.map(trip => trip.user_id))];
         
         try {
-          console.log('Fetching traveler profiles for user IDs:', userIds);
-          
-          // Try to fetch profiles directly from the profiles table
+          // Fetch profiles directly from the profiles table
           const { data, error } = await supabase
             .from('profiles')
             .select('id, first_name, last_name, username, email, country_code, phone_number, avatar_url')
@@ -498,8 +513,6 @@ const AdminMatchDialog = ({
             console.error('Error fetching traveler profiles:', error);
             return;
           }
-          
-          console.log('Fetched profiles:', data);
           
           // Create profiles map
           const profilesMap = data?.reduce((acc, profile) => {
@@ -519,7 +532,6 @@ const AdminMatchDialog = ({
 
   const getTravelerName = (userId: string) => {
     const profile = travelerProfiles[userId];
-    console.log('Getting traveler name for:', userId, 'Profile found:', profile);
     if (profile?.first_name && profile?.last_name) {
       return `${profile.first_name} ${profile.last_name}`;
     }
@@ -607,7 +619,7 @@ const AdminMatchDialog = ({
           console.error('Error fetching traveler packages:', directResult.error);
           setTravelerPackages([]);
         } else {
-          console.log('[TravelerPackages] Direct query for trip', trip.id, ':', directResult.data?.length, 'results', directResult.data?.map((p: any) => ({ id: p.id, status: p.status, desc: p.item_description })));
+          // Filter direct packages by timer/payment status
           const now = Date.now();
           const isTimerActive = (pkg: any) => (
             (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
@@ -615,7 +627,7 @@ const AdminMatchDialog = ({
           );
           const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
           const filtered = (directResult.data || []).filter((pkg) => isTimerActive(pkg) || isPaidOrPostPayment(pkg.status));
-          console.log('[TravelerPackages] After filter:', filtered.length, 'passed. Assignments:', assignmentsResult.data?.length);
+          // Fetch bidding packages not already in direct results
 
           // 3. Fetch bidding packages not already in direct results
           const directIds = new Set(filtered.map((p: any) => p.id));

@@ -1296,10 +1296,10 @@ export const useDashboardActions = (
           .filter(a => terminalStatuses.includes(a.status))
           .map(a => a.trip_id);
         
-        // Build recycled data per trip
-        for (const rid of recyclableIds) {
+        // Build recycled data per trip — run updates in parallel
+        const recyclePromises = recyclableIds.map(rid => {
           const assignment = (existingAssignments || []).find(a => a.id === rid);
-          if (!assignment) continue;
+          if (!assignment) return Promise.resolve();
           const matchedTrip = trips.find(trip => trip.id === assignment.trip_id);
           const travelerAddress = buildTravelerAddress(matchedTrip);
           const matchedTripDates = matchedTrip ? {
@@ -1309,7 +1309,7 @@ export const useDashboardActions = (
             arrival_date: matchedTrip.arrival_date
           } : null;
           
-          const { error: recycleError } = await supabase
+          return supabase
             .from('package_assignments')
             .update({
               status: 'bid_pending',
@@ -1323,12 +1323,12 @@ export const useDashboardActions = (
               dismissed_by_traveler: false,
               updated_at: new Date().toISOString(),
             })
-            .eq('id', rid);
-          
-          if (recycleError) {
-            console.error('Error recycling assignment:', recycleError);
-          }
-        }
+            .eq('id', rid)
+            .then(({ error }) => {
+              if (error) console.error('Error recycling assignment:', error);
+            });
+        });
+        await Promise.all(recyclePromises);
       }
       
       // Insert only truly new assignments
