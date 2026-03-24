@@ -129,7 +129,7 @@ const AdminBankFileTab = () => {
   };
 
   const handleDownload = () => {
-    const selected = pendingOrders.filter(o => selectedIds.has(o.id));
+    const selected = visibleOrders.filter(o => selectedIds.has(o.id));
     if (selected.length === 0) return;
 
     const headers = ["Nombre", "Id Participante", "Cuenta credito / debito", "Tipo Cuenta", "Moneda", "Banco", "Descripcion Corta", "Adenda", "Valor Q"];
