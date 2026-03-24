@@ -75,6 +75,7 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
   const [totalTipsFromPackages, setTotalTipsFromPackages] = useState(0);
   const [creatingAccumulator, setCreatingAccumulator] = useState(false);
   const [downloadingFile, setDownloadingFile] = useState(false);
+  const [boostInfo, setBoostInfo] = useState<{ amount: number; type: string; value: number; pending: boolean } | null>(null);
 
   // Resolve receipt URL
   const rawReceiptUrl = tripPayment?.payment_receipt_url || null;
@@ -130,12 +131,51 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
         delivered: deliveredCount,
         withIncident: pkgsWithIncident.length,
       });
+
+      // Fetch boost info
+      const existingBoost = tripPayment?.boost_amount ? Number(tripPayment.boost_amount) : 0;
+      if (existingBoost > 0) {
+        setBoostInfo({ amount: existingBoost, type: '', value: 0, pending: false });
+      } else if (trip.boost_code) {
+        try {
+          const { data: boostCode } = await supabase
+            .from('boost_codes')
+            .select('boost_type, boost_value, max_boost_amount')
+            .eq('code', trip.boost_code)
+            .eq('is_active', true)
+            .maybeSingle();
+
+          if (boostCode) {
+            let estimatedAmount = 0;
+            if (boostCode.boost_type === 'percentage') {
+              estimatedAmount = totalTips * (Number(boostCode.boost_value) / 100);
+              if (boostCode.max_boost_amount && estimatedAmount > Number(boostCode.max_boost_amount)) {
+                estimatedAmount = Number(boostCode.max_boost_amount);
+              }
+            } else {
+              estimatedAmount = Number(boostCode.boost_value);
+            }
+            setBoostInfo({
+              amount: estimatedAmount,
+              type: boostCode.boost_type,
+              value: Number(boostCode.boost_value),
+              pending: true,
+            });
+          } else {
+            setBoostInfo(null);
+          }
+        } catch {
+          setBoostInfo(null);
+        }
+      } else {
+        setBoostInfo(null);
+      }
     } catch (err) {
       console.error('Error fetching package details for tips modal:', err);
     } finally {
       setLoadingPackages(false);
     }
-  }, [isOpen, trip.id]);
+  }, [isOpen, trip.id, trip.boost_code, tripPayment?.boost_amount]);
 
   useEffect(() => {
     fetchPackageDetails();
@@ -206,7 +246,9 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
 
   const isAllDelivered = packageCounts.total > 0 && packageCounts.delivered === packageCounts.total;
   const hasAccumulator = !!tripPayment;
-  const accumulatedAmount = tripPayment?.accumulated_amount ?? totalTipsFromPackages;
+  const boostAmount = boostInfo?.amount ?? 0;
+  const totalWithBoost = totalTipsFromPackages + boostAmount;
+  const accumulatedAmount = tripPayment?.accumulated_amount ? Number(tripPayment.accumulated_amount) + (tripPayment?.boost_amount ? Number(tripPayment.boost_amount) : 0) : totalWithBoost;
   const paymentAlreadyRequested = tripPayment?.payment_order_created === true;
   const canRequestPayment = isAllDelivered && totalTipsFromPackages > 0 && !paymentAlreadyRequested;
   const progressPercent = packageCounts.total > 0 ? (packageCounts.delivered / packageCounts.total) * 100 : 0;
@@ -227,15 +269,40 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
             </DialogDescription>
           </DialogHeader>
 
-          {/* Total tips from shoppers */}
-          <div className="bg-muted/40 rounded-lg p-4 text-center">
-            <p className="text-xs text-muted-foreground mb-1">Total tips de shoppers</p>
-            <p className="text-2xl font-bold text-foreground">{formatCurrency(totalTipsFromPackages)}</p>
+          {/* Total breakdown */}
+          <div className="bg-muted/40 rounded-lg p-4 space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Tips de shoppers</span>
+              <span className="font-medium text-foreground">{formatCurrency(totalTipsFromPackages)}</span>
+            </div>
+            {boostInfo && boostInfo.amount > 0 && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground flex items-center gap-1">
+                  🚀 Tip Booster
+                  {boostInfo.type === 'percentage' && ` (${boostInfo.value}%)`}
+                  {boostInfo.pending && (
+                    <span className="text-[10px] text-amber-600">(estimado)</span>
+                  )}
+                </span>
+                <span className="font-medium text-green-600">+ {formatCurrency(boostInfo.amount)}</span>
+              </div>
+            )}
+            {(boostInfo && boostInfo.amount > 0) && (
+              <div className="border-t border-border pt-2 flex items-center justify-between">
+                <span className="text-sm font-semibold text-foreground">Total a cobrar</span>
+                <span className="text-xl font-bold text-foreground">{formatCurrency(totalWithBoost)}</span>
+              </div>
+            )}
+            {(!boostInfo || boostInfo.amount <= 0) && (
+              <div className="text-center pt-1">
+                <span className="text-xl font-bold text-foreground">{formatCurrency(totalTipsFromPackages)}</span>
+              </div>
+            )}
             {tripPayment?.payment_status === 'completed' && (
-              <Badge className="mt-1 bg-green-600 text-white">Pagado</Badge>
+              <div className="text-center"><Badge className="bg-green-600 text-white">Pagado</Badge></div>
             )}
             {tripPayment?.payment_status === 'pending' && (
-              <Badge className="mt-1" variant="default">Cobro solicitado</Badge>
+              <div className="text-center"><Badge variant="default">Cobro solicitado</Badge></div>
             )}
           </div>
 
@@ -304,7 +371,7 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
                   {canRequestPayment && <Banknote className="h-4 w-4 mr-2" />}
                   {isCreating || creatingAccumulator
                     ? 'Procesando...'
-                    : `Solicitar cobro ${formatCurrency(totalTipsFromPackages)}`}
+                    : `Solicitar cobro ${formatCurrency(totalWithBoost)}`}
                 </Button>
 
                 {!isAllDelivered && packageCounts.total > 0 && (
