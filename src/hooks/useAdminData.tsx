@@ -757,8 +757,9 @@ export const useAdminData = (): AdminData => {
     autoApprovedPaymentsLoading,
     approvedPaymentsLoading,
     loadAutoApprovedPayments,
-    loadApprovedPayments
-  }), [packages, trips, loading, error, refreshData, loadMorePackages, hasMorePackages, totalPackages, optimisticUpdatePackage, optimisticUpdateTrip, unreadCounts, markPackageMessagesAsRead, autoApprovedPayments, approvedPaymentsData, autoApprovedPaymentsLoading, approvedPaymentsLoading, loadAutoApprovedPayments, loadApprovedPayments]);
+    loadApprovedPayments,
+    setPackages
+  }), [packages, trips, loading, error, refreshData, loadMorePackages, hasMorePackages, totalPackages, optimisticUpdatePackage, optimisticUpdateTrip, unreadCounts, markPackageMessagesAsRead, autoApprovedPayments, approvedPaymentsData, autoApprovedPaymentsLoading, approvedPaymentsLoading, loadAutoApprovedPayments, loadApprovedPayments, setPackages]);
 
   console.log('📊 Admin: Returning data', {
     packagesCount: packages.length,

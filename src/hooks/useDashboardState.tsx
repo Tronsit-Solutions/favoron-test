@@ -159,7 +159,14 @@ export const useDashboardState = (user: any) => {
     packages: adminData.packages,
     loading: adminData.loading,
     createPackage: regularPackagesData.createPackage,
-    updatePackage: regularPackagesData.updatePackage,
+    updatePackage: async (id: string, updates: any) => {
+      const result = await regularPackagesData.updatePackage(id, updates);
+      // Also update admin local state, preserving relations
+      adminData.setPackages(prev => prev.map(pkg => 
+        pkg.id === id ? { ...pkg, ...updates, ...(result || {}) } : pkg
+      ));
+      return result;
+    },
     deletePackage: regularPackagesData.deletePackage,
     refreshPackages: adminData.refreshData,
     setPackages: () => {}, // Admin data is read-only
