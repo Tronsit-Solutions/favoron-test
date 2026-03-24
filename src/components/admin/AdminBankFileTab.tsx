@@ -186,6 +186,7 @@ const AdminBankFileTab = () => {
                    <TableHead>Descripcion Corta</TableHead>
                    <TableHead>Adenda</TableHead>
                    <TableHead className="text-right">Valor Q</TableHead>
+                   <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
