@@ -1,0 +1,1 @@
+ALTER TABLE package_assignments DROP CONSTRAINT IF EXISTS package_assignments_package_id_trip_id_key;
