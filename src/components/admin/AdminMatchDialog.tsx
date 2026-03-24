@@ -97,42 +97,61 @@ const AdminMatchDialog = ({
     return parseFloat(pkg.estimated_price || '0');
   };
 
-  // Function to calculate totals by category (pending vs confirmed)
-  const calculateTripPackagesTotals = (tripId: string) => {
+  // Memoized totals for all trips — O(packages) once instead of O(trips × packages) per render
+  const tripTotalsMap = useMemo(() => {
     const pendingStatuses = ['matched', 'quote_sent', 'payment_pending', 'payment_pending_approval'];
     const confirmedStatuses = ['paid', 'pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
     
-    // Direct matches (winner assigned via matched_trip_id)
-    const directPackages = packages.filter(pkg => pkg.matched_trip_id === tripId);
-    const directPackageIds = new Set(directPackages.map(pkg => pkg.id));
+    const map: Record<string, { pendingTotal: number; confirmedTotal: number }> = {};
     
-    // Assignment-based packages (bidding phase, not yet matched_trip_id)
-    const assignmentPackageIds = tripAssignmentsMap[tripId] || [];
-    const assignmentPackages = packages.filter(pkg => 
-      assignmentPackageIds.includes(pkg.id) && !directPackageIds.has(pkg.id)
-    );
-    
-    let pendingTotal = 0;
-    let confirmedTotal = 0;
-    
-    directPackages.forEach(pkg => {
-      const value = calculatePackageValue(pkg);
-      if (pendingStatuses.includes(pkg.status)) {
-        pendingTotal += value;
-      } else if (confirmedStatuses.includes(pkg.status)) {
-        confirmedTotal += value;
+    // Index packages by matched_trip_id
+    const pkgByTrip: Record<string, any[]> = {};
+    const pkgById: Record<string, any> = {};
+    for (const pkg of packages) {
+      pkgById[pkg.id] = pkg;
+      if (pkg.matched_trip_id) {
+        if (!pkgByTrip[pkg.matched_trip_id]) pkgByTrip[pkg.matched_trip_id] = [];
+        pkgByTrip[pkg.matched_trip_id].push(pkg);
       }
-    });
+    }
     
-    // Assignment packages always count as pending (they're in bidding phase)
-    assignmentPackages.forEach(pkg => {
-      pendingTotal += calculatePackageValue(pkg);
-    });
+    // Collect all relevant trip IDs
+    const allTripIds = new Set([
+      ...Object.keys(pkgByTrip),
+      ...Object.keys(tripAssignmentsMap),
+    ]);
     
-    return { pendingTotal, confirmedTotal };
+    for (const tripId of allTripIds) {
+      let pendingTotal = 0;
+      let confirmedTotal = 0;
+      
+      const directPackages = pkgByTrip[tripId] || [];
+      const directPackageIds = new Set(directPackages.map(pkg => pkg.id));
+      
+      for (const pkg of directPackages) {
+        const value = calculatePackageValue(pkg);
+        if (pendingStatuses.includes(pkg.status)) pendingTotal += value;
+        else if (confirmedStatuses.includes(pkg.status)) confirmedTotal += value;
+      }
+      
+      // Assignment packages always count as pending
+      const assignmentPackageIds = tripAssignmentsMap[tripId] || [];
+      for (const pkgId of assignmentPackageIds) {
+        if (directPackageIds.has(pkgId)) continue;
+        const pkg = pkgById[pkgId];
+        if (pkg) pendingTotal += calculatePackageValue(pkg);
+      }
+      
+      map[tripId] = { pendingTotal, confirmedTotal };
+    }
+    
+    return map;
+  }, [packages, tripAssignmentsMap]);
+
+  const calculateTripPackagesTotals = (tripId: string) => {
+    return tripTotalsMap[tripId] || { pendingTotal: 0, confirmedTotal: 0 };
   };
 
-  // Legacy function for backward compatibility
   const calculateTripPackagesTotal = (tripId: string) => {
     const { pendingTotal, confirmedTotal } = calculateTripPackagesTotals(tripId);
     return pendingTotal + confirmedTotal;
