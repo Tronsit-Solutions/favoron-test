@@ -1,29 +1,47 @@
 
 
-## Fix: Paquetes confirmados no aparecen en AdminMatchDialog
+## Fix: Laggy assignment en AdminMatchDialog
 
-### Problema
-El screenshot del usuario muestra "0 Paquetes en este Viaje" a pesar de que hay paquetes asignados. Mi plan anterior proponía quitar el filtro de timer, pero el usuario aclara: **los paquetes con timer expirado NO deben contar** — ya no están activos para ese viaje.
+### Causa raíz
+Hay varios problemas de rendimiento en `AdminMatchDialog.tsx`:
 
-### Causa raíz real
-La lógica actual (línea 616) es correcta en su intención: solo muestra paquetes con timer activo o post-pago. Si aparecen 0 paquetes, es porque:
-- Los paquetes están en estado `matched`/`quote_sent` con timers expirados (correctamente excluidos)
-- Los paquetes están en bidding (`bid_pending`/`bid_submitted`) — estos SÍ se traen via assignments (línea 599-603) pero **solo se muestran si el segundo fetch funciona**
+1. **Reciclaje secuencial de assignments** (líneas 1300-1331 en `useDashboardActions.tsx`): Cada assignment terminal se recicla con un `await` individual. Si hay 3 assignments reciclables, son 3 queries secuenciales.
 
-El problema real es probablemente que los paquetes están en la sección de **bidding** (assignments) pero la UI no los distingue claramente, o el conteo de "Paquetes en este Viaje" solo cuenta `filtered` (directos) y no incluye `biddingPkgs`.
+2. **`console.log` en cada render** (línea 522): `getTravelerName` hace `console.log` en cada llamada. Con 15+ viajes, son 15+ logs por render, y se dispara en cada re-render del componente.
 
-Necesito ver cómo se muestra el conteo en la UI para confirmar.
+3. **3 queries Supabase secuenciales al abrir el dialog** (líneas 389-518): Existing assignments, trip assignments map, y traveler profiles se lanzan en useEffects separados pero podrían ejecutarse en paralelo.
 
-### Solución — `src/components/admin/AdminMatchDialog.tsx`
+4. **`calculateTripPackagesTotals` filtra todo el array `packages` por cada trip card** renderizado — O(trips × packages) en cada render sin memoización.
 
-1. **Verificar el conteo**: El título "Paquetes en este Viaje" probablemente usa `travelerPackages.length`. Si `filtered` está vacío (timers expirados) y `biddingPkgs` tiene datos, el total debería ser correcto ya que línea 647 concatena ambos. El issue puede ser que los assignments tampoco retornan datos (quizás RLS o estado incorrecto).
+5. **useEffect de modal state persistence** (línea 450-464): Se ejecuta en cada cambio de `adminTip`, `assignedProductsWithTips`, etc., causando re-renders innecesarios.
 
-2. **Asegurar que el conteo incluya ambas categorías**: Confirmar que la UI muestra `travelerPackages.length` que ya incluye ambos arrays.
+### Solución
 
-3. **Agregar logging temporal** para debug: Si el query de assignments no retorna datos, verificar que los assignments existen con el status correcto.
+#### 1) `src/hooks/useDashboardActions.tsx` — Batch recycling
+Reemplazar el loop secuencial (líneas 1300-1331) con un solo `Promise.all` o mejor, un solo query batch:
+```ts
+// Instead of looping with await per ID:
+await supabase
+  .from('package_assignments')
+  .update({ status: 'bid_pending', admin_assigned_tip: adminTip, ... })
+  .in('id', recyclableIds);
+```
+Nota: esto pierde la personalización de `traveler_address` y `matched_trip_dates` por trip. Se puede resolver haciendo `Promise.all` de los updates individuales (paralelos, no secuenciales).
 
-### Cambio concreto
-Dado que los matched con timer expirado NO cuentan (correcto), el fix real es **no cambiar el filtro**. En su lugar, investigar por qué los bidding packages tampoco aparecen. Lo más probable es que el viaje tenga paquetes con `matched_trip_id` seteado pero con timer expirado, y no tenga assignments activos — en cuyo caso 0 es correcto.
+#### 2) `src/components/admin/AdminMatchDialog.tsx` — Quitar console.logs
+- Eliminar el `console.log` en `getTravelerName` (línea 522)
+- Eliminar los `console.log` en el useEffect de fetch profiles (líneas 489, 502)
 
-**Pregunta para el usuario**: ¿Puedes confirmar si ese viaje tiene paquetes con assignments activos (`bid_pending`/`bid_submitted`) en la tabla `package_assignments`? Si los paquetes tienen `matched_trip_id` pero timer expirado y no hay assignments activos, entonces 0 es el resultado correcto — esos paquetes deberían haber vuelto a `approved` por el sistema de expiración automática.
+#### 3) `src/components/admin/AdminMatchDialog.tsx` — Paralelizar queries iniciales
+Combinar los 3 useEffects de fetch (líneas 389-518) en uno solo que lance los 3 queries con `Promise.all`.
+
+#### 4) `src/components/admin/AdminMatchDialog.tsx` — Memoizar totales por trip
+Usar `useMemo` para pre-calcular los totales de todos los trips de una vez, en lugar de recalcular por cada card.
+
+#### 5) `src/components/admin/AdminMatchDialog.tsx` — Reducir re-renders del modal state
+Debounce o eliminar el useEffect de persistencia de modal state que se dispara en cada keystroke del adminTip.
+
+### Archivos
+- **Modificar**: `src/hooks/useDashboardActions.tsx` — parallelizar recycling loop
+- **Modificar**: `src/components/admin/AdminMatchDialog.tsx` — quitar logs, paralelizar fetches, memoizar cálculos
 
