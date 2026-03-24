@@ -373,9 +373,19 @@ const [editForm, setEditForm] = useState({
       
       setLoadingAssignments(true);
       try {
+        // Single query with JOINs instead of 3 sequential queries
         const { data: assignments, error } = await supabase
           .from('package_assignments')
-          .select('id, package_id, trip_id, status, quote, admin_assigned_tip, traveler_address, matched_trip_dates, products_data, created_at, expires_at, quote_expires_at')
+          .select(`
+            id, package_id, trip_id, status, quote, admin_assigned_tip, 
+            traveler_address, matched_trip_dates, products_data, 
+            created_at, expires_at, quote_expires_at,
+            trips:trip_id (
+              id, from_city, from_country, to_city, to_country, 
+              arrival_date, delivery_date, first_day_packages, last_day_packages, user_id,
+              profiles:user_id (id, first_name, last_name, username, email, phone_number, country_code)
+            )
+          `)
           .eq('package_id', pkg.id)
           .not('status', 'eq', 'rejected');
 
@@ -386,28 +396,13 @@ const [editForm, setEditForm] = useState({
           return;
         }
 
-        // Fetch trip + profile info for each assignment
-        const tripIds = [...new Set(assignments.map(a => a.trip_id))];
-        const { data: tripsData } = await supabase
-          .from('trips')
-          .select('id, from_city, from_country, to_city, to_country, arrival_date, delivery_date, first_day_packages, last_day_packages, user_id')
-          .in('id', tripIds);
-
-        const travelerIds = [...new Set((tripsData || []).map(t => t.user_id))];
-        let profilesData: any[] = [];
-        if (travelerIds.length > 0) {
-          const { data } = await supabase
-            .from('profiles')
-            .select('id, first_name, last_name, username, email, phone_number, country_code')
-            .in('id', travelerIds);
-          profilesData = data || [];
-        }
-
-        // Build enriched assignments
+        // Flatten joined data to match existing shape
         const enriched = assignments.map(a => {
-          const trip = (tripsData || []).find(t => t.id === a.trip_id);
-          const profile = trip ? profilesData.find(p => p.id === trip.user_id) : null;
-          return { ...a, trip, profile };
+          const tripData = a.trips as any;
+          const profile = tripData?.profiles || null;
+          const trip = tripData ? { ...tripData, profiles: undefined } : null;
+          if (trip) delete trip.profiles;
+          return { ...a, trips: undefined, trip, profile };
         });
 
         setPackageAssignments(enriched);
