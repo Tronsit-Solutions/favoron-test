@@ -465,10 +465,9 @@ const AdminMatchDialog = ({
     }
   }, [selectedPackage?.id, showMatchDialog]);
 
-  // Handle modal state persistence
+  // Handle modal state persistence — only track open/close, not every keystroke
   useEffect(() => {
     if (showMatchDialog && selectedPackage) {
-      // Register this modal as open
       openModal(MODAL_ID, 'admin-match-dialog', {
         selectedPackage,
         matchingTrip,
@@ -477,10 +476,9 @@ const AdminMatchDialog = ({
         assignedProductsWithTips
       });
     } else if (!showMatchDialog && isModalOpen(MODAL_ID)) {
-      // Close the modal in the context
       closeModal(MODAL_ID);
     }
-  }, [showMatchDialog, selectedPackage, matchingTrip, selectedTripId, adminTip, assignedProductsWithTips]);
+  }, [showMatchDialog, selectedPackage?.id]);
 
   // Restore modal state if it exists
   useEffect(() => {
