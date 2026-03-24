@@ -1658,10 +1658,10 @@ const AdminMatchDialog = ({
                     variant="outline"
                     onClick={() => setShowProductTipModal(true)}
                     className="w-full sm:w-auto shrink-0"
-                    disabled={loadingDetails}
+                    disabled={!fullPackage?.products_data && loadingDetails}
                   >
                     <Settings className="h-4 w-4 mr-2" />
-                    {loadingDetails ? 'Cargando...' : `Asignar Tips por Producto (${fullPackage?.products_data?.length || 0} productos)`}
+                    {(!fullPackage?.products_data && loadingDetails) ? 'Cargando...' : `Asignar Tips por Producto (${fullPackage?.products_data?.length || 0} productos)`}
                   </Button>
                   {getTotalAssignedTip() > 0 && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex-1">
