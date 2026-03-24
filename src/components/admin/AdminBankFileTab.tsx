@@ -48,17 +48,21 @@ const AdminBankFileTab = () => {
     const selected = pendingOrders.filter(o => selectedIds.has(o.id));
     if (selected.length === 0) return;
 
-    const rows = selected.map(order => [
-      order.bank_account_holder,
-      "",
-      order.bank_account_number,
-      getAccountTypeCode(order.bank_account_type),
-      1,
-      "",
-      `Tip ${order.trip_id.slice(0, 8)}`,
-      `Tip ${order.trip_id.slice(0, 8)}`,
-      order.amount,
-    ]);
+    const headers = ["Titular", "", "Cuenta", "Tipo", "Código", "", "Referencia 1", "Referencia 2", "Monto"];
+    const rows = [
+      headers,
+      ...selected.map(order => [
+        order.bank_account_holder,
+        "",
+        order.bank_account_number,
+        getAccountTypeCode(order.bank_account_type),
+        1,
+        "",
+        `Tip ${order.trip_id.slice(0, 8)}`,
+        `Tip ${order.trip_id.slice(0, 8)}`,
+        order.amount,
+      ])
+    ];
 
     const ws = XLSX.utils.aoa_to_sheet(rows);
     const wb = XLSX.utils.book_new();
