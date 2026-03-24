@@ -75,6 +75,7 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
   const [totalTipsFromPackages, setTotalTipsFromPackages] = useState(0);
   const [creatingAccumulator, setCreatingAccumulator] = useState(false);
   const [downloadingFile, setDownloadingFile] = useState(false);
+  const [boostInfo, setBoostInfo] = useState<{ amount: number; type: string; value: number; pending: boolean } | null>(null);
 
   // Resolve receipt URL
   const rawReceiptUrl = tripPayment?.payment_receipt_url || null;
