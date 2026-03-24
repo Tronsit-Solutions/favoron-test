@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -11,8 +11,12 @@ export const usePackagesData = () => {
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const fetchInProgressRef = useRef(false);
+  const debounceRef = useRef<NodeJS.Timeout>();
 
   const fetchPackages = async () => {
+    if (fetchInProgressRef.current) return;
+    fetchInProgressRef.current = true;
     try {
       const { data, error } = await supabase
         .from('packages')
@@ -66,6 +70,7 @@ export const usePackagesData = () => {
       });
     } finally {
       setLoading(false);
+      fetchInProgressRef.current = false;
     }
   };
 
@@ -189,13 +194,15 @@ export const usePackagesData = () => {
           table: 'packages'
         },
         (payload) => {
-          // Immediate refetch for real-time updates
-          fetchPackages();
+          // Debounced refetch to avoid cascading queries during match
+          clearTimeout(debounceRef.current);
+          debounceRef.current = setTimeout(() => fetchPackages(), 1000);
         }
       )
       .subscribe();
 
     return () => {
+      clearTimeout(debounceRef.current);
       supabase.removeChannel(channel);
     };
   }, []);
