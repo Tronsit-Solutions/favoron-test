@@ -1,31 +1,27 @@
 
 
-## Fix: Match falla silenciosamente al re-asignar viajeros con bids expirados/perdidos
+## Fix: Limpiar assignment `bid_won` al solicitar recotización
 
-### Causa raíz
+### Problema
+Cuando un shopper solicita recotización (`handleRequestRequote` en `Dashboard.tsx` línea 612), el paquete se actualiza a `approved` y se limpia `matched_trip_id`, pero **no se actualiza la tabla `package_assignments`**. La asignación ganadora (`bid_won`) permanece activa, causando:
+- El viajero sigue viendo el paquete como ganado
+- Al re-asignar, la lógica de duplicados detecta la asignación existente y puede fallar
 
-En `useDashboardActions.tsx` línea 1271-1278, la verificación de duplicados excluye solo asignaciones con status `rejected`:
+### Solución — `src/components/Dashboard.tsx`
 
-```ts
-.not('status', 'eq', 'rejected')
-```
-
-Pero los statuses terminales de bidding (`bid_expired`, `bid_lost`, `bid_cancelled`) **no se excluyen**. Cuando re-asignas un paquete al mismo viajero (o a cualquier viajero que ya tuvo un bid), el sistema cree que ya existe una asignación activa → no inserta nada → pero sí actualiza el paquete a `matched` → match fantasma.
-
-### Solución — `src/hooks/useDashboardActions.tsx`
-
-**Línea 1271-1275**: Cambiar el filtro para excluir todos los statuses terminales:
+En `handleRequestRequote` (~línea 618-628), después del update al paquete, agregar una segunda query para marcar todas las asignaciones activas como `bid_cancelled`:
 
 ```ts
-// Antes:
-.not('status', 'eq', 'rejected');
-
-// Después:
-.not('status', 'in', '("rejected","bid_expired","bid_lost","bid_cancelled")');
+// After the package update succeeds:
+await supabase
+  .from('package_assignments')
+  .update({ status: 'bid_cancelled', updated_at: new Date().toISOString() })
+  .eq('package_id', pkg.id)
+  .in('status', ['bid_won', 'bid_submitted', 'bid_pending']);
 ```
 
-Esto permite que viajeros con bids expirados/perdidos/cancelados puedan ser re-asignados al mismo paquete.
+Esto cancela cualquier asignación activa cuando el shopper solicita recotización, permitiendo que el paquete vuelva limpiamente al flujo de matching.
 
 ### Archivos
-- **Modificar**: `src/hooks/useDashboardActions.tsx` — línea 1275
+- **Modificar**: `src/components/Dashboard.tsx` — función `handleRequestRequote` (~línea 628)
 
