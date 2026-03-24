@@ -481,14 +481,29 @@ export const useDashboardActions = (
                                                 selectedPackage.admin_assigned_tip;
 
           if (isTravelerRejectingAssignedTip) {
-            console.log('🔧 Using RPC function for traveler rejection of admin-assigned tip');
+            console.log('🔧 Processing traveler rejection of assignment');
             
-            // Use the secure RPC function for traveler rejections
-            const { error } = await supabase.rpc('traveler_reject_assignment', {
-              _package_id: selectedPackage.id,
-              _rejection_reason: quoteData.rejectionReason || null,
-              _additional_comments: quoteData.additionalNotes || null
-            });
+            let error: any = null;
+
+            if (selectedPackage._assignmentId) {
+              // New flow: use assignment-based RPC
+              console.log('🔧 Using v2 RPC for assignment-based rejection, assignmentId:', selectedPackage._assignmentId);
+              const result = await supabase.rpc('traveler_reject_assignment_v2', {
+                _assignment_id: selectedPackage._assignmentId,
+                _rejection_reason: quoteData.rejectionReason || null,
+                _additional_comments: quoteData.additionalNotes || null
+              });
+              error = result.error;
+            } else {
+              // Legacy flow: use old RPC for packages matched via matched_trip_id
+              console.log('🔧 Using legacy RPC for traveler rejection');
+              const result = await supabase.rpc('traveler_reject_assignment', {
+                _package_id: selectedPackage.id,
+                _rejection_reason: quoteData.rejectionReason || null,
+                _additional_comments: quoteData.additionalNotes || null
+              });
+              error = result.error;
+            }
 
             if (error) {
               console.error('❌ RPC error:', error);
