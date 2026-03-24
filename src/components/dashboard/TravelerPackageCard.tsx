@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, DollarSign, User, Package, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import PurchaseConfirmationViewer from "@/components/admin/PurchaseConfirmationViewer";
 import { normalizeConfirmations } from "@/utils/confirmationHelpers";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,7 +85,15 @@ const TravelerPackageCard = ({
               )}
             </CardDescription>
           </div>
-          {getStatusBadge(pkg.status, pkg.package_destination)}
+          {['bid_expired', 'bid_lost', 'bid_cancelled'].includes(pkg._assignmentStatus) ? (
+            pkg._assignmentStatus === 'bid_expired' ? (
+              <Badge variant="warning">⏰ Expirado</Badge>
+            ) : pkg._assignmentStatus === 'bid_lost' ? (
+              <Badge variant="destructive">❌ No seleccionado</Badge>
+            ) : (
+              <Badge variant="muted">Cancelado</Badge>
+            )
+          ) : getStatusBadge(pkg.status, pkg.package_destination)}
         </div>
       </CardHeader>
       <CardContent>
@@ -199,7 +208,7 @@ const TravelerPackageCard = ({
 
           {/* Action buttons / status for travelers */}
           <div className="flex flex-wrap gap-2">
-            {pkg.status === 'matched' && (
+            {(pkg.status === 'matched' || ['bid_lost', 'bid_expired', 'bid_cancelled'].includes(pkg._assignmentStatus)) && (
               <>
                 {pkg._assignmentStatus === 'bid_submitted' ? (
                   <div className="w-full bg-green-50 border border-green-200 rounded-lg p-3">
