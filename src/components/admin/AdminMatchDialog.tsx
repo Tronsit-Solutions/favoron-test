@@ -627,7 +627,7 @@ const AdminMatchDialog = ({
           );
           const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
           const filtered = (directResult.data || []).filter((pkg) => isTimerActive(pkg) || isPaidOrPostPayment(pkg.status));
-          console.log('[TravelerPackages] After filter:', filtered.length, 'passed. Assignments:', assignmentsResult.data?.length);
+          // Fetch bidding packages not already in direct results
 
           // 3. Fetch bidding packages not already in direct results
           const directIds = new Set(filtered.map((p: any) => p.id));
