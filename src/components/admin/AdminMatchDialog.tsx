@@ -505,9 +505,7 @@ const AdminMatchDialog = ({
         const userIds = [...new Set(allTrips.map(trip => trip.user_id))];
         
         try {
-          console.log('Fetching traveler profiles for user IDs:', userIds);
-          
-          // Try to fetch profiles directly from the profiles table
+          // Fetch profiles directly from the profiles table
           const { data, error } = await supabase
             .from('profiles')
             .select('id, first_name, last_name, username, email, country_code, phone_number, avatar_url')
