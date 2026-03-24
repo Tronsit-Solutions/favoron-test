@@ -70,6 +70,7 @@ export const usePackagesData = () => {
       });
     } finally {
       setLoading(false);
+      fetchInProgressRef.current = false;
     }
   };
 
