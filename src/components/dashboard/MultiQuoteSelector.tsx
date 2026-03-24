@@ -350,7 +350,10 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <span className="text-sm font-bold text-primary">{formatPrice(quoteValues.totalPrice)}</span>
+                  <div className="flex flex-col items-end">
+                    <span className="text-sm font-bold text-primary">{formatCurrency(quoteValues.price + quoteValues.serviceFee)}</span>
+                    <span className="text-[10px] text-muted-foreground">+ envío según método</span>
+                  </div>
                   {assignment.quote_expires_at && (
                     <QuoteCountdown expiresAt={assignment.quote_expires_at} micro={true} />
                   )}
