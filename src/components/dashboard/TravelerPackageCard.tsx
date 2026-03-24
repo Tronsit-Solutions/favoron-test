@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, DollarSign, User, Package, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import PurchaseConfirmationViewer from "@/components/admin/PurchaseConfirmationViewer";
 import { normalizeConfirmations } from "@/utils/confirmationHelpers";
 import { supabase } from "@/integrations/supabase/client";
