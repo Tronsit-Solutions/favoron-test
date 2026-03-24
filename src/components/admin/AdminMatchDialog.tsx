@@ -441,17 +441,16 @@ const AdminMatchDialog = ({
       const [existingResult, tripResult] = await Promise.all([existingPromise, tripAssignmentsPromise]);
       
       // Process existing assignments
-      const existingData = results[0]?.data;
-      if (existingData) {
-        setAlreadyAssignedTripIds(new Set(existingData.map((a: any) => a.trip_id)));
+      if (existingResult.data) {
+        setAlreadyAssignedTripIds(new Set(existingResult.data.map((a: any) => a.trip_id)));
       } else {
         setAlreadyAssignedTripIds(new Set());
       }
       
       // Process trip assignments map
-      if (results[1]?.data) {
+      if (tripResult.data) {
         const map: Record<string, string[]> = {};
-        results[1].data.forEach((row: any) => {
+        tripResult.data.forEach((row: any) => {
           if (!map[row.trip_id]) map[row.trip_id] = [];
           map[row.trip_id].push(row.package_id);
         });
