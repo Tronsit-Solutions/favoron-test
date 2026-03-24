@@ -225,6 +225,11 @@ const AdminBankFileTab = () => {
                       <TableCell className="p-1">
                         <Input className={`${inputClass} text-right font-semibold`} value={String(r.colI)} onChange={e => updateCell(order.id, 'colI', e.target.value)} />
                       </TableCell>
+                      <TableCell className="p-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => removeRow(order.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
