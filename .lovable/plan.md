@@ -1,43 +1,56 @@
 
 
-## Fix: "Procesando match..." se queda colgado
+## Fix: Match tarda 3+ minutos
 
 ### Causa raíz
-En `useDashboardActions.tsx` (líneas 1390-1419), después de completar el match exitosamente, hay un `for` loop **secuencial** que por cada viajero:
-1. Hace `appendTripHistoryEntry()` — lee y escribe en la DB (2 queries)
-2. Llama `sendWhatsAppNotification()` — invoca un edge function
 
-Para 2 viajeros = 4+ llamadas de red secuenciales. Todo esto ocurre **dentro** del `await` de `AdminDashboard.tsx` línea 257, así que el toast de "Procesando match..." no se reemplaza hasta que TODO termina.
+El problema principal es que `fetchPackages()` en `usePackagesData.tsx` es una query pesada (SELECT * con 3 niveles de JOINs anidados: packages → profiles, packages → trips → trip.profiles) que se ejecuta SIN ningún control:
+
+1. **Sin debounce en realtime**: Cada vez que CUALQUIER paquete cambia en la DB, la suscripción realtime (línea 191) ejecuta `fetchPackages()` inmediatamente — sin debounce, sin deduplicación
+2. **Múltiples triggers durante un match**: Un match genera al menos 2 cambios en la tabla packages (insert assignments no genera trigger, pero el `updatePackage` en línea 1379 sí), más el `refreshAdminData` a los 2 segundos (línea 271)
+3. **Query sin filtro**: `fetchPackages()` carga TODOS los paquetes de la DB con joins anidados. Si hay cientos de paquetes, esta query puede tardar varios segundos cada vez
+4. **`updatePackage` hace `.select()` redundante**: En línea 113-118, después de hacer update hace `.select().maybeSingle()` para obtener los datos actualizados — pero luego el realtime subscription vuelve a hacer un fetch completo de TODOS los paquetes
 
 ### Solución
 
-**Archivo: `src/hooks/useDashboardActions.tsx`**
+#### 1) `src/hooks/usePackagesData.tsx` — Debounce en la suscripción realtime
 
-Hacer las operaciones post-match (history log + WhatsApp) **fire-and-forget**: no esperarlas. El match ya se completó exitosamente en la DB, así que estas son operaciones auxiliares que no deben bloquear la UI.
+Agregar un debounce de 1 segundo al handler de realtime para evitar múltiples refetches seguidos:
 
-```ts
-// Líneas 1390-1419: Cambiar de for-loop secuencial a fire-and-forget paralelo
-// ANTES:
-for (const tid of tripIdsToAssign) {
-  appendTripHistoryEntry(tid, historyEntry);  // await implícito
-  sendWhatsAppNotification({...});
+```tsx
+// Usar useRef para el timeout
+const debounceRef = useRef<NodeJS.Timeout>();
+
+// En la suscripción:
+(payload) => {
+  clearTimeout(debounceRef.current);
+  debounceRef.current = setTimeout(() => fetchPackages(), 1000);
 }
-
-// DESPUÉS:
-Promise.all(tripIdsToAssign.map(tid => {
-  const historyEntry = createHistoryEntry(...);
-  appendTripHistoryEntry(tid, historyEntry);
-  const matchedTrip = trips.find(trip => trip.id === tid);
-  if (matchedTrip?.user_id) {
-    sendWhatsAppNotification({...});
-  }
-})).catch(err => console.error('Post-match side effects error:', err));
-// No await — fire and forget
 ```
 
-Esto hace que el match se resuelva inmediatamente después de actualizar el paquete (línea 1379), y las notificaciones corren en background.
+#### 2) `src/hooks/usePackagesData.tsx` — Deduplicar fetches concurrentes
 
-### Resultado
-- El toast "Procesando match..." desaparece casi instantáneamente
-- Las notificaciones y logs se envían en paralelo sin bloquear la UI
+Agregar un guard para evitar que se ejecuten múltiples `fetchPackages()` simultáneos:
+
+```tsx
+const fetchInProgressRef = useRef(false);
+
+const fetchPackages = async () => {
+  if (fetchInProgressRef.current) return;
+  fetchInProgressRef.current = true;
+  try { ... } finally { fetchInProgressRef.current = false; }
+};
+```
+
+#### 3) `src/components/AdminDashboard.tsx` — Eliminar refresh redundante
+
+Eliminar el `setTimeout(() => refreshAdminData(), 2000)` en línea 271 — ya no es necesario porque el realtime subscription se encarga del refresh, y la actualización optimista ya mueve el paquete en la UI inmediatamente.
+
+### Archivos
+- **Modificar**: `src/hooks/usePackagesData.tsx` — debounce + deduplicación
+- **Modificar**: `src/components/AdminDashboard.tsx` — eliminar refresh redundante
+
+### Resultado esperado
+- Match se completa en 1-3 segundos en vez de 3+ minutos
+- Un solo refetch después del match en vez de múltiples cascadas
 
