@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, FileSpreadsheet } from "lucide-react";
+import { Download, FileSpreadsheet, Trash2 } from "lucide-react";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import * as XLSX from "xlsx";
 
@@ -64,10 +64,16 @@ const AdminBankFileTab = () => {
   const { paymentOrders, loading } = usePaymentOrders();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [editedRows, setEditedRows] = useState<Record<string, RowData>>({});
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
 
   const pendingOrders = useMemo(() =>
     (paymentOrders || []).filter(o => o.status === 'pending'),
     [paymentOrders]
+  );
+
+  const visibleOrders = useMemo(() =>
+    pendingOrders.filter(o => !hiddenIds.has(o.id)),
+    [pendingOrders, hiddenIds]
   );
 
   useEffect(() => {
@@ -99,11 +105,20 @@ const AdminBankFileTab = () => {
   };
 
   const toggleAll = () => {
-    if (selectedIds.size === pendingOrders.length) {
+    if (selectedIds.size === visibleOrders.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(pendingOrders.map(o => o.id)));
+      setSelectedIds(new Set(visibleOrders.map(o => o.id)));
     }
+  };
+
+  const removeRow = (id: string) => {
+    setHiddenIds(prev => new Set(prev).add(id));
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
   };
 
   const updateCell = (id: string, key: keyof RowData, value: string) => {
@@ -114,7 +129,7 @@ const AdminBankFileTab = () => {
   };
 
   const handleDownload = () => {
-    const selected = pendingOrders.filter(o => selectedIds.has(o.id));
+    const selected = visibleOrders.filter(o => selectedIds.has(o.id));
     if (selected.length === 0) return;
 
     const headers = ["Nombre", "Id Participante", "Cuenta credito / debito", "Tipo Cuenta", "Moneda", "Banco", "Descripcion Corta", "Adenda", "Valor Q"];
@@ -152,7 +167,7 @@ const AdminBankFileTab = () => {
         </Button>
       </CardHeader>
       <CardContent>
-        {pendingOrders.length === 0 ? (
+        {visibleOrders.length === 0 ? (
           <p className="text-sm text-muted-foreground">No hay órdenes de pago pendientes.</p>
         ) : (
           <div className="rounded-md border overflow-auto">
@@ -160,7 +175,7 @@ const AdminBankFileTab = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10">
-                    <Checkbox checked={selectedIds.size === pendingOrders.length} onCheckedChange={toggleAll} />
+                    <Checkbox checked={visibleOrders.length > 0 && selectedIds.size === visibleOrders.length} onCheckedChange={toggleAll} />
                   </TableHead>
                    <TableHead>Nombre</TableHead>
                    <TableHead>Id Participante</TableHead>
@@ -171,10 +186,11 @@ const AdminBankFileTab = () => {
                    <TableHead>Descripcion Corta</TableHead>
                    <TableHead>Adenda</TableHead>
                    <TableHead className="text-right">Valor Q</TableHead>
+                   <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pendingOrders.map(order => {
+                {visibleOrders.map(order => {
                   const r = editedRows[order.id];
                   if (!r) return null;
                   return (
@@ -208,6 +224,11 @@ const AdminBankFileTab = () => {
                       </TableCell>
                       <TableCell className="p-1">
                         <Input className={`${inputClass} text-right font-semibold`} value={String(r.colI)} onChange={e => updateCell(order.id, 'colI', e.target.value)} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => removeRow(order.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   );
