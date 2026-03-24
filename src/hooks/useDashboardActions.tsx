@@ -1379,13 +1379,14 @@ export const useDashboardActions = (
         updateData.products_data = updatedProductsData;
       }
       parallelOps.push(
-        supabase
-          .from('packages')
-          .update(updateData)
-          .eq('id', packageId)
-          .then(({ error }: any) => {
-            if (error) throw error;
-          })
+        Promise.resolve(
+          supabase
+            .from('packages')
+            .update(updateData)
+            .eq('id', packageId)
+        ).then(({ error }: any) => {
+          if (error) throw error;
+        })
       );
 
       // Execute all DB operations in parallel
