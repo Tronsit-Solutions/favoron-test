@@ -82,7 +82,7 @@ const AdminBankFileTab = () => {
     const selected = pendingOrders.filter(o => selectedIds.has(o.id));
     if (selected.length === 0) return;
 
-    const headers = ["Titular", "", "Cuenta", "Tipo", "Código", "", "Referencia 1", "Referencia 2", "Monto"];
+    const headers = ["Nombre", "Id Participante", "Cuenta credito / debito", "Tipo Cuenta", "Moneda", "Banco", "Descripcion Corta", "Adenda", "Valor Q"];
     const rows = [
       headers,
       ...selected.map(o => {
