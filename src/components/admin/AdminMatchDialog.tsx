@@ -10,7 +10,7 @@ import { Zap, ChevronDown, ChevronRight, User, Users, MapPin, Calendar, Package,
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getHighResGoogleAvatar } from "@/lib/storageUrls";
 import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getStatusLabel, formatFullName, formatDateUTC } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
 import { useModalState } from "@/contexts/ModalStateContext";
