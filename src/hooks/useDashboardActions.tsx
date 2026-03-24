@@ -1358,7 +1358,7 @@ export const useDashboardActions = (
           supabase
             .from('package_assignments')
             .insert(assignmentRows)
-            .then(({ error }) => {
+            .then(({ error }: any) => {
               if (error) {
                 console.error('Error inserting package_assignments:', error);
                 throw error;
@@ -1382,7 +1382,7 @@ export const useDashboardActions = (
           .from('packages')
           .update(updateData)
           .eq('id', packageId)
-          .then(({ error }) => {
+          .then(({ error }: any) => {
             if (error) throw error;
           })
       );
@@ -1391,12 +1391,9 @@ export const useDashboardActions = (
       await Promise.all(parallelOps);
 
       // Optimistic local state update
-      setAdminData(prev => ({
-        ...prev,
-        packages: prev.packages.map(pkg =>
-          pkg.id === packageId ? { ...pkg, ...updateData } : pkg
-        )
-      }));
+      setPackages(packages.map(pkg =>
+        pkg.id === packageId ? { ...pkg, ...updateData } : pkg
+      ));
 
       // Log package assignment to trip history for each trip
       const adminName = currentUser?.first_name
