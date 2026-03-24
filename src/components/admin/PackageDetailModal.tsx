@@ -216,8 +216,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   // Load heavy fields on-demand when modal opens
   const { details: heavyDetails, loading: loadingDetails, refetch: refetchPackageDetails } = usePackageDetails(isOpen ? pkgLight?.id : null);
   
-  // Merge light and heavy data
-  const pkg = pkgLight && heavyDetails ? { ...pkgLight, ...heavyDetails } : pkgLight;
+  // Merge light and heavy data — show light data immediately, merge heavy when available
+  const pkg = pkgLight ? { ...pkgLight, ...(heavyDetails || {}) } : null;
   
   // Extract request type from products_data JSONB field
   const packageRequestType = Array.isArray(pkg?.products_data) 
@@ -373,9 +373,19 @@ const [editForm, setEditForm] = useState({
       
       setLoadingAssignments(true);
       try {
+        // Single query with JOINs instead of 3 sequential queries
         const { data: assignments, error } = await supabase
           .from('package_assignments')
-          .select('id, package_id, trip_id, status, quote, admin_assigned_tip, traveler_address, matched_trip_dates, products_data, created_at, expires_at, quote_expires_at')
+          .select(`
+            id, package_id, trip_id, status, quote, admin_assigned_tip, 
+            traveler_address, matched_trip_dates, products_data, 
+            created_at, expires_at, quote_expires_at,
+            trips:trip_id (
+              id, from_city, from_country, to_city, to_country, 
+              arrival_date, delivery_date, first_day_packages, last_day_packages, user_id,
+              profiles:user_id (id, first_name, last_name, username, email, phone_number, country_code)
+            )
+          `)
           .eq('package_id', pkg.id)
           .not('status', 'eq', 'rejected');
 
@@ -386,28 +396,13 @@ const [editForm, setEditForm] = useState({
           return;
         }
 
-        // Fetch trip + profile info for each assignment
-        const tripIds = [...new Set(assignments.map(a => a.trip_id))];
-        const { data: tripsData } = await supabase
-          .from('trips')
-          .select('id, from_city, from_country, to_city, to_country, arrival_date, delivery_date, first_day_packages, last_day_packages, user_id')
-          .in('id', tripIds);
-
-        const travelerIds = [...new Set((tripsData || []).map(t => t.user_id))];
-        let profilesData: any[] = [];
-        if (travelerIds.length > 0) {
-          const { data } = await supabase
-            .from('profiles')
-            .select('id, first_name, last_name, username, email, phone_number, country_code')
-            .in('id', travelerIds);
-          profilesData = data || [];
-        }
-
-        // Build enriched assignments
+        // Flatten joined data to match existing shape
         const enriched = assignments.map(a => {
-          const trip = (tripsData || []).find(t => t.id === a.trip_id);
-          const profile = trip ? profilesData.find(p => p.id === trip.user_id) : null;
-          return { ...a, trip, profile };
+          const tripData = a.trips as any;
+          const profile = tripData?.profiles || null;
+          const trip = tripData ? { ...tripData, profiles: undefined } : null;
+          if (trip) delete trip.profiles;
+          return { ...a, trips: undefined, trip, profile };
         });
 
         setPackageAssignments(enriched);
@@ -495,19 +490,8 @@ const [editForm, setEditForm] = useState({
     return null;
   }
   
-  // Show loading state while fetching heavy details
-  if (loadingDetails) {
-    return (
-      <Dialog open={isOpen} onOpenChange={() => closeModal(modalId)}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <span className="ml-3">Cargando detalles del paquete...</span>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  // No longer block the entire modal — content renders immediately with light data
+  // Heavy sections (products, documents) show individual spinners via loadingDetails
 
   // Safe date formatting function
   const formatSafeDate = (dateValue: any): string => {
