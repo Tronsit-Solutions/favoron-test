@@ -30,6 +30,7 @@ interface AdminData {
   approvedPaymentsLoading: boolean;
   loadAutoApprovedPayments: () => Promise<void>;
   loadApprovedPayments: () => Promise<void>;
+  setPackages: React.Dispatch<React.SetStateAction<LightweightPackage[]>>;
 }
 
 export const useAdminData = (): AdminData => {
