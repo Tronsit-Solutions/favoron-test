@@ -1,22 +1,18 @@
 
 
-## Mostrar todas las columnas en la tabla preview
+## Agregar headers al archivo XLS
 
 ### Cambio
 
 **Archivo: `src/components/admin/AdminBankFileTab.tsx`**
 
-Actualizar la tabla para mostrar las 9 columnas (A-I) tal como aparecerán en el archivo XLS, incluyendo las columnas vacías B y F, la columna E (siempre "1"), y separar G y H en dos columnas distintas.
+Insertar una fila de headers antes de los datos en el array que se pasa a `aoa_to_sheet`:
 
-**Headers:**
-`A: Titular | B: (vacía) | C: Cuenta | D: Tipo | E: (1) | F: (vacía) | G: Referencia | H: Referencia | I: Monto`
+```ts
+const headers = ["Titular", "", "Cuenta", "Tipo", "Código", "", "Referencia 1", "Referencia 2", "Monto"];
 
-**Celdas:**
-- B: vacío
-- E: "1"
-- F: vacío
-- G: `Tip {trip_id corto}`
-- H: `Tip {trip_id corto}`
+const rows = [headers, ...selected.map(order => [...])];
+```
 
-También se corrige el bug de los dos `useMemo` duplicados que hacen `setSelectedIds` (líneas 20-26) — se reemplazarán por un solo `useEffect`.
+Solo se modifica la función `handleDownload`, líneas 51-63.
 
