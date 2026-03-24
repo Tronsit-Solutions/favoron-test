@@ -17,10 +17,9 @@ const AdminBankFileTab = () => {
     [paymentOrders]
   );
 
-  // Auto-select all pending on load
-  useState(() => {
+  useMemo(() => {
     setSelectedIds(new Set(pendingOrders.map(o => o.id)));
-  });
+  }, [pendingOrders]);
 
   useMemo(() => {
     setSelectedIds(new Set(pendingOrders.map(o => o.id)));
