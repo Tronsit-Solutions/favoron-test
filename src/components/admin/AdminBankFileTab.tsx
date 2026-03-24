@@ -175,7 +175,7 @@ const AdminBankFileTab = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10">
-                    <Checkbox checked={selectedIds.size === pendingOrders.length} onCheckedChange={toggleAll} />
+                    <Checkbox checked={visibleOrders.length > 0 && selectedIds.size === visibleOrders.length} onCheckedChange={toggleAll} />
                   </TableHead>
                    <TableHead>Nombre</TableHead>
                    <TableHead>Id Participante</TableHead>
