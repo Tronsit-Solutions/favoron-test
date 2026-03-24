@@ -207,7 +207,7 @@ const TravelerPackageCard = ({
 
           {/* Action buttons / status for travelers */}
           <div className="flex flex-wrap gap-2">
-            {pkg.status === 'matched' && (
+            {(pkg.status === 'matched' || ['bid_lost', 'bid_expired', 'bid_cancelled'].includes(pkg._assignmentStatus)) && (
               <>
                 {pkg._assignmentStatus === 'bid_submitted' ? (
                   <div className="w-full bg-green-50 border border-green-200 rounded-lg p-3">
