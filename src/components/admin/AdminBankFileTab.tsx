@@ -105,11 +105,20 @@ const AdminBankFileTab = () => {
   };
 
   const toggleAll = () => {
-    if (selectedIds.size === pendingOrders.length) {
+    if (selectedIds.size === visibleOrders.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(pendingOrders.map(o => o.id)));
+      setSelectedIds(new Set(visibleOrders.map(o => o.id)));
     }
+  };
+
+  const removeRow = (id: string) => {
+    setHiddenIds(prev => new Set(prev).add(id));
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
   };
 
   const updateCell = (id: string, key: keyof RowData, value: string) => {
