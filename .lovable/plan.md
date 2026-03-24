@@ -1,49 +1,38 @@
 
 
-## Fix: Match lento — 4 queries secuenciales bloqueantes
+## Agregar BoostCodeInput al TripTipsModal
 
-### Causa raíz
+### Contexto
+El modal `TripTipsModal` ya muestra información del boost si existe (`trip.boost_code`), pero no tiene un input para que el viajero ingrese un código de boost. El componente `BoostCodeInput` ya existe y funciona.
 
-En `handleMatchPackage` (líneas 1271-1379), hay **4 operaciones de DB secuenciales** donde solo la primera es realmente bloqueante:
+### Cambio
 
-1. `await` query existing assignments (línea 1271) — **necesario** antes de decidir recycle vs insert
-2. `await Promise.all(recyclePromises)` (línea 1331) — reciclar assignments
-3. `await supabase.insert(assignmentRows)` (línea 1359) — insertar nuevos assignments
-4. `await updatePackage(packageId, updateData)` (línea 1379) — actualizar status del paquete
+**Archivo: `src/components/dashboard/TripTipsModal.tsx`**
 
-**Los pasos 2, 3 y 4 son independientes entre sí** pero se ejecutan uno tras otro. Además, `updatePackage` pasa por el hook que hace `.select().maybeSingle()` innecesariamente (ya sabemos qué datos enviamos).
+Agregar el componente `BoostCodeInput` entre la sección de "Paquetes asignados" y la sección de "Action" (antes de línea 357), visible solo cuando:
+- No hay boost ya aplicado (`!boostInfo || boostInfo.amount <= 0`)
+- No se ha solicitado cobro aún (`!paymentAlreadyRequested`)
 
-### Solución
+Al aplicar un boost exitosamente, actualizar `boostInfo` con el nuevo monto para que se refleje inmediatamente en el total.
 
-**Archivo: `src/hooks/useDashboardActions.tsx`**
+```tsx
+import BoostCodeInput from '@/components/traveler/BoostCodeInput';
 
-1. **Paralelizar pasos 2, 3 y 4**: Después de obtener existing assignments (paso 1), lanzar recycle, insert y updatePackage **en paralelo** con `Promise.all`.
-
-2. **Usar supabase directo para el update del paquete**: En lugar de `await updatePackage(packageId, updateData)` que pasa por el hook (con `.select().maybeSingle()` extra), hacer un `supabase.from('packages').update(updateData).eq('id', id)` directo sin `.select()`. El realtime subscription ya se encarga de actualizar el estado local.
-
-```ts
-// DESPUÉS del paso 1 (query existing assignments):
-const parallelOps: Promise<any>[] = [];
-
-// Paso 2: Recycle (si hay)
-if (recyclableIds.length > 0) {
-  parallelOps.push(Promise.all(recyclePromises));
-}
-
-// Paso 3: Insert (si hay)
-if (newTripIds.length > 0) {
-  parallelOps.push(supabase.from('package_assignments').insert(assignmentRows));
-}
-
-// Paso 4: Update package status — directo sin .select()
-parallelOps.push(
-  supabase.from('packages').update(updateData).eq('id', packageId)
-);
-
-await Promise.all(parallelOps);
+// Entre paquetes y botón de cobro:
+{!paymentAlreadyRequested && (!boostInfo || boostInfo.amount <= 0) && (
+  <BoostCodeInput
+    tripId={trip.id}
+    travelerId={currentUser?.id}
+    existingBoost={boostInfo?.amount}
+    onBoostApplied={(amount) => {
+      setBoostInfo({ amount, type: '', value: 0, pending: false });
+    }}
+  />
+)}
 ```
 
-### Resultado esperado
-- El match pasa de ~4 queries secuenciales (~2-4s) a 1 query + 1 batch paralelo (~1s)
-- La UI muestra "Match exitoso" casi inmediatamente después de cerrar el dialog
+### Resultado
+- El viajero puede ingresar un código de boost directamente desde el modal de tips
+- Una vez aplicado, el boost se refleja en el desglose y el total a cobrar
+- El input desaparece si ya hay un boost activo o si ya se solicitó cobro
 
