@@ -399,7 +399,7 @@ const AdminMatchDialog = ({
           .from('package_assignments')
           .select('trip_id')
           .eq('package_id', selectedPackage.id)
-          .not('status', 'eq', 'rejected');
+          .in('status', ['bid_pending', 'bid_submitted', 'bid_won']);
         
         if (!error && data) {
           setAlreadyAssignedTripIds(new Set(data.map(a => a.trip_id)));
