@@ -216,8 +216,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   // Load heavy fields on-demand when modal opens
   const { details: heavyDetails, loading: loadingDetails, refetch: refetchPackageDetails } = usePackageDetails(isOpen ? pkgLight?.id : null);
   
-  // Merge light and heavy data
-  const pkg = pkgLight && heavyDetails ? { ...pkgLight, ...heavyDetails } : pkgLight;
+  // Merge light and heavy data — show light data immediately, merge heavy when available
+  const pkg = pkgLight ? { ...pkgLight, ...(heavyDetails || {}) } : null;
   
   // Extract request type from products_data JSONB field
   const packageRequestType = Array.isArray(pkg?.products_data) 
