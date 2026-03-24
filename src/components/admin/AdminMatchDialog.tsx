@@ -607,6 +607,7 @@ const AdminMatchDialog = ({
           console.error('Error fetching traveler packages:', directResult.error);
           setTravelerPackages([]);
         } else {
+          console.log('[TravelerPackages] Direct query for trip', trip.id, ':', directResult.data?.length, 'results', directResult.data?.map((p: any) => ({ id: p.id, status: p.status, desc: p.item_description })));
           const now = Date.now();
           const isTimerActive = (pkg: any) => (
             (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
@@ -614,6 +615,7 @@ const AdminMatchDialog = ({
           );
           const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
           const filtered = (directResult.data || []).filter((pkg) => isTimerActive(pkg) || isPaidOrPostPayment(pkg.status));
+          console.log('[TravelerPackages] After filter:', filtered.length, 'passed. Assignments:', assignmentsResult.data?.length);
 
           // 3. Fetch bidding packages not already in direct results
           const directIds = new Set(filtered.map((p: any) => p.id));
