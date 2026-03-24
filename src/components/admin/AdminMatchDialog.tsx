@@ -516,8 +516,6 @@ const AdminMatchDialog = ({
             return;
           }
           
-          console.log('Fetched profiles:', data);
-          
           // Create profiles map
           const profilesMap = data?.reduce((acc, profile) => {
             acc[profile.id] = profile;
