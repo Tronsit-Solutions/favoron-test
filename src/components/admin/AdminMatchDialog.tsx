@@ -10,7 +10,7 @@ import { Zap, ChevronDown, ChevronRight, User, Users, MapPin, Calendar, Package,
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getHighResGoogleAvatar } from "@/lib/storageUrls";
 import { ImageViewerModal } from "@/components/ui/image-viewer-modal";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getStatusLabel, formatFullName, formatDateUTC } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
 import { useModalState } from "@/contexts/ModalStateContext";
@@ -404,22 +404,33 @@ const AdminMatchDialog = ({
     }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
   }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
 
-  // Reset showAllTrips, showOtherCities and fetch existing assignments + trip assignments in parallel
+  // Reset selection only when the selected package changes
   useEffect(() => {
     setShowAllTrips(false);
     setShowOtherCities(false);
     setSelectedTripIds(new Set());
     setSelectedTripId(null);
-    
+  }, [selectedPackage?.id]);
+
+  // Fetch existing assignments + trip assignments in parallel (without resetting selection)
+  const prevTripIdsRef = useRef<string>('');
+  useEffect(() => {
     if (!showMatchDialog || !selectedPackage?.id) {
       setAlreadyAssignedTripIds(new Set());
       setTripAssignmentsMap({});
       return;
     }
 
+    const tripIds = availableTrips.map(t => t.id);
+    const tripIdsKey = tripIds.sort().join(',');
+    
+    // Skip if trips haven't actually changed
+    if (tripIdsKey === prevTripIdsRef.current && alreadyAssignedTripIds.size > 0) {
+      return;
+    }
+    prevTripIdsRef.current = tripIdsKey;
+
     const fetchAllAssignments = async () => {
-      const tripIds = availableTrips.map(t => t.id);
-      
       // 1) Existing assignments for this package
       const existingPromise = supabase
         .from('package_assignments')
