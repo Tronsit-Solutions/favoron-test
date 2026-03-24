@@ -490,19 +490,8 @@ const [editForm, setEditForm] = useState({
     return null;
   }
   
-  // Show loading state while fetching heavy details
-  if (loadingDetails) {
-    return (
-      <Dialog open={isOpen} onOpenChange={() => closeModal(modalId)}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <span className="ml-3">Cargando detalles del paquete...</span>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  // No longer block the entire modal — content renders immediately with light data
+  // Heavy sections (products, documents) show individual spinners via loadingDetails
 
   // Safe date formatting function
   const formatSafeDate = (dateValue: any): string => {
