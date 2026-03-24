@@ -1,35 +1,31 @@
 
 
-## Fix: Mostrar status real de asignación (bid_lost/bid_expired) en vez del status global del paquete
+## Fix: Match falla silenciosamente al re-asignar viajeros con bids expirados/perdidos
 
-### Problema
-Cuando un viajero pierde un bid o expira, el paquete puede cambiar su status global a `approved` u otro estado. La card del viajero (`TravelerPackageCard`) solo muestra los bloques de `bid_lost`/`bid_expired` cuando `pkg.status === 'matched'`. Como el status global ya cambió, el viajero ve el paquete con un badge incorrecto (ej: "Aprobado") sin contexto de que perdió/expiró.
+### Causa raíz
 
-### Solución — `src/components/dashboard/TravelerPackageCard.tsx`
+En `useDashboardActions.tsx` línea 1271-1278, la verificación de duplicados excluye solo asignaciones con status `rejected`:
 
-En la sección "Action buttons / status for travelers" (línea 202), cambiar la condición para que también muestre los bloques de assignment status cuando hay un `_assignmentStatus` terminal:
+```ts
+.not('status', 'eq', 'rejected')
+```
+
+Pero los statuses terminales de bidding (`bid_expired`, `bid_lost`, `bid_cancelled`) **no se excluyen**. Cuando re-asignas un paquete al mismo viajero (o a cualquier viajero que ya tuvo un bid), el sistema cree que ya existe una asignación activa → no inserta nada → pero sí actualiza el paquete a `matched` → match fantasma.
+
+### Solución — `src/hooks/useDashboardActions.tsx`
+
+**Línea 1271-1275**: Cambiar el filtro para excluir todos los statuses terminales:
 
 ```ts
 // Antes:
-{pkg.status === 'matched' && (
+.not('status', 'eq', 'rejected');
 
 // Después:
-{(pkg.status === 'matched' || ['bid_lost', 'bid_expired', 'bid_cancelled'].includes(pkg._assignmentStatus)) && (
+.not('status', 'in', '("rejected","bid_expired","bid_lost","bid_cancelled")');
 ```
 
-### Solución — `src/components/dashboard/getStatusBadge` (o donde se genera el badge)
-
-Agregar lógica para que cuando `_assignmentStatus` sea `bid_lost`, `bid_expired`, o `bid_cancelled`, el badge refleje eso en lugar del status global del paquete. Buscar dónde se llama `getStatusBadge` y anteponer:
-
-```ts
-// Si es multi-assignment con status terminal, mostrar badge de asignación
-if (pkg._assignmentStatus === 'bid_expired') → Badge "⏰ Expirado" (variant warning)
-if (pkg._assignmentStatus === 'bid_lost') → Badge "❌ No seleccionado" (variant destructive)
-if (pkg._assignmentStatus === 'bid_cancelled') → Badge "Cancelado" (variant muted)
-```
-
-Esto se puede hacer en el componente `TravelerPackageCard` directamente, overrideando el badge del header cuando aplique.
+Esto permite que viajeros con bids expirados/perdidos/cancelados puedan ser re-asignados al mismo paquete.
 
 ### Archivos
-- **Modificar**: `src/components/dashboard/TravelerPackageCard.tsx` — condición de render + override de badge para statuses terminales
+- **Modificar**: `src/hooks/useDashboardActions.tsx` — línea 1275
 
