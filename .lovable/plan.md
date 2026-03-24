@@ -1,38 +1,65 @@
 
 
-## Agregar BoostCodeInput al TripTipsModal
+## Simplificar matching: INSERT siempre, eliminar reciclaje
 
-### Contexto
-El modal `TripTipsModal` ya muestra información del boost si existe (`trip.boost_code`), pero no tiene un input para que el viajero ingrese un código de boost. El componente `BoostCodeInput` ya existe y funciona.
+### Problema actual
+La constraint `UNIQUE(package_id, trip_id)` en `package_assignments` obliga a reciclar filas terminales en vez de crear nuevas. Esto agrega complejidad (query previa + lógica de reciclaje + updates individuales) y lentitud.
 
-### Cambio
+### Solución
 
-**Archivo: `src/components/dashboard/TripTipsModal.tsx`**
+#### 1) Migración SQL — Eliminar constraint UNIQUE
 
-Agregar el componente `BoostCodeInput` entre la sección de "Paquetes asignados" y la sección de "Action" (antes de línea 357), visible solo cuando:
-- No hay boost ya aplicado (`!boostInfo || boostInfo.amount <= 0`)
-- No se ha solicitado cobro aún (`!paymentAlreadyRequested`)
-
-Al aplicar un boost exitosamente, actualizar `boostInfo` con el nuevo monto para que se refleje inmediatamente en el total.
-
-```tsx
-import BoostCodeInput from '@/components/traveler/BoostCodeInput';
-
-// Entre paquetes y botón de cobro:
-{!paymentAlreadyRequested && (!boostInfo || boostInfo.amount <= 0) && (
-  <BoostCodeInput
-    tripId={trip.id}
-    travelerId={currentUser?.id}
-    existingBoost={boostInfo?.amount}
-    onBoostApplied={(amount) => {
-      setBoostInfo({ amount, type: '', value: 0, pending: false });
-    }}
-  />
-)}
+```sql
+ALTER TABLE package_assignments 
+  DROP CONSTRAINT IF EXISTS package_assignments_package_id_trip_id_key;
 ```
 
+Esto permite múltiples filas `(package_id, trip_id)` — las viejas quedan como historial y las nuevas se crean limpias.
+
+#### 2) `src/hooks/useDashboardActions.tsx` — Simplificar handleMatchPackage
+
+Eliminar toda la lógica de reciclaje (líneas 1270-1330). Reemplazar con:
+
+```ts
+// Solo filtrar trips que ya tienen una asignación ACTIVA
+const { data: activeAssignments } = await supabase
+  .from('package_assignments')
+  .select('trip_id')
+  .eq('package_id', packageId)
+  .in('trip_id', tripIdsToAssign)
+  .in('status', ['bid_pending', 'bid_submitted', 'bid_won']);
+
+const activeTripIds = new Set((activeAssignments || []).map(a => a.trip_id));
+const newTripIds = tripIdsToAssign.filter(tid => !activeTripIds.has(tid));
+
+// INSERT nuevas filas directamente (sin reciclar)
+if (newTripIds.length > 0) {
+  const rows = newTripIds.map(tid => ({ ... }));
+  parallelOps.push(supabase.from('package_assignments').insert(rows));
+}
+
+// + update package status en paralelo (sin cambios)
+```
+
+Esto elimina ~60 líneas de lógica de reciclaje y reduce la operación a 1 query + 1 insert + 1 update en paralelo.
+
+#### 3) `src/components/admin/AdminMatchDialog.tsx` — Ajustar query de "ya asignados"
+
+Cambiar la query que determina qué viajeros mostrar como "Ya asignado" para filtrar solo por estados activos:
+
+```ts
+.in('status', ['bid_pending', 'bid_submitted', 'bid_won'])
+```
+
+Así los viajeros con asignaciones terminales antiguas siguen siendo seleccionables.
+
+### Archivos
+- **Migración SQL**: drop UNIQUE constraint
+- **Modificar**: `src/hooks/useDashboardActions.tsx` — eliminar reciclaje
+- **Modificar**: `src/components/admin/AdminMatchDialog.tsx` — filtrar solo activos
+
 ### Resultado
-- El viajero puede ingresar un código de boost directamente desde el modal de tips
-- Una vez aplicado, el boost se refleja en el desglose y el total a cobrar
-- El input desaparece si ya hay un boost activo o si ya se solicitó cobro
+- Match más rápido (no más queries + updates de reciclaje)
+- Código más simple y mantenible
+- Las asignaciones viejas quedan como historial natural
 
