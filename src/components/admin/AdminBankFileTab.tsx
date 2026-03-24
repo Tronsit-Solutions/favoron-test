@@ -1,25 +1,57 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, FileSpreadsheet } from "lucide-react";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
-import { formatCurrency } from "@/lib/formatters";
 import * as XLSX from "xlsx";
+
+type RowData = {
+  colA: string;
+  colB: string;
+  colC: string;
+  colD: string | number;
+  colE: string | number;
+  colF: string;
+  colG: string;
+  colH: string;
+  colI: string | number;
+};
+
+const getAccountTypeCode = (type: string) => {
+  if (type?.toLowerCase().includes('ahorro')) return 2;
+  return 1;
+};
 
 const AdminBankFileTab = () => {
   const { paymentOrders, loading } = usePaymentOrders();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [editedRows, setEditedRows] = useState<Record<string, RowData>>({});
 
-  const pendingOrders = useMemo(() => 
+  const pendingOrders = useMemo(() =>
     (paymentOrders || []).filter(o => o.status === 'pending'),
     [paymentOrders]
   );
 
-  // Auto-select all pending orders when they load
-  useMemo(() => {
+  useEffect(() => {
     setSelectedIds(new Set(pendingOrders.map(o => o.id)));
+    const rows: Record<string, RowData> = {};
+    for (const o of pendingOrders) {
+      rows[o.id] = {
+        colA: o.bank_account_holder || "",
+        colB: "",
+        colC: o.bank_account_number || "",
+        colD: getAccountTypeCode(o.bank_account_type),
+        colE: 1,
+        colF: "",
+        colG: `Tip ${o.trip_id.slice(0, 8)}`,
+        colH: `Tip ${o.trip_id.slice(0, 8)}`,
+        colI: o.amount,
+      };
+    }
+    setEditedRows(rows);
   }, [pendingOrders]);
 
   const toggleSelect = (id: string) => {
@@ -39,9 +71,11 @@ const AdminBankFileTab = () => {
     }
   };
 
-  const getAccountTypeCode = (type: string) => {
-    if (type?.toLowerCase().includes('ahorro')) return 2;
-    return 1;
+  const updateCell = (id: string, key: keyof RowData, value: string) => {
+    setEditedRows(prev => ({
+      ...prev,
+      [id]: { ...prev[id], [key]: value }
+    }));
   };
 
   const handleDownload = () => {
@@ -51,23 +85,15 @@ const AdminBankFileTab = () => {
     const headers = ["Titular", "", "Cuenta", "Tipo", "Código", "", "Referencia 1", "Referencia 2", "Monto"];
     const rows = [
       headers,
-      ...selected.map(order => [
-        order.bank_account_holder,
-        "",
-        order.bank_account_number,
-        getAccountTypeCode(order.bank_account_type),
-        1,
-        "",
-        `Tip ${order.trip_id.slice(0, 8)}`,
-        `Tip ${order.trip_id.slice(0, 8)}`,
-        order.amount,
-      ])
+      ...selected.map(o => {
+        const r = editedRows[o.id];
+        return [r.colA, r.colB, r.colC, r.colD, r.colE, r.colF, r.colG, r.colH, r.colI];
+      })
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Transferencias");
-
     const date = new Date().toISOString().slice(0, 10);
     XLSX.writeFile(wb, `transferencias-${date}.xls`, { bookType: 'xls' });
   };
@@ -75,6 +101,8 @@ const AdminBankFileTab = () => {
   if (loading) {
     return <p className="text-sm text-muted-foreground p-4">Cargando órdenes...</p>;
   }
+
+  const inputClass = "h-8 px-2 border-transparent bg-transparent hover:border-input focus:border-primary text-sm";
 
   return (
     <Card>
@@ -97,10 +125,7 @@ const AdminBankFileTab = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10">
-                    <Checkbox
-                      checked={selectedIds.size === pendingOrders.length}
-                      onCheckedChange={toggleAll}
-                    />
+                    <Checkbox checked={selectedIds.size === pendingOrders.length} onCheckedChange={toggleAll} />
                   </TableHead>
                   <TableHead>A: Titular</TableHead>
                   <TableHead>B:</TableHead>
@@ -114,25 +139,44 @@ const AdminBankFileTab = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pendingOrders.map(order => (
-                  <TableRow key={order.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedIds.has(order.id)}
-                        onCheckedChange={() => toggleSelect(order.id)}
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">{order.bank_account_holder}</TableCell>
-                    <TableCell></TableCell>
-                    <TableCell className="font-mono text-xs">{order.bank_account_number}</TableCell>
-                    <TableCell>{getAccountTypeCode(order.bank_account_type) === 1 ? 'Monetaria (1)' : 'Ahorros (2)'}</TableCell>
-                    <TableCell>1</TableCell>
-                    <TableCell></TableCell>
-                    <TableCell>Tip {order.trip_id.slice(0, 8)}</TableCell>
-                    <TableCell>Tip {order.trip_id.slice(0, 8)}</TableCell>
-                    <TableCell className="text-right font-semibold">{formatCurrency(order.amount)}</TableCell>
-                  </TableRow>
-                ))}
+                {pendingOrders.map(order => {
+                  const r = editedRows[order.id];
+                  if (!r) return null;
+                  return (
+                    <TableRow key={order.id}>
+                      <TableCell>
+                        <Checkbox checked={selectedIds.has(order.id)} onCheckedChange={() => toggleSelect(order.id)} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input className={inputClass} value={r.colA} onChange={e => updateCell(order.id, 'colA', e.target.value)} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input className={inputClass} value={r.colB} onChange={e => updateCell(order.id, 'colB', e.target.value)} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input className={`${inputClass} font-mono`} value={r.colC} onChange={e => updateCell(order.id, 'colC', e.target.value)} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input className={inputClass} value={String(r.colD)} onChange={e => updateCell(order.id, 'colD', e.target.value)} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input className={inputClass} value={String(r.colE)} onChange={e => updateCell(order.id, 'colE', e.target.value)} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input className={inputClass} value={r.colF} onChange={e => updateCell(order.id, 'colF', e.target.value)} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input className={inputClass} value={r.colG} onChange={e => updateCell(order.id, 'colG', e.target.value)} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input className={inputClass} value={r.colH} onChange={e => updateCell(order.id, 'colH', e.target.value)} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input className={`${inputClass} text-right font-semibold`} value={String(r.colI)} onChange={e => updateCell(order.id, 'colI', e.target.value)} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
