@@ -131,12 +131,51 @@ export const TripTipsModal: React.FC<TripTipsModalProps> = ({
         delivered: deliveredCount,
         withIncident: pkgsWithIncident.length,
       });
+
+      // Fetch boost info
+      const existingBoost = tripPayment?.boost_amount ? Number(tripPayment.boost_amount) : 0;
+      if (existingBoost > 0) {
+        setBoostInfo({ amount: existingBoost, type: '', value: 0, pending: false });
+      } else if (trip.boost_code) {
+        try {
+          const { data: boostCode } = await supabase
+            .from('boost_codes')
+            .select('boost_type, boost_value, max_boost_amount')
+            .eq('code', trip.boost_code)
+            .eq('is_active', true)
+            .maybeSingle();
+
+          if (boostCode) {
+            let estimatedAmount = 0;
+            if (boostCode.boost_type === 'percentage') {
+              estimatedAmount = totalTips * (Number(boostCode.boost_value) / 100);
+              if (boostCode.max_boost_amount && estimatedAmount > Number(boostCode.max_boost_amount)) {
+                estimatedAmount = Number(boostCode.max_boost_amount);
+              }
+            } else {
+              estimatedAmount = Number(boostCode.boost_value);
+            }
+            setBoostInfo({
+              amount: estimatedAmount,
+              type: boostCode.boost_type,
+              value: Number(boostCode.boost_value),
+              pending: true,
+            });
+          } else {
+            setBoostInfo(null);
+          }
+        } catch {
+          setBoostInfo(null);
+        }
+      } else {
+        setBoostInfo(null);
+      }
     } catch (err) {
       console.error('Error fetching package details for tips modal:', err);
     } finally {
       setLoadingPackages(false);
     }
-  }, [isOpen, trip.id]);
+  }, [isOpen, trip.id, trip.boost_code, tripPayment?.boost_amount]);
 
   useEffect(() => {
     fetchPackageDetails();
