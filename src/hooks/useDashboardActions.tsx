@@ -1272,7 +1272,7 @@ export const useDashboardActions = (
         .from('package_assignments')
         .select('trip_id')
         .eq('package_id', packageId)
-        .not('status', 'eq', 'rejected');
+        .not('status', 'in', '("rejected","bid_expired","bid_lost","bid_cancelled")');
       
       const existingTripIds = new Set((existingAssignments || []).map(a => a.trip_id));
       const newTripIds = tripIdsToAssign.filter(tid => !existingTripIds.has(tid));
