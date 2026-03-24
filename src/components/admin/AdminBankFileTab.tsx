@@ -64,6 +64,7 @@ const AdminBankFileTab = () => {
   const { paymentOrders, loading } = usePaymentOrders();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [editedRows, setEditedRows] = useState<Record<string, RowData>>({});
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
 
   const pendingOrders = useMemo(() =>
     (paymentOrders || []).filter(o => o.status === 'pending'),
