@@ -82,7 +82,7 @@ const AdminBankFileTab = () => {
     const selected = pendingOrders.filter(o => selectedIds.has(o.id));
     if (selected.length === 0) return;
 
-    const headers = ["Titular", "", "Cuenta", "Tipo", "Código", "", "Referencia 1", "Referencia 2", "Monto"];
+    const headers = ["Nombre", "Id Participante", "Cuenta credito / debito", "Tipo Cuenta", "Moneda", "Banco", "Descripcion Corta", "Adenda", "Valor Q"];
     const rows = [
       headers,
       ...selected.map(o => {
@@ -127,15 +127,15 @@ const AdminBankFileTab = () => {
                   <TableHead className="w-10">
                     <Checkbox checked={selectedIds.size === pendingOrders.length} onCheckedChange={toggleAll} />
                   </TableHead>
-                  <TableHead>A: Titular</TableHead>
-                  <TableHead>B:</TableHead>
-                  <TableHead>C: Cuenta</TableHead>
-                  <TableHead>D: Tipo</TableHead>
-                  <TableHead>E:</TableHead>
-                  <TableHead>F:</TableHead>
-                  <TableHead>G: Ref</TableHead>
-                  <TableHead>H: Ref</TableHead>
-                  <TableHead className="text-right">I: Monto</TableHead>
+                   <TableHead>Nombre</TableHead>
+                   <TableHead>Id Participante</TableHead>
+                   <TableHead>Cuenta credito / debito</TableHead>
+                   <TableHead>Tipo Cuenta</TableHead>
+                   <TableHead>Moneda</TableHead>
+                   <TableHead>Banco</TableHead>
+                   <TableHead>Descripcion Corta</TableHead>
+                   <TableHead>Adenda</TableHead>
+                   <TableHead className="text-right">Valor Q</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
