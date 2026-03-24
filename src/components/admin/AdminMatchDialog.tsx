@@ -706,32 +706,15 @@ const AdminMatchDialog = ({
   };
 
   const getProductsForModal = () => {
-    console.log('🔍 DEBUG getProductsForModal - fullPackage:', fullPackage);
-    console.log('🔍 DEBUG products_data:', fullPackage?.products_data);
+    if (!fullPackage?.products_data) return [];
     
-    if (!fullPackage?.products_data) {
-      console.log('❌ No products_data found');
-      return [];
-    }
-    
-    const products = fullPackage.products_data.map((product: any, index: number) => {
-      console.log(`🔍 DEBUG Product ${index}:`, product);
-      
-      // Handle different data structure possibilities - use ?? to preserve existing quantity
-      const mappedProduct = {
-        itemDescription: product.itemDescription || product.item_description || product.description || '',
-        estimatedPrice: product.estimatedPrice || product.estimated_price || product.price || '0',
-        itemLink: product.itemLink || product.item_link || product.link || fullPackage.item_link || '',
-        quantity: product.quantity ?? product.qty ?? '1', // Use ?? to preserve '0' or other falsy values
-        adminAssignedTip: product.adminAssignedTip || 0
-      };
-      
-      console.log(`🔍 DEBUG Mapped Product ${index}:`, mappedProduct);
-      return mappedProduct;
-    });
-    
-    console.log('🔍 DEBUG Final products for modal:', products);
-    return products;
+    return fullPackage.products_data.map((product: any) => ({
+      itemDescription: product.itemDescription || product.item_description || product.description || '',
+      estimatedPrice: product.estimatedPrice || product.estimated_price || product.price || '0',
+      itemLink: product.itemLink || product.item_link || product.link || fullPackage.item_link || '',
+      quantity: product.quantity ?? product.qty ?? '1',
+      adminAssignedTip: product.adminAssignedTip || 0
+    }));
   };
 
   const getTotalAssignedTip = () => {
