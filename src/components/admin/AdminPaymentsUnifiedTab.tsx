@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, RotateCcw, Banknote, Clock } from "lucide-react";
+import { CreditCard, RotateCcw, Banknote, Clock, FileSpreadsheet } from "lucide-react";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
 import { useAdminRefundOrders } from "@/hooks/useRefundOrders";
 import AdminTravelerPaymentsTab from "./AdminTravelerPaymentsTab";
 import AdminRefundsTab from "./AdminRefundsTab";
+import AdminBankFileTab from "./AdminBankFileTab";
 import { formatCurrency } from "@/lib/formatters";
 
 const AdminPaymentsUnifiedTab = () => {
