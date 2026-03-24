@@ -77,22 +77,32 @@ const AdminBankFileTab = () => {
   );
 
   useEffect(() => {
-    setSelectedIds(new Set(pendingOrders.map(o => o.id)));
-    const rows: Record<string, RowData> = {};
-    for (const o of pendingOrders) {
-      rows[o.id] = {
-        colA: o.bank_account_holder || "",
-        colB: "",
-        colC: o.bank_account_number || "",
-        colD: getAccountTypeCode(o.bank_account_type),
-        colE: 1,
-        colF: getBankCode(o.bank_name || ""),
-        colG: `Tip ${o.trip_id.slice(0, 8)}`,
-        colH: `Tip ${o.trip_id.slice(0, 8)}`,
-        colI: o.amount,
-      };
-    }
-    setEditedRows(rows);
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      for (const o of pendingOrders) {
+        if (!hiddenIds.has(o.id)) next.add(o.id);
+      }
+      return next;
+    });
+    setEditedRows(prev => {
+      const next = { ...prev };
+      for (const o of pendingOrders) {
+        if (!next[o.id]) {
+          next[o.id] = {
+            colA: o.bank_account_holder || "",
+            colB: "",
+            colC: o.bank_account_number || "",
+            colD: getAccountTypeCode(o.bank_account_type),
+            colE: 1,
+            colF: getBankCode(o.bank_name || ""),
+            colG: `Tip ${o.trip_id.slice(0, 8)}`,
+            colH: `Tip ${o.trip_id.slice(0, 8)}`,
+            colI: o.amount,
+          };
+        }
+      }
+      return next;
+    });
   }, [pendingOrders]);
 
   const toggleSelect = (id: string) => {
