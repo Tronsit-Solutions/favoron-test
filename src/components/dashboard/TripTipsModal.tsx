@@ -8,6 +8,7 @@ import { getActiveTipFromPackage } from '@/utils/tipHelpers';
 import { supabase } from '@/integrations/supabase/client';
 import { Banknote, Package, CheckCircle, Clock, AlertTriangle, Lock, Download, FileText } from 'lucide-react';
 import TripBankingConfirmationModal from '@/components/TripBankingConfirmationModal';
+import BoostCodeInput from '@/components/traveler/BoostCodeInput';
 import { TripPaymentAccumulator } from '@/hooks/useTripPayments';
 import { useSignedUrl } from '@/hooks/useSignedUrl';
 import { parseStorageRef } from '@/lib/storageUrls';
