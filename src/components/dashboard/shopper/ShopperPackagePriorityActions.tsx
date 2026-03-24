@@ -165,6 +165,14 @@ const ShopperPackagePriorityActions = ({
       }
 
       console.log('✅ Re-quote requested. Updated package:', data);
+
+      // Cancel any active assignments so traveler doesn't see stale bid_won
+      await supabase
+        .from('package_assignments')
+        .update({ status: 'bid_cancelled', updated_at: new Date().toISOString() })
+        .eq('package_id', pkg.id)
+        .in('status', ['bid_won', 'bid_submitted', 'bid_pending']);
+
       toast({
         title: "Solicitud enviada",
         description: "Tu pedido volvió a 'aprobado' y se solicitará una nueva cotización.",
