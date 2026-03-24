@@ -80,7 +80,7 @@ const AdminBankFileTab = () => {
         colC: o.bank_account_number || "",
         colD: getAccountTypeCode(o.bank_account_type),
         colE: 1,
-        colF: "",
+        colF: getBankCode(o.bank_name || ""),
         colG: `Tip ${o.trip_id.slice(0, 8)}`,
         colH: `Tip ${o.trip_id.slice(0, 8)}`,
         colI: o.amount,
