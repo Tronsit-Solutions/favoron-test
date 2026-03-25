@@ -1,27 +1,29 @@
 
 
-## Fix: Match Confirmation Delay
+## Fix: Tip Modal Shows Wrong Package Products
 
 ### Root Cause
-In `AdminDashboard.tsx` line 257, the success toast ("¡Match exitoso!") only appears **after** `await onMatchPackage(...)` completes. This function makes 2 sequential network calls to Supabase:
-1. SELECT active assignments (to filter duplicates)
-2. INSERT assignments + UPDATE package status (in parallel)
+Two bugs cause the tip modal to display products from a **previously selected** package instead of the current one:
 
-Even though the dialog closes immediately via optimistic update, the user sees "Procesando match..." and waits for the DB operations to finish before getting confirmation — which can take several seconds depending on network latency.
+**Bug 1: Stale `heavyDetails` in `usePackageDetails`**
+When `packageId` changes, the hook starts fetching new data but **keeps the old `details` in state** until the fetch completes. The merge logic in `AdminMatchDialog.tsx` (line 80) uses `heavyDetails?.products_data || selectedPackage.products_data`, so during the fetch gap, stale products from the previous package are passed to the tip modal.
 
-### Solution
-Since the optimistic update already updates the UI instantly, we can run the actual DB operations as fire-and-forget (non-blocking). Show the success toast immediately after closing the dialog. If the DB operation fails, show an error toast and revert the optimistic update.
+**Bug 2: `ProductTipAssignmentModal` initialization guard**
+Line 52: `if (initialProducts.length === 0 || products.length > 0) return;` — the `products.length > 0` check prevents re-initialization if the component isn't fully remounted. Although the `key` prop should force a remount, stale data from Bug 1 means the modal initializes with the wrong products even on a fresh mount.
 
-### Changes
+### Plan
 
-**File: `src/components/AdminDashboard.tsx`** (lines 233-277)
-- Move the success toast to fire **immediately** after the optimistic update and dialog close
-- Run `onMatchPackage(...)` without `await` — as a `.catch()` handler that shows an error toast and reverts the optimistic state if it fails
-- Remove the "Procesando match..." intermediate toast since the operation will appear instant
+**1. Reset details on packageId change in `usePackageDetails.tsx`**
+- At the start of `fetchDetails()`, immediately `setDetails(null)` before the async fetch begins
+- This ensures the merge in `AdminMatchDialog` falls back to `selectedPackage.products_data` (the correct lightweight data) instead of stale heavy details
 
-**File: `src/hooks/useDashboardActions.tsx`** (line 1404)
-- Remove the duplicate success toast inside `handleMatchPackage` (it already exists in `AdminDashboard.handleMatch`)
+**2. Strengthen initialization in `ProductTipAssignmentModal.tsx`**  
+- Change the useEffect dependency from `[initialProducts.length]` to `[packageId]` so products re-initialize when the package actually changes, not just when the count changes
+- Reset `products` state to `[]` at the start of the effect to avoid the `products.length > 0` guard blocking re-initialization
 
-### Result
-The admin will see the dialog close and "¡Match exitoso!" immediately. DB operations run silently in background. On the rare failure, an error toast appears and the package reverts to its previous status.
+### Files to modify
+| File | Change |
+|---|---|
+| `src/hooks/usePackageDetails.tsx` | Add `setDetails(null)` at start of fetch when packageId changes |
+| `src/components/admin/ProductTipAssignmentModal.tsx` | Fix useEffect deps to use `packageId`, reset products on change |
 
