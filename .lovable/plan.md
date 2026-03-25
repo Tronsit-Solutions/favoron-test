@@ -1,29 +1,26 @@
 
 
-## Fix: Tip Modal Shows Wrong Package Products
+## Fix: Remaining Match Delay Issues
 
-### Root Cause
-Two bugs cause the tip modal to display products from a **previously selected** package instead of the current one:
+### Analysis
 
-**Bug 1: Stale `heavyDetails` in `usePackageDetails`**
-When `packageId` changes, the hook starts fetching new data but **keeps the old `details` in state** until the fetch completes. The merge logic in `AdminMatchDialog.tsx` (line 80) uses `heavyDetails?.products_data || selectedPackage.products_data`, so during the fetch gap, stale products from the previous package are passed to the tip modal.
+The previous fix was partially implemented. Two remaining problems:
 
-**Bug 2: `ProductTipAssignmentModal` initialization guard**
-Line 52: `if (initialProducts.length === 0 || products.length > 0) return;` — the `products.length > 0` check prevents re-initialization if the component isn't fully remounted. Although the `key` prop should force a remount, stale data from Bug 1 means the modal initializes with the wrong products even on a fresh mount.
+1. **Duplicate success toast in `useDashboardActions.tsx` (line 1404)**: The plan called for removing this toast but it wasn't removed. After the fire-and-forget `onMatchPackage` completes, it fires a second toast "¡Match realizado!" — this is the one the user sees delayed (appearing seconds later as "Procesando match" resolves). Meanwhile `AdminDashboard.tsx` already shows an immediate "¡Match exitoso!" toast.
+
+2. **`useDashboardActions.handleMatchPackage` throws errors that `AdminDashboard` catches via `.catch()`**: This is correct. But on *success*, the duplicate toast on line 1404 causes confusion — the user sees two separate toasts at different times.
+
+The toast text "Procesando match... Asignando paquete a 2 viajes..." visible in the screenshot doesn't exist in the current codebase, suggesting the user may be on a build that hasn't fully deployed yet. Regardless, removing the duplicate toast ensures clean behavior going forward.
 
 ### Plan
 
-**1. Reset details on packageId change in `usePackageDetails.tsx`**
-- At the start of `fetchDetails()`, immediately `setDetails(null)` before the async fetch begins
-- This ensures the merge in `AdminMatchDialog` falls back to `selectedPackage.products_data` (the correct lightweight data) instead of stale heavy details
+**File: `src/hooks/useDashboardActions.tsx`**
+- **Remove lines 1404-1407**: Delete the duplicate success toast inside `handleMatchPackage`. The success feedback is already handled by `AdminDashboard.tsx` immediately. Keeping it causes a confusing delayed second toast.
 
-**2. Strengthen initialization in `ProductTipAssignmentModal.tsx`**  
-- Change the useEffect dependency from `[initialProducts.length]` to `[packageId]` so products re-initialize when the package actually changes, not just when the count changes
-- Reset `products` state to `[]` at the start of the effect to avoid the `products.length > 0` guard blocking re-initialization
-
-### Files to modify
 | File | Change |
 |---|---|
-| `src/hooks/usePackageDetails.tsx` | Add `setDetails(null)` at start of fetch when packageId changes |
-| `src/components/admin/ProductTipAssignmentModal.tsx` | Fix useEffect deps to use `packageId`, reset products on change |
+| `src/hooks/useDashboardActions.tsx` | Remove duplicate success toast (lines 1404-1407) |
+
+### Result
+Only one instant success toast appears when matching. No delayed "Procesando..." confirmation.
 
