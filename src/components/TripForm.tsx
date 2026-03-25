@@ -153,6 +153,24 @@ const TripForm = ({
   const showTermsModal = formState.showTermsModal;
   const showMessengerForm = formState.showMessengerForm;
 
+  const validateBoostCode = useCallback(async (code: string) => {
+    if (!code.trim()) { setBoostStatus('idle'); return; }
+    setBoostStatus('checking');
+    const { data } = await supabase
+      .from('boost_codes')
+      .select('id')
+      .eq('code', code.trim().toUpperCase())
+      .eq('is_active', true)
+      .maybeSingle();
+    setBoostStatus(data ? 'valid' : 'invalid');
+  }, []);
+
+  const handleBoostCodeChange = useCallback((value: string) => {
+    updateField('formData', { ...formData, boostCode: value.toUpperCase() });
+    if (boostDebounceRef.current) clearTimeout(boostDebounceRef.current);
+    boostDebounceRef.current = setTimeout(() => validateBoostCode(value), 500);
+  }, [formData, validateBoostCode, updateField]);
+
   // Helpers para actualizar partes específicas del estado (soportan callbacks)
   const setFormData = (newFormData: typeof formData | ((prev: typeof formData) => typeof formData)) => {
     if (typeof newFormData === 'function') {
