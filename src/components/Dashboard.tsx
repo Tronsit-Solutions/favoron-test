@@ -1069,11 +1069,13 @@ const Dashboard = ({ user }: DashboardProps) => {
         <Route 
           path="/package" 
           element={
-            <PackageRequestForm
-              isOpen={true}
-              onClose={navigateBack}
-              onSubmit={handlePackageSubmit}
-            />
+            <Suspense fallback={null}>
+              <PackageRequestForm
+                isOpen={true}
+                onClose={navigateBack}
+                onSubmit={handlePackageSubmit}
+              />
+            </Suspense>
           } 
         />
         <Route 
