@@ -339,7 +339,7 @@ const Auth = () => {
       setLastName('');
       setPhoneNumber('');
       setUsername('');
-      setDocumentType('');
+      setDocumentType('dpi');
       setDocumentNumber('');
       setPassword('');
       setConfirmPassword('');
