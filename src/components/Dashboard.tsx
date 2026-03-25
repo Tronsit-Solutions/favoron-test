@@ -1199,25 +1199,31 @@ const Dashboard = ({ user }: DashboardProps) => {
       />
 
       {/* Keep EditProfileModal for legacy access from within profile components */}
-      <EditProfileModal
-        user={currentUser}
-        isOpen={showProfile && activeTab !== 'profile'}
-        onClose={() => setShowProfile(false)}
-        onUpdateUser={handleUpdateUser}
-      />
+      <Suspense fallback={null}>
+        <EditProfileModal
+          user={currentUser}
+          isOpen={showProfile && activeTab !== 'profile'}
+          onClose={() => setShowProfile(false)}
+          onUpdateUser={handleUpdateUser}
+        />
+      </Suspense>
 
       {/* Prime Modal */}
-      <PrimeModal
-        isOpen={showPrimeModal}
-        onClose={() => setShowPrimeModal(false)}
-        user={currentUser}
-      />
+      <Suspense fallback={null}>
+        <PrimeModal
+          isOpen={showPrimeModal}
+          onClose={() => setShowPrimeModal(false)}
+          user={currentUser}
+        />
+      </Suspense>
 
       {/* Acquisition Survey Modal */}
-      <AcquisitionSurveyModal
-        isOpen={showAcquisitionSurvey}
-        onComplete={handleSurveyComplete}
-      />
+      <Suspense fallback={null}>
+        <AcquisitionSurveyModal
+          isOpen={showAcquisitionSurvey}
+          onComplete={handleSurveyComplete}
+        />
+      </Suspense>
 
       {/* Profile Completion Modal - Auto-shows for incomplete profiles */}
       <ProfileCompletionModal

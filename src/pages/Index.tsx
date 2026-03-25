@@ -97,7 +97,9 @@ const Index = () => {
           <PlatformDescriptionSection />
         </Suspense>
         
-        <TravelsHubSection />
+        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
+          <TravelsHubSection />
+        </Suspense>
         
         <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
           <HowItWorksSection />
