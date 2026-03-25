@@ -230,51 +230,50 @@ const AdminDashboard = ({
         return;
       }
 
-      // Show loading toast
+      // Save previous state for rollback on failure
+      const previousPackages = [...localPackages];
+
+      // Apply optimistic update — set package status to matched
+      setLocalPackages(prevPackages => 
+        prevPackages.map(pkg => 
+          pkg.id === selectedPackage.id ? {
+            ...pkg,
+            status: 'matched',
+            updated_at: new Date().toISOString()
+          } : pkg
+        )
+      );
+
+      // Close modal immediately for snappy feedback
+      setSelectedPackage(null);
+      setMatchingTrip("");
+      setShowMatchDialog(false);
+
+      // Show success toast immediately — don't wait for DB
+      const isMultiProduct = productsWithTips && productsWithTips.length > 1;
       toast({
-        title: "Procesando match...",
-        description: `Asignando paquete a ${tripIds.length} viaje${tripIds.length > 1 ? 's' : ''}...`,
+        title: "¡Match exitoso!",
+        description: tripIds.length > 1
+          ? `Paquete asignado a ${tripIds.length} viajeros. El shopper podrá comparar cotizaciones.`
+          : isMultiProduct 
+            ? `Paquete emparejado con viaje con tips por producto (Total: Q${adminTip})`
+            : `Paquete emparejado con viaje con tip de Q${adminTip}`,
       });
 
-      try {
-        // Apply optimistic update — set package status to matched
-        setLocalPackages(prevPackages => 
-          prevPackages.map(pkg => 
-            pkg.id === selectedPackage.id ? {
-              ...pkg,
-              status: 'matched',
-              updated_at: new Date().toISOString()
-            } : pkg
-          )
-        );
-
-        // Close modal immediately for snappy feedback
-        setSelectedPackage(null);
-        setMatchingTrip("");
-        setShowMatchDialog(false);
-
-        // Execute the match — now supports multiple trips
-        await onMatchPackage(selectedPackage.id, tripIds[0], adminTip, productsWithTips, tripIds);
-        
-        const isMultiProduct = productsWithTips && productsWithTips.length > 1;
-        toast({
-          title: "¡Match exitoso!",
-          description: tripIds.length > 1
-            ? `Paquete asignado a ${tripIds.length} viajeros. El shopper podrá comparar cotizaciones.`
-            : isMultiProduct 
-              ? `Paquete emparejado con viaje con tips por producto (Total: Q${adminTip})`
-              : `Paquete emparejado con viaje con tip de Q${adminTip}`,
+      // Execute DB operations in background (fire-and-forget with error recovery)
+      const matchPackageId = selectedPackage.id;
+      Promise.resolve()
+        .then(() => onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds))
+        .catch((error) => {
+          console.error('Error during match:', error);
+          // Revert optimistic update
+          setLocalPackages(previousPackages);
+          toast({
+            title: "Error",
+            description: "Hubo un problema al procesar el match. Intenta de nuevo.",
+            variant: "destructive",
+          });
         });
-        
-        // Realtime subscription + optimistic update handle refresh — no manual refresh needed
-      } catch (error) {
-        console.error('Error during match:', error);
-        toast({
-          title: "Error",
-          description: "Hubo un problema al procesar el match. Intenta de nuevo.",
-          variant: "destructive",
-        });
-      }
     }
   };
 
