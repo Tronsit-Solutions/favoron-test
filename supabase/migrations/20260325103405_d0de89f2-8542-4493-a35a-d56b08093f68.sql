@@ -1,0 +1,1 @@
+UPDATE trips SET boost_code = NULL WHERE id = '3078fb6d-2ca8-4767-a1d6-a585a64a1b31';
