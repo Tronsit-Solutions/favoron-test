@@ -54,6 +54,7 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
       rating: edits.rating !== undefined ? edits.rating : undefined,
       notes: edits.notes !== undefined ? edits.notes : undefined,
       call_date: edits.call_date !== undefined ? edits.call_date : undefined,
+      scheduled_date: edits.scheduled_date !== undefined ? edits.scheduled_date : undefined,
     });
     setEditState((prev) => {
       const next = { ...prev };
