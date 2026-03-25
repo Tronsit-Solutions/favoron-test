@@ -29,6 +29,7 @@ const HowItWorksSection = lazyWithRetry(() => import("@/components/HowItWorksSec
 const BenefitsSection = lazyWithRetry(() => import("@/components/BenefitsSection"));
 const FAQSection = lazyWithRetry(() => import("@/components/FAQSection"));
 const CTASection = lazyWithRetry(() => import("@/components/CTASection"));
+const TravelsHubSection = lazyWithRetry(() => import("@/components/TravelsHubSection"));
 
 const Index = () => {
   const { user, profile, userRole, loading, signOut } = useAuth();
