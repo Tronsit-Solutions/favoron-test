@@ -893,7 +893,7 @@ const Dashboard = ({ user }: DashboardProps) => {
               <div>
                 <h3 className="text-xl sm:text-2xl font-bold">Mis Viajes</h3>
                 <p className="text-muted-foreground text-sm sm:text-base">
-                  Gestiona tus viajes como <strong>viajero</strong> - envía cotizaciones y ve paquetes asignados
+                  Gestiona tus viajes - envía cotizaciones y gestiona paquetes asignados a tu viaje.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
