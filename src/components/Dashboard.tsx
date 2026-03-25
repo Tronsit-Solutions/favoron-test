@@ -39,7 +39,7 @@ import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useOptimizedRealtime } from "@/hooks/useOptimizedRealtime";
-import AcquisitionSurveyModal from "./AcquisitionSurveyModal";
+const AcquisitionSurveyModal = lazy(() => import("./AcquisitionSurveyModal"));
 import { useAcquisitionSurvey } from "@/hooks/useAcquisitionSurvey";
 import ReferralAnnouncementModal from "./dashboard/ReferralAnnouncementModal";
 
