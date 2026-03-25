@@ -1081,11 +1081,13 @@ const Dashboard = ({ user }: DashboardProps) => {
         <Route 
           path="/trip" 
           element={
-            <TripForm
-              isOpen={true}
-              onClose={navigateBack}
-              onSubmit={handleTripSubmit}
-            />
+            <Suspense fallback={null}>
+              <TripForm
+                isOpen={true}
+                onClose={navigateBack}
+                onSubmit={handleTripSubmit}
+              />
+            </Suspense>
           } 
         />
       </Routes>
