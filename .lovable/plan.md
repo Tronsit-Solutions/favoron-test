@@ -1,38 +1,37 @@
 
 
-## Fix: Shopper receipt upload not updating status without hard refresh
+## Agendar llamadas en Customer Experience
 
-### Problem
-When a shopper uploads a payment receipt, the package status doesn't update in the UI until they do a hard refresh.
+### Situación actual
+La tabla `customer_experience_calls` tiene un campo `call_date` que actualmente se usa como fecha de llamada realizada. No existe un campo para agendar llamadas futuras ni un estado "scheduled".
 
-**Root cause**: Double-update race condition.
-1. `PaymentReceiptUpload.confirmUpload()` saves the receipt to DB and the trigger updates the status correctly.
-2. Then `handleUploadDocument` in `useDashboardActions` calls `updatePackage()` again with the same `payment_receipt` data — this registers a "recent mutation" that causes the realtime subscription to **skip** the status change event (2-second suppression window).
-3. The second `updatePackage` returns data from before the trigger has run on that update, so local state keeps the old status.
+### Plan
 
-### Solution
-In `handleUploadDocument` (`src/hooks/useDashboardActions.tsx`), for `payment_receipt` type, instead of calling `updatePackage()` (which re-writes the same data), directly re-fetch the package from Supabase to get the trigger-updated status and merge it into local state.
+**1. Migración: agregar columna `scheduled_date`**
+- Agregar `scheduled_date timestamptz` a `customer_experience_calls`
+- Agregar nuevo valor de estado `scheduled` al flujo
 
-### File to modify
-**`src/hooks/useDashboardActions.tsx`** (lines ~1088-1101)
-- For `payment_receipt` type: skip `updatePackage()`, instead fetch the fresh package from DB with a small delay (to let the trigger complete), then update local package state with the correct status.
+**2. Actualizar el hook `useCustomerExperience.ts`**
+- Agregar `scheduled_date` al interface `CXPackageRow`
+- Incluir `scheduled_date` en el fetch de CX calls y en `saveCXCall`
+- Agregar stat de "Agendados" al conteo
 
-### Technical detail
-```
-// Instead of:
-updatedData.payment_receipt = data;
-await updatePackage(packageId, updatedData);
+**3. Actualizar `CustomerExperienceTable.tsx`**
+- Agregar columna "Agendar" con un date picker para seleccionar fecha/hora de llamada agendada
+- Agregar estado `scheduled` (color naranja) al `statusConfig`
+- Mostrar indicador visual cuando una llamada está agendada para hoy
 
-// Do:
-if (type === 'payment_receipt') {
-  // Package already updated by PaymentReceiptUpload - just refresh local state
-  await new Promise(r => setTimeout(r, 600));
-  const { data: freshPkg } = await supabase
-    .from('packages').select('*').eq('id', packageId).single();
-  if (freshPkg) {
-    setPackages(prev => prev.map(p => p.id === packageId ? { ...p, ...freshPkg } : p));
-  }
-  return;
-}
-```
+**4. Actualizar filtros en `AdminCustomerExperience.tsx`**
+- Agregar opción "Agendado" al select de filtro de estado
+- Agregar stat card de "Agendados" (reemplazar o agregar junto a los existentes)
+
+**5. Ordenamiento por prioridad**
+- Las llamadas agendadas para hoy aparecen primero en la tabla
+- Luego las agendadas para fechas futuras, luego pendientes
+
+### Archivos a modificar
+- Nueva migración SQL (agregar `scheduled_date`)
+- `src/hooks/useCustomerExperience.ts`
+- `src/components/admin/cx/CustomerExperienceTable.tsx`
+- `src/pages/AdminCustomerExperience.tsx`
 
