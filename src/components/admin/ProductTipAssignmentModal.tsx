@@ -47,26 +47,25 @@ const ProductTipAssignmentModal = ({
   const [products, setProducts] = useState<Product[]>([]);
   const [tipValues, setTipValues] = useState<string[]>([]);
   
-  // Initialize only once when modal opens
+  // Re-initialize when packageId changes
   useEffect(() => {
-    if (initialProducts.length === 0 || products.length > 0) return;
+    setProducts([]);
+    setTipValues([]);
     
-    console.log('🔍 DEBUG Setting products from initialProducts:', initialProducts);
+    if (initialProducts.length === 0) return;
+    
     const mappedProducts = initialProducts.map(p => ({
       ...p,
       adminAssignedTip: p.adminAssignedTip || 0,
-      additionalNotes: (p as any).additionalNotes || null // Preserve additional notes
+      additionalNotes: (p as any).additionalNotes || null
     }));
     setProducts(mappedProducts);
     
-    // Initialize tipValues with existing tips or empty string
     const initialTipValues = mappedProducts.map(p => 
       p.adminAssignedTip && p.adminAssignedTip > 0 ? p.adminAssignedTip.toString() : ''
     );
     setTipValues(initialTipValues);
-    console.log('🔍 DEBUG Initialized products:', mappedProducts);
-    console.log('🔍 DEBUG Initialized tipValues:', initialTipValues);
-  }, [initialProducts.length]); // Only depend on length, not the full array
+  }, [packageId]);
   
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();

@@ -34,6 +34,7 @@ export const usePackageDetails = (packageId: string | null): UsePackageDetailsRe
 
     setLoading(true);
     setError(null);
+    setDetails(null);
 
     try {
       console.log('🔄 Loading package details on-demand for:', packageId);
