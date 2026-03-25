@@ -1096,13 +1096,13 @@ const Auth = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="document-type">Tipo de documento</Label>
-                  <Select onValueChange={setDocumentType}>
+                  <Select value={documentType} onValueChange={setDocumentType}>
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ID">Documento de Identidad</SelectItem>
-                      <SelectItem value="Pasaporte">Pasaporte</SelectItem>
+                      <SelectItem value="dpi">DPI / DUI</SelectItem>
+                      <SelectItem value="passport">Pasaporte</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
