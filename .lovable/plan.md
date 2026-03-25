@@ -1,48 +1,31 @@
 
 
-## Fix: Traveler rejection flow for package_assignments
+## Validar código de Boost en tiempo real (sin bloquear el guardado del viaje)
 
-### Problem
-The "Rechazar" button for travelers fails because the rejection path calls the old RPC `traveler_reject_assignment`, which does `JOIN trips t ON t.id = p.matched_trip_id WHERE p.status = 'matched'`. With the new `package_assignments` architecture, `matched_trip_id` on the package row may be NULL (data lives in the assignment row), so the RPC returns "No tienes permisos".
+### Problema
+Actualmente el campo de boost code guarda cualquier texto sin validar si existe en `boost_codes`. El viaje siempre se guarda, pero el viajero no sabe si su código es válido hasta mucho después.
 
-### Solution
-Update the rejection handler in `useDashboardActions.tsx` to detect assignment-based matches (`_assignmentId`) and handle them directly via `package_assignments` update instead of the old RPC. Fall back to the old RPC only for legacy matches without an assignment.
+### Solución
+Agregar validación en tiempo real al campo de boost code: cuando el viajero escribe un código y sale del campo (onBlur) o después de un debounce, consultar `boost_codes` para verificar si existe y está activo. Mostrar feedback visual inline (verde si válido, rojo si inválido). El viaje siempre se guarda — si el código es inválido, se guarda sin boost code (`null`).
 
-### Changes
+### Cambios
 
-**File: `src/hooks/useDashboardActions.tsx` (~lines 475-522)**
+**1. `src/components/TripForm.tsx`**
 
-Replace the `isTravelerRejectingAssignedTip` block with:
+- Agregar estados: `boostStatus` (`idle | checking | valid | invalid`), `boostError` (string)
+- En el `onChange` o `onBlur` del input de boost code, si hay texto:
+  - Hacer query a `boost_codes` tabla: `.select('id').eq('code', value).eq('is_active', true).maybeSingle()`
+  - Si `data` existe → `boostStatus = 'valid'`, mostrar checkmark verde
+  - Si no existe → `boostStatus = 'invalid'`, mostrar mensaje "Código no válido"
+- En el `handleSubmit`, si `boostStatus !== 'valid'`, enviar `boostCode: null` (no guardar código inválido)
+- Feedback visual: icono Check verde cuando válido, texto rojo "Código no encontrado" cuando inválido
 
-1. Check if `selectedPackage._assignmentId` exists (new assignment-based flow)
-2. If yes:
-   - Update the `package_assignments` row to `status: 'bid_cancelled'` with rejection metadata (reason, comments, timestamp)
-   - Check if there are any other active assignments for this package (`bid_pending` or `bid_submitted`). If none remain, reset the package status back to `approved` and clear `admin_assigned_tip`
-   - Show success toast, refresh data
-3. If no `_assignmentId` (legacy): keep the existing RPC call as fallback
+**2. `src/components/EditTripModal.tsx`**
 
-**New RPC (migration):** Create `traveler_reject_assignment_v2` that accepts `_assignment_id UUID` instead of `_package_id`, and:
-- Verifies the assignment belongs to the caller's trip
-- Updates assignment status to `bid_cancelled` with rejection metadata
-- Checks remaining active assignments; if none, resets package to `approved`
-- Preserves audit trail in `admin_actions_log`
+- Misma lógica de validación para el campo de boost code en edición
 
-Using a SECURITY DEFINER RPC is safer than direct client-side updates to avoid RLS issues.
-
-### Detailed steps
-
-1. **New migration**: Create `traveler_reject_assignment_v2(_assignment_id UUID, _rejection_reason TEXT, _additional_comments TEXT)` RPC
-   - Verify `auth.uid()` owns the trip linked to the assignment
-   - Verify assignment status is `bid_pending`
-   - Update assignment to `bid_cancelled` with rejection JSONB
-   - Count remaining active assignments for the package
-   - If zero active: reset package to `approved`, clear `admin_assigned_tip`, `matched_trip_id`
-   - Append to package `admin_actions_log`
-
-2. **`src/hooks/useDashboardActions.tsx`** (rejection block ~line 475-522):
-   - If `_assignmentId` exists, call new RPC `traveler_reject_assignment_v2` with `_assignment_id`
-   - Else, fall back to existing `traveler_reject_assignment` RPC
-   - Both paths: show toast, refresh data, close dialog
-
-3. **No changes needed** to `QuoteDialog.tsx` or `TravelerRejectionModal.tsx` — they already pass rejection data correctly to `onSubmit`.
+### Resultado
+- El viajero ve inmediatamente si su código es válido o no
+- El viaje siempre se guarda (nunca se bloquea)
+- Códigos inválidos no se guardan en la DB (se envía `null`)
 
