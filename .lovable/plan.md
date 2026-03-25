@@ -1,23 +1,28 @@
 
 
-## Agregar botón "Descartar" para bid_lost y bid_expired en CollapsibleTravelerPackageCard
+## Dead Code encontrado
 
-### Problema
-Las tarjetas con `_assignmentStatus` de `bid_lost`, `bid_expired` o `bid_cancelled` muestran el estado correcto pero no tienen botón para descartarlas. El viajero no puede limpiar su dashboard.
+### 1. `getStatusIcon` y `getStatusColor` locales en `PendingRequestsTab.tsx` (líneas 32-57)
+Ambas funciones están definidas pero **nunca se llaman** dentro del componente. El componente usa `getStatusBadge` del hook `useStatusHelpers` en su lugar.
 
-### Solución
-Agregar un botón "Descartar" inline debajo del mensaje de estado para estos tres casos terminales, usando la misma lógica que ya existe en `TravelerPackageCard.tsx`: actualizar `dismissed_by_traveler = true` en `package_assignments` usando `pkg._assignmentId`.
+**Acción:** Eliminar las dos funciones (líneas 32-57).
 
-### Cambios
+### 2. `useGuatemalaDeliveryBackfill.tsx` — hook de backfill one-time
+No se importa en ningún otro archivo. Fue un hook de corrección de datos que ya cumplió su propósito.
 
-**1. `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`**
+**Acción:** Eliminar `src/hooks/useGuatemalaDeliveryBackfill.tsx`.
 
-- Agregar estado `dismissing` (boolean) y importar `useToast`
-- Agregar función `handleDismissAssignment` que:
-  - Hace `supabase.from('package_assignments').update({ dismissed_by_traveler: true }).eq('id', pkg._assignmentId)`
-  - Muestra toast de confirmación
-  - Recarga la página (`window.location.reload()`) para que el filtro en Dashboard.tsx (línea 290) lo excluya
-- En las líneas 408-413, después de cada mensaje de estado (`bid_lost`, `bid_expired`, `bid_cancelled`), agregar un `<Button>` ghost pequeño con icono X y texto "Descartar de mi dashboard"
+### 3. `useGuatemalaCityDeliveryBackfill.tsx` — hook de backfill one-time
+Igual que el anterior, no se importa en ningún lado.
 
-El resultado visual será idéntico al que ya existe en `TravelerPackageCard.tsx` (el componente legacy), pero dentro del componente colapsable usado en Mis Viajes.
+**Acción:** Eliminar `src/hooks/useGuatemalaCityDeliveryBackfill.tsx`.
+
+### Resumen de cambios
+| Archivo | Acción |
+|---|---|
+| `PendingRequestsTab.tsx` | Eliminar `getStatusIcon` y `getStatusColor` (líneas 32-57) |
+| `useGuatemalaDeliveryBackfill.tsx` | Eliminar archivo completo |
+| `useGuatemalaCityDeliveryBackfill.tsx` | Eliminar archivo completo |
+
+Tres eliminaciones simples, sin riesgo de romper nada ya que ninguno de estos se referencia en el código activo.
 
