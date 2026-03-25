@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { getTravelerStatusConfig } from "./traveler/TravelerPackageStatusBadge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock, ExternalLink, CreditCard, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock, ExternalLink, CreditCard, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { NotificationBadge } from "@/components/ui/notification-badge";
@@ -24,6 +24,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { usePackageActions } from "@/hooks/usePackageActions";
 import { normalizeConfirmations } from "@/utils/confirmationHelpers";
+import { useToast } from "@/hooks/use-toast";
 
 interface CollapsibleTravelerPackageCardProps {
   pkg: any;
