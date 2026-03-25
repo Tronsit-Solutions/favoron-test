@@ -85,6 +85,7 @@ function CXTab({ userType }: { userType: "shopper" | "traveler" }) {
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="pending">Pendiente</SelectItem>
+            <SelectItem value="scheduled">Agendado</SelectItem>
             <SelectItem value="contacted">Contactado</SelectItem>
             <SelectItem value="no_answer">No contestó</SelectItem>
             <SelectItem value="completed">Completado</SelectItem>

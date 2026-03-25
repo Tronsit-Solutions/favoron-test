@@ -189,6 +189,30 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
                 <TableCell>
                   <Popover>
                     <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className={cn("h-8 text-xs gap-1", scheduledToday && "border-amber-500 text-amber-700 dark:text-amber-400", scheduledFuture && "border-primary/50 text-primary", !currentScheduledDate && "text-muted-foreground")}>
+                        <CalendarClock className="h-3 w-3" />
+                        {currentScheduledDate ? format(new Date(currentScheduledDate), "dd/MM/yy") : "Agendar"}
+                        {scheduledToday && <span className="ml-1 text-[10px] font-bold">HOY</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={currentScheduledDate ? new Date(currentScheduledDate) : undefined}
+                        onSelect={(d) => {
+                          setEdit(row.package_id, "scheduled_date", d ? d.toISOString() : null);
+                          if (d && currentStatus === "pending") {
+                            setEdit(row.package_id, "call_status", "scheduled");
+                          }
+                        }}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                <TableCell>
+                  <Popover>
+                    <PopoverTrigger asChild>
                       <Button variant="outline" size="sm" className={cn("h-8 text-xs", !currentCallDate && "text-muted-foreground")}>
                         <CalendarIcon className="h-3 w-3 mr-1" />
                         {currentCallDate ? format(new Date(currentCallDate), "dd/MM/yy") : "Fecha"}
