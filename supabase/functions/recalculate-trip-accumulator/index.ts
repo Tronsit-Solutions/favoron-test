@@ -155,6 +155,42 @@ Deno.serve(async (req) => {
       throw checkError;
     }
 
+    // Recalculate percentage boost if applicable
+    let boostAmount = existingAccumulator?.boost_amount ?? 0;
+    if (accumulatedAmount > 0) {
+      const { data: usageRecord } = await supabase
+        .from('boost_code_usage')
+        .select('id, boost_code_id, boost_amount')
+        .eq('trip_id', tripId)
+        .eq('traveler_id', travelerId)
+        .maybeSingle();
+
+      if (usageRecord) {
+        const { data: boostCode } = await supabase
+          .from('boost_codes')
+          .select('boost_type, boost_value, max_boost_amount')
+          .eq('id', usageRecord.boost_code_id)
+          .single();
+
+        if (boostCode?.boost_type === 'percentage') {
+          let recalculated = Math.round(accumulatedAmount * boostCode.boost_value) / 100;
+          if (boostCode.max_boost_amount && recalculated > boostCode.max_boost_amount) {
+            recalculated = boostCode.max_boost_amount;
+          }
+          recalculated = Math.round(recalculated * 100) / 100;
+
+          if (recalculated !== Number(usageRecord.boost_amount)) {
+            console.log('🚀 Recalculating percentage boost:', usageRecord.boost_amount, '->', recalculated);
+            boostAmount = recalculated;
+            await supabase
+              .from('boost_code_usage')
+              .update({ boost_amount: recalculated })
+              .eq('id', usageRecord.id);
+          }
+        }
+      }
+    }
+
     if (existingAccumulator) {
       console.log('🔄 Updating existing accumulator:', existingAccumulator.id);
       // Update existing accumulator
