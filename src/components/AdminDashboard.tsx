@@ -262,7 +262,8 @@ const AdminDashboard = ({
 
       // Execute DB operations in background (fire-and-forget with error recovery)
       const matchPackageId = selectedPackage.id;
-      onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds)
+      Promise.resolve()
+        .then(() => onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds))
         .catch((error) => {
           console.error('Error during match:', error);
           // Revert optimistic update
