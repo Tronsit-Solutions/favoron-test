@@ -130,6 +130,7 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
         .from('trip_payment_accumulator')
         .update({
           accumulated_amount: accumulatedAmount,
+          boost_amount: existingBoostAmount,
           delivered_packages_count: deliveredPackagesCount,
           total_packages_count: totalPackagesCount,
           all_packages_delivered: allDelivered,
