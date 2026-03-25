@@ -1096,7 +1096,7 @@ export const useDashboardActions = (
           .eq('id', packageId)
           .single();
         if (freshPkg) {
-          setPackages(prev => prev.map(p => p.id === packageId ? { ...p, ...freshPkg } : p));
+          setPackages(packages.map(p => p.id === packageId ? { ...p, ...freshPkg } : p));
         }
         return;
       }
