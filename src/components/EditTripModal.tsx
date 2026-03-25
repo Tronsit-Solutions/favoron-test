@@ -115,6 +115,36 @@ const EditTripModal = ({
     };
   }, [tripData]);
 
+  const [boostStatus, setBoostStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+  const boostDebounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const validateBoostCode = useCallback(async (code: string) => {
+    if (!code.trim()) { setBoostStatus('idle'); return; }
+    setBoostStatus('checking');
+    const { data } = await supabase
+      .from('boost_codes')
+      .select('id')
+      .eq('code', code.trim().toUpperCase())
+      .eq('is_active', true)
+      .maybeSingle();
+    setBoostStatus(data ? 'valid' : 'invalid');
+  }, []);
+
+  const handleBoostCodeChangeEdit = useCallback((value: string) => {
+    handleInputChange('boostCode', value.toUpperCase());
+    if (boostDebounceRef.current) clearTimeout(boostDebounceRef.current);
+    boostDebounceRef.current = setTimeout(() => validateBoostCode(value), 500);
+  }, [validateBoostCode]);
+
+  // Validate existing boost code on mount
+  useEffect(() => {
+    if (tripData?.boost_code) {
+      validateBoostCode(tripData.boost_code);
+    } else {
+      setBoostStatus('idle');
+    }
+  }, [tripData?.boost_code]);
+
   // Check if a field changed
   const isChanged = (field: string, currentValue: any): boolean => {
     if (!originalFormData) return false;
