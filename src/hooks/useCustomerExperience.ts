@@ -147,6 +147,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
           rating: cx?.rating || null,
           notes: cx?.notes || null,
           call_date: cx?.call_date || null,
+          scheduled_date: cx?.scheduled_date || null,
         };
       });
 
