@@ -27,6 +27,7 @@ export interface CXPackageRow {
   notes: string | null;
   call_date: string | null;
   scheduled_date: string | null;
+  call_time: string | null;
 }
 
 export interface CXStats {
@@ -148,6 +149,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
           notes: cx?.notes || null,
           call_date: cx?.call_date || null,
           scheduled_date: cx?.scheduled_date || null,
+          call_time: cx?.call_time || null,
         };
       });
 
@@ -202,7 +204,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
     });
   };
 
-  const saveCXCall = async (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null; scheduled_date?: string | null }) => {
+  const saveCXCall = async (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null; scheduled_date?: string | null; call_time?: string | null }) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
@@ -216,6 +218,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
         notes: updates.notes !== undefined ? updates.notes : row.notes,
         call_date: updates.call_date !== undefined ? updates.call_date : row.call_date,
         scheduled_date: updates.scheduled_date !== undefined ? updates.scheduled_date : row.scheduled_date,
+        call_time: updates.call_time !== undefined ? updates.call_time : row.call_time,
         updated_at: new Date().toISOString(),
         created_by: user.id,
       };
@@ -249,6 +252,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
                 notes: payload.notes,
                 call_date: payload.call_date,
                 scheduled_date: payload.scheduled_date,
+                call_time: payload.call_time,
                 cx_id: newCxId,
               }
             : r

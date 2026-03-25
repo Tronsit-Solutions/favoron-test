@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format, isToday, isFuture } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Phone, Save, MessageSquare, Eye, CalendarClock } from "lucide-react";
+import { CalendarIcon, Phone, Save, MessageSquare, Eye, CalendarClock, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ interface Props {
   rows: CXPackageRow[];
   loading: boolean;
   userType: "shopper" | "traveler";
-  onSave: (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null; scheduled_date?: string | null }) => Promise<void>;
+  onSave: (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null; scheduled_date?: string | null; call_time?: string | null }) => Promise<void>;
 }
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -55,6 +55,7 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
       notes: edits.notes !== undefined ? edits.notes : undefined,
       call_date: edits.call_date !== undefined ? edits.call_date : undefined,
       scheduled_date: edits.scheduled_date !== undefined ? edits.scheduled_date : undefined,
+      call_time: edits.call_time !== undefined ? (edits.call_time as string | null) : undefined,
     });
     setEditState((prev) => {
       const next = { ...prev };
@@ -98,7 +99,7 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
             <TableHead className="min-w-[120px]">Rating</TableHead>
             <TableHead className="min-w-[50px]">Notas</TableHead>
             <TableHead className="min-w-[130px]">Agendar</TableHead>
-            <TableHead className="min-w-[130px]">Fecha llamada</TableHead>
+            <TableHead className="min-w-[100px]">Hora</TableHead>
             <TableHead className="min-w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -110,6 +111,7 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
             const currentNotes = edits.notes !== undefined ? (edits.notes as string | null) : row.notes;
             const currentCallDate = edits.call_date !== undefined ? (edits.call_date as string | null) : row.call_date;
             const currentScheduledDate = edits.scheduled_date !== undefined ? (edits.scheduled_date as string | null) : row.scheduled_date;
+            const currentCallTime = edits.call_time !== undefined ? (edits.call_time as string | null) : row.call_time;
             const hasEdits = Object.keys(edits).length > 0;
             const cfg = statusConfig[currentStatus] || statusConfig.pending;
             const scheduledToday = currentScheduledDate && isToday(new Date(currentScheduledDate));
@@ -212,23 +214,15 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
                   </Popover>
                 </TableCell>
                 <TableCell>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className={cn("h-8 text-xs", !currentCallDate && "text-muted-foreground")}>
-                        <CalendarIcon className="h-3 w-3 mr-1" />
-                        {currentCallDate ? format(new Date(currentCallDate), "dd/MM/yy") : "Fecha"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={currentCallDate ? new Date(currentCallDate) : undefined}
-                        onSelect={(d) => setEdit(row.package_id, "call_date", d ? d.toISOString() : null)}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3 text-muted-foreground" />
+                    <input
+                      type="time"
+                      value={currentCallTime || ""}
+                      onChange={(e) => setEdit(row.package_id, "call_time", e.target.value || null)}
+                      className="h-8 w-[90px] text-xs rounded-md border border-input bg-background px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
+                    />
+                  </div>
                 </TableCell>
                 <TableCell>
                   {hasEdits && (
