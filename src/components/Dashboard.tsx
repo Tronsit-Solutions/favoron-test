@@ -1190,6 +1190,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             setSelectedPackageForQuote(null);
           }}
         />
+        </Suspense>
       )}
 
       <AvailableTripsModal
