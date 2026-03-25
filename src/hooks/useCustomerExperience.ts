@@ -204,7 +204,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
     });
   };
 
-  const saveCXCall = async (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null; scheduled_date?: string | null }) => {
+  const saveCXCall = async (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null; scheduled_date?: string | null; call_time?: string | null }) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
