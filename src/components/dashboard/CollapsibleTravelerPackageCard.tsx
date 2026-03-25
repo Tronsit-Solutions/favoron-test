@@ -75,6 +75,27 @@ const CollapsibleTravelerPackageCard = ({
   const CHAT_AVAILABLE_STATUSES = ['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
   const isChatAvailable = CHAT_AVAILABLE_STATUSES.includes(pkg.status);
 
+  const [dismissing, setDismissing] = useState(false);
+  const { toast } = useToast();
+
+  const handleDismissAssignment = async () => {
+    if (!pkg._assignmentId) return;
+    setDismissing(true);
+    try {
+      const { error } = await supabase
+        .from('package_assignments')
+        .update({ dismissed_by_traveler: true } as any)
+        .eq('id', pkg._assignmentId);
+      if (error) throw error;
+      toast({ title: "Asignación descartada", description: "Ya no verás este pedido en tu dashboard." });
+      window.location.reload();
+    } catch (err) {
+      toast({ title: "Error", description: "No se pudo descartar", variant: "destructive" });
+    } finally {
+      setDismissing(false);
+    }
+  };
+
   const [chatModalOpen, setChatModalOpen] = useState(false);
 
   const handleChatClick = (e: React.MouseEvent) => {
