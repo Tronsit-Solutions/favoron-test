@@ -1130,6 +1130,7 @@ const Dashboard = ({ user }: DashboardProps) => {
       )}
 
       {selectedPackageForQuote && (
+        <Suspense fallback={null}>
         <QuoteDialog
           isOpen={showQuoteDialog}
           onClose={() => {
