@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plane, MapPin, Package, Phone, Building2, Target, Mail, Users, AlertCircle, RotateCcw, Rocket } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, Phone, Building2, Target, Mail, Users, AlertCircle, RotateCcw, Rocket, Check, Loader2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -18,6 +18,7 @@ import { getCitiesByCountry, countryHasCities } from "@/lib/cities";
 import { useDeliveryPoints } from "@/hooks/useDeliveryPoints";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EditTripModalProps {
   isOpen: boolean;
@@ -113,6 +114,36 @@ const EditTripModal = ({
       lastDayPackages: tripData?.last_day_packages || null,
     };
   }, [tripData]);
+
+  const [boostStatus, setBoostStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+  const boostDebounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const validateBoostCode = useCallback(async (code: string) => {
+    if (!code.trim()) { setBoostStatus('idle'); return; }
+    setBoostStatus('checking');
+    const { data } = await supabase
+      .from('boost_codes')
+      .select('id')
+      .eq('code', code.trim().toUpperCase())
+      .eq('is_active', true)
+      .maybeSingle();
+    setBoostStatus(data ? 'valid' : 'invalid');
+  }, []);
+
+  const handleBoostCodeChangeEdit = useCallback((value: string) => {
+    handleInputChange('boostCode', value.toUpperCase());
+    if (boostDebounceRef.current) clearTimeout(boostDebounceRef.current);
+    boostDebounceRef.current = setTimeout(() => validateBoostCode(value), 500);
+  }, [validateBoostCode]);
+
+  // Validate existing boost code on mount
+  useEffect(() => {
+    if (tripData?.boost_code) {
+      validateBoostCode(tripData.boost_code);
+    } else {
+      setBoostStatus('idle');
+    }
+  }, [tripData?.boost_code]);
 
   // Check if a field changed
   const isChanged = (field: string, currentValue: any): boolean => {
@@ -247,7 +278,7 @@ const EditTripModal = ({
       ...formData,
       fromCity: finalFromCity,
       toCity: finalToCity,
-      boostCode: formData.boostCode,
+      boostCode: boostStatus === 'valid' ? formData.boostCode : null,
       messengerPickupInfo: formData.deliveryMethod === 'mensajero' 
         ? formData.messengerPickupInfo 
         : null
@@ -933,21 +964,40 @@ const EditTripModal = ({
 
             <div className="space-y-2">
               <Label htmlFor="boostCode" className="flex items-center gap-2">
-                <Rocket className="h-4 w-4 text-amber-600" />
+                <Rocket className="h-4 w-4 text-primary" />
                 Tip Booster Code
                 {changedDot('boostCode', formData.boostCode)}
               </Label>
-              <Input
-                id="boostCode"
-                type="text"
-                placeholder="Ej: BOOST10"
-                value={formData.boostCode}
-                onChange={e => handleInputChange('boostCode', e.target.value.toUpperCase())}
-                className="font-mono"
-              />
-              <p className="text-xs text-muted-foreground">
-                Código de boost para incrementar las propinas del viajero
-              </p>
+              <div className="relative">
+                <Input
+                  id="boostCode"
+                  type="text"
+                  placeholder="Ej: BOOST10"
+                  value={formData.boostCode}
+                  onChange={e => handleBoostCodeChangeEdit(e.target.value)}
+                  className={cn(
+                    "font-mono pr-10",
+                    boostStatus === 'valid' && "border-green-500 focus-visible:ring-green-500",
+                    boostStatus === 'invalid' && "border-destructive focus-visible:ring-destructive"
+                  )}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {boostStatus === 'checking' && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                  {boostStatus === 'valid' && <Check className="h-4 w-4 text-green-500" />}
+                  {boostStatus === 'invalid' && <X className="h-4 w-4 text-destructive" />}
+                </div>
+              </div>
+              {boostStatus === 'valid' && (
+                <p className="text-xs text-green-600 font-medium">✓ Código de boost válido</p>
+              )}
+              {boostStatus === 'invalid' && (
+                <p className="text-xs text-destructive">Código no encontrado o inactivo</p>
+              )}
+              {boostStatus === 'idle' && (
+                <p className="text-xs text-muted-foreground">
+                  Código de boost para incrementar las propinas del viajero
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">

@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { useModalState } from "@/contexts/ModalStateContext";
@@ -14,7 +15,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/ui/combobox";
-import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target, ChevronLeft, ChevronRight, Home, Info, Users, User, DollarSign, Truck, Rocket } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target, ChevronLeft, ChevronRight, Home, Info, Users, User, DollarSign, Truck, Rocket, Check, Loader2, X } from "lucide-react";
 import OnboardingBottomSheet from "@/components/onboarding/OnboardingBottomSheet";
 import type { OnboardingSlide } from "@/components/onboarding/OnboardingBottomSheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -101,6 +102,8 @@ const TripForm = ({
     }
   };
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [boostStatus, setBoostStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+  const boostDebounceRef = useRef<ReturnType<typeof setTimeout>>();
   const totalSteps = 4;
 
   // Traveler onboarding slides
@@ -149,6 +152,24 @@ const TripForm = ({
   const acceptedTerms = formState.acceptedTerms;
   const showTermsModal = formState.showTermsModal;
   const showMessengerForm = formState.showMessengerForm;
+
+  const validateBoostCode = useCallback(async (code: string) => {
+    if (!code.trim()) { setBoostStatus('idle'); return; }
+    setBoostStatus('checking');
+    const { data } = await supabase
+      .from('boost_codes')
+      .select('id')
+      .eq('code', code.trim().toUpperCase())
+      .eq('is_active', true)
+      .maybeSingle();
+    setBoostStatus(data ? 'valid' : 'invalid');
+  }, []);
+
+  const handleBoostCodeChange = useCallback((value: string) => {
+    updateField('formData', { ...formData, boostCode: value.toUpperCase() });
+    if (boostDebounceRef.current) clearTimeout(boostDebounceRef.current);
+    boostDebounceRef.current = setTimeout(() => validateBoostCode(value), 500);
+  }, [formData, validateBoostCode, updateField]);
 
   // Helpers para actualizar partes específicas del estado (soportan callbacks)
   const setFormData = (newFormData: typeof formData | ((prev: typeof formData) => typeof formData)) => {
@@ -354,7 +375,7 @@ const TripForm = ({
         toCity: finalToCity,
         messengerPickupInfo: formData.deliveryMethod === 'mensajero' ? messengerData : null,
         client_request_id: requestId,
-        boostCode: formData.boostCode?.trim() || null
+        boostCode: boostStatus === 'valid' ? (formData.boostCode?.trim() || null) : null
       };
 
       console.log('✅ Form validation passed, submitting data');
@@ -1407,15 +1428,34 @@ const TripForm = ({
             <Rocket className="h-4 w-4 text-primary" />
             Código de Tip Boost (opcional)
           </Label>
-          <Input
-            value={formData.boostCode || ''}
-            onChange={(e) => updateField('formData', { ...formData, boostCode: e.target.value.toUpperCase() })}
-            placeholder="Ej: BOOST10 (opcional)"
-            className="font-mono"
-          />
-          <p className="text-xs text-muted-foreground">
-            ¿Tienes un código de boost? Ingrésalo para aumentar tus ganancias en este viaje
-          </p>
+          <div className="relative">
+            <Input
+              value={formData.boostCode || ''}
+              onChange={(e) => handleBoostCodeChange(e.target.value)}
+              placeholder="Ej: BOOST10 (opcional)"
+              className={cn(
+                "font-mono pr-10",
+                boostStatus === 'valid' && "border-green-500 focus-visible:ring-green-500",
+                boostStatus === 'invalid' && "border-destructive focus-visible:ring-destructive"
+              )}
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              {boostStatus === 'checking' && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+              {boostStatus === 'valid' && <Check className="h-4 w-4 text-green-500" />}
+              {boostStatus === 'invalid' && <X className="h-4 w-4 text-destructive" />}
+            </div>
+          </div>
+          {boostStatus === 'valid' && (
+            <p className="text-xs text-green-600 font-medium">✓ Código de boost válido</p>
+          )}
+          {boostStatus === 'invalid' && (
+            <p className="text-xs text-destructive">Código no encontrado o inactivo</p>
+          )}
+          {boostStatus === 'idle' && (
+            <p className="text-xs text-muted-foreground">
+              ¿Tienes un código de boost? Ingrésalo para aumentar tus ganancias en este viaje
+            </p>
+          )}
         </div>
 
         {/* Info box - Cómo funciona */}
