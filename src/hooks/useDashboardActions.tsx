@@ -1401,10 +1401,6 @@ export const useDashboardActions = (
         }
       })).catch(err => console.error('Post-match side effects error:', err));
       
-      toast({
-        title: "¡Match realizado!",
-        description: `Paquete asignado a ${tripIdsToAssign.length} viajero(s). Tip: Q${adminTip}.`,
-      });
     } catch (error) {
       console.error('Error matching package:', error);
       toast({
