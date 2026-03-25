@@ -4,20 +4,20 @@ import { Star } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import PackageRequestForm from "./PackageRequestForm";
-import TripForm from "./TripForm";
+const PackageRequestForm = lazy(() => import("./PackageRequestForm"));
+const TripForm = lazy(() => import("./TripForm"));
 import AddressConfirmationModal from "./AddressConfirmationModal";
-import AdminDashboard from "./AdminDashboard";
-import GodModeDashboard from "./admin/GodModeDashboard";
+const AdminDashboard = lazy(() => import("./AdminDashboard"));
+const GodModeDashboard = lazy(() => import("./admin/GodModeDashboard"));
 
-import QuoteDialog from "./QuoteDialog";
+const QuoteDialog = lazy(() => import("./QuoteDialog"));
 import UserProfile from "./UserProfile";
-import EditProfileModal from "./profile/EditProfileModal";
+const EditProfileModal = lazy(() => import("./profile/EditProfileModal"));
 import DashboardHeader from "./dashboard/DashboardHeader";
 import QuickActions from "./dashboard/QuickActions";
 
 import { PhoneNumberBanner } from "./PhoneNumberBanner";
-import PrimeModal from "./PrimeModal";
+const PrimeModal = lazy(() => import("./PrimeModal"));
 import ProfileCompletionModal from "./ProfileCompletionModal";
 import { usePhoneNumberValidation } from "@/hooks/usePhoneNumberValidation";
 import CollapsiblePackageCard from "./dashboard/CollapsiblePackageCard";
