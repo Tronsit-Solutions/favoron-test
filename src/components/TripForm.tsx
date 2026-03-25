@@ -15,7 +15,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/ui/combobox";
-import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target, ChevronLeft, ChevronRight, Home, Info, Users, User, DollarSign, Truck, Rocket } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target, ChevronLeft, ChevronRight, Home, Info, Users, User, DollarSign, Truck, Rocket, Check, Loader2, X } from "lucide-react";
 import OnboardingBottomSheet from "@/components/onboarding/OnboardingBottomSheet";
 import type { OnboardingSlide } from "@/components/onboarding/OnboardingBottomSheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
