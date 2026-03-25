@@ -109,8 +109,11 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
             const currentRating = edits.rating !== undefined ? (edits.rating as number | null) : row.rating;
             const currentNotes = edits.notes !== undefined ? (edits.notes as string | null) : row.notes;
             const currentCallDate = edits.call_date !== undefined ? (edits.call_date as string | null) : row.call_date;
+            const currentScheduledDate = edits.scheduled_date !== undefined ? (edits.scheduled_date as string | null) : row.scheduled_date;
             const hasEdits = Object.keys(edits).length > 0;
             const cfg = statusConfig[currentStatus] || statusConfig.pending;
+            const scheduledToday = currentScheduledDate && isToday(new Date(currentScheduledDate));
+            const scheduledFuture = currentScheduledDate && isFuture(new Date(currentScheduledDate)) && !scheduledToday;
 
             return (
               <TableRow key={row.package_id}>
