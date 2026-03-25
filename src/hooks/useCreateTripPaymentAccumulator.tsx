@@ -46,7 +46,7 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
     
     console.log('📊 Summary: delivered_count =', deliveredEligibleCount, 'accumulated =', accumulatedAmount);
 
-    // Fetch existing boost_amount for this trip (boost is managed separately via validate_boost_code RPC)
+    // Fetch existing boost info and recalculate percentage boosts if needed
     let existingBoostAmount = 0;
     const { data: existingAcc } = await supabase
       .from('trip_payment_accumulator')
@@ -57,6 +57,44 @@ export const createOrUpdateTripPaymentAccumulator = async (tripId: string, trave
     
     if (existingAcc) {
       existingBoostAmount = Number(existingAcc.boost_amount) || 0;
+    }
+
+    // If there's a boost_code_usage record, recalculate percentage boosts
+    if (accumulatedAmount > 0) {
+      const { data: usageRecord } = await supabase
+        .from('boost_code_usage')
+        .select('id, boost_code_id, boost_amount')
+        .eq('trip_id', tripId)
+        .eq('traveler_id', travelerId)
+        .maybeSingle();
+
+      if (usageRecord) {
+        // Check if the boost code is percentage-based
+        const { data: boostCode } = await supabase
+          .from('boost_codes')
+          .select('boost_type, boost_value, max_boost_amount')
+          .eq('id', usageRecord.boost_code_id)
+          .single();
+
+        if (boostCode?.boost_type === 'percentage') {
+          let recalculated = Math.round(accumulatedAmount * boostCode.boost_value) / 100;
+          if (boostCode.max_boost_amount && recalculated > boostCode.max_boost_amount) {
+            recalculated = boostCode.max_boost_amount;
+          }
+          recalculated = Math.round(recalculated * 100) / 100;
+
+          if (recalculated !== Number(usageRecord.boost_amount)) {
+            console.log('🚀 Recalculating percentage boost:', usageRecord.boost_amount, '->', recalculated);
+            existingBoostAmount = recalculated;
+
+            // Update both usage record and accumulator
+            await supabase
+              .from('boost_code_usage')
+              .update({ boost_amount: recalculated })
+              .eq('id', usageRecord.id);
+          }
+        }
+      }
     }
 
     console.log('🚀 Boost amount for trip:', existingBoostAmount);
