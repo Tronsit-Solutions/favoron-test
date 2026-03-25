@@ -29,7 +29,7 @@ const Auth = () => {
   const [countryCode, setCountryCode] = useState('+502');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [username, setUsername] = useState('');
-  const [documentType, setDocumentType] = useState('');
+  const [documentType, setDocumentType] = useState('dpi');
   const [documentNumber, setDocumentNumber] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
