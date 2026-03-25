@@ -561,10 +561,12 @@ const Dashboard = ({ user }: DashboardProps) => {
           onViewModeChange={handleViewModeChange}
         />
         <div className="container mx-auto mobile-container py-8">
-          <UserManagement 
-            packages={packages}
-            trips={trips}
-          />
+          <Suspense fallback={<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <UserManagement 
+              packages={packages}
+              trips={trips}
+            />
+          </Suspense>
         </div>
       </div>
     );
