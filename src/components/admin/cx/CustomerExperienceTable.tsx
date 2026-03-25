@@ -214,23 +214,15 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
                   </Popover>
                 </TableCell>
                 <TableCell>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className={cn("h-8 text-xs", !currentCallDate && "text-muted-foreground")}>
-                        <CalendarIcon className="h-3 w-3 mr-1" />
-                        {currentCallDate ? format(new Date(currentCallDate), "dd/MM/yy") : "Fecha"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={currentCallDate ? new Date(currentCallDate) : undefined}
-                        onSelect={(d) => setEdit(row.package_id, "call_date", d ? d.toISOString() : null)}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3 text-muted-foreground" />
+                    <input
+                      type="time"
+                      value={currentCallTime || ""}
+                      onChange={(e) => setEdit(row.package_id, "call_time", e.target.value || null)}
+                      className="h-8 w-[90px] text-xs rounded-md border border-input bg-background px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
+                    />
+                  </div>
                 </TableCell>
                 <TableCell>
                   {hasEdits && (
