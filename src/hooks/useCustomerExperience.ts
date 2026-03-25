@@ -252,6 +252,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
                 notes: payload.notes,
                 call_date: payload.call_date,
                 scheduled_date: payload.scheduled_date,
+                call_time: payload.call_time,
                 cx_id: newCxId,
               }
             : r
