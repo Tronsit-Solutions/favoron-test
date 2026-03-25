@@ -964,21 +964,40 @@ const EditTripModal = ({
 
             <div className="space-y-2">
               <Label htmlFor="boostCode" className="flex items-center gap-2">
-                <Rocket className="h-4 w-4 text-amber-600" />
+                <Rocket className="h-4 w-4 text-primary" />
                 Tip Booster Code
                 {changedDot('boostCode', formData.boostCode)}
               </Label>
-              <Input
-                id="boostCode"
-                type="text"
-                placeholder="Ej: BOOST10"
-                value={formData.boostCode}
-                onChange={e => handleInputChange('boostCode', e.target.value.toUpperCase())}
-                className="font-mono"
-              />
-              <p className="text-xs text-muted-foreground">
-                Código de boost para incrementar las propinas del viajero
-              </p>
+              <div className="relative">
+                <Input
+                  id="boostCode"
+                  type="text"
+                  placeholder="Ej: BOOST10"
+                  value={formData.boostCode}
+                  onChange={e => handleBoostCodeChangeEdit(e.target.value)}
+                  className={cn(
+                    "font-mono pr-10",
+                    boostStatus === 'valid' && "border-green-500 focus-visible:ring-green-500",
+                    boostStatus === 'invalid' && "border-destructive focus-visible:ring-destructive"
+                  )}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {boostStatus === 'checking' && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                  {boostStatus === 'valid' && <Check className="h-4 w-4 text-green-500" />}
+                  {boostStatus === 'invalid' && <X className="h-4 w-4 text-destructive" />}
+                </div>
+              </div>
+              {boostStatus === 'valid' && (
+                <p className="text-xs text-green-600 font-medium">✓ Código de boost válido</p>
+              )}
+              {boostStatus === 'invalid' && (
+                <p className="text-xs text-destructive">Código no encontrado o inactivo</p>
+              )}
+              {boostStatus === 'idle' && (
+                <p className="text-xs text-muted-foreground">
+                  Código de boost para incrementar las propinas del viajero
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
