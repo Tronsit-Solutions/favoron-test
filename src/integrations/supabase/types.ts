@@ -2146,6 +2146,15 @@ export type Database = {
         }[]
       }
       archive_old_data: { Args: never; Returns: undefined }
+      assign_package_to_travelers: {
+        Args: {
+          _admin_tip: number
+          _package_id: string
+          _products_data?: Json
+          _trip_ids: string[]
+        }
+        Returns: Json
+      }
       audit_financial_data_access: {
         Args: {
           _access_type: string
