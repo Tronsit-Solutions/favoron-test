@@ -1,41 +1,38 @@
 
 
-## Acreditar Q85.50 a Christa Zuñiga como crédito de referido
+## Fix: Shopper receipt upload not updating status without hard refresh
 
-**Usuario encontrado**: Christa Zúñiga — `72d38ef8-42f9-4984-bc23-ff5671f26892` (christazuniga@gmail.com)
+### Problem
+When a shopper uploads a payment receipt, the package status doesn't update in the UI until they do a hard refresh.
 
-### Acción
+**Root cause**: Double-update race condition.
+1. `PaymentReceiptUpload.confirmUpload()` saves the receipt to DB and the trigger updates the status correctly.
+2. Then `handleUploadDocument` in `useDashboardActions` calls `updatePackage()` again with the same `payment_receipt` data — this registers a "recent mutation" that causes the realtime subscription to **skip** the status change event (2-second suppression window).
+3. The second `updatePackage` returns data from before the trigger has run on that update, so local state keeps the old status.
 
-Insertar un registro en la tabla `referrals` con:
+### Solution
+In `handleUploadDocument` (`src/hooks/useDashboardActions.tsx`), for `payment_receipt` type, instead of calling `updatePackage()` (which re-writes the same data), directly re-fetch the package from Supabase to get the trigger-updated status and merge it into local state.
 
-```sql
-INSERT INTO referrals (
-  referrer_id,
-  referred_id,
-  status,
-  reward_amount,
-  reward_used,
-  completed_at,
-  referred_reward_amount,
-  referred_reward_used
-) VALUES (
-  '72d38ef8-42f9-4984-bc23-ff5671f26892',  -- Christa como referrer
-  '72d38ef8-42f9-4984-bc23-ff5671f26892',  -- mismo ID como placeholder (referred)
-  'completed',
-  85.50,
-  false,
-  now(),
-  0,
-  false
-);
+### File to modify
+**`src/hooks/useDashboardActions.tsx`** (lines ~1088-1101)
+- For `payment_receipt` type: skip `updatePackage()`, instead fetch the fresh package from DB with a small delay (to let the trigger complete), then update local package state with the correct status.
+
+### Technical detail
 ```
+// Instead of:
+updatedData.payment_receipt = data;
+await updatePackage(packageId, updatedData);
 
-### Resultado esperado
-
-- Christa verá un saldo disponible de **Q85.50** en su dashboard.
-- Podrá aplicarlo como descuento en su próximo paquete al momento del pago.
-- El crédito se marcará como `reward_used = true` cuando lo use.
-
-### Archivo a modificar
-Ninguno — es solo una operación de datos via SQL insert.
+// Do:
+if (type === 'payment_receipt') {
+  // Package already updated by PaymentReceiptUpload - just refresh local state
+  await new Promise(r => setTimeout(r, 600));
+  const { data: freshPkg } = await supabase
+    .from('packages').select('*').eq('id', packageId).single();
+  if (freshPkg) {
+    setPackages(prev => prev.map(p => p.id === packageId ? { ...p, ...freshPkg } : p));
+  }
+  return;
+}
+```
 
