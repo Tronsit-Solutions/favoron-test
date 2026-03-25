@@ -428,11 +428,29 @@ const CollapsibleTravelerPackageCard = ({
                         ) : pkg._assignmentStatus === 'bid_won' ? (
                           <div className="font-medium text-green-700">🎉 ¡El shopper te eligió!</div>
                         ) : pkg._assignmentStatus === 'bid_lost' ? (
-                          <div className="font-medium text-red-700">❌ Otro viajero fue seleccionado</div>
+                          <div>
+                            <div className="font-medium text-red-700">❌ Otro viajero fue seleccionado</div>
+                            <Button size="sm" variant="ghost" className="mt-1 text-xs h-7 px-2" onClick={handleDismissAssignment} disabled={dismissing}>
+                              <X className="h-3 w-3 mr-1" />
+                              {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
+                            </Button>
+                          </div>
                         ) : pkg._assignmentStatus === 'bid_expired' ? (
-                          <div className="font-medium text-yellow-700">⏰ Asignación expirada</div>
+                          <div>
+                            <div className="font-medium text-yellow-700">⏰ Asignación expirada</div>
+                            <Button size="sm" variant="ghost" className="mt-1 text-xs h-7 px-2" onClick={handleDismissAssignment} disabled={dismissing}>
+                              <X className="h-3 w-3 mr-1" />
+                              {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
+                            </Button>
+                          </div>
                         ) : pkg._assignmentStatus === 'bid_cancelled' ? (
-                          <div className="font-medium text-muted-foreground">Asignación cancelada</div>
+                          <div>
+                            <div className="font-medium text-muted-foreground">Asignación cancelada</div>
+                            <Button size="sm" variant="ghost" className="mt-1 text-xs h-7 px-2" onClick={handleDismissAssignment} disabled={dismissing}>
+                              <X className="h-3 w-3 mr-1" />
+                              {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
+                            </Button>
+                          </div>
                         ) : (
                           <div className="font-medium text-blue-600">🔗 Paquete emparejado - Envía tu cotización</div>
                         )
