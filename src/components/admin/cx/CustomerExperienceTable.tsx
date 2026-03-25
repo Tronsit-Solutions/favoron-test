@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, isToday, isFuture } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Phone, Save, MessageSquare, Eye } from "lucide-react";
+import { CalendarIcon, Phone, Save, MessageSquare, Eye, CalendarClock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
