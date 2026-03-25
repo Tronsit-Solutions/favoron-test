@@ -26,19 +26,21 @@ export interface CXPackageRow {
   rating: number | null;
   notes: string | null;
   call_date: string | null;
+  scheduled_date: string | null;
 }
 
 export interface CXStats {
   total: number;
   pending: number;
   completed: number;
+  scheduled: number;
   avgRating: number | null;
 }
 
 export function useCustomerExperience(userType: "shopper" | "traveler") {
   const [rows, setRows] = useState<CXPackageRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<CXStats>({ total: 0, pending: 0, completed: 0, avgRating: null });
+  const [stats, setStats] = useState<CXStats>({ total: 0, pending: 0, completed: 0, scheduled: 0, avgRating: null });
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const fetchData = useCallback(async () => {
@@ -54,8 +56,8 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
       const { data: packages, error: pkgErr } = await pkgQuery;
       if (pkgErr) throw pkgErr;
       if (!packages || packages.length === 0) {
-        setRows([]);
-        setStats({ total: 0, pending: 0, completed: 0, avgRating: null });
+      setRows([]);
+        setStats({ total: 0, pending: 0, completed: 0, scheduled: 0, avgRating: null });
         setLoading(false);
         return;
       }
@@ -145,16 +147,33 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
           rating: cx?.rating || null,
           notes: cx?.notes || null,
           call_date: cx?.call_date || null,
+          scheduled_date: cx?.scheduled_date || null,
         };
       });
 
-      // 7) Stats
+      // 7) Sort: scheduled for today first, then future scheduled, then pending, then rest
+      const now = new Date();
+      const todayStr = now.toISOString().slice(0, 10);
+      result.sort((a, b) => {
+        const aToday = a.scheduled_date && a.scheduled_date.slice(0, 10) === todayStr ? 0 : 1;
+        const bToday = b.scheduled_date && b.scheduled_date.slice(0, 10) === todayStr ? 0 : 1;
+        if (aToday !== bToday) return aToday - bToday;
+        const aScheduled = a.call_status === "scheduled" ? 0 : 1;
+        const bScheduled = b.call_status === "scheduled" ? 0 : 1;
+        if (aScheduled !== bScheduled) return aScheduled - bScheduled;
+        const aPending = a.call_status === "pending" ? 0 : 1;
+        const bPending = b.call_status === "pending" ? 0 : 1;
+        return aPending - bPending;
+      });
+
+      // 8) Stats
       const completedCalls = result.filter((r) => r.call_status === "completed");
       const ratings = completedCalls.map((r) => r.rating).filter(Boolean) as number[];
       setStats({
         total: result.length,
         pending: result.filter((r) => r.call_status === "pending").length,
         completed: completedCalls.length,
+        scheduled: result.filter((r) => r.call_status === "scheduled").length,
         avgRating: ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null,
       });
 
@@ -178,11 +197,12 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
       total: updatedRows.length,
       pending: updatedRows.filter((r) => r.call_status === "pending").length,
       completed: completedCalls.length,
+      scheduled: updatedRows.filter((r) => r.call_status === "scheduled").length,
       avgRating: ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null,
     });
   };
 
-  const saveCXCall = async (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null }) => {
+  const saveCXCall = async (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null; scheduled_date?: string | null }) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
@@ -195,6 +215,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
         rating: updates.rating !== undefined ? updates.rating : row.rating,
         notes: updates.notes !== undefined ? updates.notes : row.notes,
         call_date: updates.call_date !== undefined ? updates.call_date : row.call_date,
+        scheduled_date: updates.scheduled_date !== undefined ? updates.scheduled_date : row.scheduled_date,
         updated_at: new Date().toISOString(),
         created_by: user.id,
       };
@@ -227,6 +248,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
                 rating: payload.rating,
                 notes: payload.notes,
                 call_date: payload.call_date,
+                scheduled_date: payload.scheduled_date,
                 cx_id: newCxId,
               }
             : r

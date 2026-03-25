@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Headphones, Phone, CheckCircle, Clock, Star, Search } from "lucide-react";
+import { Headphones, Phone, CheckCircle, Clock, Star, Search, CalendarClock } from "lucide-react";
 import { useCustomerExperience } from "@/hooks/useCustomerExperience";
 import CustomerExperienceTable from "@/components/admin/cx/CustomerExperienceTable";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ function CXTab({ userType }: { userType: "shopper" | "traveler" }) {
   return (
     <div className="space-y-4">
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
@@ -39,6 +39,14 @@ function CXTab({ userType }: { userType: "shopper" | "traveler" }) {
             </CardTitle>
           </CardHeader>
           <CardContent><p className="text-2xl font-bold">{stats.pending}</p></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              <CalendarClock className="h-4 w-4" /> Agendados
+            </CardTitle>
+          </CardHeader>
+          <CardContent><p className="text-2xl font-bold">{stats.scheduled}</p></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
@@ -77,6 +85,7 @@ function CXTab({ userType }: { userType: "shopper" | "traveler" }) {
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="pending">Pendiente</SelectItem>
+            <SelectItem value="scheduled">Agendado</SelectItem>
             <SelectItem value="contacted">Contactado</SelectItem>
             <SelectItem value="no_answer">No contestó</SelectItem>
             <SelectItem value="completed">Completado</SelectItem>

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, isToday, isFuture } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Phone, Save, MessageSquare, Eye } from "lucide-react";
+import { CalendarIcon, Phone, Save, MessageSquare, Eye, CalendarClock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -19,11 +19,12 @@ interface Props {
   rows: CXPackageRow[];
   loading: boolean;
   userType: "shopper" | "traveler";
-  onSave: (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null }) => Promise<void>;
+  onSave: (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null; scheduled_date?: string | null }) => Promise<void>;
 }
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "Pendiente", variant: "secondary" },
+  scheduled: { label: "Agendado", variant: "outline" },
   contacted: { label: "Contactado", variant: "outline" },
   no_answer: { label: "No contestó", variant: "destructive" },
   completed: { label: "Completado", variant: "default" },
@@ -53,6 +54,7 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
       rating: edits.rating !== undefined ? edits.rating : undefined,
       notes: edits.notes !== undefined ? edits.notes : undefined,
       call_date: edits.call_date !== undefined ? edits.call_date : undefined,
+      scheduled_date: edits.scheduled_date !== undefined ? edits.scheduled_date : undefined,
     });
     setEditState((prev) => {
       const next = { ...prev };
@@ -95,6 +97,7 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
             <TableHead className="min-w-[130px]">Estado</TableHead>
             <TableHead className="min-w-[120px]">Rating</TableHead>
             <TableHead className="min-w-[50px]">Notas</TableHead>
+            <TableHead className="min-w-[130px]">Agendar</TableHead>
             <TableHead className="min-w-[130px]">Fecha llamada</TableHead>
             <TableHead className="min-w-[50px]"></TableHead>
           </TableRow>
@@ -106,11 +109,14 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
             const currentRating = edits.rating !== undefined ? (edits.rating as number | null) : row.rating;
             const currentNotes = edits.notes !== undefined ? (edits.notes as string | null) : row.notes;
             const currentCallDate = edits.call_date !== undefined ? (edits.call_date as string | null) : row.call_date;
+            const currentScheduledDate = edits.scheduled_date !== undefined ? (edits.scheduled_date as string | null) : row.scheduled_date;
             const hasEdits = Object.keys(edits).length > 0;
             const cfg = statusConfig[currentStatus] || statusConfig.pending;
+            const scheduledToday = currentScheduledDate && isToday(new Date(currentScheduledDate));
+            const scheduledFuture = currentScheduledDate && isFuture(new Date(currentScheduledDate)) && !scheduledToday;
 
             return (
-              <TableRow key={row.package_id}>
+              <TableRow key={row.package_id} className={cn(scheduledToday && "bg-amber-50 dark:bg-amber-950/20")}>
                 <TableCell className="text-sm">
                   {format(new Date(row.completed_at), "dd MMM yyyy", { locale: es })}
                 </TableCell>
@@ -176,6 +182,31 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
                         value={currentNotes || ""}
                         onChange={(e) => setEdit(row.package_id, "notes", e.target.value)}
                         rows={3}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </TableCell>
+                <TableCell>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className={cn("h-8 text-xs gap-1", scheduledToday && "border-amber-500 text-amber-700 dark:text-amber-400", scheduledFuture && "border-primary/50 text-primary", !currentScheduledDate && "text-muted-foreground")}>
+                        <CalendarClock className="h-3 w-3" />
+                        {currentScheduledDate ? format(new Date(currentScheduledDate), "dd/MM/yy") : "Agendar"}
+                        {scheduledToday && <span className="ml-1 text-[10px] font-bold">HOY</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={currentScheduledDate ? new Date(currentScheduledDate) : undefined}
+                        onSelect={(d) => {
+                          setEdit(row.package_id, "scheduled_date", d ? d.toISOString() : null);
+                          if (d && currentStatus === "pending") {
+                            setEdit(row.package_id, "call_status", "scheduled");
+                          }
+                        }}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
                       />
                     </PopoverContent>
                   </Popover>

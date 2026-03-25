@@ -258,6 +258,7 @@ export type Database = {
           notes: string | null
           package_id: string
           rating: number | null
+          scheduled_date: string | null
           target_user_id: string
           updated_at: string
           user_type: string
@@ -271,6 +272,7 @@ export type Database = {
           notes?: string | null
           package_id: string
           rating?: number | null
+          scheduled_date?: string | null
           target_user_id: string
           updated_at?: string
           user_type: string
@@ -284,6 +286,7 @@ export type Database = {
           notes?: string | null
           package_id?: string
           rating?: number | null
+          scheduled_date?: string | null
           target_user_id?: string
           updated_at?: string
           user_type?: string

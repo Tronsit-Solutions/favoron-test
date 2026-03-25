@@ -1,0 +1,1 @@
+ALTER TABLE public.customer_experience_calls ADD COLUMN scheduled_date timestamptz;
