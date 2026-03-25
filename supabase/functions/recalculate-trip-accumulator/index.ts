@@ -198,6 +198,7 @@ Deno.serve(async (req) => {
         .from('trip_payment_accumulator')
         .update({
           accumulated_amount: accumulatedAmount,
+          boost_amount: boostAmount,
           delivered_packages_count: deliveredEligibleCount,
           total_packages_count: totalPackagesCount,
           all_packages_delivered: allDelivered,
