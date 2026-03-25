@@ -1,37 +1,35 @@
 
 
-## Agendar llamadas en Customer Experience
+## Cambiar columnas: "Agendar" → fecha, "Fecha llamada" → Hora
 
-### Situación actual
-La tabla `customer_experience_calls` tiene un campo `call_date` que actualmente se usa como fecha de llamada realizada. No existe un campo para agendar llamadas futuras ni un estado "scheduled".
+### Cambios en `src/components/admin/cx/CustomerExperienceTable.tsx`
 
-### Plan
+1. **Renombrar header** "Fecha llamada" → "Hora" (línea 101)
+2. **Reemplazar el calendar date picker de "Fecha llamada"** (líneas 214-232) con un **time input** (`<input type="time">`) que guarde la hora en `call_date` como string (ej. "14:30")
+3. Importar `Clock` de lucide-react para el ícono de hora
 
-**1. Migración: agregar columna `scheduled_date`**
-- Agregar `scheduled_date timestamptz` a `customer_experience_calls`
-- Agregar nuevo valor de estado `scheduled` al flujo
+### Cambios en `src/hooks/useCustomerExperience.ts`
 
-**2. Actualizar el hook `useCustomerExperience.ts`**
-- Agregar `scheduled_date` al interface `CXPackageRow`
-- Incluir `scheduled_date` en el fetch de CX calls y en `saveCXCall`
-- Agregar stat de "Agendados" al conteo
+- `call_date` pasa de almacenar una fecha ISO completa a almacenar solo la hora (string como "14:30"). El campo en DB sigue siendo `timestamptz` pero se puede usar como string de hora, o bien almacenar solo el valor de texto. Como el campo ya existe como `timestamptz`, lo más limpio es guardar la hora como texto en el campo `call_date` (o crear un campo `call_time text`).
 
-**3. Actualizar `CustomerExperienceTable.tsx`**
-- Agregar columna "Agendar" con un date picker para seleccionar fecha/hora de llamada agendada
-- Agregar estado `scheduled` (color naranja) al `statusConfig`
-- Mostrar indicador visual cuando una llamada está agendada para hoy
+**Decisión**: Mejor agregar un campo `call_time text` a la tabla para no romper el tipo `timestamptz` de `call_date`. O, más simple: usar `call_date` como string de hora directamente ya que el hook lo trata como `string | null`.
 
-**4. Actualizar filtros en `AdminCustomerExperience.tsx`**
-- Agregar opción "Agendado" al select de filtro de estado
-- Agregar stat card de "Agendados" (reemplazar o agregar junto a los existentes)
+→ Usaremos `call_date` para almacenar la hora como string "HH:mm" dado que la columna no tiene constraint de formato en la práctica del hook. Sin embargo, el tipo en DB es `timestamptz`... esto podría fallar.
 
-**5. Ordenamiento por prioridad**
-- Las llamadas agendadas para hoy aparecen primero en la tabla
-- Luego las agendadas para fechas futuras, luego pendientes
+**Plan final**: Crear una migración para agregar columna `call_time text` a `customer_experience_calls`, y usar esa para la hora. Mantener `call_date` sin cambios por compatibilidad.
 
-### Archivos a modificar
-- Nueva migración SQL (agregar `scheduled_date`)
+### Resumen de cambios
+
+1. **Migración SQL**: Agregar `call_time text` a `customer_experience_calls`
+2. **`useCustomerExperience.ts`**: Agregar `call_time` al interface, fetch, y save
+3. **`CustomerExperienceTable.tsx`**:
+   - Header "Fecha llamada" → "Hora"
+   - Reemplazar el calendar picker de esa columna con un `<input type="time">` que edite `call_time`
+   - Agregar `Clock` icon
+   - Agregar `call_time` al prop `onSave`
+
+### Archivos
+- Nueva migración SQL
 - `src/hooks/useCustomerExperience.ts`
 - `src/components/admin/cx/CustomerExperienceTable.tsx`
-- `src/pages/AdminCustomerExperience.tsx`
 
