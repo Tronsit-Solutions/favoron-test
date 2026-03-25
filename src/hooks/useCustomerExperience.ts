@@ -151,13 +151,29 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
         };
       });
 
-      // 7) Stats
+      // 7) Sort: scheduled for today first, then future scheduled, then pending, then rest
+      const now = new Date();
+      const todayStr = now.toISOString().slice(0, 10);
+      result.sort((a, b) => {
+        const aToday = a.scheduled_date && a.scheduled_date.slice(0, 10) === todayStr ? 0 : 1;
+        const bToday = b.scheduled_date && b.scheduled_date.slice(0, 10) === todayStr ? 0 : 1;
+        if (aToday !== bToday) return aToday - bToday;
+        const aScheduled = a.call_status === "scheduled" ? 0 : 1;
+        const bScheduled = b.call_status === "scheduled" ? 0 : 1;
+        if (aScheduled !== bScheduled) return aScheduled - bScheduled;
+        const aPending = a.call_status === "pending" ? 0 : 1;
+        const bPending = b.call_status === "pending" ? 0 : 1;
+        return aPending - bPending;
+      });
+
+      // 8) Stats
       const completedCalls = result.filter((r) => r.call_status === "completed");
       const ratings = completedCalls.map((r) => r.rating).filter(Boolean) as number[];
       setStats({
         total: result.length,
         pending: result.filter((r) => r.call_status === "pending").length,
         completed: completedCalls.length,
+        scheduled: result.filter((r) => r.call_status === "scheduled").length,
         avgRating: ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null,
       });
 
