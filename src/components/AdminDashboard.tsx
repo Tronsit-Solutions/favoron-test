@@ -172,11 +172,26 @@ const AdminDashboard = ({
     if (!hasModalsOpen) {
       // No modals open - apply updates directly but protect against emptying
       if (packages.length > 0 || localPackages.length === 0) {
-        console.log('🔄 Direct update - packages:', packages.length, 'local:', localPackages.length);
-        setLocalPackages(packages);
+        // Protect recently matched packages from being overwritten by stale props
+        const now = Date.now();
+        const protectedIds = new Set(
+          Object.entries(recentMatchRef.current)
+            .filter(([, ts]) => now - ts < 3000)
+            .map(([id]) => id)
+        );
+        
+        if (protectedIds.size > 0) {
+          console.log('🛡️ Protecting recently matched packages from stale sync:', [...protectedIds]);
+          setLocalPackages(prev => {
+            const protectedPkgs = prev.filter(p => protectedIds.has(p.id));
+            const incomingFiltered = packages.filter(p => !protectedIds.has(p.id));
+            return [...incomingFiltered, ...protectedPkgs];
+          });
+        } else {
+          setLocalPackages(packages);
+        }
       }
       if (trips.length > 0 || localTrips.length === 0) {
-        console.log('🔄 Direct update - trips:', trips.length, 'local:', localTrips.length);
         setLocalTrips(trips);
       }
     } else {
