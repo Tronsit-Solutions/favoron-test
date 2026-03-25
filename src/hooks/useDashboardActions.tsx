@@ -1086,10 +1086,19 @@ export const useDashboardActions = (
         // WhatsApp notifications removed - only welcome template available
         console.log('📧 Tracking info uploaded for package');
       } else if (type === 'payment_receipt') {
-        updatedData.payment_receipt = data;
-        // Don't set status here - let the database trigger handle it based on trust_level
-        // For 'confiable' and 'prime' users: trigger sets status = 'pending_purchase'
-        // For 'basic' users: trigger sets status = 'payment_pending_approval'
+        // PaymentReceiptUpload already saved the receipt and triggered the DB trigger.
+        // Instead of calling updatePackage (which causes a race condition with realtime),
+        // just fetch the fresh package state after the trigger has completed.
+        await new Promise(resolve => setTimeout(resolve, 600));
+        const { data: freshPkg } = await supabase
+          .from('packages')
+          .select('*')
+          .eq('id', packageId)
+          .single();
+        if (freshPkg) {
+          setPackages(prev => prev.map(p => p.id === packageId ? { ...p, ...freshPkg } : p));
+        }
+        return;
       }
 
       // Update status if it changed
