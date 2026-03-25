@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { getTravelerStatusConfig } from "./traveler/TravelerPackageStatusBadge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock, ExternalLink, CreditCard, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock, ExternalLink, CreditCard, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { NotificationBadge } from "@/components/ui/notification-badge";
@@ -24,6 +24,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { usePackageActions } from "@/hooks/usePackageActions";
 import { normalizeConfirmations } from "@/utils/confirmationHelpers";
+import { useToast } from "@/hooks/use-toast";
 
 interface CollapsibleTravelerPackageCardProps {
   pkg: any;
@@ -73,6 +74,27 @@ const CollapsibleTravelerPackageCard = ({
   // Chat is available after payment
   const CHAT_AVAILABLE_STATUSES = ['pending_purchase', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'completed'];
   const isChatAvailable = CHAT_AVAILABLE_STATUSES.includes(pkg.status);
+
+  const [dismissing, setDismissing] = useState(false);
+  const { toast } = useToast();
+
+  const handleDismissAssignment = async () => {
+    if (!pkg._assignmentId) return;
+    setDismissing(true);
+    try {
+      const { error } = await supabase
+        .from('package_assignments')
+        .update({ dismissed_by_traveler: true } as any)
+        .eq('id', pkg._assignmentId);
+      if (error) throw error;
+      toast({ title: "Asignación descartada", description: "Ya no verás este pedido en tu dashboard." });
+      window.location.reload();
+    } catch (err) {
+      toast({ title: "Error", description: "No se pudo descartar", variant: "destructive" });
+    } finally {
+      setDismissing(false);
+    }
+  };
 
   const [chatModalOpen, setChatModalOpen] = useState(false);
 
@@ -406,11 +428,29 @@ const CollapsibleTravelerPackageCard = ({
                         ) : pkg._assignmentStatus === 'bid_won' ? (
                           <div className="font-medium text-green-700">🎉 ¡El shopper te eligió!</div>
                         ) : pkg._assignmentStatus === 'bid_lost' ? (
-                          <div className="font-medium text-red-700">❌ Otro viajero fue seleccionado</div>
+                          <div>
+                            <div className="font-medium text-red-700">❌ Otro viajero fue seleccionado</div>
+                            <Button size="sm" variant="ghost" className="mt-1 text-xs h-7 px-2" onClick={handleDismissAssignment} disabled={dismissing}>
+                              <X className="h-3 w-3 mr-1" />
+                              {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
+                            </Button>
+                          </div>
                         ) : pkg._assignmentStatus === 'bid_expired' ? (
-                          <div className="font-medium text-yellow-700">⏰ Asignación expirada</div>
+                          <div>
+                            <div className="font-medium text-yellow-700">⏰ Asignación expirada</div>
+                            <Button size="sm" variant="ghost" className="mt-1 text-xs h-7 px-2" onClick={handleDismissAssignment} disabled={dismissing}>
+                              <X className="h-3 w-3 mr-1" />
+                              {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
+                            </Button>
+                          </div>
                         ) : pkg._assignmentStatus === 'bid_cancelled' ? (
-                          <div className="font-medium text-muted-foreground">Asignación cancelada</div>
+                          <div>
+                            <div className="font-medium text-muted-foreground">Asignación cancelada</div>
+                            <Button size="sm" variant="ghost" className="mt-1 text-xs h-7 px-2" onClick={handleDismissAssignment} disabled={dismissing}>
+                              <X className="h-3 w-3 mr-1" />
+                              {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
+                            </Button>
+                          </div>
                         ) : (
                           <div className="font-medium text-blue-600">🔗 Paquete emparejado - Envía tu cotización</div>
                         )
