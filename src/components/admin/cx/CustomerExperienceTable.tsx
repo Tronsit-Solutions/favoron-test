@@ -116,7 +116,7 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
             const scheduledFuture = currentScheduledDate && isFuture(new Date(currentScheduledDate)) && !scheduledToday;
 
             return (
-              <TableRow key={row.package_id}>
+              <TableRow key={row.package_id} className={cn(scheduledToday && "bg-amber-50 dark:bg-amber-950/20")}>
                 <TableCell className="text-sm">
                   {format(new Date(row.completed_at), "dd MMM yyyy", { locale: es })}
                 </TableCell>
