@@ -24,6 +24,7 @@ interface Props {
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "Pendiente", variant: "secondary" },
+  scheduled: { label: "Agendado", variant: "outline" },
   contacted: { label: "Contactado", variant: "outline" },
   no_answer: { label: "No contestó", variant: "destructive" },
   completed: { label: "Completado", variant: "default" },
