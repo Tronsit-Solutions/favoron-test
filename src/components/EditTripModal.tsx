@@ -18,6 +18,7 @@ import { getCitiesByCountry, countryHasCities } from "@/lib/cities";
 import { useDeliveryPoints } from "@/hooks/useDeliveryPoints";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EditTripModalProps {
   isOpen: boolean;
