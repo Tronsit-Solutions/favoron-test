@@ -998,6 +998,7 @@ const Dashboard = ({ user }: DashboardProps) => {
 
           {isAdmin && (
             <TabsContent value="admin">
+              <Suspense fallback={<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
                <AdminDashboard 
               packages={packages}
               trips={trips}
