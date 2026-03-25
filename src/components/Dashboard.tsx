@@ -1032,6 +1032,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                loadAutoApprovedPayments={loadAutoApprovedPayments}
                loadApprovedPayments={loadApprovedPayments}
                />
+              </Suspense>
             </TabsContent>
           )}
 
