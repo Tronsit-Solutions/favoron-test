@@ -33,6 +33,7 @@ export interface CXStats {
   total: number;
   pending: number;
   completed: number;
+  scheduled: number;
   avgRating: number | null;
 }
 
