@@ -29,7 +29,7 @@ const Auth = () => {
   const [countryCode, setCountryCode] = useState('+502');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [username, setUsername] = useState('');
-  const [documentType, setDocumentType] = useState('');
+  const [documentType, setDocumentType] = useState('dpi');
   const [documentNumber, setDocumentNumber] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
@@ -220,6 +220,25 @@ const Auth = () => {
     e.preventDefault();
     setAuthError(null);
     
+    // Validar documento de identidad
+    if (!documentNumber.trim()) {
+      toast({
+        title: "Error",
+        description: "Por favor ingresa tu número de documento",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!documentType) {
+      toast({
+        title: "Error",
+        description: "Por favor selecciona un tipo de documento",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
       toast({
@@ -320,7 +339,7 @@ const Auth = () => {
       setLastName('');
       setPhoneNumber('');
       setUsername('');
-      setDocumentType('');
+      setDocumentType('dpi');
       setDocumentNumber('');
       setPassword('');
       setConfirmPassword('');
@@ -1077,13 +1096,13 @@ const Auth = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="document-type">Tipo de documento</Label>
-                  <Select onValueChange={setDocumentType}>
+                  <Select value={documentType} onValueChange={setDocumentType}>
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ID">Documento de Identidad</SelectItem>
-                      <SelectItem value="Pasaporte">Pasaporte</SelectItem>
+                      <SelectItem value="dpi">DPI / DUI</SelectItem>
+                      <SelectItem value="passport">Pasaporte</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

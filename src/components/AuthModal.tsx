@@ -126,6 +126,7 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onAuth }: AuthModalProp
               phone_number: localPhone,
               country_code: countryCode,
               document_number: formData.idNumber,
+              document_type: 'dpi',
               username: `${formData.firstName.toLowerCase()}_${formData.lastName.toLowerCase()}`
             }
           }
