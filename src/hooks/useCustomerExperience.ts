@@ -197,6 +197,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
       total: updatedRows.length,
       pending: updatedRows.filter((r) => r.call_status === "pending").length,
       completed: completedCalls.length,
+      scheduled: updatedRows.filter((r) => r.call_status === "scheduled").length,
       avgRating: ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null,
     });
   };
