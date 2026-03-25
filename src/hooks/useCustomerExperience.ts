@@ -27,6 +27,7 @@ export interface CXPackageRow {
   notes: string | null;
   call_date: string | null;
   scheduled_date: string | null;
+  call_time: string | null;
 }
 
 export interface CXStats {

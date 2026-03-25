@@ -252,6 +252,7 @@ export type Database = {
         Row: {
           call_date: string | null
           call_status: string
+          call_time: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -266,6 +267,7 @@ export type Database = {
         Insert: {
           call_date?: string | null
           call_status?: string
+          call_time?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -280,6 +282,7 @@ export type Database = {
         Update: {
           call_date?: string | null
           call_status?: string
+          call_time?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
