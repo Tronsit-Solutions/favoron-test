@@ -1,76 +1,41 @@
 
 
-## Performance Optimization Plan
+## Analysis: Document Number in Normal Registration
 
-### Problem
-Lighthouse desktop score is 64. The main bundle (`index-BTQsb2m8.js`) is **1.1 MB** with **82% unused JS** on the landing page. This causes:
-- Total Blocking Time: 540ms
-- Speed Index: 2.4s  
-- JS execution time: 1.5s
+### What's happening
 
-The root cause: `Dashboard.tsx` (1231 lines) statically imports heavy components like `AdminDashboard`, `GodModeDashboard`, `UserManagement`, `PackageRequestForm`, `TripForm`, `QuoteDialog`, and many others. Since `Dashboard` is lazy-loaded from `App.tsx`, BUT these static imports inside it prevent Vite from properly tree-shaking — the entire admin + dashboard graph gets pulled into the main chunk.
+The trigger `handle_new_user` (latest version `20260209`) correctly extracts `document_type` and `document_number` from `raw_user_meta_data` and saves them to the `profiles` table. The `Auth.tsx` signup form also correctly passes these values via `signUp({ options: { data: { document_type, document_number } } })`.
 
-Additionally, `TravelsHubSection` on the landing page eagerly imports `AvailableTripsCard` and `AvailableTripsModal` (with Supabase queries), which aren't needed above the fold.
+**However, there are two bugs that can cause the document to appear "not saved":**
 
-### Changes
+### Bug 1: Inconsistent document type values
+- `Auth.tsx` uses `"ID"` and `"Pasaporte"` as select values
+- `CompleteProfile.tsx` / `PersonalInfoForm.tsx` uses `"dpi"` and `"passport"`
+- The `isProfileComplete` check doesn't care about document_type value, BUT if a user later edits their profile, the `PersonalInfoForm` won't recognize `"ID"` or `"Pasaporte"` as valid select values, causing the dropdown to show blank -- which may confuse users into thinking nothing was saved.
 
-**1. Lazy-load heavy sub-components inside `Dashboard.tsx`**
+### Bug 2: No validation before signup
+- `documentType` starts as `''` (empty string). If the user doesn't select a type, an empty string is sent to Supabase metadata and saved to `profiles.document_type` as empty string.
+- `documentNumber` has `required` on the HTML input but no JS validation in `handleSignUp`, so it could theoretically be submitted empty.
+- An empty `document_type` with a valid `document_number` still passes `isProfileComplete` (which only checks `document_number`), but creates inconsistent data.
 
-Convert static imports to `lazy()` for components only rendered conditionally:
+### Bug 3 (root cause of user complaints): `documentType` defaults to `''`
+- If user fills document number but forgets to pick document type from the dropdown, `documentType = ''` is sent
+- The trigger saves `document_type = ''` (not NULL)
+- This is technically valid but creates confusing UX on CompleteProfile where the dropdown shows blank
 
-```typescript
-// Before
-import AdminDashboard from "./AdminDashboard";
-import GodModeDashboard from "./admin/GodModeDashboard";
-import UserManagement from "./admin/UserManagement";
-import PackageRequestForm from "./PackageRequestForm";
-import TripForm from "./TripForm";
-import QuoteDialog from "./QuoteDialog";
-import EditProfileModal from "./profile/EditProfileModal";
-import PrimeModal from "./PrimeModal";
-import AcquisitionSurveyModal from "./AcquisitionSurveyModal";
+### Plan
 
-// After
-const AdminDashboard = lazy(() => import("./AdminDashboard"));
-const GodModeDashboard = lazy(() => import("./admin/GodModeDashboard"));
-const UserManagement = lazy(() => import("./admin/UserManagement"));
-const PackageRequestForm = lazy(() => import("./PackageRequestForm"));
-const TripForm = lazy(() => import("./TripForm"));
-const QuoteDialog = lazy(() => import("./QuoteDialog"));
-const EditProfileModal = lazy(() => import("./profile/EditProfileModal"));
-const PrimeModal = lazy(() => import("./PrimeModal"));
-const AcquisitionSurveyModal = lazy(() => import("./AcquisitionSurveyModal"));
-```
+**1. Align document type values in `Auth.tsx`**
+Change Select values from `"ID"` / `"Pasaporte"` to `"dpi"` / `"passport"` to match the rest of the app.
 
-Wrap each usage in `<Suspense>` with a spinner fallback.
+**2. Default `documentType` to `"dpi"` in `Auth.tsx`**
+Change `useState('')` to `useState('dpi')` so a type is always selected, matching `CompleteProfile.tsx` behavior.
 
-**2. Lazy-load `TravelsHubSection` on landing page (`Index.tsx`)**
+**3. Add validation in `handleSignUp` for document fields**
+Before calling `signUp`, validate that `documentType` is not empty and `documentNumber` is not empty. Show toast error if missing.
 
-Move it from eager import to lazy like the other below-fold sections.
-
-**3. Add `width` and `height` to logo image (`NavBar.tsx`)**
-
-Add explicit dimensions to the logo `<img>` tag to prevent layout shifts (CLS) and fix the Lighthouse "unsized images" warning.
-
-**4. Preconnect to Supabase (`index.html`)**
-
-Add `<link rel="preconnect">` for `dfhoduirmqbarjnspbdh.supabase.co` to reduce connection setup time for API calls.
-
-**5. Defer Google Fonts loading (`index.html`)**
-
-Change the font stylesheet `<link>` to use `media="print" onload="this.media='all'"` pattern to make it non-render-blocking.
-
-### Files Modified
+### Files to modify
 | File | Change |
 |---|---|
-| `src/components/Dashboard.tsx` | Lazy-load 9 heavy sub-components |
-| `src/pages/Index.tsx` | Lazy-load `TravelsHubSection` |
-| `src/components/NavBar.tsx` | Add `width`/`height` to logo img |
-| `index.html` | Preconnect to Supabase, defer font loading |
-
-### Expected Impact
-- Main bundle size reduction: ~40-60% (admin, forms, modals split into separate chunks)
-- Unused JS on landing: significant reduction
-- TBT improvement: less JS to parse on initial load
-- Speed Index improvement from deferred fonts and preconnect
+| `src/pages/Auth.tsx` | Default `documentType` to `"dpi"`, change select values to `"dpi"`/`"passport"`, add validation |
 
