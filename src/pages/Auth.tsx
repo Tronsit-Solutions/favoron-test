@@ -220,6 +220,25 @@ const Auth = () => {
     e.preventDefault();
     setAuthError(null);
     
+    // Validar documento de identidad
+    if (!documentNumber.trim()) {
+      toast({
+        title: "Error",
+        description: "Por favor ingresa tu número de documento",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!documentType) {
+      toast({
+        title: "Error",
+        description: "Por favor selecciona un tipo de documento",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
       toast({
