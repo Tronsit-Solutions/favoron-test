@@ -43,6 +43,8 @@ const NavBar = ({ onOpenAuth, showBackToDashboard, onBackToDashboard, isAuthenti
             <img 
               src="/lovable-uploads/b4ea91c2-1974-4a3d-b9b6-c538aa52daa7.png" 
               alt="Favorón" 
+              width="120"
+              height="40"
               className="h-8 sm:h-10 w-auto transform group-hover:scale-105 transition-transform duration-200"
             />
           </Link>

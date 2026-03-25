@@ -4,20 +4,20 @@ import { Star } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import PackageRequestForm from "./PackageRequestForm";
-import TripForm from "./TripForm";
+const PackageRequestForm = lazy(() => import("./PackageRequestForm"));
+const TripForm = lazy(() => import("./TripForm"));
 import AddressConfirmationModal from "./AddressConfirmationModal";
-import AdminDashboard from "./AdminDashboard";
-import GodModeDashboard from "./admin/GodModeDashboard";
+const AdminDashboard = lazy(() => import("./AdminDashboard"));
+const GodModeDashboard = lazy(() => import("./admin/GodModeDashboard"));
 
-import QuoteDialog from "./QuoteDialog";
+const QuoteDialog = lazy(() => import("./QuoteDialog"));
 import UserProfile from "./UserProfile";
-import EditProfileModal from "./profile/EditProfileModal";
+const EditProfileModal = lazy(() => import("./profile/EditProfileModal"));
 import DashboardHeader from "./dashboard/DashboardHeader";
 import QuickActions from "./dashboard/QuickActions";
 
 import { PhoneNumberBanner } from "./PhoneNumberBanner";
-import PrimeModal from "./PrimeModal";
+const PrimeModal = lazy(() => import("./PrimeModal"));
 import ProfileCompletionModal from "./ProfileCompletionModal";
 import { usePhoneNumberValidation } from "@/hooks/usePhoneNumberValidation";
 import CollapsiblePackageCard from "./dashboard/CollapsiblePackageCard";
@@ -39,13 +39,13 @@ import { useProtectedNavigation } from "@/hooks/useProtectedNavigation";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { usePendingActions } from "@/hooks/usePendingActions";
 import { useOptimizedRealtime } from "@/hooks/useOptimizedRealtime";
-import AcquisitionSurveyModal from "./AcquisitionSurveyModal";
+const AcquisitionSurveyModal = lazy(() => import("./AcquisitionSurveyModal"));
 import { useAcquisitionSurvey } from "@/hooks/useAcquisitionSurvey";
 import ReferralAnnouncementModal from "./dashboard/ReferralAnnouncementModal";
 
 
 
-import UserManagement from "./admin/UserManagement";
+const UserManagement = lazy(() => import("./admin/UserManagement"));
 
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Plus } from "lucide-react";
@@ -561,10 +561,12 @@ const Dashboard = ({ user }: DashboardProps) => {
           onViewModeChange={handleViewModeChange}
         />
         <div className="container mx-auto mobile-container py-8">
-          <UserManagement 
-            packages={packages}
-            trips={trips}
-          />
+          <Suspense fallback={<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+            <UserManagement 
+              packages={packages}
+              trips={trips}
+            />
+          </Suspense>
         </div>
       </div>
     );
@@ -762,11 +764,13 @@ const Dashboard = ({ user }: DashboardProps) => {
 
           {isAdmin && (
             <TabsContent value="admin-dashboard">
-              <GodModeDashboard
-                packages={packages}
-                trips={trips}
-                userId={user.id}
-              />
+              <Suspense fallback={<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+                <GodModeDashboard
+                  packages={packages}
+                  trips={trips}
+                  userId={user.id}
+                />
+              </Suspense>
             </TabsContent>
           )}
 
@@ -994,6 +998,7 @@ const Dashboard = ({ user }: DashboardProps) => {
 
           {isAdmin && (
             <TabsContent value="admin">
+              <Suspense fallback={<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
                <AdminDashboard 
               packages={packages}
               trips={trips}
@@ -1027,6 +1032,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                loadAutoApprovedPayments={loadAutoApprovedPayments}
                loadApprovedPayments={loadApprovedPayments}
                />
+              </Suspense>
             </TabsContent>
           )}
 
@@ -1063,37 +1069,45 @@ const Dashboard = ({ user }: DashboardProps) => {
         <Route 
           path="/package" 
           element={
-            <PackageRequestForm
-              isOpen={true}
-              onClose={navigateBack}
-              onSubmit={handlePackageSubmit}
-            />
+            <Suspense fallback={null}>
+              <PackageRequestForm
+                isOpen={true}
+                onClose={navigateBack}
+                onSubmit={handlePackageSubmit}
+              />
+            </Suspense>
           } 
         />
         <Route 
           path="/trip" 
           element={
-            <TripForm
-              isOpen={true}
-              onClose={navigateBack}
-              onSubmit={handleTripSubmit}
-            />
+            <Suspense fallback={null}>
+              <TripForm
+                isOpen={true}
+                onClose={navigateBack}
+                onSubmit={handleTripSubmit}
+              />
+            </Suspense>
           } 
         />
       </Routes>
 
       {/* Legacy modals for backward compatibility */}
-      <PackageRequestForm
-        isOpen={showPackageForm}
-        onClose={() => setShowPackageForm(false)}
-        onSubmit={handlePackageSubmit}
-      />
+      <Suspense fallback={null}>
+        <PackageRequestForm
+          isOpen={showPackageForm}
+          onClose={() => setShowPackageForm(false)}
+          onSubmit={handlePackageSubmit}
+        />
+      </Suspense>
 
-      <TripForm
-        isOpen={showTripForm}
-        onClose={() => setShowTripForm(false)}
-        onSubmit={handleTripSubmit}
-      />
+      <Suspense fallback={null}>
+        <TripForm
+          isOpen={showTripForm}
+          onClose={() => setShowTripForm(false)}
+          onSubmit={handleTripSubmit}
+        />
+      </Suspense>
 
       {selectedPackageForAddress && (
         <AddressConfirmationModal
@@ -1116,6 +1130,7 @@ const Dashboard = ({ user }: DashboardProps) => {
       )}
 
       {selectedPackageForQuote && (
+        <Suspense fallback={null}>
         <QuoteDialog
           isOpen={showQuoteDialog}
           onClose={() => {
@@ -1175,6 +1190,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             setSelectedPackageForQuote(null);
           }}
         />
+        </Suspense>
       )}
 
       <AvailableTripsModal
@@ -1183,25 +1199,31 @@ const Dashboard = ({ user }: DashboardProps) => {
       />
 
       {/* Keep EditProfileModal for legacy access from within profile components */}
-      <EditProfileModal
-        user={currentUser}
-        isOpen={showProfile && activeTab !== 'profile'}
-        onClose={() => setShowProfile(false)}
-        onUpdateUser={handleUpdateUser}
-      />
+      <Suspense fallback={null}>
+        <EditProfileModal
+          user={currentUser}
+          isOpen={showProfile && activeTab !== 'profile'}
+          onClose={() => setShowProfile(false)}
+          onUpdateUser={handleUpdateUser}
+        />
+      </Suspense>
 
       {/* Prime Modal */}
-      <PrimeModal
-        isOpen={showPrimeModal}
-        onClose={() => setShowPrimeModal(false)}
-        user={currentUser}
-      />
+      <Suspense fallback={null}>
+        <PrimeModal
+          isOpen={showPrimeModal}
+          onClose={() => setShowPrimeModal(false)}
+          user={currentUser}
+        />
+      </Suspense>
 
       {/* Acquisition Survey Modal */}
-      <AcquisitionSurveyModal
-        isOpen={showAcquisitionSurvey}
-        onComplete={handleSurveyComplete}
-      />
+      <Suspense fallback={null}>
+        <AcquisitionSurveyModal
+          isOpen={showAcquisitionSurvey}
+          onComplete={handleSurveyComplete}
+        />
+      </Suspense>
 
       {/* Profile Completion Modal - Auto-shows for incomplete profiles */}
       <ProfileCompletionModal

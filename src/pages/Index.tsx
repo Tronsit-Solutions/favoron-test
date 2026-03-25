@@ -6,7 +6,6 @@ import { Capacitor } from "@capacitor/core";
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
-import TravelsHubSection from "@/components/TravelsHubSection";
 
 // Retry wrapper for lazy imports to handle chunk loading failures after deployments
 const lazyWithRetry = <T extends ComponentType<any>>(
@@ -30,6 +29,7 @@ const HowItWorksSection = lazyWithRetry(() => import("@/components/HowItWorksSec
 const BenefitsSection = lazyWithRetry(() => import("@/components/BenefitsSection"));
 const FAQSection = lazyWithRetry(() => import("@/components/FAQSection"));
 const CTASection = lazyWithRetry(() => import("@/components/CTASection"));
+const TravelsHubSection = lazyWithRetry(() => import("@/components/TravelsHubSection"));
 
 const Index = () => {
   const { user, profile, userRole, loading, signOut } = useAuth();
@@ -97,7 +97,9 @@ const Index = () => {
           <PlatformDescriptionSection />
         </Suspense>
         
-        <TravelsHubSection />
+        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
+          <TravelsHubSection />
+        </Suspense>
         
         <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
           <HowItWorksSection />
