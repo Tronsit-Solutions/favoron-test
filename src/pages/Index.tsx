@@ -6,7 +6,6 @@ import { Capacitor } from "@capacitor/core";
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
-import TravelsHubSection from "@/components/TravelsHubSection";
 
 // Retry wrapper for lazy imports to handle chunk loading failures after deployments
 const lazyWithRetry = <T extends ComponentType<any>>(
