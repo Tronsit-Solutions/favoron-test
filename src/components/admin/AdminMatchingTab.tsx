@@ -33,6 +33,7 @@ interface AdminMatchingTabProps {
   getStatusBadge?: (status: string) => JSX.Element;
   unreadCounts?: { [packageId: string]: number };
   markPackageMessagesAsRead?: (packageId: string) => Promise<void>;
+  matchingPackageIds?: Set<string>;
   // Pagination props
   loadMorePackages?: () => Promise<void>;
   hasMorePackages?: boolean;
@@ -66,6 +67,7 @@ const AdminMatchingTab = ({
   getStatusBadge,
   unreadCounts = {},
   markPackageMessagesAsRead,
+  matchingPackageIds = new Set(),
   loadMorePackages,
   hasMorePackages = false,
   totalPackages = 0,
@@ -152,7 +154,9 @@ const AdminMatchingTab = ({
   // Calculate stats
   const approvedPackages = packages.filter(p => p.status === 'approved');
   const rejectedQuotes = packages.filter(p => p.status === 'quote_rejected');
-  const pendingRequests = [...approvedPackages, ...rejectedQuotes].filter(p => !multiAssignedPackageIds.has(p.id));
+  const pendingRequests = [...approvedPackages, ...rejectedQuotes]
+    .filter(p => !multiAssignedPackageIds.has(p.id))
+    .filter(p => !matchingPackageIds.has(p.id));
   const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
   const activeMatches = packages.filter(pkg => {
     return (pkg.matched_trip_id !== null && pkg.matched_trip_id !== undefined) || multiAssignedPackageIds.has(pkg.id);

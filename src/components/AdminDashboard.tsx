@@ -111,6 +111,8 @@ const AdminDashboard = ({
   const [localPackages, setLocalPackages] = useState(packages);
   const [localTrips, setLocalTrips] = useState(trips);
   const [modalDataCache, setModalDataCache] = useState<{ selectedPackage: any; matchedTrip: any } | null>(null);
+  const [matchingPackageIds, setMatchingPackageIds] = useState<Set<string>>(new Set());
+  const recentMatchRef = useRef<Record<string, number>>({});
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { openModal } = useModalState();
@@ -170,11 +172,26 @@ const AdminDashboard = ({
     if (!hasModalsOpen) {
       // No modals open - apply updates directly but protect against emptying
       if (packages.length > 0 || localPackages.length === 0) {
-        console.log('🔄 Direct update - packages:', packages.length, 'local:', localPackages.length);
-        setLocalPackages(packages);
+        // Protect recently matched packages from being overwritten by stale props
+        const now = Date.now();
+        const protectedIds = new Set(
+          Object.entries(recentMatchRef.current)
+            .filter(([, ts]) => now - ts < 3000)
+            .map(([id]) => id)
+        );
+        
+        if (protectedIds.size > 0) {
+          console.log('🛡️ Protecting recently matched packages from stale sync:', [...protectedIds]);
+          setLocalPackages(prev => {
+            const protectedPkgs = prev.filter(p => protectedIds.has(p.id));
+            const incomingFiltered = packages.filter(p => !protectedIds.has(p.id));
+            return [...incomingFiltered, ...protectedPkgs];
+          });
+        } else {
+          setLocalPackages(packages);
+        }
       }
       if (trips.length > 0 || localTrips.length === 0) {
-        console.log('🔄 Direct update - trips:', trips.length, 'local:', localTrips.length);
         setLocalTrips(trips);
       }
     } else {
@@ -230,50 +247,59 @@ const AdminDashboard = ({
         return;
       }
 
-      // Save previous state for rollback on failure
-      const previousPackages = [...localPackages];
+      const matchPackageId = selectedPackage.id;
 
-      // Apply optimistic update — set package status to matched
-      setLocalPackages(prevPackages => 
-        prevPackages.map(pkg => 
-          pkg.id === selectedPackage.id ? {
-            ...pkg,
-            status: 'matched',
-            updated_at: new Date().toISOString()
-          } : pkg
-        )
-      );
+      // Mark package as "matching in progress" — hides from Solicitudes, shows spinner
+      setMatchingPackageIds(prev => new Set(prev).add(matchPackageId));
 
       // Close modal immediately for snappy feedback
       setSelectedPackage(null);
       setMatchingTrip("");
       setShowMatchDialog(false);
 
-      // Show success toast immediately — don't wait for DB
-      const isMultiProduct = productsWithTips && productsWithTips.length > 1;
-      toast({
-        title: "¡Match exitoso!",
-        description: tripIds.length > 1
-          ? `Paquete asignado a ${tripIds.length} viajeros. El shopper podrá comparar cotizaciones.`
-          : isMultiProduct 
-            ? `Paquete emparejado con viaje con tips por producto (Total: Q${adminTip})`
-            : `Paquete emparejado con viaje con tip de Q${adminTip}`,
-      });
+      try {
+        // Await the actual DB operation
+        await onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds);
 
-      // Execute DB operations in background (fire-and-forget with error recovery)
-      const matchPackageId = selectedPackage.id;
-      Promise.resolve()
-        .then(() => onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds))
-        .catch((error) => {
-          console.error('Error during match:', error);
-          // Revert optimistic update
-          setLocalPackages(previousPackages);
-          toast({
-            title: "Error",
-            description: "Hubo un problema al procesar el match. Intenta de nuevo.",
-            variant: "destructive",
-          });
+        // DB succeeded — apply local state update
+        setLocalPackages(prevPackages => 
+          prevPackages.map(pkg => 
+            pkg.id === matchPackageId ? {
+              ...pkg,
+              status: 'matched',
+              updated_at: new Date().toISOString()
+            } : pkg
+          )
+        );
+
+        // Protect this package from stale prop overwrites for 3s
+        recentMatchRef.current[matchPackageId] = Date.now();
+        setTimeout(() => { delete recentMatchRef.current[matchPackageId]; }, 3500);
+
+        const isMultiProduct = productsWithTips && productsWithTips.length > 1;
+        toast({
+          title: "¡Match exitoso!",
+          description: tripIds.length > 1
+            ? `Paquete asignado a ${tripIds.length} viajeros. El shopper podrá comparar cotizaciones.`
+            : isMultiProduct 
+              ? `Paquete emparejado con viaje con tips por producto (Total: Q${adminTip})`
+              : `Paquete emparejado con viaje con tip de Q${adminTip}`,
         });
+      } catch (error) {
+        console.error('Error during match:', error);
+        toast({
+          title: "Error",
+          description: "Hubo un problema al procesar el match. Intenta de nuevo.",
+          variant: "destructive",
+        });
+      } finally {
+        // Always clear matching state
+        setMatchingPackageIds(prev => {
+          const next = new Set(prev);
+          next.delete(matchPackageId);
+          return next;
+        });
+      }
     }
   };
 
@@ -597,6 +623,7 @@ const AdminDashboard = ({
           <AdminMatchingTab
             packages={localPackages}
             trips={localTrips}
+            matchingPackageIds={matchingPackageIds}
             modalDataCache={modalDataCache}
             activeMatchingTab={matchingTab}
             onMatchingTabChange={onMatchingTabChange}
