@@ -56,8 +56,8 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
       const { data: packages, error: pkgErr } = await pkgQuery;
       if (pkgErr) throw pkgErr;
       if (!packages || packages.length === 0) {
-        setRows([]);
-        setStats({ total: 0, pending: 0, completed: 0, avgRating: null });
+      setRows([]);
+        setStats({ total: 0, pending: 0, completed: 0, scheduled: 0, avgRating: null });
         setLoading(false);
         return;
       }
