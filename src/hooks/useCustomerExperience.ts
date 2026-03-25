@@ -218,6 +218,7 @@ export function useCustomerExperience(userType: "shopper" | "traveler") {
         notes: updates.notes !== undefined ? updates.notes : row.notes,
         call_date: updates.call_date !== undefined ? updates.call_date : row.call_date,
         scheduled_date: updates.scheduled_date !== undefined ? updates.scheduled_date : row.scheduled_date,
+        call_time: updates.call_time !== undefined ? updates.call_time : row.call_time,
         updated_at: new Date().toISOString(),
         created_by: user.id,
       };
