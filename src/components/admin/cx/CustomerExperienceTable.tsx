@@ -19,7 +19,7 @@ interface Props {
   rows: CXPackageRow[];
   loading: boolean;
   userType: "shopper" | "traveler";
-  onSave: (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null; scheduled_date?: string | null }) => Promise<void>;
+  onSave: (row: CXPackageRow, updates: { call_status?: string; rating?: number | null; notes?: string | null; call_date?: string | null; scheduled_date?: string | null; call_time?: string | null }) => Promise<void>;
 }
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
