@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plane, MapPin, Package, Phone, Building2, Target, Mail, Users, AlertCircle, RotateCcw, Rocket } from "lucide-react";
+import { CalendarIcon, Plane, MapPin, Package, Phone, Building2, Target, Mail, Users, AlertCircle, RotateCcw, Rocket, Check, Loader2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";

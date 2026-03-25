@@ -1428,15 +1428,34 @@ const TripForm = ({
             <Rocket className="h-4 w-4 text-primary" />
             Código de Tip Boost (opcional)
           </Label>
-          <Input
-            value={formData.boostCode || ''}
-            onChange={(e) => updateField('formData', { ...formData, boostCode: e.target.value.toUpperCase() })}
-            placeholder="Ej: BOOST10 (opcional)"
-            className="font-mono"
-          />
-          <p className="text-xs text-muted-foreground">
-            ¿Tienes un código de boost? Ingrésalo para aumentar tus ganancias en este viaje
-          </p>
+          <div className="relative">
+            <Input
+              value={formData.boostCode || ''}
+              onChange={(e) => handleBoostCodeChange(e.target.value)}
+              placeholder="Ej: BOOST10 (opcional)"
+              className={cn(
+                "font-mono pr-10",
+                boostStatus === 'valid' && "border-green-500 focus-visible:ring-green-500",
+                boostStatus === 'invalid' && "border-destructive focus-visible:ring-destructive"
+              )}
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              {boostStatus === 'checking' && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+              {boostStatus === 'valid' && <Check className="h-4 w-4 text-green-500" />}
+              {boostStatus === 'invalid' && <X className="h-4 w-4 text-destructive" />}
+            </div>
+          </div>
+          {boostStatus === 'valid' && (
+            <p className="text-xs text-green-600 font-medium">✓ Código de boost válido</p>
+          )}
+          {boostStatus === 'invalid' && (
+            <p className="text-xs text-destructive">Código no encontrado o inactivo</p>
+          )}
+          {boostStatus === 'idle' && (
+            <p className="text-xs text-muted-foreground">
+              ¿Tienes un código de boost? Ingrésalo para aumentar tus ganancias en este viaje
+            </p>
+          )}
         </div>
 
         {/* Info box - Cómo funciona */}
