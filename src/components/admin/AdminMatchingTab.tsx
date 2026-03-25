@@ -67,6 +67,7 @@ const AdminMatchingTab = ({
   getStatusBadge,
   unreadCounts = {},
   markPackageMessagesAsRead,
+  matchingPackageIds = new Set(),
   loadMorePackages,
   hasMorePackages = false,
   totalPackages = 0,
