@@ -1093,17 +1093,21 @@ const Dashboard = ({ user }: DashboardProps) => {
       </Routes>
 
       {/* Legacy modals for backward compatibility */}
-      <PackageRequestForm
-        isOpen={showPackageForm}
-        onClose={() => setShowPackageForm(false)}
-        onSubmit={handlePackageSubmit}
-      />
+      <Suspense fallback={null}>
+        <PackageRequestForm
+          isOpen={showPackageForm}
+          onClose={() => setShowPackageForm(false)}
+          onSubmit={handlePackageSubmit}
+        />
+      </Suspense>
 
-      <TripForm
-        isOpen={showTripForm}
-        onClose={() => setShowTripForm(false)}
-        onSubmit={handleTripSubmit}
-      />
+      <Suspense fallback={null}>
+        <TripForm
+          isOpen={showTripForm}
+          onClose={() => setShowTripForm(false)}
+          onSubmit={handleTripSubmit}
+        />
+      </Suspense>
 
       {selectedPackageForAddress && (
         <AddressConfirmationModal
