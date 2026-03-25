@@ -1,31 +1,23 @@
 
 
-## Validar código de Boost en tiempo real (sin bloquear el guardado del viaje)
+## Agregar botón "Descartar" para bid_lost y bid_expired en CollapsibleTravelerPackageCard
 
 ### Problema
-Actualmente el campo de boost code guarda cualquier texto sin validar si existe en `boost_codes`. El viaje siempre se guarda, pero el viajero no sabe si su código es válido hasta mucho después.
+Las tarjetas con `_assignmentStatus` de `bid_lost`, `bid_expired` o `bid_cancelled` muestran el estado correcto pero no tienen botón para descartarlas. El viajero no puede limpiar su dashboard.
 
 ### Solución
-Agregar validación en tiempo real al campo de boost code: cuando el viajero escribe un código y sale del campo (onBlur) o después de un debounce, consultar `boost_codes` para verificar si existe y está activo. Mostrar feedback visual inline (verde si válido, rojo si inválido). El viaje siempre se guarda — si el código es inválido, se guarda sin boost code (`null`).
+Agregar un botón "Descartar" inline debajo del mensaje de estado para estos tres casos terminales, usando la misma lógica que ya existe en `TravelerPackageCard.tsx`: actualizar `dismissed_by_traveler = true` en `package_assignments` usando `pkg._assignmentId`.
 
 ### Cambios
 
-**1. `src/components/TripForm.tsx`**
+**1. `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`**
 
-- Agregar estados: `boostStatus` (`idle | checking | valid | invalid`), `boostError` (string)
-- En el `onChange` o `onBlur` del input de boost code, si hay texto:
-  - Hacer query a `boost_codes` tabla: `.select('id').eq('code', value).eq('is_active', true).maybeSingle()`
-  - Si `data` existe → `boostStatus = 'valid'`, mostrar checkmark verde
-  - Si no existe → `boostStatus = 'invalid'`, mostrar mensaje "Código no válido"
-- En el `handleSubmit`, si `boostStatus !== 'valid'`, enviar `boostCode: null` (no guardar código inválido)
-- Feedback visual: icono Check verde cuando válido, texto rojo "Código no encontrado" cuando inválido
+- Agregar estado `dismissing` (boolean) y importar `useToast`
+- Agregar función `handleDismissAssignment` que:
+  - Hace `supabase.from('package_assignments').update({ dismissed_by_traveler: true }).eq('id', pkg._assignmentId)`
+  - Muestra toast de confirmación
+  - Recarga la página (`window.location.reload()`) para que el filtro en Dashboard.tsx (línea 290) lo excluya
+- En las líneas 408-413, después de cada mensaje de estado (`bid_lost`, `bid_expired`, `bid_cancelled`), agregar un `<Button>` ghost pequeño con icono X y texto "Descartar de mi dashboard"
 
-**2. `src/components/EditTripModal.tsx`**
-
-- Misma lógica de validación para el campo de boost code en edición
-
-### Resultado
-- El viajero ve inmediatamente si su código es válido o no
-- El viaje siempre se guarda (nunca se bloquea)
-- Códigos inválidos no se guardan en la DB (se envía `null`)
+El resultado visual será idéntico al que ya existe en `TravelerPackageCard.tsx` (el componente legacy), pero dentro del componente colapsable usado en Mis Viajes.
 
