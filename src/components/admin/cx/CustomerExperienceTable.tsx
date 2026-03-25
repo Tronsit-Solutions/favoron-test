@@ -210,6 +210,7 @@ export default function CustomerExperienceTable({ rows, loading, userType, onSav
                       />
                     </PopoverContent>
                   </Popover>
+                </TableCell>
                 <TableCell>
                   <Popover>
                     <PopoverTrigger asChild>
