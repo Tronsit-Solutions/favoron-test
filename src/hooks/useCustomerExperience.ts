@@ -40,7 +40,7 @@ export interface CXStats {
 export function useCustomerExperience(userType: "shopper" | "traveler") {
   const [rows, setRows] = useState<CXPackageRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<CXStats>({ total: 0, pending: 0, completed: 0, avgRating: null });
+  const [stats, setStats] = useState<CXStats>({ total: 0, pending: 0, completed: 0, scheduled: 0, avgRating: null });
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const fetchData = useCallback(async () => {
