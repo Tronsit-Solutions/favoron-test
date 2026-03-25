@@ -67,12 +67,14 @@ const BoostCodeInput = ({ tripId, travelerId, existingBoost, onBoostApplied }: B
     }
   };
 
-  if (appliedBoost !== null && appliedBoost > 0) {
+  if (appliedBoost !== null && appliedBoost >= 0) {
     return (
       <div className="flex items-center gap-2 p-3 rounded-lg border border-green-200 bg-green-50 text-green-700">
         <Check className="h-4 w-4" />
         <span className="text-sm font-medium">
-          Tip Boost activo: +Q{appliedBoost.toFixed(2)}
+          {appliedBoost > 0
+            ? `Tip Boost activo: +Q${appliedBoost.toFixed(2)}`
+            : "Código de boost aplicado — se calculará al entregar paquetes"}
         </span>
       </div>
     );
