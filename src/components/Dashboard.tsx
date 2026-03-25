@@ -45,7 +45,7 @@ import ReferralAnnouncementModal from "./dashboard/ReferralAnnouncementModal";
 
 
 
-import UserManagement from "./admin/UserManagement";
+const UserManagement = lazy(() => import("./admin/UserManagement"));
 
 import { NotificationBadge } from "@/components/ui/notification-badge";
 import { Plus } from "lucide-react";
