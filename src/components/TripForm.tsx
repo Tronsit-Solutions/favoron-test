@@ -102,6 +102,8 @@ const TripForm = ({
     }
   };
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [boostStatus, setBoostStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+  const boostDebounceRef = useRef<ReturnType<typeof setTimeout>>();
   const totalSteps = 4;
 
   // Traveler onboarding slides
