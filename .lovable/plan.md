@@ -1,35 +1,30 @@
 
 
-## Diagnóstico: Carga lenta de "Asignaciones del Viaje"
+## Fix: Total a Pagar incorrecto en tabla financiera
 
-### Causa
-No hay indicador de carga (loading state). Cuando el admin hace clic en un viajero, se inicializa `tripAssignments = []` y se muestra inmediatamente "No hay asignaciones para este viaje" mientras la query aún está en curso. Esto da la impresión de que tarda o que no hay datos.
+### Problema
+El `totalPrice` guardado en el JSONB de la cotización está desactualizado en algunos paquetes. Cuando se recalculó el `serviceFee` para usuarios Prime, no se actualizó el `totalPrice` correspondiente. Ejemplo: Edison Castillo tiene tip=210 + serviceFee=42 + delivery=0 = **252**, pero `totalPrice` dice **294**.
 
-Las 3 queries (referral, packages, assignments) ya corren en paralelo con `Promise.all`, así que no hay waterfall. El problema es puramente de **percepción** por falta de feedback visual.
+`getQuoteValues()` lee `totalPrice` directo de la DB y lo usa para calcular `finalTotalPrice`, propagando el error a la tabla financiera y a cualquier otro lugar que use esta función.
 
 ### Solución
-Agregar un estado `loadingAssignments` que muestre un spinner/skeleton mientras la query de assignments está en curso.
+Modificar `getQuoteValues()` en `src/lib/quoteHelpers.ts` para **recalcular** `totalPrice` como la suma de sus componentes (`price + serviceFee + deliveryFee`) en lugar de confiar en el valor guardado. Esto corrige automáticamente todos los lugares que consumen esta función (tabla financiera, detalles de paquete, recibos, etc.).
 
-### Cambios en `src/components/admin/AdminMatchDialog.tsx`
+### Cambio
 
-1. **Nuevo estado**: `const [loadingAssignments, setLoadingAssignments] = useState(false);`
+**Archivo**: `src/lib/quoteHelpers.ts` (1 línea)
 
-2. **En `handleTravelerClick`** (línea ~573): Setear `setLoadingAssignments(true)` al inicio. En el `assignmentsPromise` (línea ~687), agregar `finally { setLoadingAssignments(false) }`.
+Línea 59, cambiar:
+```typescript
+const totalPrice = typeof quote.totalPrice === 'string' ? parseFloat(quote.totalPrice) : Number(quote.totalPrice || 0);
+```
 
-3. **En la UI** (línea ~2047): Antes del check de `length === 0`, verificar `loadingAssignments` y mostrar un spinner o skeleton:
-   ```
-   {loadingAssignments ? (
-     <div className="text-center py-6">
-       <Loader2 className="animate-spin mx-auto" />
-       <p>Cargando asignaciones...</p>
-     </div>
-   ) : tripAssignments.length === 0 ? (
-     ...empty state...
-   ) : (
-     ...list...
-   )}
-   ```
+Por:
+```typescript
+const totalPrice = price + serviceFee + deliveryFee;
+```
 
-### Archivo a modificar
-- `src/components/admin/AdminMatchDialog.tsx` (3 cambios menores)
+Esto es seguro porque `price`, `serviceFee` y `deliveryFee` ya se parsean individualmente en las líneas anteriores y son la fuente de verdad. El `totalPrice` guardado es solo una conveniencia que puede quedar desincronizada.
+
+El `finalTotalPrice` explícito (cuando existe en la DB) seguirá siendo respetado para cotizaciones con descuentos aplicados correctamente.
 
