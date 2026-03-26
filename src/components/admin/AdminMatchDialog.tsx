@@ -49,6 +49,7 @@ const AdminMatchDialog = ({
   const [showTravelerInfo, setShowTravelerInfo] = useState(false);
   const [selectedTraveler, setSelectedTraveler] = useState<any>(null);
   const [travelerPackages, setTravelerPackages] = useState<any[]>([]);
+  const [tripAssignments, setTripAssignments] = useState<any[]>([]);
   const [adminTip, setAdminTip] = useState<string>('');
   const [avatarViewerOpen, setAvatarViewerOpen] = useState(false);
   const [avatarViewerUrl, setAvatarViewerUrl] = useState('');
