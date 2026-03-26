@@ -1,65 +1,58 @@
 
 
-## Diagnóstico: El botón "Confirmando..." tarda mucho
+## Agregar contenedor de asignaciones (package_assignments) al modal del viajero
 
-### Causa raíz
+### Problema
+El contenedor "Paquetes en este Viaje" actual muestra 0 porque filtra por estados muy específicos y timers activos. El usuario necesita ver **todas** las asignaciones de `package_assignments` para ese viaje con su estado de bid real.
 
-Cuando el RPC `assign_package_to_travelers` actualiza `packages.status = 'matched'`, se disparan varios triggers de Postgres. El trigger `notify_traveler_package_status` llama a `create_notification`, que a su vez hace una **llamada HTTP síncrona y bloqueante** (`extensions.http()`) al edge function `send-notification-email`.
+### Solución
+Agregar una nueva sección debajo del contenedor actual que consulte directamente `package_assignments` por `trip_id` y muestre cada asignación con su estado de bid (`bid_pending`, `bid_submitted`, `bid_won`, `bid_lost`, `bid_expired`, `bid_cancelled`).
 
-```text
-handleMatch (click) 
-  → RPC assign_package_to_travelers
-    → UPDATE packages SET status = 'matched'
-      → TRIGGER notify_traveler_package_status
-        → create_notification()
-          → extensions.http() → edge function (BLOQUEANTE, 2-5s)
-      → TRIGGER notify_shopper_package_status (posiblemente otro HTTP)
-    → COMMIT (espera a que terminen todos los triggers)
-  → respuesta al cliente
+### Cambios en `src/components/admin/AdminMatchDialog.tsx`
+
+1. **Nuevo estado**: `tripAssignments` para almacenar las asignaciones raw de `package_assignments` con join a `packages` y `profiles`.
+
+2. **Nueva query** en el efecto de `showTravelerInfo`: Consultar `package_assignments` con `trip_id = trip.id` sin filtro de status, haciendo join a packages para obtener `item_description`, `estimated_price`, `purchase_origin`, `package_destination` y al perfil del shopper.
+
+3. **Nueva Card** debajo de "Paquetes en este Viaje": 
+   - Título: "Asignaciones del Viaje (N)"
+   - Lista cada asignación mostrando:
+     - Descripción del producto
+     - Ruta (origen → destino)
+     - Shopper name
+     - Precio estimado
+     - **Badge con estado del bid** con colores diferenciados:
+       - `bid_pending` → amarillo
+       - `bid_submitted` → azul
+       - `bid_won` → verde
+       - `bid_lost` → rojo
+       - `bid_expired` → gris
+       - `bid_cancelled` → gris oscuro
+
+### Detalle técnico
+
+```
+Query:
+supabase
+  .from('package_assignments')
+  .select(`
+    id, package_id, status, admin_assigned_tip, quote, created_at,
+    packages:package_id (id, item_description, estimated_price, purchase_origin, package_destination, user_id, profiles:user_id (first_name, last_name, username))
+  `)
+  .eq('trip_id', trip.id)
+  .order('created_at', { ascending: false })
 ```
 
-Cada llamada HTTP síncrona dentro de la transacción bloquea todo hasta que el edge function responde. Si hay 2+ notificaciones, se multiplica.
-
-### Solución: Cambiar de `extensions.http()` a `net.http_post()` (asíncrono)
-
-`pg_net` (`net.http_post`) envía la petición HTTP de forma **asíncrona** — no bloquea la transacción. Ya tienen la extensión `pg_net` habilitada.
-
-### Cambio
-
-**1. Migración SQL**: Actualizar `create_notification` para usar `net.http_post` en vez de `extensions.http`
-
-Reemplazar el bloque de llamada HTTP (líneas 70-81 del function body) de:
-
-```sql
-SELECT INTO http_result * FROM extensions.http((
-  'POST',
-  'https://dfhoduirmqbarjnspbdh.supabase.co/functions/v1/send-notification-email',
-  ARRAY[...],
-  'application/json',
-  payload::text
-));
+Badge mapping:
+```
+bid_pending    → variant="warning"   "Pendiente"
+bid_submitted  → variant="default" (blue)  "Cotización Enviada"  
+bid_won        → variant="success"  "Ganada"
+bid_lost       → variant="destructive" "Perdida"
+bid_expired    → variant="secondary" "Expirada"
+bid_cancelled  → variant="secondary" "Cancelada"
 ```
 
-A:
-
-```sql
-PERFORM net.http_post(
-  url := 'https://dfhoduirmqbarjnspbdh.supabase.co/functions/v1/send-notification-email',
-  headers := jsonb_build_object(
-    'Content-Type', 'application/json',
-    'Authorization', 'Bearer ' || current_setting('app.service_role_key', true)
-  ),
-  body := payload::jsonb
-);
-```
-
-Esto elimina toda la lógica de verificación del `http_result.status` (ya no hay resultado síncrono), y elimina la variable `http_result`. La notificación de email se envía en background sin bloquear.
-
-### Archivos a modificar
-- **1 migración SQL** (nueva): actualizar función `create_notification`
-
-### Impacto
-- El botón "Confirmando..." debería resolver en <500ms en vez de 2-5s
-- Los emails de notificación seguirán enviándose, pero de forma asíncrona
-- Si el email falla, no hay rollback (mismo comportamiento actual con el `EXCEPTION WHEN OTHERS`)
+### Archivo a modificar
+- `src/components/admin/AdminMatchDialog.tsx`
 
