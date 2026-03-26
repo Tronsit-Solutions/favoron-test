@@ -684,7 +684,24 @@ const AdminMatchDialog = ({
       }
     })();
 
-    await Promise.all([referralPromise, packagesPromise]);
+    const assignmentsPromise = (async () => {
+      try {
+        const { data } = await supabase
+          .from('package_assignments')
+          .select(`
+            id, package_id, status, admin_assigned_tip, quote, created_at,
+            packages:package_id (id, item_description, estimated_price, purchase_origin, package_destination, user_id, profiles:user_id (first_name, last_name, username))
+          `)
+          .eq('trip_id', trip.id)
+          .order('created_at', { ascending: false });
+        setTripAssignments(data || []);
+      } catch (err) {
+        console.error('Error fetching trip assignments:', err);
+        setTripAssignments([]);
+      }
+    })();
+
+    await Promise.all([referralPromise, packagesPromise, assignmentsPromise]);
   };
 
   const toggleTripExpansion = (tripId: number) => {
