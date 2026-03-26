@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban, Clock, Globe, Upload, Loader2 } from "lucide-react";
+import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban, Clock, Globe, Upload, Loader2, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { inferCountryFromCity } from '@/lib/cities';
