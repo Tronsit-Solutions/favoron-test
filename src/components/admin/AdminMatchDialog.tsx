@@ -2048,7 +2048,12 @@ const AdminMatchDialog = ({
                   </h3>
                 </CardHeader>
                 <CardContent>
-                  {tripAssignments.length === 0 ? (
+                  {loadingAssignments ? (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+                      <p>Cargando asignaciones...</p>
+                    </div>
+                  ) : tripAssignments.length === 0 ? (
                     <div className="text-center py-6 text-muted-foreground">
                       <Zap className="h-10 w-10 mx-auto mb-3 opacity-50" />
                       <p>No hay asignaciones para este viaje</p>
