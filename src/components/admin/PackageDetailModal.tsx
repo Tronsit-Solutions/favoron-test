@@ -1835,6 +1835,18 @@ const [editForm, setEditForm] = useState({
                         <CardContent className="p-4 space-y-3">
                           <div className="flex items-center justify-between gap-2">
                             <Badge variant="secondary">Producto #{idx + 1}</Badge>
+                            <div className="flex items-center gap-2">
+                              {editProducts.length > 1 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => handleRemoveProduct(idx)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                                  Eliminar
+                                </Button>
+                              )}
                             <div className="flex items-center gap-1">
                               <label className="text-xs text-muted-foreground">Tip:</label>
                               <div className="relative w-24">
