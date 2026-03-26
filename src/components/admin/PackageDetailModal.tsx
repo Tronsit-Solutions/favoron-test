@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban, Clock, Globe, Upload, Loader2 } from "lucide-react";
+import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban, Clock, Globe, Upload, Loader2, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { inferCountryFromCity } from '@/lib/cities';
@@ -767,6 +767,14 @@ const [editForm, setEditForm] = useState({
     setEditMode(!editMode);
   };
   
+  // Handle removing a product from the edit list
+  const handleRemoveProduct = (index: number) => {
+    if (editProducts.length <= 1) return;
+    if (window.confirm('¿Estás seguro de eliminar este producto del paquete? El cambio se aplicará al guardar.')) {
+      setEditProducts(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
   // Handle individual product field changes
   const handleProductChange = (index: number, field: string, value: string | boolean) => {
     setEditProducts(prev => {
@@ -1827,6 +1835,18 @@ const [editForm, setEditForm] = useState({
                         <CardContent className="p-4 space-y-3">
                           <div className="flex items-center justify-between gap-2">
                             <Badge variant="secondary">Producto #{idx + 1}</Badge>
+                            <div className="flex items-center gap-2">
+                              {editProducts.length > 1 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => handleRemoveProduct(idx)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                                  Eliminar
+                                </Button>
+                              )}
                             <div className="flex items-center gap-1">
                               <label className="text-xs text-muted-foreground">Tip:</label>
                               <div className="relative w-24">
@@ -1841,6 +1861,7 @@ const [editForm, setEditForm] = useState({
                                   className="h-7 pl-6 text-xs font-mono text-right"
                                 />
                               </div>
+                            </div>
                             </div>
                           </div>
                           
