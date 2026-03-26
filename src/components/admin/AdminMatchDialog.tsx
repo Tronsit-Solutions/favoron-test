@@ -570,6 +570,7 @@ const AdminMatchDialog = ({
     const profile = travelerProfiles[trip.user_id];
     setSelectedTraveler({ ...profile, trip, referral: null });
     setTravelerPackages([]);
+    setTripAssignments([]);
     setShowTravelerInfo(true);
 
     // Fetch referral and packages in parallel
