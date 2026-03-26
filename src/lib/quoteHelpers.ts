@@ -56,7 +56,7 @@ export const getQuoteValues = (quote: any): QuoteValues => {
   const price = typeof quote.price === 'string' ? parseFloat(quote.price) : Number(quote.price || 0);
   const serviceFee = typeof quote.serviceFee === 'string' ? parseFloat(quote.serviceFee) : Number(quote.serviceFee || 0);
   const deliveryFee = typeof quote.deliveryFee === 'string' ? parseFloat(quote.deliveryFee) : Number(quote.deliveryFee || 0);
-  const totalPrice = typeof quote.totalPrice === 'string' ? parseFloat(quote.totalPrice) : Number(quote.totalPrice || 0);
+  const totalPrice = price + serviceFee + deliveryFee;
   const rawDiscountAmount = typeof quote.discountAmount === 'string' ? parseFloat(quote.discountAmount) : Number(quote.discountAmount || 0);
   const referralCreditAmount = Number(quote.referralCreditAmount || 0);
   const discountAmount = rawDiscountAmount + referralCreditAmount;
