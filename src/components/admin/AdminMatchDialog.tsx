@@ -700,6 +700,8 @@ const AdminMatchDialog = ({
       } catch (err) {
         console.error('Error fetching trip assignments:', err);
         setTripAssignments([]);
+      } finally {
+        setLoadingAssignments(false);
       }
     })();
 
