@@ -767,6 +767,14 @@ const [editForm, setEditForm] = useState({
     setEditMode(!editMode);
   };
   
+  // Handle removing a product from the edit list
+  const handleRemoveProduct = (index: number) => {
+    if (editProducts.length <= 1) return;
+    if (window.confirm('¿Estás seguro de eliminar este producto del paquete? El cambio se aplicará al guardar.')) {
+      setEditProducts(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
   // Handle individual product field changes
   const handleProductChange = (index: number, field: string, value: string | boolean) => {
     setEditProducts(prev => {
