@@ -1,58 +1,33 @@
 
 
-## Agregar contenedor de asignaciones (package_assignments) al modal del viajero
+## Agregar botón "Eliminar Producto" en modo edición del admin
 
 ### Problema
-El contenedor "Paquetes en este Viaje" actual muestra 0 porque filtra por estados muy específicos y timers activos. El usuario necesita ver **todas** las asignaciones de `package_assignments` para ese viaje con su estado de bid real.
+Cuando un paquete tiene muchos productos, el admin no puede eliminar productos individuales. Solo existe la opción de "Cancelar" (que marca como cancelado con reembolso), pero no de eliminar completamente un producto del pedido.
 
 ### Solución
-Agregar una nueva sección debajo del contenedor actual que consulte directamente `package_assignments` por `trip_id` y muestre cada asignación con su estado de bid (`bid_pending`, `bid_submitted`, `bid_won`, `bid_lost`, `bid_expired`, `bid_cancelled`).
+Agregar un botón de eliminar en cada producto dentro del **modo edición** (`editMode`) del `PackageDetailModal`, con protección para no eliminar el último producto restante.
 
-### Cambios en `src/components/admin/AdminMatchDialog.tsx`
+### Cambios en `src/components/admin/PackageDetailModal.tsx`
 
-1. **Nuevo estado**: `tripAssignments` para almacenar las asignaciones raw de `package_assignments` con join a `packages` y `profiles`.
+1. **Nueva función `handleRemoveProduct(index)`**: Elimina el producto del array `editProducts` usando `filter`. Solo permite eliminar si hay más de 1 producto.
 
-2. **Nueva query** en el efecto de `showTravelerInfo`: Consultar `package_assignments` con `trip_id = trip.id` sin filtro de status, haciendo join a packages para obtener `item_description`, `estimated_price`, `purchase_origin`, `package_destination` y al perfil del shopper.
+2. **Botón "Eliminar" en cada card de producto** (edit mode, línea ~1828): Junto al badge "Producto #N" y el campo de tip, agregar un botón rojo con icono de basura/X que llame a `handleRemoveProduct(idx)`. Deshabilitado si solo queda 1 producto.
 
-3. **Nueva Card** debajo de "Paquetes en este Viaje": 
-   - Título: "Asignaciones del Viaje (N)"
-   - Lista cada asignación mostrando:
-     - Descripción del producto
-     - Ruta (origen → destino)
-     - Shopper name
-     - Precio estimado
-     - **Badge con estado del bid** con colores diferenciados:
-       - `bid_pending` → amarillo
-       - `bid_submitted` → azul
-       - `bid_won` → verde
-       - `bid_lost` → rojo
-       - `bid_expired` → gris
-       - `bid_cancelled` → gris oscuro
+3. **Confirmación**: Un `window.confirm()` simple antes de eliminar, dado que el cambio no se persiste hasta que el admin presione "Guardar".
 
-### Detalle técnico
+4. **`handleSaveChanges` ya funciona correctamente**: Toma `editProducts` tal como está y lo guarda como `products_data`, así que al eliminar un producto del array local se persiste automáticamente al guardar.
+
+### Detalle de UI
+
+En la card de cada producto en edit mode (línea ~1828-1829), agregar al lado del badge:
 
 ```
-Query:
-supabase
-  .from('package_assignments')
-  .select(`
-    id, package_id, status, admin_assigned_tip, quote, created_at,
-    packages:package_id (id, item_description, estimated_price, purchase_origin, package_destination, user_id, profiles:user_id (first_name, last_name, username))
-  `)
-  .eq('trip_id', trip.id)
-  .order('created_at', { ascending: false })
+[Producto #1] [Tip: Q___]  [🗑 Eliminar]  ← solo si hay >1 producto
 ```
 
-Badge mapping:
-```
-bid_pending    → variant="warning"   "Pendiente"
-bid_submitted  → variant="default" (blue)  "Cotización Enviada"  
-bid_won        → variant="success"  "Ganada"
-bid_lost       → variant="destructive" "Perdida"
-bid_expired    → variant="secondary" "Expirada"
-bid_cancelled  → variant="secondary" "Cancelada"
-```
+El botón será `variant="ghost"` con `text-destructive`, similar al botón de cancelar existente.
 
 ### Archivo a modificar
-- `src/components/admin/AdminMatchDialog.tsx`
+- `src/components/admin/PackageDetailModal.tsx` (1 función nueva + 1 botón en UI)
 
