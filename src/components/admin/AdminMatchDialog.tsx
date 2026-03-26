@@ -572,6 +572,7 @@ const AdminMatchDialog = ({
     setSelectedTraveler({ ...profile, trip, referral: null });
     setTravelerPackages([]);
     setTripAssignments([]);
+    setLoadingAssignments(true);
     setShowTravelerInfo(true);
 
     // Fetch referral and packages in parallel
