@@ -37,7 +37,7 @@ interface AdminDashboardProps {
   packages: any[];
   trips: any[];
   currentUser?: any;
-  onMatchPackage: (packageId: string, tripId: string, adminTip?: number, productsWithTips?: any[], allTripIds?: string[]) => void;
+  onMatchPackage: (packageId: string, tripId: string, adminTip?: number, productsWithTips?: any[], allTripIds?: string[]) => Promise<void>;
   onUpdateStatus: (type: 'package' | 'trip', id: string, status: string) => void;
   onApproveReject: (type: 'package' | 'trip', id: string, action: 'approve' | 'reject', reason?: string) => void;
   onPaymentApproval: (packageId: string, action: 'approve' | 'reject') => void;
@@ -257,49 +257,53 @@ const AdminDashboard = ({
       setMatchingTrip("");
       setShowMatchDialog(false);
 
-      try {
-        // Await the actual DB operation
-        await onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds);
+      // Optimistic: update local state and show toast immediately
+      const previousPackages = [...localPackages];
+      
+      setLocalPackages(prevPackages => 
+        prevPackages.map(pkg => 
+          pkg.id === matchPackageId ? {
+            ...pkg,
+            status: 'matched',
+            updated_at: new Date().toISOString()
+          } : pkg
+        )
+      );
 
-        // DB succeeded — apply local state update
-        setLocalPackages(prevPackages => 
-          prevPackages.map(pkg => 
-            pkg.id === matchPackageId ? {
-              ...pkg,
-              status: 'matched',
-              updated_at: new Date().toISOString()
-            } : pkg
-          )
-        );
+      // Protect this package from stale prop overwrites for 3s
+      recentMatchRef.current[matchPackageId] = Date.now();
+      setTimeout(() => { delete recentMatchRef.current[matchPackageId]; }, 3500);
 
-        // Protect this package from stale prop overwrites for 3s
-        recentMatchRef.current[matchPackageId] = Date.now();
-        setTimeout(() => { delete recentMatchRef.current[matchPackageId]; }, 3500);
+      const isMultiProduct = productsWithTips && productsWithTips.length > 1;
+      toast({
+        title: "¡Match exitoso!",
+        description: tripIds.length > 1
+          ? `Paquete asignado a ${tripIds.length} viajeros. El shopper podrá comparar cotizaciones.`
+          : isMultiProduct 
+            ? `Paquete emparejado con viaje con tips por producto (Total: Q${adminTip})`
+            : `Paquete emparejado con viaje con tip de Q${adminTip}`,
+      });
 
-        const isMultiProduct = productsWithTips && productsWithTips.length > 1;
-        toast({
-          title: "¡Match exitoso!",
-          description: tripIds.length > 1
-            ? `Paquete asignado a ${tripIds.length} viajeros. El shopper podrá comparar cotizaciones.`
-            : isMultiProduct 
-              ? `Paquete emparejado con viaje con tips por producto (Total: Q${adminTip})`
-              : `Paquete emparejado con viaje con tip de Q${adminTip}`,
+      // Execute RPC in background — rollback on failure
+      onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds)
+        .catch((error) => {
+          console.error('Error during match:', error);
+          // Rollback local state
+          setLocalPackages(previousPackages);
+          delete recentMatchRef.current[matchPackageId];
+          toast({
+            title: "Error",
+            description: "Hubo un problema al procesar el match. Intenta de nuevo.",
+            variant: "destructive",
+          });
+        })
+        .finally(() => {
+          setMatchingPackageIds(prev => {
+            const next = new Set(prev);
+            next.delete(matchPackageId);
+            return next;
+          });
         });
-      } catch (error) {
-        console.error('Error during match:', error);
-        toast({
-          title: "Error",
-          description: "Hubo un problema al procesar el match. Intenta de nuevo.",
-          variant: "destructive",
-        });
-      } finally {
-        // Always clear matching state
-        setMatchingPackageIds(prev => {
-          const next = new Set(prev);
-          next.delete(matchPackageId);
-          return next;
-        });
-      }
     }
   };
 
