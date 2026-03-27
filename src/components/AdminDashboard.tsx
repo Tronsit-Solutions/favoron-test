@@ -257,43 +257,44 @@ const AdminDashboard = ({
       setMatchingTrip("");
       setShowMatchDialog(false);
 
-      // Optimistic: update local state and show toast immediately
-      const previousPackages = [...localPackages];
-      
-      setLocalPackages(prevPackages => 
-        prevPackages.map(pkg => 
-          pkg.id === matchPackageId ? {
-            ...pkg,
-            status: 'matched',
-            updated_at: new Date().toISOString()
-          } : pkg
-        )
-      );
-
-      // Protect this package from stale prop overwrites for 3s
-      recentMatchRef.current[matchPackageId] = Date.now();
-      setTimeout(() => { delete recentMatchRef.current[matchPackageId]; }, 3500);
-
       const isMultiProduct = productsWithTips && productsWithTips.length > 1;
-      toast({
-        title: "¡Match exitoso!",
-        description: tripIds.length > 1
-          ? `Paquete asignado a ${tripIds.length} viajeros. El shopper podrá comparar cotizaciones.`
-          : isMultiProduct 
-            ? `Paquete emparejado con viaje con tips por producto (Total: Q${adminTip})`
-            : `Paquete emparejado con viaje con tip de Q${adminTip}`,
-      });
 
-      // Execute RPC in background — rollback on failure
+      // Execute RPC and only show success after confirmation
       onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds)
+        .then(() => {
+          // RPC succeeded — apply local state update
+          setLocalPackages(prevPackages => 
+            prevPackages.map(pkg => 
+              pkg.id === matchPackageId ? {
+                ...pkg,
+                status: 'matched',
+                updated_at: new Date().toISOString()
+              } : pkg
+            )
+          );
+
+          // Protect this package from stale prop overwrites for 3s
+          recentMatchRef.current[matchPackageId] = Date.now();
+          setTimeout(() => { delete recentMatchRef.current[matchPackageId]; }, 3500);
+
+          toast({
+            title: "¡Match exitoso!",
+            description: tripIds.length > 1
+              ? `Paquete asignado a ${tripIds.length} viajeros. El shopper podrá comparar cotizaciones.`
+              : isMultiProduct 
+                ? `Paquete emparejado con viaje con tips por producto (Total: Q${adminTip})`
+                : `Paquete emparejado con viaje con tip de Q${adminTip}`,
+          });
+
+          // Navigate to matches tab so admin sees the result
+          setActiveTab("matching");
+          onMatchingTabChange?.("active");
+        })
         .catch((error) => {
           console.error('Error during match:', error);
-          // Rollback local state
-          setLocalPackages(previousPackages);
-          delete recentMatchRef.current[matchPackageId];
           toast({
-            title: "Error",
-            description: "Hubo un problema al procesar el match. Intenta de nuevo.",
+            title: "Error al hacer match",
+            description: "El match no se guardó. Intenta de nuevo.",
             variant: "destructive",
           });
         })
