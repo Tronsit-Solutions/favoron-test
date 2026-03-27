@@ -95,6 +95,7 @@ const Dashboard = ({ user }: DashboardProps) => {
   const [showAvailableTripsModal, setShowAvailableTripsModal] = useState(false);
   const [showPrimeModal, setShowPrimeModal] = useState(false);
   const [showProfileCompletionModal, setShowProfileCompletionModal] = useState(false);
+  const [selectedTravelerTripId, setSelectedTravelerTripId] = useState<string | null>(null);
   
   // Acquisition Survey Logic
   const { needsSurvey } = useAcquisitionSurvey();
