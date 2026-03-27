@@ -913,8 +913,15 @@ const Dashboard = ({ user }: DashboardProps) => {
                   <ProtectedEmptyState type="trips" onAction={() => navigateToForm('trip')} />
                 ) : (
                   <>
+                    <TripSelector
+                      trips={filteredUserTrips}
+                      selectedTripId={selectedTravelerTripId || filteredUserTrips[0]?.id}
+                      onTripSelect={setSelectedTravelerTripId}
+                    />
                     <div className="grid gap-6">
-                      {filteredUserTrips.map((trip) => {
+                      {filteredUserTrips
+                        .filter(trip => trip.id === (selectedTravelerTripId || filteredUserTrips[0]?.id))
+                        .map((trip) => {
                           // Get packages assigned to this specific trip with visibility filtering
                           const now = Date.now();
                           const PAID_OR_POST_PAYMENT = [
