@@ -55,6 +55,10 @@ const AdminMatchDialog = ({
   const [avatarViewerOpen, setAvatarViewerOpen] = useState(false);
   const [avatarViewerUrl, setAvatarViewerUrl] = useState('');
 
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
+
+  // Cache for traveler data per trip to avoid re-fetching
+  const travelerDataCacheRef = useRef<Map<string, { travelerPackages: any[]; tripAssignments: any[]; selectedTraveler: any }>>(new Map());
   const handleAvatarClick = (avatarUrl: string | null | undefined) => {
     if (!avatarUrl) return;
     setAvatarViewerUrl(avatarUrl);
