@@ -917,6 +917,15 @@ const Dashboard = ({ user }: DashboardProps) => {
                       trips={filteredUserTrips}
                       selectedTripId={selectedTravelerTripId || filteredUserTrips[0]?.id}
                       onTripSelect={setSelectedTravelerTripId}
+                      pendingCountByTrip={(() => {
+                        const counts: Record<string, number> = {};
+                        for (const trip of filteredUserTrips) {
+                          counts[trip.id] = assignedPackages.filter(
+                            (pkg: any) => pkg.matched_trip_id === trip.id && pkg.status === 'matched'
+                          ).length;
+                        }
+                        return counts;
+                      })()}
                     />
                     <div className="grid gap-6">
                       {filteredUserTrips
