@@ -65,7 +65,7 @@ const AdminMatchDialog = ({
   const [showAllTrips, setShowAllTrips] = useState(false);
   const [showOtherCities, setShowOtherCities] = useState(false);
   const [alreadyAssignedTripIds, setAlreadyAssignedTripIds] = useState<Set<string>>(new Set());
-  const [tripAssignmentsMap, setTripAssignmentsMap] = useState<Record<string, string[]>>({});
+  const [tripAssignmentsMap, setTripAssignmentsMap] = useState<Record<string, { package_id: string; status: string }[]>>({});
 
   const MODAL_ID = 'admin-match-dialog';
 
