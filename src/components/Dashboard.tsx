@@ -27,6 +27,7 @@ import CollapsibleTravelerPackageCard from "./dashboard/CollapsibleTravelerPacka
 
 import EmptyState from "./dashboard/EmptyState";
 import ProtectedEmptyState from "./dashboard/ProtectedEmptyState";
+import { TripSelector } from "./dashboard/TripSelector";
 
 
 import AvailableTripsCard from "./AvailableTripsCard";
@@ -94,6 +95,7 @@ const Dashboard = ({ user }: DashboardProps) => {
   const [showAvailableTripsModal, setShowAvailableTripsModal] = useState(false);
   const [showPrimeModal, setShowPrimeModal] = useState(false);
   const [showProfileCompletionModal, setShowProfileCompletionModal] = useState(false);
+  const [selectedTravelerTripId, setSelectedTravelerTripId] = useState<string | null>(null);
   
   // Acquisition Survey Logic
   const { needsSurvey } = useAcquisitionSurvey();
@@ -911,8 +913,15 @@ const Dashboard = ({ user }: DashboardProps) => {
                   <ProtectedEmptyState type="trips" onAction={() => navigateToForm('trip')} />
                 ) : (
                   <>
+                    <TripSelector
+                      trips={filteredUserTrips}
+                      selectedTripId={selectedTravelerTripId || filteredUserTrips[0]?.id}
+                      onTripSelect={setSelectedTravelerTripId}
+                    />
                     <div className="grid gap-6">
-                      {filteredUserTrips.map((trip) => {
+                      {filteredUserTrips
+                        .filter(trip => trip.id === (selectedTravelerTripId || filteredUserTrips[0]?.id))
+                        .map((trip) => {
                           // Get packages assigned to this specific trip with visibility filtering
                           const now = Date.now();
                           const PAID_OR_POST_PAYMENT = [
