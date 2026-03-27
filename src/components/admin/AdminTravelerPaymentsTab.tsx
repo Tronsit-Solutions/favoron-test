@@ -227,6 +227,21 @@ interface CompactOrderRowProps {
 const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOrder, toast, onConfirmAction, onSelectOrder, onShowCelebration }: CompactOrderRowProps) => {
   const [editableNotes, setEditableNotes] = useState(order.notes || '');
   const [savingNotes, setSavingNotes] = useState(false);
+  const [boostAmount, setBoostAmount] = useState(0);
+
+  useEffect(() => {
+    const fetchBoost = async () => {
+      if (!order.trip_id || !order.traveler_id) return;
+      const { data } = await supabase
+        .from('trip_payment_accumulator')
+        .select('boost_amount')
+        .eq('trip_id', order.trip_id)
+        .eq('traveler_id', order.traveler_id)
+        .maybeSingle();
+      if (data?.boost_amount) setBoostAmount(Number(data.boost_amount));
+    };
+    fetchBoost();
+  }, [order.trip_id, order.traveler_id]);
   
   const normalizedHistorical = (() => {
     const h = order.historical_packages;
