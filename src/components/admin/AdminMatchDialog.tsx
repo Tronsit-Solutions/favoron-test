@@ -445,9 +445,9 @@ const AdminMatchDialog = ({
       const tripAssignmentsPromise = tripIds.length > 0
         ? supabase
             .from('package_assignments')
-            .select('trip_id, package_id')
+            .select('trip_id, package_id, status')
             .in('trip_id', tripIds)
-            .in('status', ['bid_pending', 'bid_submitted'])
+            .in('status', ['bid_pending', 'bid_submitted', 'bid_won'])
             .then(r => r)
         : Promise.resolve({ data: null });
 
