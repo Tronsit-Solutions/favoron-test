@@ -1,46 +1,48 @@
 
 
-## Problema: Toast de confirmación tarda porque espera al RPC
+## Diagnóstico: Botones de acciones en Órdenes de Reembolso no funcionan
 
-### Diagnóstico
-El flujo actual es:
-1. Click "Confirmar Match" → modal se cierra inmediatamente ✅
-2. `await supabase.rpc('assign_package_to_travelers')` → **espera respuesta del servidor**
-3. Actualización local + toast "¡Match exitoso!"
+### Causa raíz identificada
 
-El toast no aparece hasta que el RPC responde. Con latencia de red (servidor Supabase remoto), esto puede tomar 1-3 segundos. No hay triggers ni queries lentas — es puramente latencia de red.
+Encontré dos problemas que probablemente causan el fallo:
 
-### Solución: Toast y actualización optimistas
+1. **Componente `RefundTable` definido inline (anti-patrón React)**: En `AdminRefundsTab.tsx` línea 98, `RefundTable` se define como una función dentro del render de `AdminRefundsTab`. Esto significa que cada re-render crea una nueva referencia de componente, causando que React desmonte y remonte toda la tabla DOM. Si un re-render ocurre entre el mousedown y mouseup del click, el evento se pierde.
 
-Mostrar el toast y actualizar el estado local **antes** de esperar el RPC. Si el RPC falla, revertir y mostrar error.
+2. **Hook `useAdminRefundOrders` llamado dos veces**: Se llama en `AdminPaymentsUnifiedTab` (línea 18) solo para contar badges, Y de nuevo en `AdminRefundsTab` (línea 40). Cuando el primer hook termina de cargar, causa un re-render del padre, que re-renderiza `AdminRefundsTab`, que recrea `RefundTable` (ver punto 1), potencialmente interrumpiendo clicks en progreso.
 
-### Cambios
+3. **Triple nested Radix Tabs**: El componente está dentro de 3 niveles de Tabs anidados (AdminDashboard → AdminPaymentsUnifiedTab → AdminRefundsTab). Los eventos de click pueden propagarse a través de los contextos de Tabs causando comportamiento inesperado.
 
-**`src/components/AdminDashboard.tsx`** — `handleMatch`:
-- Mover el toast y `setLocalPackages` **antes** del `await onMatchPackage()`
-- Si `onMatchPackage` falla, revertir el estado local y mostrar toast de error
+### Plan de cambios
 
-```
-// Flujo actual:
-await onMatchPackage(...);  // espera red
-setLocalPackages(...);      // actualiza UI
-toast("¡Match exitoso!");   // muestra confirmación
+**Archivo: `src/components/admin/AdminRefundsTab.tsx`**
+- Extraer `RefundTable` como un componente separado fuera de `AdminRefundsTab` (moverlo antes del componente principal o a su propio archivo)
+- Agregar `e.stopPropagation()` a los onClick de los 3 botones de acción (Eye, Check, X) para prevenir propagación de eventos a través de los Tabs anidados
 
-// Flujo propuesto:
-setLocalPackages(...);      // actualiza UI inmediatamente
-toast("¡Match exitoso!");   // muestra confirmación inmediatamente
-onMatchPackage(...)         // ejecuta en background
-  .catch(() => {
-    revertLocalPackages();  // rollback si falla
-    toast("Error...");
-  });
-```
+**Archivo: `src/components/admin/AdminPaymentsUnifiedTab.tsx`**
+- Eliminar la llamada duplicada a `useAdminRefundOrders` (línea 18)
+- Pasar los conteos de refunds como props desde `AdminRefundsTab` vía callback, o simplemente obtener los conteos directamente del mismo hook que ya usa `AdminRefundsTab`
 
 ### Detalle técnico
-- El `setMatchingPackageIds` ya oculta el paquete de "Solicitudes", así que la transición visual ya es inmediata
-- Solo falta adelantar el toast y la actualización de `localPackages` al estado `matched`
-- El `recentMatchRef` sigue protegiendo contra sobrescrituras stale del realtime
-- El `handleMatchPackage` en `useDashboardActions` sigue haciendo `await` del RPC internamente, pero `AdminDashboard.handleMatch` no necesita esperar su resultado para dar feedback
 
-Esto hará que la confirmación sea **instantánea** (<100ms) tras hacer click.
+```text
+Antes (anti-patrón):
+AdminRefundsTab() {
+  const RefundTable = () => <Table>...</Table>  // ← recreado cada render
+  return <RefundTable />  // ← React lo trata como componente NUEVO
+}
+
+Después (correcto):
+const RefundTable = () => <Table>...</Table>  // ← definido una sola vez
+AdminRefundsTab() {
+  return <RefundTable />  // ← misma referencia siempre
+}
+```
+
+Para los botones:
+```typescript
+// Agregar stopPropagation para evitar interferencia con Tabs anidados
+onClick={(e) => { e.stopPropagation(); setSelectedRefund(refund); }}
+onClick={(e) => { e.stopPropagation(); setActionModal({ type: 'complete', refund }); }}
+onClick={(e) => { e.stopPropagation(); setActionModal({ type: 'reject', refund }); }}
+```
 
