@@ -122,6 +122,7 @@ const RefundTable = ({ refunds, showActions = true, onViewRefund, onCompleteRefu
                 </div>
               </TableCell>
               <TableCell>{getStatusBadge(refund.status)}</TableCell>
+              {showActions && (
                 <TableCell>
                   <div className="flex gap-1">
                     <Button
