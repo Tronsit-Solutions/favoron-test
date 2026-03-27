@@ -322,8 +322,14 @@ const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOr
             {amountMismatch && (
               <div className="text-xs text-red-500">Total comp: Q{totalCompensation.toFixed(2)}</div>
             )}
+            {boostAmount > 0 && (
+              <div className="text-xs text-purple-600 flex items-center justify-end gap-1">
+                <Rocket className="h-3 w-3" />
+                Incluye boost +{formatCurrency(boostAmount)}
+              </div>
+            )}
             <div className="text-xs text-muted-foreground">GTQ</div>
-          </div>
+           </div>
         </TableCell>
         <TableCell className="py-3">
           <div className="space-y-1">
