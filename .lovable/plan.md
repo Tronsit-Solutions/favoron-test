@@ -1,48 +1,36 @@
 
 
-## Diagnóstico: Botones de acciones en Órdenes de Reembolso no funcionan
+## Diagnóstico
 
-### Causa raíz identificada
+**Confirmado en DB**: No existe ningún `package_assignment` para `b4df2001`, y el paquete sigue en `status: approved` con `matched_trip_id: null`. El match **no se guardó**.
 
-Encontré dos problemas que probablemente causan el fallo:
+### Causa raíz
 
-1. **Componente `RefundTable` definido inline (anti-patrón React)**: En `AdminRefundsTab.tsx` línea 98, `RefundTable` se define como una función dentro del render de `AdminRefundsTab`. Esto significa que cada re-render crea una nueva referencia de componente, causando que React desmonte y remonte toda la tabla DOM. Si un re-render ocurre entre el mousedown y mouseup del click, el evento se pierde.
+El cambio optimista anterior tiene un defecto: el toast "¡Match exitoso!" se muestra **antes** de que el RPC se ejecute. Si el RPC falla, el `.catch()` hace rollback del estado local y muestra un toast de error — pero el usuario ya vio el toast de éxito y probablemente no notó el de error.
 
-2. **Hook `useAdminRefundOrders` llamado dos veces**: Se llama en `AdminPaymentsUnifiedTab` (línea 18) solo para contar badges, Y de nuevo en `AdminRefundsTab` (línea 40). Cuando el primer hook termina de cargar, causa un re-render del padre, que re-renderiza `AdminRefundsTab`, que recrea `RefundTable` (ver punto 1), potencialmente interrumpiendo clicks en progreso.
-
-3. **Triple nested Radix Tabs**: El componente está dentro de 3 niveles de Tabs anidados (AdminDashboard → AdminPaymentsUnifiedTab → AdminRefundsTab). Los eventos de click pueden propagarse a través de los contextos de Tabs causando comportamiento inesperado.
+Además, **no existe código para cambiar automáticamente a la pestaña "matches"** después de un match exitoso.
 
 ### Plan de cambios
 
-**Archivo: `src/components/admin/AdminRefundsTab.tsx`**
-- Extraer `RefundTable` como un componente separado fuera de `AdminRefundsTab` (moverlo antes del componente principal o a su propio archivo)
-- Agregar `e.stopPropagation()` a los onClick de los 3 botones de acción (Eye, Check, X) para prevenir propagación de eventos a través de los Tabs anidados
+**Archivo: `src/components/AdminDashboard.tsx`** — función `handleMatch`:
 
-**Archivo: `src/components/admin/AdminPaymentsUnifiedTab.tsx`**
-- Eliminar la llamada duplicada a `useAdminRefundOrders` (línea 18)
-- Pasar los conteos de refunds como props desde `AdminRefundsTab` vía callback, o simplemente obtener los conteos directamente del mismo hook que ya usa `AdminRefundsTab`
+1. **Restaurar el `await` del RPC antes del toast**: El modal ya se cierra inmediatamente (línea 258) dando feedback instantáneo. El toast debe aparecer solo después de confirmar que el RPC funcionó. Esto es seguro porque el modal ya cerró — el usuario no queda bloqueado.
 
-### Detalle técnico
+2. **Agregar navegación automática a la pestaña "matches"**: Después de un match exitoso, cambiar `activeTab` a `"matching"` y `matchingTab` a `"active"` para que el usuario vea el paquete en la sección de matches.
+
+3. **Mantener el rollback**: Si el RPC falla, revertir el estado local y mostrar toast destructivo.
 
 ```text
-Antes (anti-patrón):
-AdminRefundsTab() {
-  const RefundTable = () => <Table>...</Table>  // ← recreado cada render
-  return <RefundTable />  // ← React lo trata como componente NUEVO
-}
-
-Después (correcto):
-const RefundTable = () => <Table>...</Table>  // ← definido una sola vez
-AdminRefundsTab() {
-  return <RefundTable />  // ← misma referencia siempre
-}
+Flujo propuesto:
+1. Click confirmar → modal se cierra inmediatamente ✅ (ya funciona)
+2. matchingPackageIds oculta paquete de Solicitudes ✅ (ya funciona)  
+3. await RPC → si éxito:
+   - Actualizar localPackages con status 'matched'
+   - Toast "¡Match exitoso!"
+   - setActiveTab("matching") → navegar a pestaña matches
+4. Si falla → toast de error, NO rollback necesario (nunca se cambió el estado)
 ```
 
-Para los botones:
-```typescript
-// Agregar stopPropagation para evitar interferencia con Tabs anidados
-onClick={(e) => { e.stopPropagation(); setSelectedRefund(refund); }}
-onClick={(e) => { e.stopPropagation(); setActionModal({ type: 'complete', refund }); }}
-onClick={(e) => { e.stopPropagation(); setActionModal({ type: 'reject', refund }); }}
-```
+### Archivos a modificar
+- `src/components/AdminDashboard.tsx` — reestructurar `handleMatch` para await RPC antes de toast y agregar cambio de pestaña
 
