@@ -1,38 +1,48 @@
 
 
-## Problema
+## Dividir paquetes en secciones: Confirmados vs Pendientes
 
-Actualmente la pestaña "Mis Viajes" muestra **todos los viajes activos a la vez**, cada uno con sus paquetes anidados. Para viajeros como Cecilia Prahl (4+ viajes, 18+ paquetes), esto genera un scroll largo y confuso.
+### Cambio
 
-## Solución: Selector de viaje único
+Dentro de cada viaje en "Mis Viajes", separar los paquetes en dos grupos visuales:
 
-Agregar un **dropdown selector de viaje** al inicio de la pestaña "Mis Viajes" que filtre para mostrar solo un viaje a la vez con sus paquetes.
+1. **Confirmados** — paquetes con status en el flujo post-pago: `pending_purchase`, `payment_pending_approval`, `paid`, `shipped`, `in_transit`, `received_by_traveler`, `pending_office_confirmation`, `delivered_to_office`, `ready_for_pickup`, `ready_for_delivery`, `completed`
+2. **Pendientes / Otros** — paquetes en `matched` (bid pending/submitted), `quote_sent`, `quote_expired`, `payment_pending`, y multi-assignments no confirmados
 
-```text
-┌─────────────────────────────────────┐
-│ Mis Viajes                          │
-│ Gestiona tus viajes...              │
-│                                     │
-│ [▼ Texas → GUA - 10 Abr 2026    ]  │  ← Selector dropdown
-│                                     │
-│ ┌─ TripCard (viaje seleccionado) ─┐ │
-│ │  Texas → Guatemala              │ │
-│ │  10 Abr 2026 · En tránsito      │ │
-│ └──────────────────────────────────┘ │
-│   │ 📦 6 paquetes asignados        │
-│   ├── Paquete 1                     │
-│   ├── Paquete 2                     │
-│   └── ...                           │
-└─────────────────────────────────────┘
+### Implementación
+
+**Archivo: `src/components/Dashboard.tsx`** (líneas ~980-1005)
+
+Después de calcular `tripPackages`, dividir en dos arrays:
+
+```typescript
+const confirmedPackages = tripPackages.filter(pkg => 
+  PAID_OR_POST_PAYMENT.includes(pkg.status)
+);
+const pendingPackages = tripPackages.filter(pkg => 
+  !PAID_OR_POST_PAYMENT.includes(pkg.status)
+);
 ```
 
-### Comportamiento
-- **Default**: Se selecciona automáticamente el primer viaje (el más próximo o con acciones pendientes)
-- Cada opción del dropdown muestra: ruta (ciudad→ciudad) + fecha de llegada
-- Solo se renderiza **un viaje y sus paquetes** a la vez
-- Ya existe el componente `TripSelector` en `src/components/dashboard/TripSelector.tsx` — se reutilizará adaptándolo (quitando la opción "Todos los viajes" ya que siempre se muestra uno solo)
+Reemplazar el bloque actual de renderizado de paquetes con dos secciones:
 
-### Archivo a modificar
-- **`src/components/Dashboard.tsx`**: Agregar estado `selectedTripId`, insertar `TripSelector` antes del listado, filtrar `filteredUserTrips` para mostrar solo el viaje seleccionado
-- **`src/components/dashboard/TripSelector.tsx`**: Adaptar para no incluir opción "Todos" y ajustar el diseño al contexto del viajero
+```text
+📦 X paquetes asignados
+
+── ✅ Confirmados (Y) ──────────
+   [PackageCard...]
+   [PackageCard...]
+
+── ⏳ Pendientes (Z) ───────────
+   [PackageCard...]
+```
+
+- Cada sección tiene un encabezado con icono y conteo
+- Si una sección está vacía, no se muestra
+- Los confirmados van primero (son los que el viajero debe gestionar activamente)
+- Los pendientes incluyen los que esperan cotización, selección, o están cancelados/expirados
+
+### Diseño visual
+- Encabezado de sección: texto `text-sm font-medium` con color diferenciado (verde para confirmados, amber para pendientes)
+- Separación con `space-y-2` entre secciones
 
