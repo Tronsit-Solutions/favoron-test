@@ -978,32 +978,57 @@ const Dashboard = ({ user }: DashboardProps) => {
                                 packages={assignedPackages.filter(pkg => pkg.matched_trip_id === trip.id)}
                               />
                               {/* Nested assigned packages for this trip */}
-                              {tripPackages.length > 0 && (
-                                <div className="ml-1 sm:ml-4 border-l-2 border-primary/20 pl-2 sm:pl-4 space-y-3 min-w-0 max-w-full overflow-hidden">
-                                  <p className="text-sm font-medium text-muted-foreground">
-                                    📦 {tripPackages.length} paquete{tripPackages.length !== 1 ? 's' : ''} asignado{tripPackages.length !== 1 ? 's' : ''}
-                                  </p>
-                                  {tripPackages.map(pkg => {
-                                    const hasPendingAction = pkg.status === 'matched';
-                                    return (
-                                      <CollapsibleTravelerPackageCard
-                                        key={pkg.id}
-                                        pkg={pkg}
-                                        getStatusBadge={getStatusBadge}
-                                        onQuote={handleQuote}
-                                        onConfirmReceived={handleConfirmPackageReceived}
-                                        onConfirmOfficeDelivery={(packageId) => {
-                                          handleConfirmOfficeReception(packageId);
-                                        }}
-                                        onDismissExpiredPackage={handleDismissExpiredPackage}
-                                        updatePackage={updatePackage}
-                                        hasPendingAction={hasPendingAction}
-                                        autoExpand={false}
-                                      />
-                                    );
-                                  })}
-                                </div>
-                              )}
+                              {tripPackages.length > 0 && (() => {
+                                const CONFIRMED_STATUSES = ['pending_purchase', 'payment_pending_approval', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'];
+                                const confirmedPackages = tripPackages.filter(pkg => CONFIRMED_STATUSES.includes(pkg.status));
+                                const pendingPackages = tripPackages.filter(pkg => !CONFIRMED_STATUSES.includes(pkg.status));
+
+                                const renderPackage = (pkg: any) => {
+                                  const hasPendingAction = pkg.status === 'matched';
+                                  return (
+                                    <CollapsibleTravelerPackageCard
+                                      key={pkg.id}
+                                      pkg={pkg}
+                                      getStatusBadge={getStatusBadge}
+                                      onQuote={handleQuote}
+                                      onConfirmReceived={handleConfirmPackageReceived}
+                                      onConfirmOfficeDelivery={(packageId) => {
+                                        handleConfirmOfficeReception(packageId);
+                                      }}
+                                      onDismissExpiredPackage={handleDismissExpiredPackage}
+                                      updatePackage={updatePackage}
+                                      hasPendingAction={hasPendingAction}
+                                      autoExpand={false}
+                                    />
+                                  );
+                                };
+
+                                return (
+                                  <div className="ml-1 sm:ml-4 border-l-2 border-primary/20 pl-2 sm:pl-4 space-y-3 min-w-0 max-w-full overflow-hidden">
+                                    <p className="text-sm font-medium text-muted-foreground">
+                                      📦 {tripPackages.length} paquete{tripPackages.length !== 1 ? 's' : ''} asignado{tripPackages.length !== 1 ? 's' : ''}
+                                    </p>
+
+                                    {confirmedPackages.length > 0 && (
+                                      <div className="space-y-2">
+                                        <p className="text-sm font-medium text-green-600 dark:text-green-400 flex items-center gap-1.5">
+                                          ✅ Confirmados ({confirmedPackages.length})
+                                        </p>
+                                        {confirmedPackages.map(renderPackage)}
+                                      </div>
+                                    )}
+
+                                    {pendingPackages.length > 0 && (
+                                      <div className="space-y-2">
+                                        <p className="text-sm font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                          ⏳ Pendientes ({pendingPackages.length})
+                                        </p>
+                                        {pendingPackages.map(renderPackage)}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           );
                         })}
