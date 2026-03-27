@@ -1,41 +1,39 @@
 
 
-## Optimizar carga de asignaciones del viaje
+## Crear pedido para Luisa Torres
 
-### Problema
-Cuando haces click en un viajero, `handleTravelerClick` dispara 3 queries paralelas, pero:
-1. **Waterfall interno**: `packagesPromise` hace una query inicial y luego otra query secuencial para bidding packages (líneas 628-688)
-2. **Join anidado pesado**: La query de assignments (línea 700-707) hace un join `package_assignments → packages → profiles`, que PostgREST resuelve como múltiples sub-queries
-3. **Sin caché**: Cada click en el mismo viajero re-ejecuta todo desde cero
-4. **Sin timeout**: Si Supabase tarda, no hay límite — puede colgar indefinidamente
+### Datos confirmados
+- **Shopper**: Luisa Torres (`df6ee4fc-5a96-4d27-8531-fce7bf6fcfb7`)
+- **Producto**: Vineyard Vines Jersey Top
+- **Link**: https://a.co/d/07tvn76A
+- **Cantidad**: 2 unidades
+- **Precio estimado**: $25 c/u = $50 total
+- **Destino**: Guatemala Ciudad
+- **Método de entrega**: Pickup en oficina
 
-### Solución
+### Acción
+Insertar un registro en la tabla `packages` con estos datos usando el insert tool:
 
-**Archivo**: `src/components/admin/AdminMatchDialog.tsx`
+```sql
+INSERT INTO packages (
+  user_id, item_description, item_link, estimated_price,
+  products_data, purchase_origin, package_destination,
+  package_destination_country, delivery_method, status,
+  delivery_deadline
+) VALUES (
+  'df6ee4fc-5a96-4d27-8531-fce7bf6fcfb7',
+  'Vineyard Vines Jersey Top (x2)',
+  'https://a.co/d/07tvn76A',
+  50,
+  '[{"itemDescription":"Vineyard Vines Jersey Top","estimatedPrice":"25","quantity":"2","requestType":"online","itemLink":"https://a.co/d/07tvn76A"}]',
+  'Estados Unidos',
+  'Guatemala',
+  'Guatemala',
+  'pickup',
+  'pending_approval',
+  NOW() + INTERVAL '30 days'
+);
+```
 
-#### 1. Aplanar la query de assignments
-Separar el join anidado en dos queries simples ejecutadas en paralelo:
-- Query 1: `package_assignments` con solo `id, package_id, status, admin_assigned_tip, quote, created_at` filtrado por `trip_id`
-- Query 2: Fetch de los packages correspondientes con sus profiles usando los `package_id`s del resultado anterior
-
-Esto evita el join de 3 niveles que PostgREST resuelve lentamente.
-
-#### 2. Eliminar el waterfall en packagesPromise
-Actualmente la query de bidding packages (línea 668-687) espera a que terminen las queries directas. Reorganizar para que las 3 queries base corran en un solo `Promise.all`:
-- Direct packages
-- Assignment package_ids (ya existe)
-- Assignments completas
-
-Y luego hacer el fetch de bidding packages como paso 2, usando los IDs ya disponibles.
-
-#### 3. Agregar caché por trip
-Usar un `Map<tripId, data>` en un ref para evitar re-fetches al hacer click en el mismo viajero repetidamente. Invalidar al hacer un match.
-
-#### 4. Agregar timeout de seguridad
-Envolver las queries en un `Promise.race` con un timeout de 10 segundos. Si expira, mostrar los datos parciales que ya se tengan y un mensaje de "carga parcial".
-
-### Resultado esperado
-- Reducción de latencia de 10+ segundos a 2-3 segundos
-- Clicks repetidos al mismo viajero son instantáneos (caché)
-- Nunca se queda colgado indefinidamente (timeout)
+Un solo INSERT, sin cambios de código ni migraciones.
 
