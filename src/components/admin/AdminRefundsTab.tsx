@@ -302,13 +302,13 @@ const AdminRefundsTab = () => {
               </TabsList>
 
               <TabsContent value="pending">
-                <RefundTable refunds={pendingRefunds} />
+                <RefundTable refunds={pendingRefunds} {...tableProps} />
               </TabsContent>
               <TabsContent value="completed">
-                <RefundTable refunds={completedRefunds} showActions={false} />
+                <RefundTable refunds={completedRefunds} showActions={false} {...tableProps} />
               </TabsContent>
               <TabsContent value="rejected">
-                <RefundTable refunds={rejectedRefunds} showActions={false} />
+                <RefundTable refunds={rejectedRefunds} showActions={false} {...tableProps} />
               </TabsContent>
             </Tabs>
           )}
