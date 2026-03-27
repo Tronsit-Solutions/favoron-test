@@ -122,13 +122,12 @@ const RefundTable = ({ refunds, showActions = true, onViewRefund, onCompleteRefu
                 </div>
               </TableCell>
               <TableCell>{getStatusBadge(refund.status)}</TableCell>
-              {showActions && (
                 <TableCell>
                   <div className="flex gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setSelectedRefund(refund)}
+                      onClick={(e) => { e.stopPropagation(); onViewRefund(refund); }}
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -138,7 +137,7 @@ const RefundTable = ({ refunds, showActions = true, onViewRefund, onCompleteRefu
                           variant="ghost"
                           size="sm"
                           className="text-green-600 hover:text-green-700"
-                          onClick={() => setActionModal({ type: 'complete', refund })}
+                          onClick={(e) => { e.stopPropagation(); onCompleteRefund(refund); }}
                         >
                           <Check className="h-4 w-4" />
                         </Button>
@@ -146,7 +145,7 @@ const RefundTable = ({ refunds, showActions = true, onViewRefund, onCompleteRefu
                           variant="ghost"
                           size="sm"
                           className="text-red-600 hover:text-red-700"
-                          onClick={() => setActionModal({ type: 'reject', refund })}
+                          onClick={(e) => { e.stopPropagation(); onRejectRefund(refund); }}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -160,7 +159,73 @@ const RefundTable = ({ refunds, showActions = true, onViewRefund, onCompleteRefu
         )}
       </TableBody>
     </Table>
-  );
+);
+
+const AdminRefundsTab = () => {
+  const { refundOrders, loading, updateRefundStatus, uploadRefundReceipt, refreshRefundOrders } = useAdminRefundOrders();
+  const [selectedRefund, setSelectedRefund] = useState<any>(null);
+  const [actionModal, setActionModal] = useState<{
+    type: 'complete' | 'reject';
+    refund: any;
+  } | null>(null);
+  const [notes, setNotes] = useState('');
+  const [completeFile, setCompleteFile] = useState<File | null>(null);
+  const [processing, setProcessing] = useState(false);
+
+  const pendingRefunds = refundOrders.filter(r => r.status === 'pending');
+  const completedRefunds = refundOrders.filter(r => r.status === 'completed');
+  const rejectedRefunds = refundOrders.filter(r => r.status === 'rejected');
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300"><Clock className="h-3 w-3 mr-1" />Pendiente</Badge>;
+      case 'completed':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300"><CheckCircle2 className="h-3 w-3 mr-1" />Completado</Badge>;
+      case 'rejected':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300"><XCircle className="h-3 w-3 mr-1" />Rechazado</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const handleReject = async () => {
+    if (!actionModal) return;
+    setProcessing(true);
+    await updateRefundStatus(actionModal.refund.id, 'rejected', notes || undefined);
+    setProcessing(false);
+    setActionModal(null);
+    setNotes('');
+  };
+
+  const handleComplete = async () => {
+    if (!actionModal) return;
+    setProcessing(true);
+    
+    let receiptUrl: string | undefined;
+    let receiptFilename: string | undefined;
+    
+    if (completeFile) {
+      const uploadedPath = await uploadRefundReceipt(actionModal.refund.id, completeFile);
+      if (uploadedPath) {
+        receiptUrl = uploadedPath;
+        receiptFilename = completeFile.name;
+      }
+    }
+    
+    await updateRefundStatus(actionModal.refund.id, 'completed', notes || undefined, receiptUrl, receiptFilename);
+    setProcessing(false);
+    setActionModal(null);
+    setNotes('');
+    setCompleteFile(null);
+  };
+
+  const tableProps = {
+    onViewRefund: (refund: any) => setSelectedRefund(refund),
+    onCompleteRefund: (refund: any) => setActionModal({ type: 'complete', refund }),
+    onRejectRefund: (refund: any) => setActionModal({ type: 'reject', refund }),
+    getStatusBadge,
+  };
 
   return (
     <div className="space-y-4">
