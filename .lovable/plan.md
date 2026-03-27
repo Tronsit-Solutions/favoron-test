@@ -1,30 +1,33 @@
 
 
-## Fix: Total a Pagar incorrecto en tabla financiera
+## Fix: Excluir asignaciones expiradas del GMV pendiente en el Match Dialog
 
 ### Problema
-El `totalPrice` guardado en el JSONB de la cotización está desactualizado en algunos paquetes. Cuando se recalculó el `serviceFee` para usuarios Prime, no se actualizó el `totalPrice` correspondiente. Ejemplo: Edison Castillo tiene tip=210 + serviceFee=42 + delivery=0 = **252**, pero `totalPrice` dice **294**.
+Cuando asignas un paquete a un viajero, el valor "Pendiente" (GMV pendiente) que aparece junto a cada viaje incluye paquetes cuyas asignaciones ya expiraron. Esto infla el valor mostrado.
 
-`getQuoteValues()` lee `totalPrice` directo de la DB y lo usa para calcular `finalTotalPrice`, propagando el error a la tabla financiera y a cualquier otro lugar que use esta función.
+**Causa**: En `AdminMatchDialog.tsx`, el cálculo de `tripTotalsMap` (línea 103-151) suma paquetes con status `matched` o `quote_sent` que aún tienen `matched_trip_id` apuntando al viaje, aunque su asignación ya expiró (`bid_expired`). Los paquetes se indexan por `matched_trip_id` sin verificar si la asignación sigue activa.
 
 ### Solución
-Modificar `getQuoteValues()` en `src/lib/quoteHelpers.ts` para **recalcular** `totalPrice` como la suma de sus componentes (`price + serviceFee + deliveryFee`) en lugar de confiar en el valor guardado. Esto corrige automáticamente todos los lugares que consumen esta función (tabla financiera, detalles de paquete, recibos, etc.).
 
-### Cambio
+**Archivo**: `src/components/admin/AdminMatchDialog.tsx`
 
-**Archivo**: `src/lib/quoteHelpers.ts` (1 línea)
+1. **Ampliar la query de `tripAssignmentsMap`** (línea 450): Agregar `bid_won` al filtro de status para que también capture asignaciones ganadas, y cambiar la estructura para incluir el `status` de la asignación.
 
-Línea 59, cambiar:
+2. **Filtrar paquetes directos contra asignaciones activas**: En el loop de `tripTotalsMap` (líneas 130-137), para paquetes en status `matched` o `quote_sent`, verificar que exista una asignación activa (no expirada) para ese trip. Si la asignación está expirada, no sumar al `pendingTotal`.
+
+**Cambio concreto en el cálculo** (líneas 130-137):
 ```typescript
-const totalPrice = typeof quote.totalPrice === 'string' ? parseFloat(quote.totalPrice) : Number(quote.totalPrice || 0);
+for (const pkg of directPackages) {
+  const value = calculatePackageValue(pkg);
+  if (pendingStatuses.includes(pkg.status)) {
+    // Check if there's an active assignment for this trip
+    const hasActiveAssignment = activeAssignmentsByTrip[tripId]?.has(pkg.id);
+    if (hasActiveAssignment) pendingTotal += value;
+  } else if (confirmedStatuses.includes(pkg.status)) {
+    confirmedTotal += value;
+  }
+}
 ```
 
-Por:
-```typescript
-const totalPrice = price + serviceFee + deliveryFee;
-```
-
-Esto es seguro porque `price`, `serviceFee` y `deliveryFee` ya se parsean individualmente en las líneas anteriores y son la fuente de verdad. El `totalPrice` guardado es solo una conveniencia que puede quedar desincronizada.
-
-El `finalTotalPrice` explícito (cuando existe en la DB) seguirá siendo respetado para cotizaciones con descuentos aplicados correctamente.
+3. **Construir mapa de asignaciones activas**: Modificar la query existente (línea 445-452) para devolver también el `package_id` y `status`, y construir un set de package IDs con asignaciones activas por trip. Solo contar `bid_pending`, `bid_submitted`, `bid_won` como activas.
 
