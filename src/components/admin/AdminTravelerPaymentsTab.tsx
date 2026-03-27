@@ -414,6 +414,15 @@ const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOr
                   <span className="text-sm font-medium">Total de Compensaciones:</span>
                   <span className="text-base font-bold text-green-600">Q{totalCompensation.toFixed(2)}</span>
                 </div>
+                {boostAmount > 0 && (
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-sm flex items-center gap-1">
+                      <Rocket className="h-3.5 w-3.5 text-purple-500" />
+                      Tip Boost
+                    </span>
+                    <span className="text-sm font-semibold text-purple-600">+{formatCurrency(boostAmount)}</span>
+                  </div>
+                )}
               </div>
 
               {/* Bank Details */}
