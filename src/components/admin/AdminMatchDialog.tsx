@@ -130,15 +130,24 @@ const AdminMatchDialog = ({
       const directPackages = pkgByTrip[tripId] || [];
       const directPackageIds = new Set(directPackages.map(pkg => pkg.id));
       
+      // Build set of active assignment package IDs for this trip
+      const activeAssignmentPkgIds = new Set(
+        (tripAssignmentsMap[tripId] || []).map((a: any) => a.package_id)
+      );
+      
       for (const pkg of directPackages) {
         const value = calculatePackageValue(pkg);
-        if (pendingStatuses.includes(pkg.status)) pendingTotal += value;
-        else if (confirmedStatuses.includes(pkg.status)) confirmedTotal += value;
+        if (pendingStatuses.includes(pkg.status)) {
+          // Only count if there's an active (non-expired) assignment for this trip
+          if (activeAssignmentPkgIds.has(pkg.id)) pendingTotal += value;
+        } else if (confirmedStatuses.includes(pkg.status)) {
+          confirmedTotal += value;
+        }
       }
       
-      // Assignment packages always count as pending
-      const assignmentPackageIds = tripAssignmentsMap[tripId] || [];
-      for (const pkgId of assignmentPackageIds) {
+      // Assignment packages not directly matched also count as pending
+      for (const assignment of (tripAssignmentsMap[tripId] || [])) {
+        const pkgId = assignment.package_id;
         if (directPackageIds.has(pkgId)) continue;
         const pkg = pkgById[pkgId];
         if (pkg) pendingTotal += calculatePackageValue(pkg);
