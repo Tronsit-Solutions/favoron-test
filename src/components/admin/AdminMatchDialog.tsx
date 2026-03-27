@@ -582,143 +582,168 @@ const AdminMatchDialog = ({
 
   const handleTravelerClick = async (trip: any) => {
     const profile = travelerProfiles[trip.user_id];
-    setSelectedTraveler({ ...profile, trip, referral: null });
+    const baseTraveler = { ...profile, trip, referral: null };
+    setSelectedTraveler(baseTraveler);
+    setLoadingTimedOut(false);
+
+    // Check cache first — instant if available
+    const cached = travelerDataCacheRef.current.get(trip.id);
+    if (cached) {
+      setTravelerPackages(cached.travelerPackages);
+      setTripAssignments(cached.tripAssignments);
+      setSelectedTraveler(cached.selectedTraveler);
+      setLoadingAssignments(false);
+      setShowTravelerInfo(true);
+      return;
+    }
+
     setTravelerPackages([]);
     setTripAssignments([]);
     setLoadingAssignments(true);
     setShowTravelerInfo(true);
 
-    // Fetch referral and packages in parallel
-    const referralPromise = (async () => {
-      try {
-        const { data: referralData } = await supabase
+    const TIMER_STATUSES = ['matched', 'quote_sent', 'payment_pending'];
+    const PAID_OR_POST_PAYMENT = [
+      'pending_purchase', 'payment_pending_approval', 'paid',
+      'shipped', 'in_transit', 'received_by_traveler',
+      'pending_office_confirmation', 'delivered_to_office',
+      'ready_for_pickup', 'ready_for_delivery', 'completed'
+    ];
+
+    // Safety timeout — 10 seconds
+    const timeoutPromise = new Promise<'timeout'>((resolve) => setTimeout(() => resolve('timeout'), 10000));
+
+    const dataPromise = (async () => {
+      // STEP 1: All independent queries in parallel (no waterfall)
+      const [referralResult, directResult, biddingAssignmentsResult, allAssignmentsResult] = await Promise.all([
+        // Referral
+        supabase
           .from('referrals')
           .select('referrer_id, status')
           .eq('referred_id', trip.user_id)
-          .maybeSingle();
+          .maybeSingle(),
+        // Direct packages
+        supabase
+          .from('packages')
+          .select(`
+            *,
+            profiles!packages_user_id_fkey (
+              id, first_name, last_name, email, username
+            )
+          `)
+          .eq('matched_trip_id', trip.id)
+          .in('status', [...TIMER_STATUSES, ...PAID_OR_POST_PAYMENT]),
+        // Bidding assignments (for packages tab)
+        supabase
+          .from('package_assignments')
+          .select('package_id, status')
+          .eq('trip_id', trip.id)
+          .in('status', ['bid_pending', 'bid_submitted']),
+        // All assignments flat (for assignments tab) — NO nested join
+        supabase
+          .from('package_assignments')
+          .select('id, package_id, status, admin_assigned_tip, quote, created_at')
+          .eq('trip_id', trip.id)
+          .order('created_at', { ascending: false })
+      ]);
 
-        if (referralData) {
+      // Process referral (fire-and-forget style update)
+      let updatedTraveler = baseTraveler;
+      if (referralResult.data) {
+        try {
           const { data: referrerProfile } = await supabase
             .from('profiles')
             .select('first_name, last_name')
-            .eq('id', referralData.referrer_id)
+            .eq('id', referralResult.data.referrer_id)
             .single();
-
-          setSelectedTraveler(prev => prev ? ({
-            ...prev,
+          updatedTraveler = {
+            ...baseTraveler,
             referral: {
               referrerName: referrerProfile ? `${referrerProfile.first_name || ''} ${referrerProfile.last_name || ''}`.trim() || 'Desconocido' : 'Desconocido',
-              status: referralData.status,
+              status: referralResult.data.status,
             }
-          }) : prev);
+          };
+          setSelectedTraveler(updatedTraveler);
+        } catch (err) {
+          console.error('Error fetching referrer profile:', err);
         }
-      } catch (err) {
-        console.error('Error fetching traveler referral:', err);
       }
-    })();
 
-    const packagesPromise = (async () => {
-      try {
-        const nowIso = new Date().toISOString();
-        const TIMER_STATUSES = ['matched', 'quote_sent', 'payment_pending'];
-        const PAID_OR_POST_PAYMENT = [
-          'pending_purchase', 'payment_pending_approval', 'paid',
-          'shipped', 'in_transit', 'received_by_traveler',
-          'pending_office_confirmation', 'delivered_to_office',
-          'ready_for_pickup', 'ready_for_delivery', 'completed'
-        ];
+      // Process direct packages
+      const now = Date.now();
+      const isTimerActive = (pkg: any) => (
+        (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
+        ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
+      );
+      const filtered = (directResult.data || []).filter((pkg) => isTimerActive(pkg) || PAID_OR_POST_PAYMENT.includes(pkg.status));
 
-        // 1. Direct packages (matched_trip_id)
-        const [directResult, assignmentsResult] = await Promise.all([
-          supabase
-            .from('packages')
-            .select(`
-              *,
-              profiles!packages_user_id_fkey (
-                id, first_name, last_name, email, username
-              )
-            `)
-            .eq('matched_trip_id', trip.id)
-            .in('status', [...TIMER_STATUSES, ...PAID_OR_POST_PAYMENT]),
-          // 2. Bidding packages via assignments
-          supabase
-            .from('package_assignments')
-            .select('package_id, status')
-            .eq('trip_id', trip.id)
-            .in('status', ['bid_pending', 'bid_submitted'])
-        ]);
+      // STEP 2: Fetch bidding packages + assignment package details in parallel
+      const directIds = new Set(filtered.map((p: any) => p.id));
+      const assignmentPkgIds = (biddingAssignmentsResult.data || [])
+        .map(a => a.package_id)
+        .filter(id => !directIds.has(id));
 
-        if (directResult.error) {
-          console.error('Error fetching traveler packages:', directResult.error);
-          setTravelerPackages([]);
-        } else {
-          // Filter direct packages by timer/payment status
-          const now = Date.now();
-          const isTimerActive = (pkg: any) => (
-            (pkg.status === 'matched' && pkg.matched_assignment_expires_at && new Date(pkg.matched_assignment_expires_at).getTime() > now) ||
-            ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending') && pkg.quote_expires_at && new Date(pkg.quote_expires_at).getTime() > now)
-          );
-          const isPaidOrPostPayment = (status: string) => PAID_OR_POST_PAYMENT.includes(status);
-          const filtered = (directResult.data || []).filter((pkg) => isTimerActive(pkg) || isPaidOrPostPayment(pkg.status));
-          // Fetch bidding packages not already in direct results
+      // Collect all unique package IDs from all assignments for the assignments tab
+      const allAssignmentPkgIds = [...new Set((allAssignmentsResult.data || []).map(a => a.package_id))];
 
-          // 3. Fetch bidding packages not already in direct results
-          const directIds = new Set(filtered.map((p: any) => p.id));
-          const assignmentPkgIds = (assignmentsResult.data || [])
-            .map(a => a.package_id)
-            .filter(id => !directIds.has(id));
-
-          let biddingPkgs: any[] = [];
-          if (assignmentPkgIds.length > 0) {
-            const { data: biddingData } = await supabase
+      const [biddingResult, assignmentPkgsResult] = await Promise.all([
+        // Bidding packages (only if needed)
+        assignmentPkgIds.length > 0
+          ? supabase
               .from('packages')
-              .select(`
-                *,
-                profiles!packages_user_id_fkey (
-                  id, first_name, last_name, email, username
-                )
-              `)
-              .in('id', assignmentPkgIds);
-            
-            // Build a map of assignment statuses
-            const assignmentStatusMap = new Map(
-              (assignmentsResult.data || []).map(a => [a.package_id, a.status])
-            );
-            biddingPkgs = (biddingData || []).map(p => ({ 
-              ...p, 
-              _isBidding: true, 
-              _assignmentStatus: assignmentStatusMap.get(p.id) || 'bid_pending' 
-            }));
-          }
+              .select(`*, profiles!packages_user_id_fkey (id, first_name, last_name, email, username)`)
+              .in('id', assignmentPkgIds)
+          : Promise.resolve({ data: [] as any[], error: null }),
+        // Assignment packages with profiles (flat query instead of nested join)
+        allAssignmentPkgIds.length > 0
+          ? supabase
+              .from('packages')
+              .select('id, item_description, estimated_price, purchase_origin, package_destination, user_id, profiles:user_id (first_name, last_name, username)')
+              .in('id', allAssignmentPkgIds)
+          : Promise.resolve({ data: [] as any[], error: null })
+      ]);
 
-          setTravelerPackages([...filtered, ...biddingPkgs]);
-        }
-      } catch (error) {
-        console.error('Error fetching traveler packages:', error);
-        setTravelerPackages([]);
-      }
+      // Build bidding packages
+      const assignmentStatusMap = new Map(
+        (biddingAssignmentsResult.data || []).map(a => [a.package_id, a.status])
+      );
+      const biddingPkgs = (biddingResult.data || []).map(p => ({
+        ...p,
+        _isBidding: true,
+        _assignmentStatus: assignmentStatusMap.get(p.id) || 'bid_pending'
+      }));
+
+      const finalPackages = [...filtered, ...biddingPkgs];
+
+      // Build assignments with package data (reconstruct the nested structure)
+      const pkgLookup = new Map((assignmentPkgsResult.data || []).map(p => [p.id, p]));
+      const finalAssignments = (allAssignmentsResult.data || []).map(a => ({
+        ...a,
+        packages: pkgLookup.get(a.package_id) || null
+      }));
+
+      // Update state
+      setTravelerPackages(finalPackages);
+      setTripAssignments(finalAssignments);
+      setLoadingAssignments(false);
+
+      // Cache the result
+      travelerDataCacheRef.current.set(trip.id, {
+        travelerPackages: finalPackages,
+        tripAssignments: finalAssignments,
+        selectedTraveler: updatedTraveler
+      });
+
+      return 'done' as const;
     })();
 
-    const assignmentsPromise = (async () => {
-      try {
-        const { data } = await supabase
-          .from('package_assignments')
-          .select(`
-            id, package_id, status, admin_assigned_tip, quote, created_at,
-            packages:package_id (id, item_description, estimated_price, purchase_origin, package_destination, user_id, profiles:user_id (first_name, last_name, username))
-          `)
-          .eq('trip_id', trip.id)
-          .order('created_at', { ascending: false });
-        setTripAssignments(data || []);
-      } catch (err) {
-        console.error('Error fetching trip assignments:', err);
-        setTripAssignments([]);
-      } finally {
-        setLoadingAssignments(false);
-      }
-    })();
-
-    await Promise.all([referralPromise, packagesPromise, assignmentsPromise]);
+    const result = await Promise.race([dataPromise, timeoutPromise]);
+    if (result === 'timeout') {
+      console.warn('Traveler data fetch timed out for trip:', trip.id);
+      setLoadingTimedOut(true);
+      setLoadingAssignments(false);
+      // Let the data promise continue in background — it will update state when done
+    }
   };
 
   const toggleTripExpansion = (tripId: number) => {
