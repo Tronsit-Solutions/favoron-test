@@ -471,10 +471,10 @@ const AdminMatchDialog = ({
       
       // Process trip assignments map
       if (tripResult.data) {
-        const map: Record<string, string[]> = {};
+        const map: Record<string, { package_id: string; status: string }[]> = {};
         tripResult.data.forEach((row: any) => {
           if (!map[row.trip_id]) map[row.trip_id] = [];
-          map[row.trip_id].push(row.package_id);
+          map[row.trip_id].push({ package_id: row.package_id, status: row.status });
         });
         setTripAssignmentsMap(map);
       } else {
