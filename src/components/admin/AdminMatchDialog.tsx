@@ -65,7 +65,7 @@ const AdminMatchDialog = ({
   const [showAllTrips, setShowAllTrips] = useState(false);
   const [showOtherCities, setShowOtherCities] = useState(false);
   const [alreadyAssignedTripIds, setAlreadyAssignedTripIds] = useState<Set<string>>(new Set());
-  const [tripAssignmentsMap, setTripAssignmentsMap] = useState<Record<string, string[]>>({});
+  const [tripAssignmentsMap, setTripAssignmentsMap] = useState<Record<string, { package_id: string; status: string }[]>>({});
 
   const MODAL_ID = 'admin-match-dialog';
 
@@ -130,15 +130,24 @@ const AdminMatchDialog = ({
       const directPackages = pkgByTrip[tripId] || [];
       const directPackageIds = new Set(directPackages.map(pkg => pkg.id));
       
+      // Build set of active assignment package IDs for this trip
+      const activeAssignmentPkgIds = new Set(
+        (tripAssignmentsMap[tripId] || []).map((a: any) => a.package_id)
+      );
+      
       for (const pkg of directPackages) {
         const value = calculatePackageValue(pkg);
-        if (pendingStatuses.includes(pkg.status)) pendingTotal += value;
-        else if (confirmedStatuses.includes(pkg.status)) confirmedTotal += value;
+        if (pendingStatuses.includes(pkg.status)) {
+          // Only count if there's an active (non-expired) assignment for this trip
+          if (activeAssignmentPkgIds.has(pkg.id)) pendingTotal += value;
+        } else if (confirmedStatuses.includes(pkg.status)) {
+          confirmedTotal += value;
+        }
       }
       
-      // Assignment packages always count as pending
-      const assignmentPackageIds = tripAssignmentsMap[tripId] || [];
-      for (const pkgId of assignmentPackageIds) {
+      // Assignment packages not directly matched also count as pending
+      for (const assignment of (tripAssignmentsMap[tripId] || [])) {
+        const pkgId = assignment.package_id;
         if (directPackageIds.has(pkgId)) continue;
         const pkg = pkgById[pkgId];
         if (pkg) pendingTotal += calculatePackageValue(pkg);
@@ -445,9 +454,9 @@ const AdminMatchDialog = ({
       const tripAssignmentsPromise = tripIds.length > 0
         ? supabase
             .from('package_assignments')
-            .select('trip_id, package_id')
+            .select('trip_id, package_id, status')
             .in('trip_id', tripIds)
-            .in('status', ['bid_pending', 'bid_submitted'])
+            .in('status', ['bid_pending', 'bid_submitted', 'bid_won'])
             .then(r => r)
         : Promise.resolve({ data: null });
 
@@ -462,10 +471,10 @@ const AdminMatchDialog = ({
       
       // Process trip assignments map
       if (tripResult.data) {
-        const map: Record<string, string[]> = {};
+        const map: Record<string, { package_id: string; status: string }[]> = {};
         tripResult.data.forEach((row: any) => {
           if (!map[row.trip_id]) map[row.trip_id] = [];
-          map[row.trip_id].push(row.package_id);
+          map[row.trip_id].push({ package_id: row.package_id, status: row.status });
         });
         setTripAssignmentsMap(map);
       } else {
