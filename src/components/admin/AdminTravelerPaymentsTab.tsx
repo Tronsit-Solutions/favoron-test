@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
-import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, XCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip, ExternalLink, Receipt, MessageSquare, Save, PartyPopper } from "lucide-react";
+import { Check, X, Eye, FileText, CreditCard, User, MapPin, Package, AlertCircle, CheckCircle, XCircle, Clock, ChevronDown, ChevronRight, Upload, Paperclip, ExternalLink, Receipt, MessageSquare, Save, PartyPopper, Rocket } from "lucide-react";
 import PaymentCelebrationModal from "./PaymentCelebrationModal";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
@@ -227,6 +227,21 @@ interface CompactOrderRowProps {
 const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOrder, toast, onConfirmAction, onSelectOrder, onShowCelebration }: CompactOrderRowProps) => {
   const [editableNotes, setEditableNotes] = useState(order.notes || '');
   const [savingNotes, setSavingNotes] = useState(false);
+  const [boostAmount, setBoostAmount] = useState(0);
+
+  useEffect(() => {
+    const fetchBoost = async () => {
+      if (!order.trip_id || !order.traveler_id) return;
+      const { data } = await supabase
+        .from('trip_payment_accumulator')
+        .select('boost_amount')
+        .eq('trip_id', order.trip_id)
+        .eq('traveler_id', order.traveler_id)
+        .maybeSingle();
+      if (data?.boost_amount) setBoostAmount(Number(data.boost_amount));
+    };
+    fetchBoost();
+  }, [order.trip_id, order.traveler_id]);
   
   const normalizedHistorical = (() => {
     const h = order.historical_packages;
@@ -307,8 +322,14 @@ const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOr
             {amountMismatch && (
               <div className="text-xs text-red-500">Total comp: Q{totalCompensation.toFixed(2)}</div>
             )}
+            {boostAmount > 0 && (
+              <div className="text-xs text-purple-600 flex items-center justify-end gap-1">
+                <Rocket className="h-3 w-3" />
+                Incluye boost +{formatCurrency(boostAmount)}
+              </div>
+            )}
             <div className="text-xs text-muted-foreground">GTQ</div>
-          </div>
+           </div>
         </TableCell>
         <TableCell className="py-3">
           <div className="space-y-1">
@@ -393,6 +414,15 @@ const CompactOrderRow = ({ order, isExpanded, onToggleExpansion, updatePaymentOr
                   <span className="text-sm font-medium">Total de Compensaciones:</span>
                   <span className="text-base font-bold text-green-600">Q{totalCompensation.toFixed(2)}</span>
                 </div>
+                {boostAmount > 0 && (
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-sm flex items-center gap-1">
+                      <Rocket className="h-3.5 w-3.5 text-purple-500" />
+                      Tip Boost
+                    </span>
+                    <span className="text-sm font-semibold text-purple-600">+{formatCurrency(boostAmount)}</span>
+                  </div>
+                )}
               </div>
 
               {/* Bank Details */}
