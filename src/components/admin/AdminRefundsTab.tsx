@@ -36,67 +36,17 @@ import {
   FileText
 } from 'lucide-react';
 
-const AdminRefundsTab = () => {
-  const { refundOrders, loading, updateRefundStatus, uploadRefundReceipt, refreshRefundOrders } = useAdminRefundOrders();
-  const [selectedRefund, setSelectedRefund] = useState<any>(null);
-  const [actionModal, setActionModal] = useState<{
-    type: 'complete' | 'reject';
-    refund: any;
-  } | null>(null);
-  const [notes, setNotes] = useState('');
-  const [completeFile, setCompleteFile] = useState<File | null>(null);
-  const [processing, setProcessing] = useState(false);
+interface RefundTableProps {
+  refunds: any[];
+  showActions?: boolean;
+  onViewRefund: (refund: any) => void;
+  onCompleteRefund: (refund: any) => void;
+  onRejectRefund: (refund: any) => void;
+  getStatusBadge: (status: string) => JSX.Element;
+}
 
-  const pendingRefunds = refundOrders.filter(r => r.status === 'pending');
-  const completedRefunds = refundOrders.filter(r => r.status === 'completed');
-  const rejectedRefunds = refundOrders.filter(r => r.status === 'rejected');
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300"><Clock className="h-3 w-3 mr-1" />Pendiente</Badge>;
-      case 'completed':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300"><CheckCircle2 className="h-3 w-3 mr-1" />Completado</Badge>;
-      case 'rejected':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300"><XCircle className="h-3 w-3 mr-1" />Rechazado</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const handleReject = async () => {
-    if (!actionModal) return;
-    setProcessing(true);
-    await updateRefundStatus(actionModal.refund.id, 'rejected', notes || undefined);
-    setProcessing(false);
-    setActionModal(null);
-    setNotes('');
-  };
-
-  const handleComplete = async () => {
-    if (!actionModal) return;
-    setProcessing(true);
-    
-    let receiptUrl: string | undefined;
-    let receiptFilename: string | undefined;
-    
-    if (completeFile) {
-      const uploadedPath = await uploadRefundReceipt(actionModal.refund.id, completeFile);
-      if (uploadedPath) {
-        receiptUrl = uploadedPath;
-        receiptFilename = completeFile.name;
-      }
-    }
-    
-    await updateRefundStatus(actionModal.refund.id, 'completed', notes || undefined, receiptUrl, receiptFilename);
-    setProcessing(false);
-    setActionModal(null);
-    setNotes('');
-    setCompleteFile(null);
-  };
-
-  const RefundTable = ({ refunds, showActions = true }: { refunds: any[]; showActions?: boolean }) => (
-    <Table>
+const RefundTable = ({ refunds, showActions = true, onViewRefund, onCompleteRefund, onRejectRefund, getStatusBadge }: RefundTableProps) => (
+  <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Fecha</TableHead>

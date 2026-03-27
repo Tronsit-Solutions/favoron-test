@@ -4,7 +4,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, RotateCcw, Banknote, Clock, FileSpreadsheet } from "lucide-react";
 import { usePaymentOrders } from "@/hooks/usePaymentOrders";
-import { useAdminRefundOrders } from "@/hooks/useRefundOrders";
 import AdminTravelerPaymentsTab from "./AdminTravelerPaymentsTab";
 import AdminRefundsTab from "./AdminRefundsTab";
 import AdminBankFileTab from "./AdminBankFileTab";
@@ -12,21 +11,19 @@ import { formatCurrency } from "@/lib/formatters";
 
 const AdminPaymentsUnifiedTab = () => {
   const [activeSection, setActiveSection] = useState("traveler-payments");
+  const [refundCounts, setRefundCounts] = useState({ pending: 0, pendingAmount: 0 });
   
   // Get counts for badges
   const { paymentOrders } = usePaymentOrders();
-  const { refundOrders } = useAdminRefundOrders();
   
   const pendingTravelerPayments = (paymentOrders || []).filter(o => o?.status === 'pending').length;
-  const pendingRefunds = (refundOrders || []).filter(r => r?.status === 'pending').length;
+  const pendingRefunds = refundCounts.pending;
   
   const totalPendingTravelerAmount = (paymentOrders || [])
     .filter(o => o?.status === 'pending')
     .reduce((sum, o) => sum + (o?.amount || 0), 0);
     
-  const totalPendingRefundAmount = (refundOrders || [])
-    .filter(r => r?.status === 'pending')
-    .reduce((sum, r) => sum + (r?.amount || 0), 0);
+  const totalPendingRefundAmount = refundCounts.pendingAmount;
 
   return (
     <div className="space-y-4">
