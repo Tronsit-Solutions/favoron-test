@@ -2095,6 +2095,11 @@ const AdminMatchDialog = ({
                       <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
                       <p>Cargando asignaciones...</p>
                     </div>
+                  ) : loadingTimedOut && tripAssignments.length === 0 ? (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <Clock className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                      <p>La carga tardó demasiado. Los datos aparecerán cuando terminen de cargar.</p>
+                    </div>
                   ) : tripAssignments.length === 0 ? (
                     <div className="text-center py-6 text-muted-foreground">
                       <Zap className="h-10 w-10 mx-auto mb-3 opacity-50" />
