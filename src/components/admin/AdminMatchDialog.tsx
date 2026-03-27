@@ -814,6 +814,10 @@ const AdminMatchDialog = ({
       try {
         const tipAmount = getTotalAssignedTip();
         const tripIdsArray = Array.from(selectedTripIds);
+        // Invalidate cache for matched trips
+        for (const tid of tripIdsArray) {
+          travelerDataCacheRef.current.delete(tid);
+        }
         if (isMultiProductOrder()) {
           await onMatch(tipAmount, assignedProductsWithTips, tripIdsArray);
         } else {
