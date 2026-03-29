@@ -262,7 +262,7 @@ const TravelerPackageCard = ({
                     <p className="text-xs text-muted-foreground mt-1">
                       Esta asignación fue cancelada
                     </p>
-                    <Button size="sm" variant="ghost" className="mt-2 text-xs" onClick={handleDismiss} disabled={dismissing}>
+                    <Button size="sm" variant="ghost" className="mt-2 text-xs" onClick={() => setShowDismissConfirm(true)} disabled={dismissing}>
                       <X className="h-3 w-3 mr-1" />
                       {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
                     </Button>
