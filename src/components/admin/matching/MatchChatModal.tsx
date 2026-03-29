@@ -50,7 +50,7 @@ export const MatchChatModal = ({ selectedPackage, trips, modalDataCache, onClose
 
   return (
     <Dialog open={!!selectedPackage} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[85vh] flex flex-col overflow-hidden">
+      <DialogContent className="max-w-[95vw] sm:max-w-4xl h-[90vh] sm:h-[85vh] flex flex-col overflow-hidden p-3 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <MessageCircle className="h-5 w-5" />
