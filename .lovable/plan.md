@@ -1,43 +1,34 @@
 
 
-## Create Test Packages & Assignments for Trip 2bb2da73
+## Mejorar visualización de paquetes con asignaciones inactivas (expired/cancelled/lost)
 
-**Trip**: `2bb2da73-0f45-42df-b7a8-fb2c5514385b` (New York → Guatemala City)
-**Traveler**: `5e3c944e-9130-4ea7-8165-b8ec9d5abf6f`
-**Second trip** (for bid_lost scenario): `10f0245f-9813-4823-89e3-647636d929c9`
+### Problema
+1. El botón "Ver y Aceptar Tip" se muestra en paquetes con asignaciones terminales (expired, cancelled, lost) — no debería aparecer
+2. El botón "Descartar de mi dashboard" está abajo a la izquierda, poco visible
+3. Los paquetes inactivos se ven igual que los activos, sin distinción visual
 
-### Data to Insert
+### Cambios
 
-**6 fake packages** (one per assignment status) with a test user_id, then **6 package_assignments**:
+**1. `TravelerPackagePriorityActions.tsx` — Ocultar acciones para asignaciones terminales**
+- Al inicio del componente, agregar condición: si `_assignmentStatus` es `bid_lost`, `bid_expired`, o `bid_cancelled`, retornar `null` (no renderizar nada)
+- Esto elimina el botón "Ver y Aceptar Tip" de estos paquetes
 
-| # | Package Status | Assignment Status | Assigned Trip | Notes |
-|---|---|---|---|---|
-| 1 | `matched` | `bid_pending` | 2bb2da73 | Waiting for traveler response |
-| 2 | `pending_purchase` | `bid_won` | 2bb2da73 | Traveler won the bid |
-| 3 | `pending_purchase` | `bid_lost` | other trip | Lost to another traveler |
-| 4 | `matched` | `bid_submitted` | 2bb2da73 | Quote submitted, awaiting shopper |
-| 5 | `matched` | `bid_expired` | 2bb2da73 | 24h expired without response |
-| 6 | `matched` | `bid_cancelled` | 2bb2da73 | Admin cancelled assignment |
+**2. `CollapsibleTravelerPackageCard.tsx` — Rediseñar estado terminal**
+- En el wrapper del card (línea ~300), agregar `opacity-60` cuando la asignación es terminal (`bid_lost`, `bid_expired`, `bid_cancelled`)
+- Mover los botones "Descartar de mi dashboard" de la sección de status (izquierda) a la esquina superior derecha del card, como un botón con ícono X más prominente y alineado a la derecha
+- Cambiar el layout de los status terminales: mostrar un banner horizontal con el mensaje de estado a la izquierda y el botón de descartar a la derecha en la misma fila
 
-### Implementation
-
-1. **Insert 6 packages** into `packages` table with `item_description` like "TEST - Bid Pending", destination Guatemala, deadline in future, using the trip owner's user_id as package owner (or another existing user)
-2. **Insert 6 package_assignments** linking each package to the appropriate trip with the corresponding status
-3. For package #2 (bid_won), also set `matched_trip_id` on the package and populate `quote` JSON
-4. For package #4 (bid_submitted), populate `quote` on the assignment row
-
-All inserts via SQL using the migration/insert tool in implementation mode.
-
-### Technical Detail
-
-```sql
--- Example for one package + assignment pair
-INSERT INTO packages (id, user_id, item_description, package_destination, purchase_origin, delivery_deadline, estimated_price, status)
-VALUES (gen_random_uuid(), '<user_id>', 'TEST - Bid Pending', 'Guatemala City', 'United States', now() + interval '30 days', 50, 'matched');
-
-INSERT INTO package_assignments (package_id, trip_id, status, admin_assigned_tip)
-VALUES ('<pkg_id>', '2bb2da73-...', 'bid_pending', 25);
+**3. Diseño del banner terminal (desktop y mobile)**
+```text
+┌─────────────────────────────────────────────────────┐
+│ ⏰ Asignación expirada          [✕ Descartar]      │
+│ ❌ Otro viajero fue seleccionado [✕ Descartar]     │
+│ Asignación cancelada             [✕ Descartar]     │
+└─────────────────────────────────────────────────────┘
 ```
+- Reemplazar los 3 bloques individuales (líneas 430-453) con un layout `flex justify-between items-center` que tenga el mensaje a la izquierda y el botón a la derecha
 
-Repeated for all 6 scenarios with appropriate statuses and quote data.
+### Archivos a modificar
+- `src/components/dashboard/traveler/TravelerPackagePriorityActions.tsx`
+- `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`
 
