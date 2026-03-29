@@ -1,20 +1,23 @@
 
 
-## Cambiar nombre de sección "Pendientes" a "Pendientes y cancelados"
+## Hacer el botón "Descartar" más prominente en paquetes terminales
 
 ### Cambio
 
-**`src/components/Dashboard.tsx` (línea 1025)**
+**`src/components/dashboard/CollapsibleTravelerPackageCard.tsx` (líneas 435, 443, 451)**
 
-Cambiar el texto de:
+Cambiar los 3 botones de `variant="outline"` con clases sutiles a `variant="destructive"` con tamaño más visible:
+
+```tsx
+// De:
+<Button size="sm" variant="outline" className="text-xs h-8 px-3 flex-shrink-0" ...>
+
+// A:
+<Button size="sm" variant="destructive" className="text-sm h-9 px-4 flex-shrink-0" ...>
 ```
-⏳ Pendientes ({pendingPackages.length})
-```
-a:
-```
-⏳ Pendientes y cancelados ({pendingPackages.length})
-```
+
+Esto aplica a las 3 instancias: `bid_lost`, `bid_expired`, y `bid_cancelled`.
 
 ### Archivo
-- `src/components/Dashboard.tsx`
+- `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`
 
