@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, DollarSign, User, Package, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import PurchaseConfirmationViewer from "@/components/admin/PurchaseConfirmationViewer";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { normalizeConfirmations } from "@/utils/confirmationHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -21,6 +22,8 @@ const TravelerPackageCard = ({
   onQuote
 }: TravelerPackageCardProps) => {
   const [dismissing, setDismissing] = useState(false);
+  const [showDismissConfirm, setShowDismissConfirm] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const { toast } = useToast();
 
   const handleDismiss = async () => {
@@ -33,15 +36,18 @@ const TravelerPackageCard = ({
         .eq('id', pkg._assignmentId);
       if (error) throw error;
       toast({ title: "Asignación descartada", description: "Ya no verás este pedido en tu dashboard." });
-      // The parent will refetch and remove it
-      window.location.reload();
+      setDismissed(true);
     } catch (err) {
       toast({ title: "Error", description: "No se pudo descartar", variant: "destructive" });
     } finally {
       setDismissing(false);
+      setShowDismissConfirm(false);
     }
   };
+
+  if (dismissed) return null;
   return (
+    <>
     <Card key={pkg.id}>
       <CardHeader>
         <div className="flex justify-between items-start">
@@ -235,7 +241,7 @@ const TravelerPackageCard = ({
                     <p className="text-xs text-red-600 mt-1">
                       El shopper eligió a otro viajero para este pedido
                     </p>
-                    <Button size="sm" variant="ghost" className="mt-2 text-xs" onClick={handleDismiss} disabled={dismissing}>
+                    <Button size="sm" variant="ghost" className="mt-2 text-xs" onClick={() => setShowDismissConfirm(true)} disabled={dismissing}>
                       <X className="h-3 w-3 mr-1" />
                       {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
                     </Button>
@@ -246,7 +252,7 @@ const TravelerPackageCard = ({
                     <p className="text-xs text-yellow-600 mt-1">
                       El tiempo para esta asignación venció
                     </p>
-                    <Button size="sm" variant="ghost" className="mt-2 text-xs" onClick={handleDismiss} disabled={dismissing}>
+                    <Button size="sm" variant="ghost" className="mt-2 text-xs" onClick={() => setShowDismissConfirm(true)} disabled={dismissing}>
                       <X className="h-3 w-3 mr-1" />
                       {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
                     </Button>
@@ -257,7 +263,7 @@ const TravelerPackageCard = ({
                     <p className="text-xs text-muted-foreground mt-1">
                       Esta asignación fue cancelada
                     </p>
-                    <Button size="sm" variant="ghost" className="mt-2 text-xs" onClick={handleDismiss} disabled={dismissing}>
+                    <Button size="sm" variant="ghost" className="mt-2 text-xs" onClick={() => setShowDismissConfirm(true)} disabled={dismissing}>
                       <X className="h-3 w-3 mr-1" />
                       {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
                     </Button>
@@ -299,6 +305,28 @@ const TravelerPackageCard = ({
         </div>
       </CardContent>
     </Card>
+
+    <AlertDialog open={showDismissConfirm} onOpenChange={setShowDismissConfirm}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>¿Descartar este paquete?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Ya no verás este pedido en tu dashboard. Esta acción no se puede deshacer.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={handleDismiss} 
+            disabled={dismissing}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {dismissing ? 'Descartando...' : 'Descartar'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 

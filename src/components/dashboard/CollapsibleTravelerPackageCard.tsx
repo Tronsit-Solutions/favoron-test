@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { getTravelerStatusConfig } from "./traveler/TravelerPackageStatusBadge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ChevronDown, ChevronUp, Package, MessageCircle, FileText, Clock, ExternalLink, CreditCard, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,6 +77,8 @@ const CollapsibleTravelerPackageCard = ({
   const isChatAvailable = CHAT_AVAILABLE_STATUSES.includes(pkg.status);
 
   const [dismissing, setDismissing] = useState(false);
+  const [showDismissConfirm, setShowDismissConfirm] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const { toast } = useToast();
 
   const handleDismissAssignment = async () => {
@@ -88,11 +91,13 @@ const CollapsibleTravelerPackageCard = ({
         .eq('id', pkg._assignmentId);
       if (error) throw error;
       toast({ title: "Asignación descartada", description: "Ya no verás este pedido en tu dashboard." });
-      window.location.reload();
+      setDismissed(true);
+      onDismissExpiredPackage?.(pkg.id);
     } catch (err) {
       toast({ title: "Error", description: "No se pudo descartar", variant: "destructive" });
     } finally {
       setDismissing(false);
+      setShowDismissConfirm(false);
     }
   };
 
@@ -129,6 +134,8 @@ const CollapsibleTravelerPackageCard = ({
       });
     }
   }, [needsReconciliation, pkg.id, updatePackage]);
+
+  if (dismissed) return null;
 
   // Helper to detect if quote is expired (either by status OR by expired timer)
   const isQuoteExpired = (p: any): boolean => {
@@ -432,7 +439,7 @@ const CollapsibleTravelerPackageCard = ({
                         ) : pkg._assignmentStatus === 'bid_lost' ? (
                           <div className="flex items-center justify-between gap-2 w-full">
                             <div className="font-medium text-red-700">❌ Otro viajero fue seleccionado</div>
-                            <Button size="sm" variant="destructive" className="text-sm h-9 px-4 flex-shrink-0" onClick={(e) => { e.stopPropagation(); handleDismissAssignment(); }} disabled={dismissing}>
+                            <Button size="sm" variant="destructive" className="text-sm h-9 px-4 flex-shrink-0" onClick={(e) => { e.stopPropagation(); setShowDismissConfirm(true); }} disabled={dismissing}>
                               <X className="h-3 w-3 mr-1" />
                               {dismissing ? 'Descartando...' : 'Descartar'}
                             </Button>
@@ -440,7 +447,7 @@ const CollapsibleTravelerPackageCard = ({
                         ) : pkg._assignmentStatus === 'bid_expired' ? (
                           <div className="flex items-center justify-between gap-2 w-full">
                             <div className="font-medium text-yellow-700">⏰ Asignación expirada</div>
-                            <Button size="sm" variant="destructive" className="text-sm h-9 px-4 flex-shrink-0" onClick={(e) => { e.stopPropagation(); handleDismissAssignment(); }} disabled={dismissing}>
+                            <Button size="sm" variant="destructive" className="text-sm h-9 px-4 flex-shrink-0" onClick={(e) => { e.stopPropagation(); setShowDismissConfirm(true); }} disabled={dismissing}>
                               <X className="h-3 w-3 mr-1" />
                               {dismissing ? 'Descartando...' : 'Descartar'}
                             </Button>
@@ -448,7 +455,7 @@ const CollapsibleTravelerPackageCard = ({
                         ) : pkg._assignmentStatus === 'bid_cancelled' ? (
                           <div className="flex items-center justify-between gap-2 w-full">
                             <div className="font-medium text-muted-foreground">Asignación cancelada</div>
-                            <Button size="sm" variant="destructive" className="text-sm h-9 px-4 flex-shrink-0" onClick={(e) => { e.stopPropagation(); handleDismissAssignment(); }} disabled={dismissing}>
+                            <Button size="sm" variant="destructive" className="text-sm h-9 px-4 flex-shrink-0" onClick={(e) => { e.stopPropagation(); setShowDismissConfirm(true); }} disabled={dismissing}>
                               <X className="h-3 w-3 mr-1" />
                               {dismissing ? 'Descartando...' : 'Descartar'}
                             </Button>
@@ -999,6 +1006,26 @@ const CollapsibleTravelerPackageCard = ({
         </DialogContent>
       </Dialog>
       
+      <AlertDialog open={showDismissConfirm} onOpenChange={setShowDismissConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Descartar este paquete?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ya no verás este pedido en tu dashboard. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDismissAssignment} 
+              disabled={dismissing}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {dismissing ? 'Descartando...' : 'Descartar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Collapsible>
   );
 };
