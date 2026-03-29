@@ -448,7 +448,7 @@ const CollapsibleTravelerPackageCard = ({
                         ) : pkg._assignmentStatus === 'bid_cancelled' ? (
                           <div className="flex items-center justify-between gap-2 w-full">
                             <div className="font-medium text-muted-foreground">Asignación cancelada</div>
-                            <Button size="sm" variant="outline" className="text-xs h-8 px-3 flex-shrink-0" onClick={(e) => { e.stopPropagation(); handleDismissAssignment(); }} disabled={dismissing}>
+                            <Button size="sm" variant="destructive" className="text-sm h-9 px-4 flex-shrink-0" onClick={(e) => { e.stopPropagation(); handleDismissAssignment(); }} disabled={dismissing}>
                               <X className="h-3 w-3 mr-1" />
                               {dismissing ? 'Descartando...' : 'Descartar'}
                             </Button>
