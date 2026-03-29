@@ -1022,7 +1022,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                                     {pendingPackages.length > 0 && (
                                       <div className="space-y-2">
                                         <p className="text-sm font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                                          ⏳ Pendientes ({pendingPackages.length})
+                                          ⏳ Pendientes y cancelados ({pendingPackages.length})
                                         </p>
                                         {pendingPackages.map(renderPackage)}
                                       </div>
