@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, DollarSign, User, Package, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import PurchaseConfirmationViewer from "@/components/admin/PurchaseConfirmationViewer";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { normalizeConfirmations } from "@/utils/confirmationHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
