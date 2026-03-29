@@ -47,6 +47,7 @@ const TravelerPackageCard = ({
 
   if (dismissed) return null;
   return (
+    <>
     <Card key={pkg.id}>
       <CardHeader>
         <div className="flex justify-between items-start">
