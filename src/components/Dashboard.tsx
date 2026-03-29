@@ -981,8 +981,8 @@ const Dashboard = ({ user }: DashboardProps) => {
                               {tripPackages.length > 0 && (() => {
                                 const CONFIRMED_STATUSES = ['pending_purchase', 'payment_pending_approval', 'paid', 'shipped', 'in_transit', 'received_by_traveler', 'pending_office_confirmation', 'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery', 'completed'];
                                 const TERMINAL_ASSIGNMENTS = ['bid_lost', 'bid_expired', 'bid_cancelled'];
-                                const confirmedPackages = tripPackages.filter(pkg => CONFIRMED_STATUSES.includes(pkg.status) && !TERMINAL_ASSIGNMENTS.includes(pkg._assignmentStatus));
-                                const pendingPackages = tripPackages.filter(pkg => !CONFIRMED_STATUSES.includes(pkg.status) || TERMINAL_ASSIGNMENTS.includes(pkg._assignmentStatus));
+                                const confirmedPackages = tripPackages.filter(pkg => CONFIRMED_STATUSES.includes(pkg.status) && !TERMINAL_ASSIGNMENTS.includes((pkg as any)._assignmentStatus));
+                                const pendingPackages = tripPackages.filter(pkg => !CONFIRMED_STATUSES.includes(pkg.status) || TERMINAL_ASSIGNMENTS.includes((pkg as any)._assignmentStatus));
 
                                 const renderPackage = (pkg: any) => {
                                   const hasPendingAction = pkg.status === 'matched';
