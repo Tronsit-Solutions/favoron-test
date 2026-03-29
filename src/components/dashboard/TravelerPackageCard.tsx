@@ -328,5 +328,6 @@ const TravelerPackageCard = ({
     </AlertDialog>
     </>
   );
+};
 
 export default TravelerPackageCard;
