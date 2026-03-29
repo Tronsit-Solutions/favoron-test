@@ -22,6 +22,8 @@ const TravelerPackageCard = ({
   onQuote
 }: TravelerPackageCardProps) => {
   const [dismissing, setDismissing] = useState(false);
+  const [showDismissConfirm, setShowDismissConfirm] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const { toast } = useToast();
 
   const handleDismiss = async () => {
@@ -34,14 +36,16 @@ const TravelerPackageCard = ({
         .eq('id', pkg._assignmentId);
       if (error) throw error;
       toast({ title: "Asignación descartada", description: "Ya no verás este pedido en tu dashboard." });
-      // The parent will refetch and remove it
-      window.location.reload();
+      setDismissed(true);
     } catch (err) {
       toast({ title: "Error", description: "No se pudo descartar", variant: "destructive" });
     } finally {
       setDismissing(false);
+      setShowDismissConfirm(false);
     }
   };
+
+  if (dismissed) return null;
   return (
     <Card key={pkg.id}>
       <CardHeader>
