@@ -77,6 +77,8 @@ const CollapsibleTravelerPackageCard = ({
   const isChatAvailable = CHAT_AVAILABLE_STATUSES.includes(pkg.status);
 
   const [dismissing, setDismissing] = useState(false);
+  const [showDismissConfirm, setShowDismissConfirm] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const { toast } = useToast();
 
   const handleDismissAssignment = async () => {
@@ -89,13 +91,17 @@ const CollapsibleTravelerPackageCard = ({
         .eq('id', pkg._assignmentId);
       if (error) throw error;
       toast({ title: "Asignación descartada", description: "Ya no verás este pedido en tu dashboard." });
-      window.location.reload();
+      setDismissed(true);
+      onDismissExpiredPackage?.(pkg.id);
     } catch (err) {
       toast({ title: "Error", description: "No se pudo descartar", variant: "destructive" });
     } finally {
       setDismissing(false);
+      setShowDismissConfirm(false);
     }
   };
+
+  if (dismissed) return null;
 
   const [chatModalOpen, setChatModalOpen] = useState(false);
 
