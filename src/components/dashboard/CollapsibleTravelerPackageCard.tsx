@@ -135,6 +135,8 @@ const CollapsibleTravelerPackageCard = ({
     }
   }, [needsReconciliation, pkg.id, updatePackage]);
 
+  if (dismissed) return null;
+
   // Helper to detect if quote is expired (either by status OR by expired timer)
   const isQuoteExpired = (p: any): boolean => {
     if (p.status === 'quote_expired') return true;
