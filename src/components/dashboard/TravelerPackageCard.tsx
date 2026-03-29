@@ -304,7 +304,28 @@ const TravelerPackageCard = ({
         </div>
       </CardContent>
     </Card>
+
+    <AlertDialog open={showDismissConfirm} onOpenChange={setShowDismissConfirm}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>¿Descartar este paquete?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Ya no verás este pedido en tu dashboard. Esta acción no se puede deshacer.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={handleDismiss} 
+            disabled={dismissing}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {dismissing ? 'Descartando...' : 'Descartar'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
-};
 
 export default TravelerPackageCard;
