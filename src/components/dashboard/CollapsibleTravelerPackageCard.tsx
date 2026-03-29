@@ -101,8 +101,6 @@ const CollapsibleTravelerPackageCard = ({
     }
   };
 
-  if (dismissed) return null;
-
   const [chatModalOpen, setChatModalOpen] = useState(false);
 
   const handleChatClick = (e: React.MouseEvent) => {
