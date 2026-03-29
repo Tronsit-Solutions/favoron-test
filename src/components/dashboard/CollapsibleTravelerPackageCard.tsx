@@ -430,27 +430,27 @@ const CollapsibleTravelerPackageCard = ({
                         ) : pkg._assignmentStatus === 'bid_won' ? (
                           <div className="font-medium text-green-700">🎉 ¡El shopper te eligió!</div>
                         ) : pkg._assignmentStatus === 'bid_lost' ? (
-                          <div>
+                          <div className="flex items-center justify-between gap-2 w-full">
                             <div className="font-medium text-red-700">❌ Otro viajero fue seleccionado</div>
-                            <Button size="sm" variant="ghost" className="mt-1 text-xs h-7 px-2" onClick={handleDismissAssignment} disabled={dismissing}>
+                            <Button size="sm" variant="outline" className="text-xs h-8 px-3 flex-shrink-0" onClick={(e) => { e.stopPropagation(); handleDismissAssignment(); }} disabled={dismissing}>
                               <X className="h-3 w-3 mr-1" />
-                              {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
+                              {dismissing ? 'Descartando...' : 'Descartar'}
                             </Button>
                           </div>
                         ) : pkg._assignmentStatus === 'bid_expired' ? (
-                          <div>
+                          <div className="flex items-center justify-between gap-2 w-full">
                             <div className="font-medium text-yellow-700">⏰ Asignación expirada</div>
-                            <Button size="sm" variant="ghost" className="mt-1 text-xs h-7 px-2" onClick={handleDismissAssignment} disabled={dismissing}>
+                            <Button size="sm" variant="outline" className="text-xs h-8 px-3 flex-shrink-0" onClick={(e) => { e.stopPropagation(); handleDismissAssignment(); }} disabled={dismissing}>
                               <X className="h-3 w-3 mr-1" />
-                              {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
+                              {dismissing ? 'Descartando...' : 'Descartar'}
                             </Button>
                           </div>
                         ) : pkg._assignmentStatus === 'bid_cancelled' ? (
-                          <div>
+                          <div className="flex items-center justify-between gap-2 w-full">
                             <div className="font-medium text-muted-foreground">Asignación cancelada</div>
-                            <Button size="sm" variant="ghost" className="mt-1 text-xs h-7 px-2" onClick={handleDismissAssignment} disabled={dismissing}>
+                            <Button size="sm" variant="outline" className="text-xs h-8 px-3 flex-shrink-0" onClick={(e) => { e.stopPropagation(); handleDismissAssignment(); }} disabled={dismissing}>
                               <X className="h-3 w-3 mr-1" />
-                              {dismissing ? 'Descartando...' : 'Descartar de mi dashboard'}
+                              {dismissing ? 'Descartando...' : 'Descartar'}
                             </Button>
                           </div>
                         ) : (

@@ -18,6 +18,10 @@ const TravelerPackagePriorityActions = ({
 }: TravelerPackagePriorityActionsProps) => {
   const [showDeliveryConfirmation, setShowDeliveryConfirmation] = useState(false);
   const [showOfficeModal, setShowOfficeModal] = useState(false);
+  // Hide actions for terminal assignment statuses
+  const terminalStatuses = ['bid_lost', 'bid_expired', 'bid_cancelled'];
+  if (terminalStatuses.includes((pkg as any)._assignmentStatus)) return null;
+
   if (pkg.status !== 'matched' && pkg.status !== 'in_transit' && pkg.status !== 'received_by_traveler' && pkg.status !== 'pending_office_confirmation') return null;
 
   if (pkg.status === 'pending_office_confirmation') return null;
