@@ -353,6 +353,25 @@ const CollapsibleTravelerPackageCard = ({
 
                 {/* Status button - opens modal with full description */}
                 {(() => {
+                  const isTerminal = ['bid_lost', 'bid_expired', 'bid_cancelled'].includes(pkg._assignmentStatus);
+                  if (isTerminal) {
+                    const terminalConfig = pkg._assignmentStatus === 'bid_lost'
+                      ? { emoji: '❌', label: 'No seleccionado' }
+                      : pkg._assignmentStatus === 'bid_expired'
+                      ? { emoji: '⏰', label: 'Asignación expirada' }
+                      : { emoji: '🚫', label: 'Asignación cancelada' };
+                    return (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start text-xs gap-1.5 h-8"
+                        onClick={(e) => { e.stopPropagation(); }}
+                      >
+                        <span>{terminalConfig.emoji}</span>
+                        <span className="truncate">{terminalConfig.label}</span>
+                      </Button>
+                    );
+                  }
                   const statusConfig = getTravelerStatusConfig(getEffectiveStatus(pkg));
                   return (
                     <Button
@@ -371,8 +390,23 @@ const CollapsibleTravelerPackageCard = ({
                   );
                 })()}
 
-                {/* Dismiss button for expired quotes - mobile */}
-                {isQuoteExpired(pkg) && onDismissExpiredPackage && (
+                {/* Dismiss button for expired quotes or terminal assignments - mobile */}
+                {(isQuoteExpired(pkg) || ['bid_lost', 'bid_expired', 'bid_cancelled'].includes(pkg._assignmentStatus)) && pkg._assignmentId && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDismissConfirm(true);
+                    }}
+                    className="w-full text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
+                    disabled={dismissing}
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    {dismissing ? 'Descartando...' : 'Descartar de mis viajes'}
+                  </Button>
+                )}
+                {isQuoteExpired(pkg) && !pkg._assignmentId && onDismissExpiredPackage && (
                   <Button 
                     variant="outline" 
                     size="sm"
