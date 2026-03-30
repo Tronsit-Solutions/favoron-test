@@ -18,6 +18,7 @@ interface MonthlyPackageStats {
   gmv: number;
   service_fee: number;
   delivery_fee: number;
+  completed_product_count: number;
 }
 
 interface MonthlyTripStats {
