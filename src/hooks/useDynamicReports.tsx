@@ -69,6 +69,7 @@ interface KPIData {
   totalTrips: number;
   totalRevenue: number;
   totalTips: number;
+  totalProducts: number;
   completionRate: number;
   avgPackageValue: number;
   momUserGrowth: number;
