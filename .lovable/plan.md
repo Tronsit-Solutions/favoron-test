@@ -1,64 +1,54 @@
 
 
-## Timer de 24h para `bid_submitted` — ventana de decisión del shopper
+## Expirar zombies `bid_submitted` → paquete a `quote_expired`
 
-### Problema
-Cuando un viajero envía su cotización (`bid_pending` → `bid_submitted`), el trigger `set_assignment_bid_expiration` **borra** `expires_at`. Esto deja el assignment sin expiración, y el paquete queda atrapado en `matched` indefinidamente si el shopper nunca selecciona ganador.
+### Contexto
+La migración anterior les dio 48h más de vida a los zombies. El usuario quiere expirarlos **ahora** y que los paquetes vayan a `quote_expired` (no `approved`) para que el shopper los recotice.
 
-### Solución
+### Cambios
 
-**1 migración SQL** con 3 cambios:
+**1. Migración SQL — Modificar Step 2b de `expire_unresponded_assignments()`**
 
-**A. Modificar trigger `set_assignment_bid_expiration`**
-
-En lugar de borrar `expires_at` al pasar a `bid_submitted`, setear 24h desde ese momento:
+Cuando todos los assignments de un paquete expiran (remaining_active = 0), cambiar el estado del paquete de `approved` a `quote_expired`:
 
 ```sql
--- Antes:
-IF NEW.status = 'bid_submitted' AND OLD.status = 'bid_pending' THEN
-  NEW.expires_at = NULL;  -- ❌ borra el timer
+-- Línea 220 actual:
+SET status = 'approved',
 
--- Después:
-IF NEW.status = 'bid_submitted' AND OLD.status = 'bid_pending' THEN
-  NEW.expires_at = NOW() + INTERVAL '24 hours';  -- ✅ 24h para que el shopper decida
+-- Cambiar a:
+SET status = 'quote_expired',
 ```
 
-**B. Ampliar `expire_unresponded_assignments()` — nuevo Step 2c**
+Esto aplica para el futuro: cada vez que todos los viajeros asignados a un paquete expiren, el paquete irá a `quote_expired` en lugar de `approved`.
 
-Agregar un bloque que expire assignments en `bid_submitted` cuyo `expires_at < NOW()`:
+**2. Data fix inmediato (insert tool) — Expirar zombies ahora**
+
+Dos operaciones:
+- Marcar todos los `bid_submitted` zombie como `bid_expired`
+- Actualizar los paquetes correspondientes (que no tengan assignments activos restantes) a `quote_expired`
 
 ```sql
--- Step 2c: Expire bid_submitted past shopper decision window
-FOR assignment_record IN
-  SELECT pa.id, pa.package_id, pa.trip_id, ...
-  FROM package_assignments pa
-  WHERE pa.status = 'bid_submitted'
-    AND pa.expires_at IS NOT NULL
-    AND pa.expires_at < NOW()
-LOOP
-  UPDATE package_assignments
-  SET status = 'bid_expired', updated_at = NOW(), expires_at = NULL
-  WHERE id = assignment_record.id;
-  -- + notificación al viajero y al shopper
-END LOOP;
+-- A: Expirar assignments zombie
+UPDATE package_assignments
+SET status = 'bid_expired', expires_at = NULL, updated_at = NOW()
+WHERE status = 'bid_submitted';
+
+-- B: Mover paquetes sin assignments activos a quote_expired
+UPDATE packages
+SET status = 'quote_expired', matched_trip_id = NULL, updated_at = NOW()
+WHERE id IN (
+  SELECT DISTINCT pa.package_id FROM package_assignments pa
+  WHERE pa.status = 'bid_expired'
+)
+AND NOT EXISTS (
+  SELECT 1 FROM package_assignments pa2
+  WHERE pa2.package_id = packages.id
+  AND pa2.status IN ('bid_pending', 'bid_submitted', 'bid_won')
+)
+AND status IN ('matched', 'quote_sent');
 ```
-
-La lógica existente de Step 2b ya se encarga de devolver el paquete a `approved` si todos los assignments terminan en estado terminal.
-
-**C. Data fix retroactivo**
-
-Setear `expires_at = NOW() + INTERVAL '24 hours'` para los assignments actualmente en `bid_submitted` sin expiración (los 18 que encontramos antes).
-
-### Resultado
-
-```text
-bid_pending ──(24h)──→ bid_expired
-bid_pending ──(viajero cotiza)──→ bid_submitted ──(24h)──→ bid_expired
-                                                 ──(shopper elige)──→ bid_won ✅
-```
-
-Si todos los assignments expiran, el paquete vuelve automáticamente a `approved`.
 
 ### Archivos
-- 1 migración SQL (trigger + función + data fix)
+- 1 migración SQL (función `expire_unresponded_assignments` con `quote_expired`)
+- 1 data fix via insert tool (expiración inmediata de zombies)
 
