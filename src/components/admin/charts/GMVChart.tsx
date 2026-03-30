@@ -103,7 +103,7 @@ export const GMVChart = ({ data }: GMVChartProps) => {
                   <ChartTooltipContent
                     formatter={(value, name) => (
                       <span className="font-medium">
-                        Q{Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     )}
                   />
