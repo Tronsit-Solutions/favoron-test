@@ -218,7 +218,15 @@ export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownP
           <>
             <Separator />
             <div className="p-2">
-              <Button variant="ghost" size="sm" className="w-full text-xs">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-xs"
+                onClick={() => {
+                  setOpen(false);
+                  setSheetOpen(true);
+                }}
+              >
                 Ver todas las notificaciones
               </Button>
             </div>
@@ -226,5 +234,19 @@ export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownP
         )}
       </PopoverContent>
     </Popover>
+
+    <NotificationSheet
+      open={sheetOpen}
+      onOpenChange={setSheetOpen}
+      notifications={notifications}
+      loading={loading}
+      loadingMore={loadingMore}
+      hasMore={hasMore}
+      unreadCount={unreadCount}
+      markAsRead={markAsRead}
+      markAllAsRead={markAllAsRead}
+      fetchMore={fetchMore}
+    />
+    </>
   );
 };
