@@ -1290,12 +1290,16 @@ export const useDashboardActions = (
 
     // Single atomic RPC call with retry for transient network errors
     const { data: rpcResult, error: rpcError } = await withRetry(
-      () => supabase.rpc('assign_package_to_travelers', {
-        _package_id: packageId,
-        _trip_ids: tripIdsToAssign,
-        _admin_tip: adminTip,
-        _products_data: updatedProductsData || null
-      }),
+      async () => {
+        const result = await supabase.rpc('assign_package_to_travelers', {
+          _package_id: packageId,
+          _trip_ids: tripIdsToAssign,
+          _admin_tip: adminTip,
+          _products_data: updatedProductsData || null
+        });
+        if (result.error) throw result.error;
+        return result;
+      },
       'assign_package_to_travelers',
       { maxRetries: 1, baseDelay: 2000 }
     );
