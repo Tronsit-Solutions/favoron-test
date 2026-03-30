@@ -1,68 +1,43 @@
 
 
-## Mejoras al botón "Descartar": confirmación + animación sin reload
+## Fix: Expire package_assignments when quotes expire
 
-### Problema actual
-1. No hay diálogo de confirmación antes de descartar
-2. Se hace `window.location.reload()` — recarga toda la página
+### Problem
+When `expire_old_quotes()` runs, it sets the package status to `quote_expired` and clears `matched_trip_id`, but the related rows in `package_assignments` remain as `bid_submitted`. These "zombie" assignments are counted in the "Productos Pendientes" totals in the admin match dialog.
 
-### Cambios
+### Solution
+Update the `expire_old_quotes()` SQL function to also set all active `package_assignments` for that package to `bid_cancelled` when the quote expires.
 
-**Archivo: `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`**
+### Changes
 
-1. **Agregar estado para diálogo de confirmación**
-   - Nuevo estado `showDismissConfirm` (boolean)
-   - Los 3 botones "Descartar" ahora abren el diálogo en vez de ejecutar directamente
+**1. Database migration — update `expire_old_quotes()` function**
 
-2. **Agregar diálogo de confirmación**
-   - Usar `AlertDialog` (ya disponible en el proyecto) con mensaje: "¿Estás seguro de que quieres descartar este paquete?"
-   - Botón "Cancelar" y botón "Descartar" (destructive)
+Add this line inside the loop, after updating the package:
 
-3. **Eliminar `window.location.reload()`** y reemplazar con:
-   - Nuevo estado `dismissed` (boolean)
-   - Tras éxito del update en Supabase, setear `dismissed = true`
-   - Al inicio del componente: `if (dismissed) return null` — el card desaparece sin recargar
-   - Opcionalmente agregar callback `onDismissExpiredPackage` (ya existe en props) para notificar al padre
-
-### Detalle técnico
-
-```tsx
-// Nuevos estados
-const [showDismissConfirm, setShowDismissConfirm] = useState(false);
-const [dismissed, setDismissed] = useState(false);
-
-// Early return
-if (dismissed) return null;
-
-// handleDismissAssignment modificado
-const handleDismissAssignment = async () => {
-  // ... mismo código de supabase update ...
-  // Reemplazar window.location.reload() con:
-  setDismissed(true);
-  onDismissExpiredPackage?.(pkg.id);
-};
-
-// Botones cambian a: onClick={() => setShowDismissConfirm(true)}
-
-// AlertDialog al final del componente
-<AlertDialog open={showDismissConfirm} onOpenChange={setShowDismissConfirm}>
-  <AlertDialogContent>
-    <AlertDialogHeader>
-      <AlertDialogTitle>¿Descartar este paquete?</AlertDialogTitle>
-      <AlertDialogDescription>
-        Ya no verás este pedido en tu dashboard. Esta acción no se puede deshacer.
-      </AlertDialogDescription>
-    </AlertDialogHeader>
-    <AlertDialogFooter>
-      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-      <AlertDialogAction onClick={handleDismissAssignment} variant destructive>
-        Descartar
-      </AlertDialogAction>
-    </AlertDialogFooter>
-  </AlertDialogContent>
-</AlertDialog>
+```sql
+-- Cancel all active assignments for this package
+UPDATE public.package_assignments
+SET status = 'bid_cancelled', updated_at = NOW()
+WHERE package_id = package_record.id
+  AND status IN ('bid_pending', 'bid_submitted', 'bid_won');
 ```
 
-### Archivo
-- `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`
+**2. One-time data cleanup — fix existing stale assignments**
+
+Run via the insert tool (not migration) to retroactively fix assignments that are already stuck:
+
+```sql
+UPDATE public.package_assignments
+SET status = 'bid_cancelled', updated_at = NOW()
+WHERE status IN ('bid_submitted', 'bid_pending', 'bid_won')
+  AND package_id IN (
+    SELECT id FROM public.packages
+    WHERE status IN ('quote_expired', 'approved', 'quote_rejected')
+      AND matched_trip_id IS NULL
+  );
+```
+
+### Files
+- New migration: `expire_old_quotes()` function update
+- Data fix via insert tool
 
