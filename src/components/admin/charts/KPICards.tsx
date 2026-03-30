@@ -63,7 +63,7 @@ export const KPICards = ({ kpis }: KPICardsProps) => {
       bgColor: "bg-purple-50",
     },
     {
-      title: "Productos Enviados",
+      title: "Productos Pagados",
       value: kpis.totalProducts.toLocaleString(),
       icon: ShoppingCart,
       description: "productos completados",
