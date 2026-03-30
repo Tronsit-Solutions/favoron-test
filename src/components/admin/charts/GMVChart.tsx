@@ -64,10 +64,10 @@ export const GMVChart = ({ data }: GMVChartProps) => {
               <DollarSign className="h-5 w-5 text-primary" />
               Evolución del GMV
             </CardTitle>
-            <CardDescription>Valor bruto de paquetes completados (GTQ)</CardDescription>
+            <CardDescription>Valor bruto de paquetes pagados (USD)</CardDescription>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold">Q{totalGMV.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+            <div className="text-2xl font-bold">${totalGMV.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
             <div className={`flex items-center gap-1 text-sm ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
               {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
               {isPositive ? '+' : ''}{momGrowth.toFixed(1)}% MoM
@@ -88,14 +88,14 @@ export const GMVChart = ({ data }: GMVChartProps) => {
               <YAxis
                 yAxisId="left"
                 tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `Q${(value / 1000).toFixed(0)}k`}
+                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                 className="text-muted-foreground"
               />
               <YAxis
                 yAxisId="right"
                 orientation="right"
                 tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `Q${(value / 1000).toFixed(0)}k`}
+                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                 className="text-muted-foreground"
               />
               <ChartTooltip
@@ -103,7 +103,7 @@ export const GMVChart = ({ data }: GMVChartProps) => {
                   <ChartTooltipContent
                     formatter={(value, name) => (
                       <span className="font-medium">
-                        Q{Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     )}
                   />
