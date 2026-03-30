@@ -654,12 +654,22 @@ const CollapsibleTravelerPackageCard = ({
                       </Button>
                     )}
                     <div className="flex flex-col items-end text-right gap-1">
-                      {pkg._isMultiAssignment && (
+                      {pkg._isMultiAssignment && !['bid_lost', 'bid_expired', 'bid_cancelled'].includes(pkg._assignmentStatus) && (
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-500/50 text-amber-600 bg-amber-50">
                           ⚡ Compitiendo
                         </Badge>
                       )}
-                      <TravelerPackageStatusBadge status={pkg.status} pkg={pkg} />
+                      {['bid_lost', 'bid_expired', 'bid_cancelled'].includes(pkg._assignmentStatus) ? (
+                        pkg._assignmentStatus === 'bid_lost' ? (
+                          <Badge variant="destructive">❌ No seleccionado</Badge>
+                        ) : pkg._assignmentStatus === 'bid_expired' ? (
+                          <Badge className="bg-amber-100 text-amber-800 border-amber-300">⏰ Expirada</Badge>
+                        ) : (
+                          <Badge variant="secondary">Cancelada</Badge>
+                        )
+                      ) : (
+                        <TravelerPackageStatusBadge status={pkg.status} pkg={pkg} />
+                      )}
                     </div>
                     {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                   </div>
