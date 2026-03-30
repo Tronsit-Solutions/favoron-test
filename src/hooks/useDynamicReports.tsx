@@ -348,7 +348,7 @@ export const useDynamicReports = (months: number = 12) => {
     monthlyPackagesData.forEach(pkg => {
       totalGMV += Number(pkg.gmv);
       totalRevenue += Number(pkg.service_fee);
-      totalTips += Math.max(0, Number(pkg.gmv) - Number(pkg.service_fee) - Number(pkg.delivery_fee));
+      totalTips += Number(pkg.gmv);
       totalCompletedPackages += Number(pkg.completed_count);
       totalProducts += Number(pkg.completed_product_count || 0);
     });
