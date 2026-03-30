@@ -1,47 +1,32 @@
 
 
-## Fix: Inactive packages missing dismiss button and showing wrong status
+## Fix: "No se pudo descartar el paquete" error for terminal assignments
 
-### Problems identified
+### Root cause
 
-1. **Dismiss button only appears for `quote_expired` packages** — The mobile dismiss button (line 375) checks `isQuoteExpired(pkg)`, and the desktop dismiss buttons (lines 439-461) only render inside `pkg.status === 'matched'`. Packages with terminal assignment statuses (`bid_lost`, `bid_expired`, `bid_cancelled`) that have a non-matched package status (e.g., `approved`, `pending_purchase`) never show a dismiss button.
+There are **two dismiss paths** that collide:
 
-2. **Status badge shows package status, not assignment status** — The `TravelerPackageStatusBadge` on line 602 always renders `pkg.status` (e.g., "Aprobado", "Pago confirmado"). For inactive assignments, the traveler should see the assignment-level status ("Otro viajero fue seleccionado", "Asignación expirada", etc.), not the package's lifecycle status which belongs to the winning traveler.
+1. **Card-level** (`handleDismissAssignment`, line 84): Updates `package_assignments.dismissed_by_traveler = true` directly — this **succeeds**.
+2. **Dashboard-level** (`onDismissExpiredPackage` → `handleDismissExpiredPackage`): Calls the `traveler_dismiss_package` RPC — this **fails** because the RPC requires `matched_trip_id` to be non-null, but in the multi-assignment architecture, terminal packages often have `matched_trip_id = NULL`.
+
+The problem: after the card-level update succeeds (line 92), it immediately calls `onDismissExpiredPackage?.(pkg.id)` on line 95, triggering the RPC which throws "Paquete no asignado a ningún viaje" → the error toast overrides the success toast.
 
 ### Solution
 
-**File: `src/components/dashboard/CollapsibleTravelerPackageCard.tsx`**
+**1. `CollapsibleTravelerPackageCard.tsx`** — Remove the `onDismissExpiredPackage` call from `handleDismissAssignment`. The direct `package_assignments` update is sufficient for multi-assignment dismissals. After success, just set `dismissed(true)` (already there) which hides the card optimistically.
 
-1. **Add a helper** at the top of the component to detect terminal assignment status:
 ```ts
-const isTerminalAssignment = ['bid_lost', 'bid_expired', 'bid_cancelled'].includes(pkg._assignmentStatus);
+// Line 95: remove onDismissExpiredPackage?.(pkg.id);
 ```
 
-2. **Override status badge for terminal assignments** — On the desktop badge (line 602), when `isTerminalAssignment` is true, show an assignment-specific badge instead of `TravelerPackageStatusBadge`:
-   - `bid_lost` → "❌ No seleccionado" (red)
-   - `bid_expired` → "⏰ Expirada" (amber)
-   - `bid_cancelled` → "Cancelada" (gray)
+**2. `traveler_dismiss_package` RPC (migration)** — Update the function to also handle multi-assignment dismissals. Instead of failing when `matched_trip_id IS NULL`, check the `package_assignments` table for ownership:
 
-3. **Mobile status button override** — On the mobile status button (lines 355-372), when `isTerminalAssignment`, show the assignment status label instead of the package status.
+- If `matched_trip_id` is not null → existing logic (legacy path)
+- If `matched_trip_id` is null → find assignment via `package_assignments` where `trip_id` belongs to the traveler, mark it `dismissed_by_traveler = true`
 
-4. **Add dismiss button for all terminal assignments** — Expand the mobile dismiss condition (line 375) from `isQuoteExpired(pkg)` to also include `isTerminalAssignment`:
-```tsx
-{(isQuoteExpired(pkg) || isTerminalAssignment) && pkg._assignmentId && (
-  <Button ...onClick={() => setShowDismissConfirm(true)}>
-    Descartar de mis viajes
-  </Button>
-)}
-```
+This ensures the fallback dismiss buttons (for packages without `_assignmentId`) also work.
 
-5. **Desktop status messages** — Add a block before the `pkg.status === 'matched'` check (line 434) that renders the terminal assignment message with dismiss button for ANY package status when `isTerminalAssignment` is true, preventing the confusing package-level status messages from showing.
-
-**File: `src/components/dashboard/traveler/TravelerPackageStatusBadge.tsx`**
-
-No changes needed — the override happens at the card level.
-
-### Summary of changes
-- 1 file modified: `CollapsibleTravelerPackageCard.tsx`
-- Terminal assignments show assignment-specific status instead of package status
-- Dismiss button appears for all terminal assignment states (mobile + desktop)
-- Uses existing `handleDismissAssignment` + `AlertDialog` confirmation flow
+### Changes
+- 1 file edited: `CollapsibleTravelerPackageCard.tsx`
+- 1 migration: update `traveler_dismiss_package` RPC
 
