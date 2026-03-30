@@ -64,7 +64,7 @@ export const GMVChart = ({ data }: GMVChartProps) => {
               <DollarSign className="h-5 w-5 text-primary" />
               Evolución del GMV
             </CardTitle>
-            <CardDescription>Valor bruto de paquetes pagados (USD)</CardDescription>
+            <CardDescription>Valor de productos pagados (USD)</CardDescription>
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold">${totalGMV.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
