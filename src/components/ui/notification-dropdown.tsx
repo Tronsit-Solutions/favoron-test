@@ -111,10 +111,10 @@ const getActionUrl = (notification: Notification): string | null => {
 };
 
 export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownProps) => {
-  const { notifications, loading, unreadCount, markAsRead, markAllAsRead } = useNotifications(userId);
+  const { notifications, loading, loadingMore, unreadCount, hasMore, markAsRead, markAllAsRead, fetchMore } = useNotifications(userId);
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-
+  const [sheetOpen, setSheetOpen] = useState(false);
   const handleNotificationClick = (notification: Notification) => {
     // Close the popover
     setOpen(false);
