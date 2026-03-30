@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Package, Plane, DollarSign, TrendingUp, TrendingDown, Percent, Coins } from "lucide-react";
+import { Users, Package, Plane, DollarSign, TrendingUp, TrendingDown, Percent, Coins, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface KPICardsProps {
