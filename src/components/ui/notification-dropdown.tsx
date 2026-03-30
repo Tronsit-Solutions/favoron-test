@@ -131,6 +131,7 @@ export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownP
   };
 
   return (
+    <>
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" className="relative">
