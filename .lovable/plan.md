@@ -1,54 +1,35 @@
 
 
-## Expirar zombies `bid_submitted` → paquete a `quote_expired`
+## Abrir hoja completa de notificaciones
 
-### Contexto
-La migración anterior les dio 48h más de vida a los zombies. El usuario quiere expirarlos **ahora** y que los paquetes vayan a `quote_expired` (no `approved`) para que el shopper los recotice.
+### Problema
+El dropdown de notificaciones solo carga 20 items (`limit(20)`) y el botón "Ver todas las notificaciones" no hace nada. No hay scroll infinito ni paginación.
+
+### Solución
+Crear un **Sheet** (panel lateral) que se abra al hacer clic en "Ver todas las notificaciones", con scroll infinito para cargar más notificaciones.
 
 ### Cambios
 
-**1. Migración SQL — Modificar Step 2b de `expire_unresponded_assignments()`**
+**1. Nuevo componente `NotificationSheet.tsx`**
+- Sheet lateral con lista completa de notificaciones
+- Paginación con "cargar más" (load more) — carga de 20 en 20
+- Mismo diseño de cada notificación que el dropdown
+- Botón "Marcar todas como leídas"
+- Filtros simples: Todas / No leídas
 
-Cuando todos los assignments de un paquete expiran (remaining_active = 0), cambiar el estado del paquete de `approved` a `quote_expired`:
+**2. Modificar `useNotifications.tsx`**
+- Agregar función `fetchMore()` que carga la siguiente página usando `.range(offset, offset+19)`
+- Agregar estado `hasMore` para saber si hay más notificaciones
+- Mantener el `limit(20)` inicial para el dropdown
 
-```sql
--- Línea 220 actual:
-SET status = 'approved',
-
--- Cambiar a:
-SET status = 'quote_expired',
-```
-
-Esto aplica para el futuro: cada vez que todos los viajeros asignados a un paquete expiren, el paquete irá a `quote_expired` en lugar de `approved`.
-
-**2. Data fix inmediato (insert tool) — Expirar zombies ahora**
-
-Dos operaciones:
-- Marcar todos los `bid_submitted` zombie como `bid_expired`
-- Actualizar los paquetes correspondientes (que no tengan assignments activos restantes) a `quote_expired`
-
-```sql
--- A: Expirar assignments zombie
-UPDATE package_assignments
-SET status = 'bid_expired', expires_at = NULL, updated_at = NOW()
-WHERE status = 'bid_submitted';
-
--- B: Mover paquetes sin assignments activos a quote_expired
-UPDATE packages
-SET status = 'quote_expired', matched_trip_id = NULL, updated_at = NOW()
-WHERE id IN (
-  SELECT DISTINCT pa.package_id FROM package_assignments pa
-  WHERE pa.status = 'bid_expired'
-)
-AND NOT EXISTS (
-  SELECT 1 FROM package_assignments pa2
-  WHERE pa2.package_id = packages.id
-  AND pa2.status IN ('bid_pending', 'bid_submitted', 'bid_won')
-)
-AND status IN ('matched', 'quote_sent');
-```
+**3. Modificar `notification-dropdown.tsx`**
+- El botón "Ver todas las notificaciones" abre el Sheet (estado controlado)
+- Cerrar el popover al abrir el sheet
 
 ### Archivos
-- 1 migración SQL (función `expire_unresponded_assignments` con `quote_expired`)
-- 1 data fix via insert tool (expiración inmediata de zombies)
+| Archivo | Acción |
+|---|---|
+| `src/components/ui/NotificationSheet.tsx` | Crear |
+| `src/hooks/useNotifications.tsx` | Agregar `fetchMore`, `hasMore` |
+| `src/components/ui/notification-dropdown.tsx` | Conectar botón al Sheet |
 
