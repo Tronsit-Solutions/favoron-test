@@ -92,7 +92,6 @@ const CollapsibleTravelerPackageCard = ({
       if (error) throw error;
       toast({ title: "Asignación descartada", description: "Ya no verás este pedido en tu dashboard." });
       setDismissed(true);
-      onDismissExpiredPackage?.(pkg.id);
     } catch (err) {
       toast({ title: "Error", description: "No se pudo descartar", variant: "destructive" });
     } finally {
