@@ -1,35 +1,23 @@
 
 
-## Abrir hoja completa de notificaciones
+## Cambiar mensaje de notificación al viajero
 
 ### Problema
-El dropdown de notificaciones solo carga 20 items (`limit(20)`) y el botón "Ver todas las notificaciones" no hace nada. No hay scroll infinito ni paginación.
+Cuando el admin confirma la recepción de un paquete en oficina, el viajero recibe la notificación con el mensaje "Tu pago está siendo procesado", lo cual es incorrecto. Debería indicarle que ya puede crear su orden de cobro.
 
-### Solución
-Crear un **Sheet** (panel lateral) que se abra al hacer clic en "Ver todas las notificaciones", con scroll infinito para cargar más notificaciones.
+### Cambio
+Una migración SQL que actualiza la función `notify_traveler_package_status`, cambiando únicamente el mensaje del bloque #5 (confirmación en oficina):
 
-### Cambios
+**Antes:**
+> "¡Perfecto! Favorón ha confirmado la recepción del paquete "X" en nuestras oficinas. Tu pago está siendo procesado."
 
-**1. Nuevo componente `NotificationSheet.tsx`**
-- Sheet lateral con lista completa de notificaciones
-- Paginación con "cargar más" (load more) — carga de 20 en 20
-- Mismo diseño de cada notificación que el dropdown
-- Botón "Marcar todas como leídas"
-- Filtros simples: Todas / No leídas
+**Después:**
+> "¡Perfecto! Favorón ha confirmado la recepción del paquete "X" en nuestras oficinas. Ya puedes crear tu orden de cobro."
 
-**2. Modificar `useNotifications.tsx`**
-- Agregar función `fetchMore()` que carga la siguiente página usando `.range(offset, offset+19)`
-- Agregar estado `hasMore` para saber si hay más notificaciones
-- Mantener el `limit(20)` inicial para el dropdown
-
-**3. Modificar `notification-dropdown.tsx`**
-- El botón "Ver todas las notificaciones" abre el Sheet (estado controlado)
-- Cerrar el popover al abrir el sheet
-
-### Archivos
+### Archivo
 | Archivo | Acción |
 |---|---|
-| `src/components/ui/NotificationSheet.tsx` | Crear |
-| `src/hooks/useNotifications.tsx` | Agregar `fetchMore`, `hasMore` |
-| `src/components/ui/notification-dropdown.tsx` | Conectar botón al Sheet |
+| `supabase/migrations/new_migration.sql` | `CREATE OR REPLACE FUNCTION` con mensaje corregido |
+
+Solo se modifica una línea dentro de la función existente.
 
