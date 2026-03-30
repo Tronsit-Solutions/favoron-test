@@ -375,6 +375,7 @@ export const useDynamicReports = (months: number = 12) => {
       totalTrips,
       totalRevenue,
       totalTips,
+      totalProducts,
       completionRate: totalPackages > 0 ? (totalCompletedPackages / totalPackages) * 100 : 0,
       avgPackageValue: totalCompletedPackages > 0 ? totalGMV / totalCompletedPackages : 0,
       momUserGrowth,
