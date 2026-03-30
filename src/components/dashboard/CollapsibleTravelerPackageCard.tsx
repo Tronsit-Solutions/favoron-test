@@ -465,7 +465,33 @@ const CollapsibleTravelerPackageCard = ({
                     
                     {/* Status message moved here - below price/tip on left side */}
                     <div className="text-xs mt-2 text-left">
-                      {pkg.status === 'matched' && (
+                      {['bid_lost', 'bid_expired', 'bid_cancelled'].includes(pkg._assignmentStatus) ? (
+                        pkg._assignmentStatus === 'bid_lost' ? (
+                          <div className="flex items-center justify-between gap-2 w-full">
+                            <div className="font-medium text-red-700">❌ Otro viajero fue seleccionado</div>
+                            <Button size="sm" variant="destructive" className="text-sm h-9 px-4 flex-shrink-0" onClick={(e) => { e.stopPropagation(); setShowDismissConfirm(true); }} disabled={dismissing}>
+                              <X className="h-3 w-3 mr-1" />
+                              {dismissing ? 'Descartando...' : 'Descartar'}
+                            </Button>
+                          </div>
+                        ) : pkg._assignmentStatus === 'bid_expired' ? (
+                          <div className="flex items-center justify-between gap-2 w-full">
+                            <div className="font-medium text-yellow-700">⏰ Asignación expirada</div>
+                            <Button size="sm" variant="destructive" className="text-sm h-9 px-4 flex-shrink-0" onClick={(e) => { e.stopPropagation(); setShowDismissConfirm(true); }} disabled={dismissing}>
+                              <X className="h-3 w-3 mr-1" />
+                              {dismissing ? 'Descartando...' : 'Descartar'}
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between gap-2 w-full">
+                            <div className="font-medium text-muted-foreground">Asignación cancelada</div>
+                            <Button size="sm" variant="destructive" className="text-sm h-9 px-4 flex-shrink-0" onClick={(e) => { e.stopPropagation(); setShowDismissConfirm(true); }} disabled={dismissing}>
+                              <X className="h-3 w-3 mr-1" />
+                              {dismissing ? 'Descartando...' : 'Descartar'}
+                            </Button>
+                          </div>
+                        )
+                      ) : pkg.status === 'matched' && (
                         pkg._assignmentStatus === 'bid_submitted' ? (
                           <div className="font-medium text-green-700">✅ Cotización enviada — esperando al comprador</div>
                         ) : pkg._assignmentStatus === 'bid_won' ? (
