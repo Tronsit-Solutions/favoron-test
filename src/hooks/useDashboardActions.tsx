@@ -1288,13 +1288,17 @@ export const useDashboardActions = (
       }
     }
 
-    // Single atomic RPC call — replaces SELECT + INSERT + UPDATE
-    const { data: rpcResult, error: rpcError } = await supabase.rpc('assign_package_to_travelers', {
-      _package_id: packageId,
-      _trip_ids: tripIdsToAssign,
-      _admin_tip: adminTip,
-      _products_data: updatedProductsData || null
-    });
+    // Single atomic RPC call with retry for transient network errors
+    const { data: rpcResult, error: rpcError } = await withRetry(
+      () => supabase.rpc('assign_package_to_travelers', {
+        _package_id: packageId,
+        _trip_ids: tripIdsToAssign,
+        _admin_tip: adminTip,
+        _products_data: updatedProductsData || null
+      }),
+      'assign_package_to_travelers',
+      { maxRetries: 1, baseDelay: 2000 }
+    );
 
     if (rpcError) {
       console.error('Error in assign_package_to_travelers RPC:', rpcError);
