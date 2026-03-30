@@ -95,7 +95,7 @@ export const GMVChart = ({ data }: GMVChartProps) => {
                 yAxisId="right"
                 orientation="right"
                 tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `Q${(value / 1000).toFixed(0)}k`}
+                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                 className="text-muted-foreground"
               />
               <ChartTooltip
