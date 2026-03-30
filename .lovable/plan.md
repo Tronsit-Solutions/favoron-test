@@ -1,43 +1,37 @@
 
 
-## Fix: Expire package_assignments when quotes expire
+## Limpieza de assignments stale — paquetes cancelados
 
-### Problem
-When `expire_old_quotes()` runs, it sets the package status to `quote_expired` and clears `matched_trip_id`, but the related rows in `package_assignments` remain as `bid_submitted`. These "zombie" assignments are counted in the "Productos Pendientes" totals in the admin match dialog.
+### Hallazgo actual
 
-### Solution
-Update the `expire_old_quotes()` SQL function to also set all active `package_assignments` for that package to `bid_cancelled` when the quote expires.
+| Assignment Status | Package Status | Cantidad | ¿Stale? |
+|---|---|---|---|
+| bid_submitted | cancelled | 3 | Sí |
+| bid_won | pending_purchase | 5 | No (legítimo) |
 
-### Changes
+Los paquetes `quote_expired` ya fueron limpiados en la migración anterior. Solo quedan **3 assignments en `bid_submitted` para paquetes `cancelled`** que necesitan corregirse.
 
-**1. Database migration — update `expire_old_quotes()` function**
+### Cambios
 
-Add this line inside the loop, after updating the package:
+**1. Data cleanup — cancelar las 3 assignments stale restantes**
 
-```sql
--- Cancel all active assignments for this package
-UPDATE public.package_assignments
-SET status = 'bid_cancelled', updated_at = NOW()
-WHERE package_id = package_record.id
-  AND status IN ('bid_pending', 'bid_submitted', 'bid_won');
-```
-
-**2. One-time data cleanup — fix existing stale assignments**
-
-Run via the insert tool (not migration) to retroactively fix assignments that are already stuck:
-
+Ejecutar via insert tool:
 ```sql
 UPDATE public.package_assignments
 SET status = 'bid_cancelled', updated_at = NOW()
 WHERE status IN ('bid_submitted', 'bid_pending', 'bid_won')
   AND package_id IN (
     SELECT id FROM public.packages
-    WHERE status IN ('quote_expired', 'approved', 'quote_rejected')
+    WHERE status IN ('cancelled', 'rejected', 'deadline_expired', 'quote_expired', 'quote_rejected')
       AND matched_trip_id IS NULL
   );
 ```
 
-### Files
-- New migration: `expire_old_quotes()` function update
-- Data fix via insert tool
+**2. Prevención futura — actualizar lógica de cancelación de paquetes**
+
+Buscar en el código dónde se cancela un paquete (probablemente un handler que hace `UPDATE packages SET status = 'cancelled'`) y agregar la cancelación automática de `package_assignments` activos, igual que se hizo con `expire_old_quotes()`.
+
+### Archivos a revisar
+- Handlers de cancelación de paquetes en el frontend (buscar `cancelled` en updates a packages)
+- Data fix via insert tool para las 3 assignments existentes
 
