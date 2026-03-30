@@ -491,159 +491,139 @@ const CollapsibleTravelerPackageCard = ({
                             </Button>
                           </div>
                         )
-                      ) : pkg.status === 'matched' && (
-                        pkg._assignmentStatus === 'bid_submitted' ? (
-                          <div className="font-medium text-green-700">✅ Cotización enviada — esperando al comprador</div>
-                        ) : pkg._assignmentStatus === 'bid_won' ? (
-                          <div className="font-medium text-green-700">🎉 ¡El shopper te eligió!</div>
-                        ) : pkg._assignmentStatus === 'bid_lost' ? (
-                          <div className="flex items-center justify-between gap-2 w-full">
-                            <div className="font-medium text-red-700">❌ Otro viajero fue seleccionado</div>
-                            <Button size="sm" variant="destructive" className="text-sm h-9 px-4 flex-shrink-0" onClick={(e) => { e.stopPropagation(); setShowDismissConfirm(true); }} disabled={dismissing}>
-                              <X className="h-3 w-3 mr-1" />
-                              {dismissing ? 'Descartando...' : 'Descartar'}
-                            </Button>
-                          </div>
-                        ) : pkg._assignmentStatus === 'bid_expired' ? (
-                          <div className="flex items-center justify-between gap-2 w-full">
-                            <div className="font-medium text-yellow-700">⏰ Asignación expirada</div>
-                            <Button size="sm" variant="destructive" className="text-sm h-9 px-4 flex-shrink-0" onClick={(e) => { e.stopPropagation(); setShowDismissConfirm(true); }} disabled={dismissing}>
-                              <X className="h-3 w-3 mr-1" />
-                              {dismissing ? 'Descartando...' : 'Descartar'}
-                            </Button>
-                          </div>
-                        ) : pkg._assignmentStatus === 'bid_cancelled' ? (
-                          <div className="flex items-center justify-between gap-2 w-full">
-                            <div className="font-medium text-muted-foreground">Asignación cancelada</div>
-                            <Button size="sm" variant="destructive" className="text-sm h-9 px-4 flex-shrink-0" onClick={(e) => { e.stopPropagation(); setShowDismissConfirm(true); }} disabled={dismissing}>
-                              <X className="h-3 w-3 mr-1" />
-                              {dismissing ? 'Descartando...' : 'Descartar'}
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="font-medium text-blue-600">🔗 Paquete emparejado - Envía tu cotización</div>
-                        )
-                      )}
-                     {pkg.status === 'quote_sent' && (
-                         <div className="space-y-2">
-                           <div className="text-muted-foreground">
-                             📝 Cotización enviada - Esperando respuesta del shopper
-                           </div>
-                           {pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date() && (
-                             <div className="flex flex-col gap-2">
-                               <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
-                               <p className="text-xs text-amber-600">
-                                 ⚠️ Si el shopper no acepta en este tiempo, el paquete se removerá de tu viaje automáticamente.
-                               </p>
-                             </div>
-                           )}
-                         </div>
-                       )}
-                      {pkg.status === 'payment_pending' && (
-                        <div className="space-y-2">
-                          <div className="font-medium text-amber-600">
-                            💰 Pendiente de pago - El shopper aceptó la cotización
-                          </div>
-                          {pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date() && (
-                            <div className="flex flex-col gap-2">
-                              <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
-                              <p className="text-xs text-amber-600">
-                                ⚠️ Si el shopper no paga en este tiempo, el paquete se removerá de tu viaje automáticamente.
-                              </p>
+                      ) : (
+                        <>
+                          {pkg.status === 'matched' && (
+                            pkg._assignmentStatus === 'bid_submitted' ? (
+                              <div className="font-medium text-green-700">✅ Cotización enviada — esperando al comprador</div>
+                            ) : pkg._assignmentStatus === 'bid_won' ? (
+                              <div className="font-medium text-green-700">🎉 ¡El shopper te eligió!</div>
+                            ) : (
+                              <div className="font-medium text-blue-600">🔗 Paquete emparejado - Envía tu cotización</div>
+                            )
+                          )}
+                          {pkg.status === 'quote_sent' && (
+                            <div className="space-y-2">
+                              <div className="text-muted-foreground">
+                                📝 Cotización enviada - Esperando respuesta del shopper
+                              </div>
+                              {pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date() && (
+                                <div className="flex flex-col gap-2">
+                                  <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
+                                  <p className="text-xs text-amber-600">
+                                    ⚠️ Si el shopper no acepta en este tiempo, el paquete se removerá de tu viaje automáticamente.
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           )}
-                        </div>
-                      )}
-                      {pkg.status === 'quote_accepted' && (
-                        <div className="space-y-2">
-                          <div className="font-medium text-green-600">
-                            ✅ Cotización aceptada - Esperando pago del shopper
-                          </div>
-                          {pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date() && (
-                            <div className="flex flex-col gap-2">
-                              <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
-                              <p className="text-xs text-amber-600">
-                                ⚠️ Si el shopper no paga en este tiempo, el paquete se removerá de tu viaje automáticamente.
-                              </p>
+                          {pkg.status === 'payment_pending' && (
+                            <div className="space-y-2">
+                              <div className="font-medium text-amber-600">
+                                💰 Pendiente de pago - El shopper aceptó la cotización
+                              </div>
+                              {pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date() && (
+                                <div className="flex flex-col gap-2">
+                                  <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
+                                  <p className="text-xs text-amber-600">
+                                    ⚠️ Si el shopper no paga en este tiempo, el paquete se removerá de tu viaje automáticamente.
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           )}
-                        </div>
-                      )}
-                      {pkg.status === 'pending_purchase' && (
-                        <div className="font-medium text-blue-600">
-                          💳 Pago confirmado - El cliente ya pagó la cotización y pronto subirá el comprobante de compra
-                        </div>
-                      )}
-                      {pkg.status === 'in_transit' && (
-                        <div className="font-medium text-orange-600">
-                          🚚 En tránsito - Confirma cuando recibas
-                        </div>
-                      )}
-                      {pkg.status === 'received_by_traveler' && (
-                        <div className="font-medium text-green-600">
-                          ✅ Paquete recibido y confirmado
-                          {pkg.traveler_confirmation?.confirmedAt && (
-                            <div className="text-muted-foreground mt-0.5">
-                              Confirmado el: {new Date(pkg.traveler_confirmation.confirmedAt).toLocaleDateString('es-GT')}
+                          {pkg.status === 'quote_accepted' && (
+                            <div className="space-y-2">
+                              <div className="font-medium text-green-600">
+                                ✅ Cotización aceptada - Esperando pago del shopper
+                              </div>
+                              {pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date() && (
+                                <div className="flex flex-col gap-2">
+                                  <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
+                                  <p className="text-xs text-amber-600">
+                                    ⚠️ Si el shopper no paga en este tiempo, el paquete se removerá de tu viaje automáticamente.
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           )}
-                        </div>
-                      )}
-                      {pkg.status === 'pending_office_confirmation' && (
-                        <div className="space-y-1">
-                          <div className="font-medium text-amber-600">
-                            ⏳ Esperando confirmación de oficina
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Has declarado la entrega. Podrás crear tu orden de cobro una vez que Favorón confirme la recepción.
-                          </div>
-                        </div>
-                      )}
-                      {pkg.status === 'delivered_to_office' && (
-                        <div className="space-y-1">
-                          <div className="font-medium text-green-600">
-                            ✅ Entrega confirmada por Favorón
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            El paquete está listo para que el shopper lo recoja.
-                          </div>
-                        </div>
-                      )}
-                      {pkg.status === 'completed' && (
-                        <div className="font-medium text-green-600">
-                          ✅ Completado - Paquete entregado exitosamente
-                        </div>
-                      )}
-                      {pkg.status === 'cancelled' && (
-                        <div className="font-medium text-red-600">
-                          ❌ Cancelado
-                        </div>
-                      )}
-                      {isQuoteExpired(pkg) && (
-                        <div className="space-y-2">
-                          <div className="font-medium text-amber-600">
-                            ⏰ Cotización expirada - El shopper no pagó a tiempo
-                          </div>
-                          {onDismissExpiredPackage && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onDismissExpiredPackage(pkg.id);
-                              }}
-                              className="text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
-                            >
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Descartar de mis viajes
-                            </Button>
+                          {pkg.status === 'pending_purchase' && (
+                            <div className="font-medium text-blue-600">
+                              💳 Pago confirmado - El cliente ya pagó la cotización y pronto subirá el comprobante de compra
+                            </div>
                           )}
-                        </div>
-                      )}
-                      {pkg.status === 'pending_approval' && (
-                        <div className="font-medium text-amber-600">
-                          ⏳ Pendiente de aprobación
-                        </div>
+                          {pkg.status === 'in_transit' && (
+                            <div className="font-medium text-orange-600">
+                              🚚 En tránsito - Confirma cuando recibas
+                            </div>
+                          )}
+                          {pkg.status === 'received_by_traveler' && (
+                            <div className="font-medium text-green-600">
+                              ✅ Paquete recibido y confirmado
+                              {pkg.traveler_confirmation?.confirmedAt && (
+                                <div className="text-muted-foreground mt-0.5">
+                                  Confirmado el: {new Date(pkg.traveler_confirmation.confirmedAt).toLocaleDateString('es-GT')}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {pkg.status === 'pending_office_confirmation' && (
+                            <div className="space-y-1">
+                              <div className="font-medium text-amber-600">
+                                ⏳ Esperando confirmación de oficina
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Has declarado la entrega. Podrás crear tu orden de cobro una vez que Favorón confirme la recepción.
+                              </div>
+                            </div>
+                          )}
+                          {pkg.status === 'delivered_to_office' && (
+                            <div className="space-y-1">
+                              <div className="font-medium text-green-600">
+                                ✅ Entrega confirmada por Favorón
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                El paquete está listo para que el shopper lo recoja.
+                              </div>
+                            </div>
+                          )}
+                          {pkg.status === 'completed' && (
+                            <div className="font-medium text-green-600">
+                              ✅ Completado - Paquete entregado exitosamente
+                            </div>
+                          )}
+                          {pkg.status === 'cancelled' && (
+                            <div className="font-medium text-red-600">
+                              ❌ Cancelado
+                            </div>
+                          )}
+                          {isQuoteExpired(pkg) && (
+                            <div className="space-y-2">
+                              <div className="font-medium text-amber-600">
+                                ⏰ Cotización expirada - El shopper no pagó a tiempo
+                              </div>
+                              {onDismissExpiredPackage && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDismissExpiredPackage(pkg.id);
+                                  }}
+                                  className="text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
+                                >
+                                  <Trash2 className="h-3 w-3 mr-1" />
+                                  Descartar de mis viajes
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                          {pkg.status === 'pending_approval' && (
+                            <div className="font-medium text-amber-600">
+                              ⏳ Pendiente de aprobación
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
