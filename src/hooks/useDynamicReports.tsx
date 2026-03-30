@@ -402,6 +402,7 @@ function getEmptyKPIs(): KPIData {
     totalTrips: 0,
     totalRevenue: 0,
     totalTips: 0,
+    totalProducts: 0,
     completionRate: 0,
     avgPackageValue: 0,
     momUserGrowth: 0,

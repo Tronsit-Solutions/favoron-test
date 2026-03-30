@@ -63,6 +63,14 @@ export const KPICards = ({ kpis }: KPICardsProps) => {
       bgColor: "bg-purple-50",
     },
     {
+      title: "Productos Enviados",
+      value: kpis.totalProducts.toLocaleString(),
+      icon: ShoppingCart,
+      description: "productos completados",
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+    },
+    {
       title: "Total Viajes",
       value: kpis.totalTrips.toLocaleString(),
       icon: Plane,

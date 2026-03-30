@@ -2342,6 +2342,7 @@ export type Database = {
         Returns: {
           cancelled_count: number
           completed_count: number
+          completed_product_count: number
           delivery_fee: number
           gmv: number
           month: string
