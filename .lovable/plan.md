@@ -1,37 +1,64 @@
 
 
-## Limpieza de assignments stale — paquetes cancelados
+## Timer de 24h para `bid_submitted` — ventana de decisión del shopper
 
-### Hallazgo actual
+### Problema
+Cuando un viajero envía su cotización (`bid_pending` → `bid_submitted`), el trigger `set_assignment_bid_expiration` **borra** `expires_at`. Esto deja el assignment sin expiración, y el paquete queda atrapado en `matched` indefinidamente si el shopper nunca selecciona ganador.
 
-| Assignment Status | Package Status | Cantidad | ¿Stale? |
-|---|---|---|---|
-| bid_submitted | cancelled | 3 | Sí |
-| bid_won | pending_purchase | 5 | No (legítimo) |
+### Solución
 
-Los paquetes `quote_expired` ya fueron limpiados en la migración anterior. Solo quedan **3 assignments en `bid_submitted` para paquetes `cancelled`** que necesitan corregirse.
+**1 migración SQL** con 3 cambios:
 
-### Cambios
+**A. Modificar trigger `set_assignment_bid_expiration`**
 
-**1. Data cleanup — cancelar las 3 assignments stale restantes**
+En lugar de borrar `expires_at` al pasar a `bid_submitted`, setear 24h desde ese momento:
 
-Ejecutar via insert tool:
 ```sql
-UPDATE public.package_assignments
-SET status = 'bid_cancelled', updated_at = NOW()
-WHERE status IN ('bid_submitted', 'bid_pending', 'bid_won')
-  AND package_id IN (
-    SELECT id FROM public.packages
-    WHERE status IN ('cancelled', 'rejected', 'deadline_expired', 'quote_expired', 'quote_rejected')
-      AND matched_trip_id IS NULL
-  );
+-- Antes:
+IF NEW.status = 'bid_submitted' AND OLD.status = 'bid_pending' THEN
+  NEW.expires_at = NULL;  -- ❌ borra el timer
+
+-- Después:
+IF NEW.status = 'bid_submitted' AND OLD.status = 'bid_pending' THEN
+  NEW.expires_at = NOW() + INTERVAL '24 hours';  -- ✅ 24h para que el shopper decida
 ```
 
-**2. Prevención futura — actualizar lógica de cancelación de paquetes**
+**B. Ampliar `expire_unresponded_assignments()` — nuevo Step 2c**
 
-Buscar en el código dónde se cancela un paquete (probablemente un handler que hace `UPDATE packages SET status = 'cancelled'`) y agregar la cancelación automática de `package_assignments` activos, igual que se hizo con `expire_old_quotes()`.
+Agregar un bloque que expire assignments en `bid_submitted` cuyo `expires_at < NOW()`:
 
-### Archivos a revisar
-- Handlers de cancelación de paquetes en el frontend (buscar `cancelled` en updates a packages)
-- Data fix via insert tool para las 3 assignments existentes
+```sql
+-- Step 2c: Expire bid_submitted past shopper decision window
+FOR assignment_record IN
+  SELECT pa.id, pa.package_id, pa.trip_id, ...
+  FROM package_assignments pa
+  WHERE pa.status = 'bid_submitted'
+    AND pa.expires_at IS NOT NULL
+    AND pa.expires_at < NOW()
+LOOP
+  UPDATE package_assignments
+  SET status = 'bid_expired', updated_at = NOW(), expires_at = NULL
+  WHERE id = assignment_record.id;
+  -- + notificación al viajero y al shopper
+END LOOP;
+```
+
+La lógica existente de Step 2b ya se encarga de devolver el paquete a `approved` si todos los assignments terminan en estado terminal.
+
+**C. Data fix retroactivo**
+
+Setear `expires_at = NOW() + INTERVAL '24 hours'` para los assignments actualmente en `bid_submitted` sin expiración (los 18 que encontramos antes).
+
+### Resultado
+
+```text
+bid_pending ──(24h)──→ bid_expired
+bid_pending ──(viajero cotiza)──→ bid_submitted ──(24h)──→ bid_expired
+                                                 ──(shopper elige)──→ bid_won ✅
+```
+
+Si todos los assignments expiran, el paquete vuelve automáticamente a `approved`.
+
+### Archivos
+- 1 migración SQL (trigger + función + data fix)
 
