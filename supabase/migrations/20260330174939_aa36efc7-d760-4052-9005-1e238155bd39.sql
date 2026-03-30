@@ -1,0 +1,1 @@
+ALTER TABLE marketing_investments DROP CONSTRAINT marketing_investments_channel_month_key;
