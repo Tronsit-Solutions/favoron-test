@@ -67,7 +67,7 @@ export const GMVChart = ({ data }: GMVChartProps) => {
             <CardDescription>Valor bruto de paquetes pagados (USD)</CardDescription>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold">Q{totalGMV.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+            <div className="text-2xl font-bold">${totalGMV.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
             <div className={`flex items-center gap-1 text-sm ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
               {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
               {isPositive ? '+' : ''}{momGrowth.toFixed(1)}% MoM
