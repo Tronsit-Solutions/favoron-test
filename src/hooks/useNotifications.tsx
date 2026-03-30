@@ -88,6 +88,32 @@ export const useNotifications = (userId?: string) => {
     }
   };
 
+  // Fetch more notifications (pagination)
+  const fetchMore = async () => {
+    if (!userId || loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+    try {
+      const offset = notifications.length;
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      if (error) throw error;
+
+      const newItems = (data || []) as Notification[];
+      setNotifications(prev => [...prev, ...newItems]);
+      setHasMore(newItems.length >= PAGE_SIZE);
+    } catch (error) {
+      console.error('Error fetching more notifications:', error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   // Create notification
   const createNotification = async (
     targetUserId: string,
