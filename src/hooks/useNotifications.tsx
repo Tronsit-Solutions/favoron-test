@@ -19,8 +19,11 @@ export interface Notification {
 export const useNotifications = (userId?: string) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const { toast } = useToast();
+  const PAGE_SIZE = 20;
 
   // Fetch notifications
   const fetchNotifications = async () => {
