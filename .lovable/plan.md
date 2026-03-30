@@ -1,32 +1,42 @@
 
 
-## Fix: "No se pudo descartar el paquete" error for terminal assignments
+## Fix: GMV should only include product price
 
-### Root cause
+### What's wrong
 
-There are **two dismiss paths** that collide:
-
-1. **Card-level** (`handleDismissAssignment`, line 84): Updates `package_assignments.dismissed_by_traveler = true` directly — this **succeeds**.
-2. **Dashboard-level** (`onDismissExpiredPackage` → `handleDismissExpiredPackage`): Calls the `traveler_dismiss_package` RPC — this **fails** because the RPC requires `matched_trip_id` to be non-null, but in the multi-assignment architecture, terminal packages often have `matched_trip_id = NULL`.
-
-The problem: after the card-level update succeeds (line 92), it immediately calls `onDismissExpiredPackage?.(pkg.id)` on line 95, triggering the RPC which throws "Paquete no asignado a ningún viaje" → the error toast overrides the success toast.
-
-### Solution
-
-**1. `CollapsibleTravelerPackageCard.tsx`** — Remove the `onDismissExpiredPackage` call from `handleDismissAssignment`. The direct `package_assignments` update is sufficient for multi-assignment dismissals. After success, just set `dismissed(true)` (already there) which hides the card optimistically.
-
-```ts
-// Line 95: remove onDismissExpiredPackage?.(pkg.id);
-```
-
-**2. `traveler_dismiss_package` RPC (migration)** — Update the function to also handle multi-assignment dismissals. Instead of failing when `matched_trip_id IS NULL`, check the `package_assignments` table for ownership:
-
-- If `matched_trip_id` is not null → existing logic (legacy path)
-- If `matched_trip_id` is null → find assignment via `package_assignments` where `trip_id` belongs to the traveler, mark it `dismissed_by_traveler = true`
-
-This ensures the fallback dismiss buttons (for packages without `_assignmentId`) also work.
+GMV is currently calculated using `quote->>'totalPrice'` which sums product price + service fee + delivery fee. You've clarified that **GMV = product price only** (the `quote->>'price'` field, i.e., the traveler tip/compensation).
 
 ### Changes
-- 1 file edited: `CollapsibleTravelerPackageCard.tsx`
-- 1 migration: update `traveler_dismiss_package` RPC
+
+**1. Database migration — Update `get_monthly_package_stats` RPC**
+
+Change the GMV aggregation from:
+```sql
+COALESCE((p.quote->>'totalPrice')::numeric, 0)
+```
+to:
+```sql
+COALESCE((p.quote->>'price')::numeric, 0)
+```
+
+**2. Frontend — `src/hooks/useDynamicReports.tsx`**
+
+Since GMV now equals just the product price (which is the same as traveler tips), the `travelerTips` derivation (`gmv - serviceFee - deliveryFee`) is no longer needed. Simplify:
+
+- `travelerTips` = `gmv` (they're the same thing now)
+- `profitMargin` calculation stays the same: `serviceFee / gmv * 100` — now represents fee as % of product value
+- `avgPackageValue` stays: `gmv / completedPackages` — now represents avg product price per package
+- Update KPI `totalTips` similarly: just use `gmv` directly
+
+**3. Frontend — `src/components/admin/charts/GMVChart.tsx`**
+
+Update the description label from "Valor bruto de paquetes pagados (USD)" to "Valor de productos pagados (USD)" to reflect the corrected definition.
+
+**4. Excel export — `DynamicReportsTab.tsx`**
+
+The revenue export row currently has `Propinas Viajeros (Q): d.travelerTips` — this will now correctly equal GMV. No structural change needed, just ensure labels are consistent.
+
+### Summary
+- 1 migration (update RPC)
+- 2 files edited: `useDynamicReports.tsx`, `GMVChart.tsx`
 
