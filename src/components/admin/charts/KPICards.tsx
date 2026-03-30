@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Package, Plane, DollarSign, TrendingUp, TrendingDown, Percent, Coins } from "lucide-react";
+import { Users, Package, Plane, DollarSign, TrendingUp, TrendingDown, Percent, Coins, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface KPICardsProps {
@@ -9,6 +9,7 @@ interface KPICardsProps {
     totalTrips: number;
     totalRevenue: number;
     totalTips: number;
+    totalProducts: number;
     completionRate: number;
     avgPackageValue: number;
     momUserGrowth: number;
@@ -60,6 +61,14 @@ export const KPICards = ({ kpis }: KPICardsProps) => {
       description: "paquetes creados",
       color: "text-purple-600",
       bgColor: "bg-purple-50",
+    },
+    {
+      title: "Productos Enviados",
+      value: kpis.totalProducts.toLocaleString(),
+      icon: ShoppingCart,
+      description: "productos completados",
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
     },
     {
       title: "Total Viajes",

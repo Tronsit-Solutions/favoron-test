@@ -18,6 +18,7 @@ interface MonthlyPackageStats {
   gmv: number;
   service_fee: number;
   delivery_fee: number;
+  completed_product_count: number;
 }
 
 interface MonthlyTripStats {
@@ -68,6 +69,7 @@ interface KPIData {
   totalTrips: number;
   totalRevenue: number;
   totalTips: number;
+  totalProducts: number;
   completionRate: number;
   avgPackageValue: number;
   momUserGrowth: number;
@@ -341,12 +343,14 @@ export const useDynamicReports = (months: number = 12) => {
     let totalTips = 0;
     let totalGMV = 0;
     let totalCompletedPackages = 0;
+    let totalProducts = 0;
     
     monthlyPackagesData.forEach(pkg => {
       totalGMV += Number(pkg.gmv);
       totalRevenue += Number(pkg.service_fee);
       totalTips += Math.max(0, Number(pkg.gmv) - Number(pkg.service_fee) - Number(pkg.delivery_fee));
       totalCompletedPackages += Number(pkg.completed_count);
+      totalProducts += Number(pkg.completed_product_count || 0);
     });
 
     // MoM calculations
@@ -371,6 +375,7 @@ export const useDynamicReports = (months: number = 12) => {
       totalTrips,
       totalRevenue,
       totalTips,
+      totalProducts,
       completionRate: totalPackages > 0 ? (totalCompletedPackages / totalPackages) * 100 : 0,
       avgPackageValue: totalCompletedPackages > 0 ? totalGMV / totalCompletedPackages : 0,
       momUserGrowth,
@@ -397,6 +402,7 @@ function getEmptyKPIs(): KPIData {
     totalTrips: 0,
     totalRevenue: 0,
     totalTips: 0,
+    totalProducts: 0,
     completionRate: 0,
     avgPackageValue: 0,
     momUserGrowth: 0,
