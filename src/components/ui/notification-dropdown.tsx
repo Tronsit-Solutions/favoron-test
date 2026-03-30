@@ -13,6 +13,7 @@ import { es } from "date-fns/locale";
 import { useNotifications, Notification } from "@/hooks/useNotifications";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { NotificationSheet } from "@/components/ui/NotificationSheet";
 
 interface NotificationDropdownProps {
   userId?: string;
