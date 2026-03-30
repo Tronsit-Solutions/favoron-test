@@ -13,6 +13,7 @@ import { es } from "date-fns/locale";
 import { useNotifications, Notification } from "@/hooks/useNotifications";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { NotificationSheet } from "@/components/ui/NotificationSheet";
 
 interface NotificationDropdownProps {
   userId?: string;
@@ -110,10 +111,10 @@ const getActionUrl = (notification: Notification): string | null => {
 };
 
 export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownProps) => {
-  const { notifications, loading, unreadCount, markAsRead, markAllAsRead } = useNotifications(userId);
+  const { notifications, loading, loadingMore, unreadCount, hasMore, markAsRead, markAllAsRead, fetchMore } = useNotifications(userId);
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-
+  const [sheetOpen, setSheetOpen] = useState(false);
   const handleNotificationClick = (notification: Notification) => {
     // Close the popover
     setOpen(false);
@@ -130,6 +131,7 @@ export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownP
   };
 
   return (
+    <>
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" className="relative">
@@ -217,7 +219,15 @@ export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownP
           <>
             <Separator />
             <div className="p-2">
-              <Button variant="ghost" size="sm" className="w-full text-xs">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-xs"
+                onClick={() => {
+                  setOpen(false);
+                  setSheetOpen(true);
+                }}
+              >
                 Ver todas las notificaciones
               </Button>
             </div>
@@ -225,5 +235,19 @@ export const NotificationDropdown = ({ userId, userRole }: NotificationDropdownP
         )}
       </PopoverContent>
     </Popover>
+
+    <NotificationSheet
+      open={sheetOpen}
+      onOpenChange={setSheetOpen}
+      notifications={notifications}
+      loading={loading}
+      loadingMore={loadingMore}
+      hasMore={hasMore}
+      unreadCount={unreadCount}
+      markAsRead={markAsRead}
+      markAllAsRead={markAllAsRead}
+      fetchMore={fetchMore}
+    />
+    </>
   );
 };

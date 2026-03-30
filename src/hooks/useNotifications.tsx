@@ -19,8 +19,11 @@ export interface Notification {
 export const useNotifications = (userId?: string) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const { toast } = useToast();
+  const PAGE_SIZE = 20;
 
   // Fetch notifications
   const fetchNotifications = async () => {
@@ -32,12 +35,13 @@ export const useNotifications = (userId?: string) => {
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(PAGE_SIZE);
 
       if (error) throw error;
 
       setNotifications((data || []) as Notification[]);
       setUnreadCount(data?.filter(n => !n.read).length || 0);
+      setHasMore((data?.length || 0) >= PAGE_SIZE);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
@@ -81,6 +85,32 @@ export const useNotifications = (userId?: string) => {
       setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
+    }
+  };
+
+  // Fetch more notifications (pagination)
+  const fetchMore = async () => {
+    if (!userId || loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+    try {
+      const offset = notifications.length;
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      if (error) throw error;
+
+      const newItems = (data || []) as Notification[];
+      setNotifications(prev => [...prev, ...newItems]);
+      setHasMore(newItems.length >= PAGE_SIZE);
+    } catch (error) {
+      console.error('Error fetching more notifications:', error);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -228,10 +258,13 @@ export const useNotifications = (userId?: string) => {
   return {
     notifications,
     loading,
+    loadingMore,
     unreadCount,
+    hasMore,
     markAsRead,
     markAllAsRead,
     createNotification,
+    fetchMore,
     refetch: fetchNotifications
   };
 };
