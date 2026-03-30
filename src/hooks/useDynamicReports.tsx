@@ -300,7 +300,7 @@ export const useDynamicReports = (months: number = 12) => {
       const approvedTrips = tripStats ? Number(tripStats.approved_count) : 0;
       const completedTrips = tripStats ? Number(tripStats.completed_count) : 0;
 
-      const travelerTips = Math.max(0, gmv - serviceFee - deliveryFee);
+      const travelerTips = gmv;
       const avgPackageValue = completedPackages > 0 ? gmv / completedPackages : 0;
 
       monthlyData.push({
