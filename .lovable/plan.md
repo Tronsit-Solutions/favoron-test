@@ -1,54 +1,36 @@
 
 
-## Plan: Add Product to Package f502267e and Update Tips
+## Plan: Add "Total Productos Enviados" KPI Metric
 
-### Current State
-Package `f502267e-f51c-460d-b6ed-e67eaad951fb` has 2 products:
-1. Cuchilla de corte para plotter casero — $12.99 — Tip Q25
-2. Par de cuchillas corte plotter casero — $17.45 — Tip Q25
+### What
+Add a new KPI card showing the total number of individual products across completed packages. Since each package can contain multiple products in its `products_data` JSONB array, this metric counts the sum of all product quantities.
 
-Total tip: Q50, no quote object set yet.
+### How
 
-### What Needs to Happen
+**1. Update the `get_monthly_package_stats` RPC function** (migration)
+- Add a new return column `completed_product_count` that sums `jsonb_array_length(products_data)` for completed packages
+- This counts individual product entries per package
 
-**Add a 3rd product** to `products_data` JSONB array:
-- Description: "Brother ScanNCut DX Mat CADXMATSTD12, 12\" x 12\" Standard Tack Adhesive"
-- Link: `https://a.co/d/05WoPEqc`
-- Price: $25.99
-- Tip: Q25
-- Quantity: 1
-- requestType: online
+**2. Update frontend types and data flow** (`src/hooks/useDynamicReports.tsx`)
+- Add `completed_product_count` to `MonthlyPackageStats` interface
+- Add `totalProducts` to `KPIData` interface
+- Aggregate total products from all monthly package data
+- Pass it through to the KPIs object
 
-**Update package totals**:
-- `admin_assigned_tip`: 75
-- `quote`: `{ price: "75.00", serviceFee: "37.50", totalPrice: "112.50", manually_edited: true, edited_at: <now> }`
-
-### Math Verification
-- Trust level: basic → standard rate: 0.50
-- Total tip: 25 + 25 + 25 = Q75
-- Service fee: 75 × 0.50 = Q37.50
-- Total: 75 + 37.50 = **Q112.50** ✓
-
-### Implementation
-Single UPDATE to `packages` table via the insert tool (data operation, not schema change):
-- Set `products_data` to the 3-element array
-- Set `admin_assigned_tip` to 75
-- Set `quote` JSONB with price, serviceFee, totalPrice
-- Set `updated_at` to now()
-
-Also sync to any active `package_assignments` for this package (if any exist).
+**3. Add KPI card** (`src/components/admin/charts/KPICards.tsx`)
+- Add `totalProducts` to the KPICardsProps interface
+- Add a new card with a `ShoppingCart` icon showing total products shipped
+- Place it after "Total Solicitudes" to show the relationship (packages → products)
+- Update grid to accommodate 8 cards
 
 ### Technical Detail
+
 ```sql
-UPDATE packages SET
-  products_data = '[
-    {"itemDescription":"Cuchilla de corte para plotter casero","estimatedPrice":"12.99","itemLink":"https://a.co/d/0b1cyioo","quantity":"1","adminAssignedTip":25,"requestType":"online","additionalNotes":null},
-    {"itemDescription":"Par de cuchillas corte plotter casero","estimatedPrice":"17.45","itemLink":"https://a.co/d/037284q3","quantity":"1","adminAssignedTip":25,"requestType":"online","additionalNotes":null},
-    {"itemDescription":"Brother ScanNCut DX Mat CADXMATSTD12, 12x12 Standard Tack Adhesive","estimatedPrice":"25.99","itemLink":"https://a.co/d/05WoPEqc","quantity":"1","adminAssignedTip":25,"requestType":"online","additionalNotes":null}
-  ]'::jsonb,
-  admin_assigned_tip = 75,
-  quote = '{"price":"75.00","serviceFee":"37.50","totalPrice":"112.50","manually_edited":true}'::jsonb,
-  updated_at = now()
-WHERE id = 'f502267e-f51c-460d-b6ed-e67eaad951fb';
+-- New column in RPC return:
+COALESCE(SUM(
+  CASE WHEN p.status = 'completed' AND p.products_data IS NOT NULL
+  THEN jsonb_array_length(p.products_data)
+  ELSE 0 END
+), 0)::bigint AS completed_product_count
 ```
 
