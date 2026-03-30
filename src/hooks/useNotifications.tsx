@@ -35,7 +35,7 @@ export const useNotifications = (userId?: string) => {
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(PAGE_SIZE);
 
       if (error) throw error;
 
