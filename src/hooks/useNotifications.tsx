@@ -258,10 +258,13 @@ export const useNotifications = (userId?: string) => {
   return {
     notifications,
     loading,
+    loadingMore,
     unreadCount,
+    hasMore,
     markAsRead,
     markAllAsRead,
     createNotification,
+    fetchMore,
     refetch: fetchNotifications
   };
 };
