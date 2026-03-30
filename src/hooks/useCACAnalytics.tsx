@@ -261,13 +261,13 @@ export const useCACAnalytics = (selectedMonth?: string) => {
     mutationFn: async (investment: { channel: string; month: string; investment: number; notes?: string; target_audience?: string }) => {
       const { data, error } = await supabase
         .from('marketing_investments')
-        .upsert({
+        .insert({
           channel: investment.channel,
           month: investment.month,
           investment: investment.investment,
           notes: investment.notes || null,
           target_audience: investment.target_audience || 'both',
-        } as any, { onConflict: 'channel,month' })
+        } as any)
         .select()
         .single();
       if (error) throw error;
