@@ -41,6 +41,7 @@ export const useNotifications = (userId?: string) => {
 
       setNotifications((data || []) as Notification[]);
       setUnreadCount(data?.filter(n => !n.read).length || 0);
+      setHasMore((data?.length || 0) >= PAGE_SIZE);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
