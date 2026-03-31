@@ -1029,9 +1029,14 @@ const QuoteDialog = ({
 
                 {/* Additional Notes */}
                 {packageDetails.additional_notes && (
-                  <p className="text-xs text-muted-foreground italic mt-2 px-1">
-                    📝 {packageDetails.additional_notes}
-                  </p>
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
+                    <p className="text-sm font-semibold text-amber-800 mb-1 flex items-center gap-1.5">
+                      📝 Nota Adicional del Shopper:
+                    </p>
+                    <p className="text-sm text-amber-900 leading-relaxed">
+                      {packageDetails.additional_notes}
+                    </p>
+                  </div>
                 )}
               </div>
             ) : (
