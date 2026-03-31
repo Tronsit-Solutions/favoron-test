@@ -1090,7 +1090,7 @@ export const useDashboardActions = (
         // PaymentReceiptUpload already saved the receipt and fetched the updated package
         // with the correct status from the DB trigger. Use it directly, preserving relations.
         const fullUpdatedPkg = data as any;
-        setPackages(prev => prev.map(p => p.id === packageId ? {
+        setPackages(packages.map(p => p.id === packageId ? {
           ...p,
           ...fullUpdatedPkg,
           profiles: p.profiles,
