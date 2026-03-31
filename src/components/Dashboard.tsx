@@ -305,6 +305,8 @@ const Dashboard = ({ user }: DashboardProps) => {
             _isMultiAssignment: true,
             _assignmentId: a.id,
             _assignmentStatus: a.status,
+            _assignmentExpiresAt: a.expires_at,
+            _assignmentQuoteExpiresAt: a.quote_expires_at,
             // Assignment-specific fields for QuoteDialog (prevents reading stale package-level data)
             _assignmentQuote: a.quote,
             _assignmentTravelerAddress: a.traveler_address,
