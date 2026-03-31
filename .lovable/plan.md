@@ -1,50 +1,21 @@
 
 
-## Fix: Service Fee Growth Chart showing incorrect amounts
+## Fix: Shopper's additional notes not visible in "Tip Asignado" modal
+
+### Problem
+The shopper's comment (`additional_notes`) is not shown in the traveler's "Tip Asignado" modal, even though the field exists on the package and the QuoteDialog already has rendering logic for it (line 1031-1034).
 
 ### Root cause
-
-The PostgreSQL RPC function `get_monthly_package_stats()` filters packages using **outdated status names** that no longer exist in the database. This causes most packages to be excluded from the service fee sum.
-
-**Current RPC statuses (wrong):**
-```text
-'pending_purchase', 'purchased', 'in_transit', 'arrived',
-'pending_delivery', 'delivered', 'completed'
-```
-
-**Actual statuses in use (from FinancialSummaryTable - the source of truth):**
-```text
-'pending_purchase', 'purchase_confirmed', 'shipped', 'in_transit',
-'received_by_traveler', 'pending_office_confirmation',
-'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery',
-'out_for_delivery', 'completed'
-```
-
-Statuses like `purchased`, `arrived`, `pending_delivery`, `delivered` don't exist anymore. This means the RPC is missing most post-payment packages, resulting in drastically underreported service fee revenue.
+In `src/components/Dashboard.tsx` (line 1187-1208), the `packageDetails` prop passed to `QuoteDialog` does **not include `additional_notes`**, even though the component's interface accepts it and renders it.
 
 ### Solution
 
-**New migration: Update `get_monthly_package_stats()` RPC function**
+**File: `src/components/Dashboard.tsx`** — Add `additional_notes` to the `packageDetails` prop:
 
-Replace the WHERE clause status list with the correct current statuses, aligned with `FinancialSummaryTable`:
-
-```sql
-WHERE p.status IN (
-  'pending_purchase', 'purchase_confirmed', 'shipped',
-  'in_transit', 'received_by_traveler',
-  'pending_office_confirmation', 'delivered_to_office',
-  'ready_for_pickup', 'ready_for_delivery',
-  'out_for_delivery', 'completed'
-)
+```typescript
+// Around line 1207, add:
+additional_notes: selectedPackageForQuote.additional_notes || undefined,
 ```
 
-Also update the `completed_count` filter to include terminal delivery states (not just `'completed'`), and update `pending_count` to reflect the correct in-progress statuses.
-
-### Files to change
-- **New SQL migration** — recreate `get_monthly_package_stats()` with correct statuses
-
-### What this fixes
-- Service fee totals in the chart will match the Financial Summary Table
-- GMV and delivery fee totals will also be corrected (same RPC)
-- MoM growth percentages will reflect accurate data
+Single line addition. The QuoteDialog already renders it with a 📝 icon in the traveler's product detail section.
 
