@@ -1,26 +1,50 @@
 
 
-## Fix: RLS error when uploading payment receipt
-
-### Problem
-When a shopper tries to upload a payment receipt, they get "new row violates row-level security policy". The storage INSERT policy checks `auth.uid()::text = storage.foldername(name)[1]`, but the code uses `pkg.user_id` to build the file path. If `pkg.user_id` doesn't exactly match the authenticated user's `auth.uid()` (e.g., due to stale package data or a missing value), the RLS check fails.
+## Fix: Service Fee Growth Chart showing incorrect amounts
 
 ### Root cause
-The upload path is built as `${pkg.user_id}/${fileName}`, relying on the package's `user_id` prop. The RLS policy validates against `auth.uid()`. These should always match, but using a prop value instead of the actual authenticated user ID introduces a fragile dependency.
+
+The PostgreSQL RPC function `get_monthly_package_stats()` filters packages using **outdated status names** that no longer exist in the database. This causes most packages to be excluded from the service fee sum.
+
+**Current RPC statuses (wrong):**
+```text
+'pending_purchase', 'purchased', 'in_transit', 'arrived',
+'pending_delivery', 'delivered', 'completed'
+```
+
+**Actual statuses in use (from FinancialSummaryTable - the source of truth):**
+```text
+'pending_purchase', 'purchase_confirmed', 'shipped', 'in_transit',
+'received_by_traveler', 'pending_office_confirmation',
+'delivered_to_office', 'ready_for_pickup', 'ready_for_delivery',
+'out_for_delivery', 'completed'
+```
+
+Statuses like `purchased`, `arrived`, `pending_delivery`, `delivered` don't exist anymore. This means the RPC is missing most post-payment packages, resulting in drastically underreported service fee revenue.
 
 ### Solution
 
-**File: `src/components/dashboard/shopper/PaymentReceiptUpload.tsx`**
+**New migration: Update `get_monthly_package_stats()` RPC function**
 
-In `uploadFileToStorage`, fetch the current authenticated user from Supabase and use their ID to build the file path, instead of using `pkg.user_id`:
+Replace the WHERE clause status list with the correct current statuses, aligned with `FinancialSummaryTable`:
 
-```typescript
-const { data: { user } } = await supabase.auth.getUser();
-if (!user) throw new Error('Debes iniciar sesión para subir archivos');
-const filePath = `${user.id}/${fileName}`;
+```sql
+WHERE p.status IN (
+  'pending_purchase', 'purchase_confirmed', 'shipped',
+  'in_transit', 'received_by_traveler',
+  'pending_office_confirmation', 'delivered_to_office',
+  'ready_for_pickup', 'ready_for_delivery',
+  'out_for_delivery', 'completed'
+)
 ```
 
-This guarantees the path always matches `auth.uid()` in the RLS policy, eliminating the mismatch.
+Also update the `completed_count` filter to include terminal delivery states (not just `'completed'`), and update `pending_count` to reflect the correct in-progress statuses.
 
-Single file, 3-line change.
+### Files to change
+- **New SQL migration** — recreate `get_monthly_package_stats()` with correct statuses
+
+### What this fixes
+- Service fee totals in the chart will match the Financial Summary Table
+- GMV and delivery fee totals will also be corrected (same RPC)
+- MoM growth percentages will reflect accurate data
 
