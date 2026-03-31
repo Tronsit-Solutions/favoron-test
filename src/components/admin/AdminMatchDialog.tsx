@@ -1004,8 +1004,10 @@ const AdminMatchDialog = ({
                               {fullPackage.products_data.map((product: any, index: number) => (
                                 <div key={index} className="space-y-1">
                                   <div className="flex items-center gap-2 text-sm">
-                                    <span className="font-medium text-blue-900 truncate flex-1 min-w-0">
-                                      {index + 1}. {product.itemDescription || product.item_description || 'Producto'}
+                                    <span className="font-medium text-blue-900 truncate flex-1 min-w-0 max-w-[300px]" title={product.itemDescription || product.item_description || 'Producto'}>
+                                      {index + 1}. {(product.itemDescription || product.item_description || 'Producto').length > 80 
+                                        ? (product.itemDescription || product.item_description || 'Producto').substring(0, 80) + '...' 
+                                        : (product.itemDescription || product.item_description || 'Producto')}
                                     </span>
                                     <span className="shrink-0">
                                       {(() => {
