@@ -76,9 +76,13 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete, onPickerOpen, onPickerClo
     setUploadState('uploading');
 
     try {
+      // Use auth.uid() directly to match storage RLS policy
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Debes iniciar sesión para subir archivos');
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${pkg.id}_payment_receipt.${fileExt}`;
-      const filePath = `${pkg.user_id}/${fileName}`;
+      const filePath = `${user.id}/${fileName}`;
 
       // Upload file to Supabase Storage
       const { error: uploadError } = await supabase.storage
