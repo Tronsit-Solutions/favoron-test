@@ -1,21 +1,25 @@
 
 
-## Fix: Shopper's additional notes not visible in "Tip Asignado" modal
+## Rediseñar la sección de "Notas adicionales" en el modal Tip Asignado
 
-### Problem
-The shopper's comment (`additional_notes`) is not shown in the traveler's "Tip Asignado" modal, even though the field exists on the package and the QuoteDialog already has rendering logic for it (line 1031-1034).
+### Cambio
 
-### Root cause
-In `src/components/Dashboard.tsx` (line 1187-1208), the `packageDetails` prop passed to `QuoteDialog` does **not include `additional_notes`**, even though the component's interface accepts it and renders it.
+**Archivo: `src/components/QuoteDialog.tsx`** — Líneas 1030-1035
 
-### Solution
+Reemplazar el texto simple con un bloque estilizado con encabezado "Nota Adicional del Shopper":
 
-**File: `src/components/Dashboard.tsx`** — Add `additional_notes` to the `packageDetails` prop:
-
-```typescript
-// Around line 1207, add:
-additional_notes: selectedPackageForQuote.additional_notes || undefined,
+```tsx
+{packageDetails.additional_notes && (
+  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
+    <p className="text-sm font-semibold text-amber-800 mb-1 flex items-center gap-1.5">
+      📝 Nota Adicional del Shopper:
+    </p>
+    <p className="text-sm text-amber-900 leading-relaxed">
+      {packageDetails.additional_notes}
+    </p>
+  </div>
+)}
 ```
 
-Single line addition. The QuoteDialog already renders it with a 📝 icon in the traveler's product detail section.
+Esto le da mayor visibilidad al comentario del shopper con un fondo ámbar distintivo, un título claro y mejor legibilidad.
 
