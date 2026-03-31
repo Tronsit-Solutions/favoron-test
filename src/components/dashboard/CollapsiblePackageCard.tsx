@@ -493,7 +493,7 @@ const CollapsiblePackageCard = ({
                         e.stopPropagation();
                         setShowProductStatusModal(true);
                       }}
-                      className="text-xs w-full flex items-center justify-between gap-2"
+                      className="text-xs max-w-full flex items-center justify-between gap-2"
                     >
                       <span className="flex items-center gap-1.5">
                         <Package className="h-3.5 w-3.5" />
