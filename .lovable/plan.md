@@ -1,57 +1,26 @@
 
 
-## Fix: Auto-refresh package card after payment receipt upload
+## Fix: RLS error when uploading payment receipt
 
 ### Problem
-After the shopper uploads a payment receipt, the package card doesn't reflect the new status (e.g., `payment_pending_approval`). The user must force-refresh the page. This happens because:
+When a shopper tries to upload a payment receipt, they get "new row violates row-level security policy". The storage INSERT policy checks `auth.uid()::text = storage.foldername(name)[1]`, but the code uses `pkg.user_id` to build the file path. If `pkg.user_id` doesn't exactly match the authenticated user's `auth.uid()` (e.g., due to stale package data or a missing value), the RLS check fails.
 
-1. `PaymentReceiptUpload` already fetches the updated package from DB (with correct status from the trigger)
-2. It calls `onUploadComplete(updatedPackage)` with the full fresh data
-3. But in `CollapsiblePackageCard`, only `updatedPkg.payment_receipt` is passed to `onUploadDocument` — losing the updated status
-4. `handleUploadDocument` does a redundant fetch with `select('*')` that lacks relation data (profiles, trips)
-5. Uses stale `packages` closure in `setPackages(packages.map(...))`
+### Root cause
+The upload path is built as `${pkg.user_id}/${fileName}`, relying on the package's `user_id` prop. The RLS policy validates against `auth.uid()`. These should always match, but using a prop value instead of the actual authenticated user ID introduces a fragile dependency.
 
 ### Solution
 
-**File: `src/components/dashboard/CollapsiblePackageCard.tsx` (~line 1305-1312)**
+**File: `src/components/dashboard/shopper/PaymentReceiptUpload.tsx`**
 
-Pass the **full** updated package object to `onUploadDocument` instead of just the `payment_receipt` field:
-
-```typescript
-onUploadComplete={updatedPkg => {
-  if (onUploadDocument) {
-    onUploadDocument(pkg.id, 'payment_receipt', updatedPkg);
-  }
-  setShowPaymentModal(false);
-}}
-```
-
-**File: `src/hooks/useDashboardActions.tsx` (~line 1089-1102)**
-
-In the `payment_receipt` branch, instead of doing a redundant DB fetch, use the full updated package passed as `data` and merge it preserving existing relation data:
+In `uploadFileToStorage`, fetch the current authenticated user from Supabase and use their ID to build the file path, instead of using `pkg.user_id`:
 
 ```typescript
-} else if (type === 'payment_receipt') {
-  // data contains the full updated package from PaymentReceiptUpload
-  // Merge preserving relation data (profiles, trips) from current state
-  const currentPkg = packages.find(p => p.id === packageId);
-  if (currentPkg) {
-    const mergedPkg = {
-      ...currentPkg,
-      ...data,
-      // Preserve relations that select('*') doesn't include
-      profiles: currentPkg.profiles,
-      trips: currentPkg.trips,
-    };
-    setPackages(packages.map(p => p.id === packageId ? mergedPkg : p));
-  }
-  return;
-}
+const { data: { user } } = await supabase.auth.getUser();
+if (!user) throw new Error('Debes iniciar sesión para subir archivos');
+const filePath = `${user.id}/${fileName}`;
 ```
 
-This eliminates the 600ms delay, the redundant DB query, and the stale closure issue — since the fresh data already comes from `PaymentReceiptUpload`'s own fetch.
+This guarantees the path always matches `auth.uid()` in the RLS policy, eliminating the mismatch.
 
-### Files to edit
-- `src/components/dashboard/CollapsiblePackageCard.tsx` — pass full package to callback
-- `src/hooks/useDashboardActions.tsx` — merge instead of re-fetch
+Single file, 3-line change.
 
