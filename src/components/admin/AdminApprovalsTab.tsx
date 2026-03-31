@@ -190,9 +190,6 @@ const AdminApprovalsTab = ({
     if (pkg.delivery_method === 'return_dropoff' || pkg.delivery_method === 'return_pickup') {
       return true;
     }
-    if (pkg.purchase_origin === 'Guatemala') {
-      return true;
-    }
     return false;
   };
 
