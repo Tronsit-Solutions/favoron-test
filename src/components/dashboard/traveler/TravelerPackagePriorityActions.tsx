@@ -134,7 +134,7 @@ const TravelerPackagePriorityActions = ({
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold">
                 {(pkg as any)._assignmentStatus === 'bid_submitted' 
-                  ? '✅ Cotización enviada — esperando al comprador'
+                  ? '✅ Cotización enviada — el shopper tiene 48h para aceptar'
                   : 'Revisa el pedido y acéptalo si te parece bien'}
               </p>
             </div>

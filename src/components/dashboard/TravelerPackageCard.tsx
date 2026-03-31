@@ -225,7 +225,7 @@ const TravelerPackageCard = ({
                       </p>
                     )}
                     <p className="text-xs text-green-600 mt-1">
-                      Esperando que el shopper seleccione un viajero
+                      El shopper tiene 48h para elegir un viajero. Si no acepta, el paquete se descartará de tu viaje.
                     </p>
                   </div>
                 ) : pkg._assignmentStatus === 'bid_won' ? (
