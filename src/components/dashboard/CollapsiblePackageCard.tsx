@@ -418,7 +418,7 @@ const CollapsiblePackageCard = ({
             {/* Mobile optimized layout */}
             {isMobile ? <div className="flex w-full overflow-hidden">
               {/* Left: all content */}
-              <div className="flex-1 min-w-0 overflow-hidden space-y-3">
+              <div className="min-w-0 overflow-hidden space-y-3" style={{ width: 'calc(100% - 48px)' }}>
                 {/* Product name and status in single row */}
                 <div className="flex items-start gap-2 w-full">
                   <Package className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
@@ -493,7 +493,7 @@ const CollapsiblePackageCard = ({
                         e.stopPropagation();
                         setShowProductStatusModal(true);
                       }}
-                      className="text-xs w-full flex items-center justify-between gap-2"
+                      className="text-xs max-w-full flex items-center justify-between gap-2"
                     >
                       <span className="flex items-center gap-1.5">
                         <Package className="h-3.5 w-3.5" />
@@ -699,7 +699,7 @@ const CollapsiblePackageCard = ({
                 )}
               </div>
               {/* Right column: menu + chat */}
-              <div className="flex flex-col items-center flex-shrink-0 ml-2 gap-3">
+              <div className="flex flex-col items-center flex-shrink-0 w-10 ml-2 gap-3">
                 {/* Three dots at top */}
                 {viewMode === 'user' && <DropdownMenu>
                   <DropdownMenuTrigger asChild>
