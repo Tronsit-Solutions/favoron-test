@@ -374,7 +374,7 @@ const CollapsiblePackageCard = ({
   
   // Card content wrapper
   const cardContent = (
-    <div className="relative pt-2 pl-2">
+    <div className="relative pt-2 pl-2 overflow-hidden max-w-full">
       {needsAction && <NotificationBadge count={1} className="absolute top-0 left-0 z-20" />}
     <Card className={`relative transition-all duration-200 w-full max-w-full min-w-0 box-border overflow-hidden hover:shadow-md ${pkg.status === 'delivered_to_office' ? 'bg-green-50 border-2 border-green-500 ring-2 ring-inset ring-green-200 shadow-lg' : ''} ${isCancelledPackage ? 'bg-muted/50 border-destructive/30 opacity-80' : ''}`}>
       <CollapsibleTrigger asChild={!(isMobile && viewMode === 'user')}>
@@ -416,9 +416,9 @@ const CollapsiblePackageCard = ({
               </DropdownMenu>}
             
             {/* Mobile optimized layout */}
-            {isMobile ? <div className="flex w-full">
+            {isMobile ? <div className="flex w-full overflow-hidden">
               {/* Left: all content */}
-              <div className="flex-1 min-w-0 space-y-3">
+              <div className="flex-1 min-w-0 overflow-hidden space-y-3">
                 {/* Product name and status in single row */}
                 <div className="flex items-start gap-2 w-full">
                   <Package className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
@@ -614,7 +614,7 @@ const CollapsiblePackageCard = ({
 
                 {/* Action buttons - stacked vertically on mobile */}
                 {!isCancelledPackage && (
-                <div className="space-y-2 w-full max-w-full pl-5">
+                <div className="space-y-2 w-full max-w-full pl-5 overflow-hidden">
                   {/* Botón re-cotización para cotizaciones expiradas (status quote_expired O cotización expirada en quote_sent/payment_pending/quote_accepted) */}
                   {(pkg.status === 'quote_expired' || 
                     ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending' || pkg.status === 'quote_accepted') && 
