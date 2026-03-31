@@ -1087,18 +1087,15 @@ export const useDashboardActions = (
         // WhatsApp notifications removed - only welcome template available
         console.log('📧 Tracking info uploaded for package');
       } else if (type === 'payment_receipt') {
-        // PaymentReceiptUpload already saved the receipt and triggered the DB trigger.
-        // Instead of calling updatePackage (which causes a race condition with realtime),
-        // just fetch the fresh package state after the trigger has completed.
-        await new Promise(resolve => setTimeout(resolve, 600));
-        const { data: freshPkg } = await supabase
-          .from('packages')
-          .select('*')
-          .eq('id', packageId)
-          .single();
-        if (freshPkg) {
-          setPackages(packages.map(p => p.id === packageId ? { ...p, ...freshPkg } : p));
-        }
+        // PaymentReceiptUpload already saved the receipt and fetched the updated package
+        // with the correct status from the DB trigger. Use it directly, preserving relations.
+        const fullUpdatedPkg = data as any;
+        setPackages(prev => prev.map(p => p.id === packageId ? {
+          ...p,
+          ...fullUpdatedPkg,
+          profiles: p.profiles,
+          trips: p.trips,
+        } : p));
         return;
       }
 

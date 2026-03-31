@@ -1303,10 +1303,9 @@ const CollapsiblePackageCard = ({
 
       {/* Payment Modal */}
       {showPaymentModal && <ShopperPaymentInfoModal pkg={pkg} isOpen={showPaymentModal} onClose={() => setShowPaymentModal(false)} onBackToQuote={() => { setShowPaymentModal(false); onQuote(pkg, 'user'); }} onUploadComplete={updatedPkg => {
-        // The PaymentReceiptUpload component already updates the package in Supabase
-        // We just need to call onUploadDocument to trigger any additional state updates
-        if (onUploadDocument && updatedPkg.payment_receipt) {
-          onUploadDocument(pkg.id, 'payment_receipt', updatedPkg.payment_receipt);
+        // Pass the full updated package (with correct status from DB trigger)
+        if (onUploadDocument) {
+          onUploadDocument(pkg.id, 'payment_receipt', updatedPkg);
         }
         setShowPaymentModal(false);
       }} />}
