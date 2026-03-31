@@ -1205,6 +1205,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             package_destination: selectedPackageForQuote.package_destination,
             package_destination_country: selectedPackageForQuote.package_destination_country || undefined,
             cityArea: (selectedPackageForQuote.confirmed_delivery_address as any)?.cityArea,
+            additional_notes: selectedPackageForQuote.additional_notes || undefined,
           }}
           userType={quoteUserType}
           existingQuote={quoteUserType === 'user' && (selectedPackageForQuote as any)._assignmentQuote
