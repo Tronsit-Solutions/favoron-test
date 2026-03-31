@@ -1,28 +1,28 @@
 
 
-## Fix mobile overflow on shopper package cards
+## Fix: Garantizar que el menú y chat siempre sean visibles en móvil
 
-### Problem
-The package cards overflow the screen width on mobile, making the chat button and 3-dot menu inaccessible (cut off on the right side).
+### Problema
+En tarjetas con títulos largos o mucho contenido (badges "Compitiendo", botones de acción), la columna derecha (menú ··· y chat) se pierde o queda inaccesible. El `overflow-hidden` actual solo oculta el contenido que sobresale en vez de redimensionarlo correctamente.
 
-### Root cause
-The mobile layout (line 419) uses `flex w-full` but the action buttons inside use `w-full` which calculates based on the parent flex-1 container. The outer wrapper at line 377 has `pl-2` padding that adds to the total width, and the `CardHeader` content doesn't properly constrain its children within the viewport.
+### Solución
 
-### Solution
+**Archivo: `src/components/dashboard/CollapsiblePackageCard.tsx`**
 
-**File: `src/components/dashboard/CollapsiblePackageCard.tsx`**
+Cambiar la estrategia del layout móvil:
 
-1. **Add `overflow-hidden` to the outer wrapper** at line 377 and ensure it constrains to viewport width.
-2. **Add `overflow-hidden` to the `CardHeader`** to prevent content from pushing beyond card bounds.
-3. **Add `overflow-hidden` to the mobile flex container** (line 419) to contain children.
-4. **Constrain the left content column** (line 421) with `overflow-hidden` so long product names or wide buttons don't push the right column (chat + menu) off-screen.
-5. **Ensure action buttons container** (line 617) has `overflow-hidden` and proper width constraints.
+1. **Columna derecha con ancho fijo**: Dar a la columna derecha (menú + chat) un ancho fijo explícito (`w-10`) para que nunca se comprima.
 
-Key changes:
-- Line 377: `<div className="relative pt-2 pl-2">` → add `overflow-hidden max-w-full`
-- Line 419: `<div className="flex w-full">` → add `overflow-hidden`
-- Line 421: already has `min-w-0`, add `overflow-hidden`
-- Line 617: `<div className="space-y-2 w-full max-w-full pl-5">` → add `overflow-hidden`
+2. **Columna izquierda calculada**: Cambiar de `flex-1 min-w-0` a un ancho calculado con `calc(100% - 48px)` para que la columna izquierda nunca empuje a la derecha fuera de la pantalla.
 
-Single file change, CSS-only fixes.
+3. **Botones de acción con ancho restringido**: Los botones internos que usan `w-full` (como "Ver Cotizaciones", "Recolectar paquete") deben respetar el contenedor padre. Agregar `max-w-full` y `overflow-hidden` donde sea necesario.
+
+### Cambios específicos
+
+- **Línea ~419** (contenedor flex principal): Mantener `overflow-hidden`
+- **Línea ~421** (columna izquierda): Cambiar a `style={{ width: 'calc(100% - 48px)' }}` con `min-w-0 overflow-hidden`
+- **Línea ~702** (columna derecha): Agregar `w-10` para ancho fijo explícito
+- **Línea ~496** (botón "Ver productos"): Cambiar `w-full` por `max-w-full` para evitar desbordamiento
+
+Un solo archivo modificado, solo cambios CSS/layout.
 
