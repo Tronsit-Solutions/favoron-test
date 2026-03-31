@@ -1,21 +1,30 @@
 
 
-## Fix: Remove incorrect return detection by origin
+## Add notification bubble on the trip selector trigger
 
 ### Problem
-The `isReturnPackage` function in `AdminApprovalsTab.tsx` (line 193) marks any package with `purchase_origin === 'Guatemala'` as a return. This is wrong — a package originating from Guatemala is only a return if the user explicitly chose a return delivery method.
+The notification badges only appear inside the dropdown items when the selector is open. The traveler has no way to know there are pending notifications on other trips without opening the dropdown.
 
 ### Solution
 
-**File: `src/components/admin/AdminApprovalsTab.tsx`**
+**File: `src/components/dashboard/TripSelector.tsx`**
 
-Remove lines 193-195 from the `isReturnPackage` function, keeping only the `delivery_method` check:
+1. Calculate the **total pending count across all non-selected trips** from `pendingCountByTrip`.
+2. Show a `NotificationBadge` next to the `SelectTrigger` (outside/beside it) so it's always visible when the dropdown is closed.
+3. This badge shows the sum of pending items on trips other than the currently selected one, alerting the traveler to check other trips.
 
-```typescript
-const isReturnPackage = (pkg: any): boolean => {
-  return pkg.delivery_method === 'return_dropoff' || pkg.delivery_method === 'return_pickup';
-};
+### Layout
+```text
+[ ◉ Nash → Guatemala City  30 sep 2025  ▼ ]  🔴 3
 ```
 
-One line change, no other files affected.
+The badge sits to the right of the trigger, using a flex container. It only appears when there are pending items on non-selected trips.
+
+### Technical detail
+
+- Wrap `Select` + `NotificationBadge` in a `flex items-center gap-2` div
+- Compute: `totalOtherPending = sum of pendingCountByTrip values excluding selectedTripId`
+- Render `<NotificationBadge count={totalOtherPending} />` next to the trigger
+
+Single file change: `src/components/dashboard/TripSelector.tsx`
 
