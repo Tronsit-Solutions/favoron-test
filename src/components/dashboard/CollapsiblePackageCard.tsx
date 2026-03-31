@@ -436,13 +436,9 @@ const CollapsiblePackageCard = ({
                   </div>
                 )}
 
-                {/* Package ID */}
-                <CardDescription className="text-xs leading-tight text-muted-foreground max-w-full text-left">
-                  <div className="space-y-1 max-w-full pl-5">
-                    <span className="block break-words max-w-full text-muted-foreground">ID: {pkg.id.substring(0, 8)}</span>
-                  </div>
-                </CardDescription>
+                {/* Package ID + Status Badge */}
                 <div className="pl-5 flex items-center gap-2 justify-start flex-wrap">
+                  <span className="text-xs text-muted-foreground">ID: {pkg.id.substring(0, 8)}</span>
                   {isCompeting && (
                     <Badge variant="warning" className="text-xs">
                       ⚡ Compitiendo ({multiAssignments!.length})
