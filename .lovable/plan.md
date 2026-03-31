@@ -1,25 +1,16 @@
 
 
-## Rediseñar la sección de "Notas adicionales" en el modal Tip Asignado
+## Restaurar pedido de Luisa Torres a `quote_sent` con Anika Erichsen
 
-### Cambio
+### Contexto
+- **Paquete**: `b4df2001-861b-423d-a2b8-0fe94adb6d7c` (Vineyard Vines Jersey Top) — estado actual: `quote_expired`
+- **Asignación existente**: `a539d64e-cb20-41e9-8b9a-ff53ebd4615d` — estado actual: `bid_expired`, vinculada al viaje de Anika `278dbf7f` (Florida → Guatemala City, 4 abril)
 
-**Archivo: `src/components/QuoteDialog.tsx`** — Líneas 1030-1035
+### Acciones (2 UPDATEs vía insert tool)
 
-Reemplazar el texto simple con un bloque estilizado con encabezado "Nota Adicional del Shopper":
+1. **Actualizar paquete** → `status = 'quote_sent'`, `matched_trip_id = '278dbf7f-1df8-43e6-b446-00ec9b6c1a3e'`, restaurar `quote_expires_at` a 48 horas desde ahora.
 
-```tsx
-{packageDetails.additional_notes && (
-  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
-    <p className="text-sm font-semibold text-amber-800 mb-1 flex items-center gap-1.5">
-      📝 Nota Adicional del Shopper:
-    </p>
-    <p className="text-sm text-amber-900 leading-relaxed">
-      {packageDetails.additional_notes}
-    </p>
-  </div>
-)}
-```
+2. **Actualizar asignación** → `status = 'bid_submitted'`, restaurar `expires_at` y `quote_expires_at` a 48 horas desde ahora.
 
-Esto le da mayor visibilidad al comentario del shopper con un fondo ámbar distintivo, un título claro y mejor legibilidad.
+No requiere cambios de código ni migraciones, solo dos operaciones de datos.
 
