@@ -44,6 +44,9 @@ export const TripSelector = ({ trips, selectedTripId, onTripSelect, pendingCount
           })}
         </SelectContent>
       </Select>
+      {totalOtherPending > 0 && (
+        <NotificationBadge count={totalOtherPending} />
+      )}
     </div>
   );
 };
