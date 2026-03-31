@@ -1,16 +1,21 @@
 
 
-## Fix: Allow multiple investments per channel per month
+## Fix: Remove incorrect return detection by origin
 
 ### Problem
-The table `marketing_investments` has a `UNIQUE (channel, month)` constraint that prevents inserting more than one investment for the same channel and month. The previous fix changed `upsert` to `insert`, but the DB constraint still blocks duplicates.
+The `isReturnPackage` function in `AdminApprovalsTab.tsx` (line 193) marks any package with `purchase_origin === 'Guatemala'` as a return. This is wrong — a package originating from Guatemala is only a return if the user explicitly chose a return delivery method.
 
 ### Solution
 
-**1. Database migration** — Drop the unique constraint:
-```sql
-ALTER TABLE marketing_investments DROP CONSTRAINT marketing_investments_channel_month_key;
+**File: `src/components/admin/AdminApprovalsTab.tsx`**
+
+Remove lines 193-195 from the `isReturnPackage` function, keeping only the `delivery_method` check:
+
+```typescript
+const isReturnPackage = (pkg: any): boolean => {
+  return pkg.delivery_method === 'return_dropoff' || pkg.delivery_method === 'return_pickup';
+};
 ```
 
-That's it. One migration, no frontend changes needed (the `.insert()` code from the previous fix is already correct).
+One line change, no other files affected.
 
