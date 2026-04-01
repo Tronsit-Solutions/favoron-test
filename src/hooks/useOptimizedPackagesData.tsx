@@ -317,6 +317,24 @@ export const useOptimizedPackagesData = (userId?: string, rates?: { standard: nu
       // Actualización optimista
       setPackages(prev => prev.map(pkg => (pkg.id === id ? { ...pkg, ...data } : pkg)));
 
+      // Sync shared fields to active package_assignments (same pattern as usePackagesData)
+      const syncFields: Record<string, any> = {};
+      if ('products_data' in updates) syncFields.products_data = updates.products_data;
+      if ('quote' in updates) syncFields.quote = updates.quote;
+      if ('admin_assigned_tip' in updates) syncFields.admin_assigned_tip = updates.admin_assigned_tip;
+
+      if (Object.keys(syncFields).length > 0) {
+        syncFields.updated_at = new Date().toISOString();
+        supabase
+          .from('package_assignments')
+          .update(syncFields)
+          .eq('package_id', id)
+          .in('status', ['bid_pending', 'bid_submitted'])
+          .then(({ error: syncErr }) => {
+            if (syncErr) console.error('⚠️ Failed to sync fields to assignments:', syncErr);
+          });
+      }
+
       // Mensaje apropiado
       if (updates.status === 'cancelled') {
         toast({
