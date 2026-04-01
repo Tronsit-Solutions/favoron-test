@@ -22,6 +22,8 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/formatters';
 import { 
   RefreshCw, 
@@ -33,7 +35,9 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  FileText
+  FileText,
+  Wallet,
+  Building2
 } from 'lucide-react';
 
 interface RefundTableProps {

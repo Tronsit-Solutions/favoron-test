@@ -243,7 +243,10 @@ export const useAdminRefundOrders = () => {
     status: 'completed' | 'rejected',
     notes?: string,
     receiptUrl?: string,
-    receiptFilename?: string
+    receiptFilename?: string,
+    refundMethod?: 'bank_transfer' | 'account_credit',
+    shopperId?: string,
+    amount?: number
   ): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -257,6 +260,26 @@ export const useAdminRefundOrders = () => {
       if (status === 'completed') {
         updates.completed_at = new Date().toISOString();
         updates.completed_by = user?.id;
+        updates.refund_method = refundMethod || 'bank_transfer';
+      }
+
+      // Si es crédito a cuenta, insertar en referrals
+      if (status === 'completed' && refundMethod === 'account_credit' && shopperId && amount) {
+        const { error: creditError } = await supabase
+          .from('referrals')
+          .insert({
+            referrer_id: shopperId,
+            referred_id: shopperId,
+            status: 'completed',
+            reward_amount: amount,
+            completed_at: new Date().toISOString(),
+          });
+        
+        if (creditError) {
+          console.error('Error inserting account credit:', creditError);
+          toast.error('Error al acreditar saldo al shopper');
+          return false;
+        }
       }
       
       const { error } = await supabase
@@ -266,7 +289,8 @@ export const useAdminRefundOrders = () => {
       
       if (error) throw error;
       
-      toast.success(`Reembolso ${status === 'completed' ? 'completado' : 'rechazado'}`);
+      const methodLabel = refundMethod === 'account_credit' ? 'acreditado a cuenta' : 'completado';
+      toast.success(`Reembolso ${status === 'completed' ? methodLabel : 'rechazado'}`);
       await fetchAllRefundOrders();
       return true;
     } catch (error) {
