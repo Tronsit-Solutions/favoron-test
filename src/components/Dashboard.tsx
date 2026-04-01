@@ -920,8 +920,9 @@ const Dashboard = ({ user }: DashboardProps) => {
                         forceTab={urlPackageId === pkg.id && urlOpenChat ? "chat" : undefined}
                         onExternalControlHandled={urlPackageId === pkg.id ? clearUrlNavigation : undefined}
                         // Multi-assignment props
-                        multiAssignments={shopperAssignmentsMap[pkg.id]}
-                        onAcceptMultiAssignmentQuote={handleAcceptMultiAssignmentQuote}
+                         multiAssignments={shopperAssignmentsMap[pkg.id]}
+                         onAcceptMultiAssignmentQuote={handleAcceptMultiAssignmentQuote}
+                         onRejectAllQuotes={handleRejectAllQuotes}
                       />
                 ))}
               </div>
