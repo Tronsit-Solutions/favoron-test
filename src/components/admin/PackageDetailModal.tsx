@@ -3119,6 +3119,7 @@ const [editForm, setEditForm] = useState({
           tripUserId={matchedTrip?.user_id}
           onSuccess={() => {
             refetchPackageDetails();
+            loadAssignments();
             toast({
               title: "Cotización actualizada",
               description: "Los datos se han refrescado correctamente"
