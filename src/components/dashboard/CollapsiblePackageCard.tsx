@@ -80,7 +80,8 @@ const CollapsiblePackageCard = ({
   forceTab,
   onExternalControlHandled,
   multiAssignments,
-  onAcceptMultiAssignmentQuote
+  onAcceptMultiAssignmentQuote,
+  onRejectAllQuotes
 }: CollapsiblePackageCardProps) => {
   const [isOpen, setIsOpen] = React.useState(forceOpen || false);
   const [activeTab, setActiveTab] = React.useState(forceTab || "producto");
