@@ -62,6 +62,7 @@ export interface MultiQuotePackageDetails {
 interface MultiQuoteSelectorProps {
   assignments: Assignment[];
   onAcceptQuote: (assignmentId: string, extras: MultiQuoteAcceptExtras) => Promise<void>;
+  onRejectAllQuotes?: () => Promise<void>;
   packageDetails: MultiQuotePackageDetails;
   shopperId?: string;
 }
