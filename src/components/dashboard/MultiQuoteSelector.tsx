@@ -76,7 +76,7 @@ const formatDateUTC = (dateString: string) => {
   );
 };
 
-const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shopperId }: MultiQuoteSelectorProps) => {
+const MultiQuoteSelector = ({ assignments, onAcceptQuote, onRejectAllQuotes, packageDetails, shopperId }: MultiQuoteSelectorProps) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(packageDetails.delivery_method || 'pickup');
