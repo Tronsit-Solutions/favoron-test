@@ -1364,6 +1364,18 @@ export const useDashboardActions = (
             "3": `${adminTip?.toFixed(2) || '0.00'}`
           }
         });
+
+        // Email notification to traveler
+        supabase.functions.invoke('send-notification-email', {
+          body: {
+            user_id: matchedTrip.user_id,
+            title: 'Nuevo paquete asignado',
+            message: `Se te ha asignado un nuevo paquete con destino ${destination}. La propina asignada es Q${adminTip?.toFixed(2) || '0.00'}. Tienes 24 horas para aceptar esta asignación antes de que expire. Revisa tu dashboard para más detalles.`,
+            type: 'package',
+            priority: 'normal',
+            action_url: 'https://favoron.app/dashboard'
+          }
+        }).catch(err => console.error('Error sending assignment email to traveler:', err));
       }
     })).catch(err => console.error('Post-match side effects error:', err));
   };
