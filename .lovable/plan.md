@@ -1,23 +1,30 @@
 
 
-## Agregar edición de Fecha Límite en el modal de detalles del paquete
+## Agregar botón "Rechazar cotización" para shoppers
 
-### Cambio
+### Contexto
+Cuando solo hay 1 cotización, el shopper no tiene opción de rechazarla. Queremos agregar un botón que permita rechazar todas las cotizaciones y devolver el paquete a `approved` para buscar nuevos viajeros.
 
-**Archivo: `src/components/admin/PackageDetailModal.tsx`**
+### Cambios
 
-1. **Agregar estado para edición inline de fecha límite** (~línea 231):
-   - `const [editDeadline, setEditDeadline] = useState(false);`
-   - `const [editDeadlineValue, setEditDeadlineValue] = useState<Date | null>(null);`
+**1. `src/components/dashboard/MultiQuoteSelector.tsx`**
+- Agregar prop `onRejectAllQuotes: () => Promise<void>` al componente.
+- Debajo del botón "Aceptar esta cotización", agregar un botón secundario/outline "Rechazar y buscar más viajeros" (con ícono `X`). Solo visible cuando hay cotizaciones (`quotedAssignments.length > 0`).
+- Incluir un `AlertDialog` de confirmación: "¿Estás seguro? El paquete volverá a buscar nuevos viajeros y las cotizaciones actuales se descartarán."
 
-2. **Reemplazar la sección estática de "Fecha Límite"** (líneas 2332-2337):
-   - Mostrar la fecha actual con un botón de edición (ícono lápiz) al lado, similar al patrón de "Notas Adicionales".
-   - Al hacer clic, mostrar un `Popover` con un `Calendar` para seleccionar nueva fecha.
-   - Al confirmar, llamar `onUpdatePackage(pkg.id, { delivery_deadline: newDate.toISOString() })` y cerrar el editor inline.
+**2. `src/components/dashboard/CollapsiblePackageCard.tsx`**
+- Agregar prop `onRejectAllQuotes?: (packageId: string) => Promise<void>` al componente.
+- Pasar `onRejectAllQuotes={() => onRejectAllQuotes(pkg.id)}` al `MultiQuoteSelector` en ambos lugares donde se renderiza (inline y modal).
 
-3. **Guardar cambio**: Llamar `onUpdatePackage` directamente (sin depender del modo edición global), igual que el patrón de edición inline de notas.
+**3. `src/components/Dashboard.tsx`**
+- Implementar `handleRejectAllQuotes(packageId)`:
+  1. Actualizar todas las `package_assignments` activas del paquete a `status = 'bid_lost'`.
+  2. Actualizar el paquete: `status = 'approved'`, `matched_trip_id = null`.
+  3. Mostrar toast de confirmación.
+  4. Refrescar datos.
+- Pasar `onRejectAllQuotes={handleRejectAllQuotes}` al `CollapsiblePackageCard`.
 
-### Diseño visual
-
-La fecha límite pasará de texto estático a texto + botón lápiz. Al hacer clic se abre un calendario popover para seleccionar la nueva fecha. Se reutilizan los componentes `Calendar`, `Popover`, y `Button` ya importados en el proyecto.
+### Notas
+- No se necesitan migraciones de base de datos; las operaciones son UPDATEs a tablas existentes con campos existentes.
+- El estado `bid_lost` ya existe para asignaciones descartadas, se reutiliza.
 
