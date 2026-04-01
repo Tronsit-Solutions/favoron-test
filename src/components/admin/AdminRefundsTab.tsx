@@ -176,6 +176,7 @@ const AdminRefundsTab = () => {
   const [notes, setNotes] = useState('');
   const [completeFile, setCompleteFile] = useState<File | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [refundMethod, setRefundMethod] = useState<'bank_transfer' | 'account_credit'>('bank_transfer');
 
   const pendingRefunds = refundOrders.filter(r => r.status === 'pending');
   const completedRefunds = refundOrders.filter(r => r.status === 'completed');
