@@ -1134,6 +1134,7 @@ const CollapsiblePackageCard = ({
                     <MultiQuoteSelector
                       assignments={multiAssignments}
                       onAcceptQuote={(assignmentId, extras) => onAcceptMultiAssignmentQuote(pkg.id, assignmentId, extras)}
+                      onRejectAllQuotes={onRejectAllQuotes ? () => onRejectAllQuotes(pkg.id) : undefined}
                       packageDetails={{
                         delivery_method: pkg.delivery_method || 'pickup',
                         shopper_trust_level: profile?.trust_level,
