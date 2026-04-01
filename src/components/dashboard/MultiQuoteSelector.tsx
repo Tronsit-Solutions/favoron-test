@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -62,6 +63,7 @@ export interface MultiQuotePackageDetails {
 interface MultiQuoteSelectorProps {
   assignments: Assignment[];
   onAcceptQuote: (assignmentId: string, extras: MultiQuoteAcceptExtras) => Promise<void>;
+  onRejectAllQuotes?: () => Promise<void>;
   packageDetails: MultiQuotePackageDetails;
   shopperId?: string;
 }
@@ -75,7 +77,7 @@ const formatDateUTC = (dateString: string) => {
   );
 };
 
-const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shopperId }: MultiQuoteSelectorProps) => {
+const MultiQuoteSelector = ({ assignments, onAcceptQuote, onRejectAllQuotes, packageDetails, shopperId }: MultiQuoteSelectorProps) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(packageDetails.delivery_method || 'pickup');
@@ -95,6 +97,9 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
   );
 
   // Discount code state
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
+
   const [discountCode, setDiscountCode] = useState('');
   const [discountError, setDiscountError] = useState<string | null>(null);
   const [discountSuccess, setDiscountSuccess] = useState(false);
@@ -648,9 +653,9 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
         </div>
       )}
 
-      {/* Sticky confirm button */}
+      {/* Sticky confirm button + reject */}
       {quotedAssignments.length > 0 && (
-        <div className="sticky bottom-0 pt-3 pb-1 bg-background">
+        <div className="sticky bottom-0 pt-3 pb-1 bg-background space-y-2">
           <Button
             variant="shopper"
             className="w-full"
@@ -669,8 +674,61 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, packageDetails, shoppe
               </>
             )}
           </Button>
+
+          {onRejectAllQuotes && (
+            <Button
+              variant="outline"
+              className="w-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => setShowRejectDialog(true)}
+              disabled={!!acceptingId || isRejecting}
+            >
+              {isRejecting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Rechazando...
+                </>
+              ) : (
+                <>
+                  <X className="h-4 w-4 mr-2" />
+                  Rechazar y buscar más viajeros
+                </>
+              )}
+            </Button>
+          )}
         </div>
       )}
+
+      {/* Reject confirmation dialog */}
+      <AlertDialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Rechazar cotizaciones?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Las cotizaciones actuales se descartarán y tu paquete volverá a buscar nuevos viajeros. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isRejecting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isRejecting}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!onRejectAllQuotes) return;
+                setIsRejecting(true);
+                try {
+                  await onRejectAllQuotes();
+                  setShowRejectDialog(false);
+                } finally {
+                  setIsRejecting(false);
+                }
+              }}
+            >
+              {isRejecting ? 'Rechazando...' : 'Sí, rechazar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
 

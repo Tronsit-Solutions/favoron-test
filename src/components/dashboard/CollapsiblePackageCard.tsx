@@ -64,6 +64,7 @@ interface CollapsiblePackageCardProps {
   // Multi-assignment props
   multiAssignments?: any[];
   onAcceptMultiAssignmentQuote?: (packageId: string, assignmentId: string, extras: MultiQuoteAcceptExtras) => Promise<void>;
+  onRejectAllQuotes?: (packageId: string) => Promise<void>;
 }
 const CollapsiblePackageCard = ({
   pkg,
@@ -79,7 +80,8 @@ const CollapsiblePackageCard = ({
   forceTab,
   onExternalControlHandled,
   multiAssignments,
-  onAcceptMultiAssignmentQuote
+  onAcceptMultiAssignmentQuote,
+  onRejectAllQuotes
 }: CollapsiblePackageCardProps) => {
   const [isOpen, setIsOpen] = React.useState(forceOpen || false);
   const [activeTab, setActiveTab] = React.useState(forceTab || "producto");
@@ -1132,6 +1134,7 @@ const CollapsiblePackageCard = ({
                     <MultiQuoteSelector
                       assignments={multiAssignments}
                       onAcceptQuote={(assignmentId, extras) => onAcceptMultiAssignmentQuote(pkg.id, assignmentId, extras)}
+                      onRejectAllQuotes={onRejectAllQuotes ? () => onRejectAllQuotes(pkg.id) : undefined}
                       packageDetails={{
                         delivery_method: pkg.delivery_method || 'pickup',
                         shopper_trust_level: profile?.trust_level,
@@ -1412,7 +1415,7 @@ const CollapsiblePackageCard = ({
                   Cotizaciones recibidas
                 </DialogTitle>
               </DialogHeader>
-              {multiAssignments && onAcceptMultiAssignmentQuote && (
+               {multiAssignments && onAcceptMultiAssignmentQuote && (
                 <MultiQuoteSelector
                   assignments={multiAssignments}
                   onAcceptQuote={async (assignmentId, extras) => {
@@ -1428,6 +1431,10 @@ const CollapsiblePackageCard = ({
                       setMultiQuoteWizardStep('payment');
                     }
                   }}
+                  onRejectAllQuotes={onRejectAllQuotes ? async () => {
+                    await onRejectAllQuotes(pkg.id);
+                    setShowMultiQuoteModal(false);
+                  } : undefined}
                   packageDetails={{
                     delivery_method: pkg.delivery_method || 'pickup',
                     shopper_trust_level: profile?.trust_level,
