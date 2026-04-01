@@ -1,47 +1,30 @@
 
 
-## Plan: Sincronización centralizada de ediciones a `package_assignments`
+## Fix: Refrescar assignments después de editar tips/cotización
 
 ### Problema
-Cuando se edita un paquete (productos, fecha límite, notas, etc.) desde el admin, shopper o viajero, solo se actualiza la tabla `packages`. La tabla `package_assignments` — que es lo que leen viajeros y shoppers para ver cotizaciones y detalles — no se actualiza con esos cambios.
+Cuando el admin edita el tip (de Q200 a Q275), los datos se guardan correctamente en `packages` y se sincronizan a `package_assignments` (fix anterior). Sin embargo, los **cards de viajeros asignados** en el modal siguen mostrando Q200 porque:
 
-Actualmente hay sync parcial solo para tips (`useAdminTips`) y quotes (`useQuoteManagement`), pero campos como `products_data`, `admin_assigned_tip` editados desde el modal general no se propagan.
+1. `packageAssignments` se carga una sola vez al abrir el modal (useEffect línea 373)
+2. Después de guardar tips, solo se llama `refetchPackageDetails()` (que re-carga datos del paquete), pero **no se re-cargan los assignments**
+3. El dashboard "Mis Viajes" del viajero lee de `package_assignments` — la sync ya se implementó, pero hay que verificar que el componente `CollapsibleTravelerPackageCard` lea el campo actualizado
 
-### Solución: Sync centralizado en `updatePackage`
+### Cambios
 
-**Archivo: `src/hooks/usePackagesData.tsx`** — función `updatePackage`
+**1. `src/components/admin/PackageDetailModal.tsx`**
 
-Después de actualizar exitosamente la tabla `packages`, agregar un bloque que sincronice los campos relevantes a todas las asignaciones activas (`bid_pending`, `bid_submitted`) del mismo paquete.
+Extraer la lógica de carga de assignments (líneas 374-421) a una función reutilizable (`loadAssignments`) y llamarla también en el `onSuccess` del `QuoteEditModal` y después de cualquier acción que modifique tips.
 
-Los campos compartidos entre `packages` y `package_assignments` que deben sincronizarse son:
-- `products_data`
-- `quote`
-- `admin_assigned_tip`
+- Convertir el bloque dentro del `useEffect` (línea 374) en una función nombrada fuera del effect
+- En el `useEffect`, seguir llamando esa función
+- En `onSuccess` del `QuoteEditModal` (línea 3120): agregar llamada a `loadAssignments()`
+- En `handleSaveChanges` (línea 832): agregar llamada a `loadAssignments()` si `products_data` fue editada
 
-Lógica:
-```typescript
-// Después del update exitoso a packages (línea ~140)
-const syncFields: Record<string, any> = {};
-if ('products_data' in updates) syncFields.products_data = updates.products_data;
-if ('quote' in updates) syncFields.quote = updates.quote;
-if ('admin_assigned_tip' in updates) syncFields.admin_assigned_tip = updates.admin_assigned_tip;
+**2. Verificar `CollapsibleTravelerPackageCard.tsx`**
 
-if (Object.keys(syncFields).length > 0) {
-  syncFields.updated_at = new Date().toISOString();
-  await supabase
-    .from('package_assignments')
-    .update(syncFields)
-    .eq('package_id', id)
-    .in('status', ['bid_pending', 'bid_submitted']);
-}
-```
+El componente ya lee `admin_assigned_tip` y `products_data` del objeto `pkg` que recibe. Si el dashboard del viajero suscribe a cambios realtime en `package_assignments`, los valores se actualizarán automáticamente gracias al sync ya implementado. Solo hay que confirmar que el realtime subscription está activo para esa tabla.
 
-### Por qué este approach
-- **Un solo punto de sync**: cualquier llamada a `updatePackage` que incluya campos compartidos los propaga automáticamente.
-- **No duplica lógica**: `useAdminTips` y `useQuoteManagement` ya hacen su propio sync especializado (con recálculo de service fees, logs, etc.), así que siguen funcionando independientemente.
-- **Solo campos relevantes**: solo sincroniza si el update incluye campos que existen en `package_assignments`.
-- **Solo asignaciones activas**: no toca asignaciones terminales (`bid_won`, `bid_lost`, `bid_expired`, `bid_cancelled`).
-
-### Archivos a modificar
-1. **`src/hooks/usePackagesData.tsx`** — agregar sync a `package_assignments` dentro de `updatePackage` (~5 líneas después del update exitoso)
+### Resultado
+- Cards de viajeros asignados mostrarán el tip correcto inmediatamente después de editar
+- Dashboard "Mis Viajes" del viajero mostrará el tip actualizado via realtime
 
