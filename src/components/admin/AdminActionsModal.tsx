@@ -721,6 +721,9 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
         onSave={handleProductTipSave}
         products={products}
         packageId={pkg.id}
+        tripId={pkg.matched_trip_id}
+        travelerId={pkg.matched_trip_id ? trips.find(t => t.id === pkg.matched_trip_id)?.user_id : undefined}
+        trustLevel={(pkg as any).profiles?.trust_level || 'basic'}
       />
     <Dialog open={isOpen} onOpenChange={() => closeModal(modalId)}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
