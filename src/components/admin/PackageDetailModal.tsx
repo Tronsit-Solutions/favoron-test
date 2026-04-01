@@ -829,6 +829,7 @@ const [editForm, setEditForm] = useState({
       
       onUpdatePackage(pkg.id, updates);
       refetchPackageDetails();
+      loadAssignments();
     }
     setEditMode(false);
   };
