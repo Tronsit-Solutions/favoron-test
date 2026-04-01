@@ -1,46 +1,47 @@
 
 
-## Fix: Sincronizar quote a package_assignments al editar tips/cotización
+## Plan: Sincronización centralizada de ediciones a `package_assignments`
 
 ### Problema
-Cuando un admin edita el tip o la cotización de un paquete con asignaciones activas (`bid_submitted`), el campo `quote` en `package_assignments` no se actualiza. El viajero (y el shopper) siguen viendo los valores anteriores.
+Cuando se edita un paquete (productos, fecha límite, notas, etc.) desde el admin, shopper o viajero, solo se actualiza la tabla `packages`. La tabla `package_assignments` — que es lo que leen viajeros y shoppers para ver cotizaciones y detalles — no se actualiza con esos cambios.
 
-**Dos hooks afectados:**
+Actualmente hay sync parcial solo para tips (`useAdminTips`) y quotes (`useQuoteManagement`), pero campos como `products_data`, `admin_assigned_tip` editados desde el modal general no se propagan.
 
-### Cambios
+### Solución: Sync centralizado en `updatePackage`
 
-**1. `src/hooks/useAdminTips.tsx`** (línea ~128)
-- Agregar `quote: updatedQuote` al update de `package_assignments` que ya existe (solo falta ese campo).
+**Archivo: `src/hooks/usePackagesData.tsx`** — función `updatePackage`
 
+Después de actualizar exitosamente la tabla `packages`, agregar un bloque que sincronice los campos relevantes a todas las asignaciones activas (`bid_pending`, `bid_submitted`) del mismo paquete.
+
+Los campos compartidos entre `packages` y `package_assignments` que deben sincronizarse son:
+- `products_data`
+- `quote`
+- `admin_assigned_tip`
+
+Lógica:
 ```typescript
-// Línea 128-131: agregar quote
-.update({
-  products_data: normalizedProducts,
-  admin_assigned_tip: totalTip,
-  quote: updatedQuote,        // ← AGREGAR
-  updated_at: new Date().toISOString(),
-})
+// Después del update exitoso a packages (línea ~140)
+const syncFields: Record<string, any> = {};
+if ('products_data' in updates) syncFields.products_data = updates.products_data;
+if ('quote' in updates) syncFields.quote = updates.quote;
+if ('admin_assigned_tip' in updates) syncFields.admin_assigned_tip = updates.admin_assigned_tip;
+
+if (Object.keys(syncFields).length > 0) {
+  syncFields.updated_at = new Date().toISOString();
+  await supabase
+    .from('package_assignments')
+    .update(syncFields)
+    .eq('package_id', id)
+    .in('status', ['bid_pending', 'bid_submitted']);
+}
 ```
 
-**2. `src/hooks/useQuoteManagement.tsx`** (después de línea 164)
-- Agregar un nuevo bloque que sincronice `quote`, `admin_assigned_tip` y `products_data` a todas las asignaciones activas del paquete.
+### Por qué este approach
+- **Un solo punto de sync**: cualquier llamada a `updatePackage` que incluya campos compartidos los propaga automáticamente.
+- **No duplica lógica**: `useAdminTips` y `useQuoteManagement` ya hacen su propio sync especializado (con recálculo de service fees, logs, etc.), así que siguen funcionando independientemente.
+- **Solo campos relevantes**: solo sincroniza si el update incluye campos que existen en `package_assignments`.
+- **Solo asignaciones activas**: no toca asignaciones terminales (`bid_won`, `bid_lost`, `bid_expired`, `bid_cancelled`).
 
-```typescript
-// Después del update a packages (línea 164)
-await supabase
-  .from('package_assignments')
-  .update({
-    quote: updatedQuote,
-    admin_assigned_tip: newTip,
-    products_data: updatedProductsData,
-    updated_at: new Date().toISOString(),
-  })
-  .eq('package_id', packageId)
-  .in('status', ['bid_pending', 'bid_submitted']);
-```
-
-### Impacto
-- El viajero verá el tip actualizado en su modal "Tip Asignado" inmediatamente (via realtime en `package_assignments`).
-- El shopper verá los valores actualizados en su selector de cotizaciones.
-- No se requieren migraciones ni cambios de schema.
+### Archivos a modificar
+1. **`src/hooks/usePackagesData.tsx`** — agregar sync a `package_assignments` dentro de `updatePackage` (~5 líneas después del update exitoso)
 
