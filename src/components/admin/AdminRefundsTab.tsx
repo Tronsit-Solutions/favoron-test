@@ -470,7 +470,7 @@ const AdminRefundsTab = () => {
       </Dialog>
 
       {/* Action Modal */}
-      <Dialog open={!!actionModal} onOpenChange={() => { setActionModal(null); setNotes(''); setCompleteFile(null); }}>
+      <Dialog open={!!actionModal} onOpenChange={() => { setActionModal(null); setNotes(''); setCompleteFile(null); setRefundMethod('bank_transfer'); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -489,6 +489,44 @@ const AdminRefundsTab = () => {
               </div>
             )}
 
+            {actionModal?.type === 'complete' && (
+              <div className="space-y-3">
+                <label className="text-sm font-medium">Método de reembolso</label>
+                <RadioGroup
+                  value={refundMethod}
+                  onValueChange={(v) => setRefundMethod(v as 'bank_transfer' | 'account_credit')}
+                  className="grid grid-cols-2 gap-3"
+                >
+                  <div className={`flex items-center space-x-2 border rounded-lg p-3 cursor-pointer transition-colors ${refundMethod === 'bank_transfer' ? 'border-primary bg-primary/5' : 'border-border'}`}>
+                    <RadioGroupItem value="bank_transfer" id="bank_transfer" />
+                    <Label htmlFor="bank_transfer" className="flex items-center gap-2 cursor-pointer">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">Transferencia</span>
+                    </Label>
+                  </div>
+                  <div className={`flex items-center space-x-2 border rounded-lg p-3 cursor-pointer transition-colors ${refundMethod === 'account_credit' ? 'border-primary bg-primary/5' : 'border-border'}`}>
+                    <RadioGroupItem value="account_credit" id="account_credit" />
+                    <Label htmlFor="account_credit" className="flex items-center gap-2 cursor-pointer">
+                      <Wallet className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">Crédito a cuenta</span>
+                    </Label>
+                  </div>
+                </RadioGroup>
+
+                {refundMethod === 'account_credit' && actionModal && (
+                  <div className="bg-blue-50 border border-blue-200 text-blue-800 p-3 rounded-lg text-sm">
+                    <p className="font-medium flex items-center gap-1.5">
+                      <Wallet className="h-4 w-4" />
+                      Se acreditará {formatCurrency(actionModal.refund.amount)} al saldo del shopper
+                    </p>
+                    <p className="text-xs mt-1 text-blue-600">
+                      El crédito estará disponible para su próximo pedido.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Notas (opcional)</label>
               <Textarea
@@ -499,7 +537,7 @@ const AdminRefundsTab = () => {
               />
             </div>
 
-            {actionModal?.type === 'complete' && (
+            {actionModal?.type === 'complete' && refundMethod === 'bank_transfer' && (
               <div className="space-y-2">
                 <label className="text-sm font-medium">Comprobante de transferencia (opcional)</label>
                 <Input
@@ -519,13 +557,13 @@ const AdminRefundsTab = () => {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setActionModal(null); setNotes(''); setCompleteFile(null); }} disabled={processing}>
+            <Button variant="outline" onClick={() => { setActionModal(null); setNotes(''); setCompleteFile(null); setRefundMethod('bank_transfer'); }} disabled={processing}>
               Cancelar
             </Button>
             {actionModal?.type === 'complete' && (
               <Button onClick={handleComplete} disabled={processing}>
                 {processing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                Completar Reembolso
+                {refundMethod === 'account_credit' ? 'Acreditar a Cuenta' : 'Completar Reembolso'}
               </Button>
             )}
             {actionModal?.type === 'reject' && (
