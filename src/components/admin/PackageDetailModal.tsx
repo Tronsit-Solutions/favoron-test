@@ -2336,7 +2336,39 @@ const [editForm, setEditForm] = useState({
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="font-medium text-muted-foreground">Fecha Límite</p>
+                      <p className="font-medium text-muted-foreground flex items-center justify-center gap-1">
+                        Fecha Límite
+                        {!editMode && (
+                          <Popover open={editDeadline} onOpenChange={(open) => {
+                            setEditDeadline(open);
+                            if (open) {
+                              setEditDeadlineValue(pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined);
+                            }
+                          }}>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
+                                <Edit2 className="h-3 w-3" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="center">
+                              <Calendar
+                                mode="single"
+                                selected={editDeadlineValue}
+                                onSelect={(date) => {
+                                  if (date) {
+                                    setEditDeadlineValue(date);
+                                    onUpdatePackage(pkg.id, { delivery_deadline: date.toISOString() });
+                                    setEditDeadline(false);
+                                  }
+                                }}
+                                locale={es}
+                                initialFocus
+                                className="p-3 pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                      </p>
                       <p className="text-xs font-medium">
                         {formatSafeDate(pkg.delivery_deadline)}
                       </p>
