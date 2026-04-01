@@ -1,30 +1,15 @@
 
 
-## Agregar botón "Rechazar cotización" para shoppers
+## Fix: Permitir editar Fecha Límite siempre (no solo fuera del modo edición)
 
-### Contexto
-Cuando solo hay 1 cotización, el shopper no tiene opción de rechazarla. Queremos agregar un botón que permita rechazar todas las cotizaciones y devolver el paquete a `approved` para buscar nuevos viajeros.
+### Problema
+El botón de edición de Fecha Límite está condicionado a `{!editMode && (...)}`, lo que lo oculta cuando el admin está en modo de edición de productos. En el screenshot se ve que los campos de producto son editables (modo edición activo), por lo que el ícono de lápiz no aparece.
 
-### Cambios
+### Solución
 
-**1. `src/components/dashboard/MultiQuoteSelector.tsx`**
-- Agregar prop `onRejectAllQuotes: () => Promise<void>` al componente.
-- Debajo del botón "Aceptar esta cotización", agregar un botón secundario/outline "Rechazar y buscar más viajeros" (con ícono `X`). Solo visible cuando hay cotizaciones (`quotedAssignments.length > 0`).
-- Incluir un `AlertDialog` de confirmación: "¿Estás seguro? El paquete volverá a buscar nuevos viajeros y las cotizaciones actuales se descartarán."
+**Archivo: `src/components/admin/PackageDetailModal.tsx`** (línea 2341)
 
-**2. `src/components/dashboard/CollapsiblePackageCard.tsx`**
-- Agregar prop `onRejectAllQuotes?: (packageId: string) => Promise<void>` al componente.
-- Pasar `onRejectAllQuotes={() => onRejectAllQuotes(pkg.id)}` al `MultiQuoteSelector` en ambos lugares donde se renderiza (inline y modal).
+Eliminar la condición `{!editMode && (` y su cierre `)}` correspondiente, dejando el `Popover` siempre visible. La edición de fecha límite es inline e independiente del modo edición de productos, por lo que no hay conflicto.
 
-**3. `src/components/Dashboard.tsx`**
-- Implementar `handleRejectAllQuotes(packageId)`:
-  1. Actualizar todas las `package_assignments` activas del paquete a `status = 'bid_lost'`.
-  2. Actualizar el paquete: `status = 'approved'`, `matched_trip_id = null`.
-  3. Mostrar toast de confirmación.
-  4. Refrescar datos.
-- Pasar `onRejectAllQuotes={handleRejectAllQuotes}` al `CollapsiblePackageCard`.
-
-### Notas
-- No se necesitan migraciones de base de datos; las operaciones son UPDATEs a tablas existentes con campos existentes.
-- El estado `bid_lost` ya existe para asignaciones descartadas, se reutiliza.
+Cambio: quitar las líneas de guarda `!editMode` (línea 2341 y su cierre en ~2370), manteniendo el `Popover` completo.
 
