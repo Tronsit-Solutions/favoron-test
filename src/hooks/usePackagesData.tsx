@@ -136,7 +136,22 @@ export const usePackagesData = () => {
         );
         return updated;
       });
-      
+
+      // Sync shared fields to active package_assignments
+      const syncFields: Record<string, any> = {};
+      if ('products_data' in updates) syncFields.products_data = updates.products_data;
+      if ('quote' in updates) syncFields.quote = updates.quote;
+      if ('admin_assigned_tip' in updates) syncFields.admin_assigned_tip = updates.admin_assigned_tip;
+
+      if (Object.keys(syncFields).length > 0) {
+        syncFields.updated_at = new Date().toISOString();
+        await supabase
+          .from('package_assignments')
+          .update(syncFields)
+          .eq('package_id', id)
+          .in('status', ['bid_pending', 'bid_submitted']);
+      }
+
       return data;
     } catch (error: any) {
       toast({
