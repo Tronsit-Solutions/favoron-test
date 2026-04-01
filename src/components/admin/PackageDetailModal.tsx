@@ -7,7 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { User, Mail, Phone, Package, ExternalLink, Calendar, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban, Clock, Globe, Upload, Loader2, Trash2 } from "lucide-react";
+import { User, Mail, Phone, Package, ExternalLink, Calendar as CalendarIcon, DollarSign, CheckCircle, XCircle, FileText, Receipt, Truck, Home, MapPin, Camera, CheckCircle2, Edit2, Save, X, Star, Ban, Clock, Globe, Upload, Loader2, Trash2 } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { inferCountryFromCity } from '@/lib/cities';
@@ -230,6 +234,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   const [editMode, setEditMode] = useState(false);
   const [inlineNotesEdit, setInlineNotesEdit] = useState(false);
   const [inlineNotesValue, setInlineNotesValue] = useState('');
+  const [editDeadline, setEditDeadline] = useState(false);
+  const [editDeadlineValue, setEditDeadlineValue] = useState<Date | undefined>(undefined);
 const [editForm, setEditForm] = useState({
     purchase_origin: '',
     package_destination: '',
@@ -2330,7 +2336,39 @@ const [editForm, setEditForm] = useState({
                       </p>
                     </div>
                     <div className="text-center">
-                      <p className="font-medium text-muted-foreground">Fecha Límite</p>
+                      <p className="font-medium text-muted-foreground flex items-center justify-center gap-1">
+                        Fecha Límite
+                        {!editMode && (
+                          <Popover open={editDeadline} onOpenChange={(open) => {
+                            setEditDeadline(open);
+                            if (open) {
+                              setEditDeadlineValue(pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined);
+                            }
+                          }}>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
+                                <Edit2 className="h-3 w-3" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="center">
+                              <Calendar
+                                mode="single"
+                                selected={editDeadlineValue}
+                                onSelect={(date) => {
+                                  if (date) {
+                                    setEditDeadlineValue(date);
+                                    onUpdatePackage(pkg.id, { delivery_deadline: date.toISOString() });
+                                    setEditDeadline(false);
+                                  }
+                                }}
+                                locale={es}
+                                initialFocus
+                                className="p-3 pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                      </p>
                       <p className="text-xs font-medium">
                         {formatSafeDate(pkg.delivery_deadline)}
                       </p>
