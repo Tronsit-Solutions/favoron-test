@@ -163,6 +163,22 @@ export const useQuoteManagement = () => {
 
       if (updateError) throw updateError;
 
+      // Sync quote to active package_assignments so travelers/shoppers see updated values
+      const { error: assignSyncError } = await supabase
+        .from('package_assignments')
+        .update({
+          quote: updatedQuote as any,
+          admin_assigned_tip: newTip,
+          products_data: updatedProductsData as any,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('package_id', packageId)
+        .in('status', ['bid_pending', 'bid_submitted']);
+
+      if (assignSyncError) {
+        console.error('⚠️ Failed to sync quote to package_assignments:', assignSyncError);
+      }
+
       // Mark referral credit as used if applied
       if (referralCreditAmount && referralCreditAmount > 0 && shopperUserId) {
         try {

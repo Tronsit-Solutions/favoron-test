@@ -128,6 +128,7 @@ export const useAdminTips = () => {
       .update({
         products_data: normalizedProducts as unknown as any,
         admin_assigned_tip: totalTip,
+        quote: updatedQuote as unknown as any,
         updated_at: new Date().toISOString(),
       })
       .eq('package_id', packageId)
