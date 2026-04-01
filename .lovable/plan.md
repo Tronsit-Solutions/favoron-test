@@ -1,16 +1,23 @@
 
 
-## Restaurar pedido de Luisa Torres a `quote_sent` con Anika Erichsen
+## Agregar edición de Fecha Límite en el modal de detalles del paquete
 
-### Contexto
-- **Paquete**: `b4df2001-861b-423d-a2b8-0fe94adb6d7c` (Vineyard Vines Jersey Top) — estado actual: `quote_expired`
-- **Asignación existente**: `a539d64e-cb20-41e9-8b9a-ff53ebd4615d` — estado actual: `bid_expired`, vinculada al viaje de Anika `278dbf7f` (Florida → Guatemala City, 4 abril)
+### Cambio
 
-### Acciones (2 UPDATEs vía insert tool)
+**Archivo: `src/components/admin/PackageDetailModal.tsx`**
 
-1. **Actualizar paquete** → `status = 'quote_sent'`, `matched_trip_id = '278dbf7f-1df8-43e6-b446-00ec9b6c1a3e'`, restaurar `quote_expires_at` a 48 horas desde ahora.
+1. **Agregar estado para edición inline de fecha límite** (~línea 231):
+   - `const [editDeadline, setEditDeadline] = useState(false);`
+   - `const [editDeadlineValue, setEditDeadlineValue] = useState<Date | null>(null);`
 
-2. **Actualizar asignación** → `status = 'bid_submitted'`, restaurar `expires_at` y `quote_expires_at` a 48 horas desde ahora.
+2. **Reemplazar la sección estática de "Fecha Límite"** (líneas 2332-2337):
+   - Mostrar la fecha actual con un botón de edición (ícono lápiz) al lado, similar al patrón de "Notas Adicionales".
+   - Al hacer clic, mostrar un `Popover` con un `Calendar` para seleccionar nueva fecha.
+   - Al confirmar, llamar `onUpdatePackage(pkg.id, { delivery_deadline: newDate.toISOString() })` y cerrar el editor inline.
 
-No requiere cambios de código ni migraciones, solo dos operaciones de datos.
+3. **Guardar cambio**: Llamar `onUpdatePackage` directamente (sin depender del modo edición global), igual que el patrón de edición inline de notas.
+
+### Diseño visual
+
+La fecha límite pasará de texto estático a texto + botón lápiz. Al hacer clic se abre un calendario popover para seleccionar la nueva fecha. Se reutilizan los componentes `Calendar`, `Popover`, y `Button` ya importados en el proyecto.
 
