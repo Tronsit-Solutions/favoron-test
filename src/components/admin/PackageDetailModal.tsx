@@ -2338,8 +2338,7 @@ const [editForm, setEditForm] = useState({
                     <div className="text-center">
                       <p className="font-medium text-muted-foreground flex items-center justify-center gap-1">
                         Fecha Límite
-                        {!editMode && (
-                          <Popover open={editDeadline} onOpenChange={(open) => {
+                        <Popover open={editDeadline} onOpenChange={(open) => {
                             setEditDeadline(open);
                             if (open) {
                               setEditDeadlineValue(pkg.delivery_deadline ? new Date(pkg.delivery_deadline) : undefined);
@@ -2367,7 +2366,6 @@ const [editForm, setEditForm] = useState({
                               />
                             </PopoverContent>
                           </Popover>
-                        )}
                       </p>
                       <p className="text-xs font-medium">
                         {formatSafeDate(pkg.delivery_deadline)}
