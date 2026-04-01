@@ -22,6 +22,8 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/formatters';
 import { 
   RefreshCw, 
@@ -33,7 +35,9 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  FileText
+  FileText,
+  Wallet,
+  Building2
 } from 'lucide-react';
 
 interface RefundTableProps {
@@ -121,7 +125,16 @@ const RefundTable = ({ refunds, showActions = true, onViewRefund, onCompleteRefu
                   <p className="text-muted-foreground">{refund.bank_account_number}</p>
                 </div>
               </TableCell>
-              <TableCell>{getStatusBadge(refund.status)}</TableCell>
+              <TableCell>
+                <div className="space-y-1">
+                  {getStatusBadge(refund.status)}
+                  {refund.status === 'completed' && refund.refund_method === 'account_credit' && (
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px]">
+                      <Wallet className="h-2.5 w-2.5 mr-0.5" />Crédito
+                    </Badge>
+                  )}
+                </div>
+              </TableCell>
               {showActions && (
                 <TableCell>
                   <div className="flex gap-1">
@@ -172,6 +185,7 @@ const AdminRefundsTab = () => {
   const [notes, setNotes] = useState('');
   const [completeFile, setCompleteFile] = useState<File | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [refundMethod, setRefundMethod] = useState<'bank_transfer' | 'account_credit'>('bank_transfer');
 
   const pendingRefunds = refundOrders.filter(r => r.status === 'pending');
   const completedRefunds = refundOrders.filter(r => r.status === 'completed');
@@ -206,7 +220,7 @@ const AdminRefundsTab = () => {
     let receiptUrl: string | undefined;
     let receiptFilename: string | undefined;
     
-    if (completeFile) {
+    if (refundMethod === 'bank_transfer' && completeFile) {
       const uploadedPath = await uploadRefundReceipt(actionModal.refund.id, completeFile);
       if (uploadedPath) {
         receiptUrl = uploadedPath;
@@ -214,11 +228,21 @@ const AdminRefundsTab = () => {
       }
     }
     
-    await updateRefundStatus(actionModal.refund.id, 'completed', notes || undefined, receiptUrl, receiptFilename);
+    await updateRefundStatus(
+      actionModal.refund.id,
+      'completed',
+      notes || undefined,
+      receiptUrl,
+      receiptFilename,
+      refundMethod,
+      actionModal.refund.shopper_id,
+      actionModal.refund.amount
+    );
     setProcessing(false);
     setActionModal(null);
     setNotes('');
     setCompleteFile(null);
+    setRefundMethod('bank_transfer');
   };
 
   const tableProps = {
@@ -455,7 +479,7 @@ const AdminRefundsTab = () => {
       </Dialog>
 
       {/* Action Modal */}
-      <Dialog open={!!actionModal} onOpenChange={() => { setActionModal(null); setNotes(''); setCompleteFile(null); }}>
+      <Dialog open={!!actionModal} onOpenChange={() => { setActionModal(null); setNotes(''); setCompleteFile(null); setRefundMethod('bank_transfer'); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -474,6 +498,44 @@ const AdminRefundsTab = () => {
               </div>
             )}
 
+            {actionModal?.type === 'complete' && (
+              <div className="space-y-3">
+                <label className="text-sm font-medium">Método de reembolso</label>
+                <RadioGroup
+                  value={refundMethod}
+                  onValueChange={(v) => setRefundMethod(v as 'bank_transfer' | 'account_credit')}
+                  className="grid grid-cols-2 gap-3"
+                >
+                  <div className={`flex items-center space-x-2 border rounded-lg p-3 cursor-pointer transition-colors ${refundMethod === 'bank_transfer' ? 'border-primary bg-primary/5' : 'border-border'}`}>
+                    <RadioGroupItem value="bank_transfer" id="bank_transfer" />
+                    <Label htmlFor="bank_transfer" className="flex items-center gap-2 cursor-pointer">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">Transferencia</span>
+                    </Label>
+                  </div>
+                  <div className={`flex items-center space-x-2 border rounded-lg p-3 cursor-pointer transition-colors ${refundMethod === 'account_credit' ? 'border-primary bg-primary/5' : 'border-border'}`}>
+                    <RadioGroupItem value="account_credit" id="account_credit" />
+                    <Label htmlFor="account_credit" className="flex items-center gap-2 cursor-pointer">
+                      <Wallet className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">Crédito a cuenta</span>
+                    </Label>
+                  </div>
+                </RadioGroup>
+
+                {refundMethod === 'account_credit' && actionModal && (
+                  <div className="bg-blue-50 border border-blue-200 text-blue-800 p-3 rounded-lg text-sm">
+                    <p className="font-medium flex items-center gap-1.5">
+                      <Wallet className="h-4 w-4" />
+                      Se acreditará {formatCurrency(actionModal.refund.amount)} al saldo del shopper
+                    </p>
+                    <p className="text-xs mt-1 text-blue-600">
+                      El crédito estará disponible para su próximo pedido.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Notas (opcional)</label>
               <Textarea
@@ -484,7 +546,7 @@ const AdminRefundsTab = () => {
               />
             </div>
 
-            {actionModal?.type === 'complete' && (
+            {actionModal?.type === 'complete' && refundMethod === 'bank_transfer' && (
               <div className="space-y-2">
                 <label className="text-sm font-medium">Comprobante de transferencia (opcional)</label>
                 <Input
@@ -504,13 +566,13 @@ const AdminRefundsTab = () => {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setActionModal(null); setNotes(''); setCompleteFile(null); }} disabled={processing}>
+            <Button variant="outline" onClick={() => { setActionModal(null); setNotes(''); setCompleteFile(null); setRefundMethod('bank_transfer'); }} disabled={processing}>
               Cancelar
             </Button>
             {actionModal?.type === 'complete' && (
               <Button onClick={handleComplete} disabled={processing}>
                 {processing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                Completar Reembolso
+                {refundMethod === 'account_credit' ? 'Acreditar a Cuenta' : 'Completar Reembolso'}
               </Button>
             )}
             {actionModal?.type === 'reject' && (

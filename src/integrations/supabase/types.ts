@@ -1478,6 +1478,7 @@ export type Database = {
           reason: string
           receipt_filename: string | null
           receipt_url: string | null
+          refund_method: string | null
           shopper_id: string
           status: string
           updated_at: string
@@ -1498,6 +1499,7 @@ export type Database = {
           reason?: string
           receipt_filename?: string | null
           receipt_url?: string | null
+          refund_method?: string | null
           shopper_id: string
           status?: string
           updated_at?: string
@@ -1518,6 +1520,7 @@ export type Database = {
           reason?: string
           receipt_filename?: string | null
           receipt_url?: string | null
+          refund_method?: string | null
           shopper_id?: string
           status?: string
           updated_at?: string

@@ -1,0 +1,1 @@
+ALTER TABLE refund_orders ADD COLUMN refund_method text DEFAULT 'bank_transfer';
