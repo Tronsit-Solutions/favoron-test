@@ -2089,7 +2089,7 @@ const AdminMatchDialog = ({
                 <CardHeader>
                   <h3 className="text-lg font-semibold flex items-center gap-2">
                     <Zap className="h-5 w-5" />
-                    Asignaciones del Viaje ({tripAssignments.length})
+                    Asignaciones del Viaje ({tripAssignments.filter((a: any) => !['bid_expired', 'bid_cancelled', 'bid_lost'].includes(a.status)).length} activas)
                   </h3>
                 </CardHeader>
                 <CardContent>
@@ -2108,61 +2108,85 @@ const AdminMatchDialog = ({
                       <Zap className="h-10 w-10 mx-auto mb-3 opacity-50" />
                       <p>No hay asignaciones para este viaje</p>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {tripAssignments.map((assignment: any) => {
-                        const pkg = assignment.packages;
-                        const shopperProfile = pkg?.profiles;
-                        const tipAmount = assignment.quote?.price || assignment.admin_assigned_tip || 0;
+                  ) : (() => {
+                    const terminalStatuses = ['bid_expired', 'bid_cancelled', 'bid_lost'];
+                    const activeAssignments = tripAssignments.filter((a: any) => !terminalStatuses.includes(a.status));
+                    const terminalAssignments = tripAssignments.filter((a: any) => terminalStatuses.includes(a.status));
 
-                        const getBidBadge = (status: string) => {
-                          switch (status) {
-                            case 'bid_pending':
-                              return <Badge variant="warning" className="text-xs">Pendiente</Badge>;
-                            case 'bid_submitted':
-                              return <Badge variant="default" className="text-xs">Cotización Enviada</Badge>;
-                            case 'bid_won':
-                              return <Badge variant="success" className="text-xs">Ganada</Badge>;
-                            case 'bid_lost':
-                              return <Badge variant="destructive" className="text-xs">Perdida</Badge>;
-                            case 'bid_expired':
-                              return <Badge variant="secondary" className="text-xs">Expirada</Badge>;
-                            case 'bid_cancelled':
-                              return <Badge variant="secondary" className="text-xs">Cancelada</Badge>;
-                            default:
-                              return <Badge variant="outline" className="text-xs">{status}</Badge>;
-                          }
-                        };
+                    const getBidBadge = (status: string) => {
+                      switch (status) {
+                        case 'bid_pending':
+                          return <Badge variant="warning" className="text-xs">Pendiente</Badge>;
+                        case 'bid_submitted':
+                          return <Badge variant="default" className="text-xs">Cotización Enviada</Badge>;
+                        case 'bid_won':
+                          return <Badge variant="success" className="text-xs">Ganada</Badge>;
+                        case 'bid_lost':
+                          return <Badge variant="destructive" className="text-xs">Perdida</Badge>;
+                        case 'bid_expired':
+                          return <Badge variant="secondary" className="text-xs">Expirada</Badge>;
+                        case 'bid_cancelled':
+                          return <Badge variant="secondary" className="text-xs">Cancelada</Badge>;
+                        default:
+                          return <Badge variant="outline" className="text-xs">{status}</Badge>;
+                      }
+                    };
 
-                        return (
-                          <div key={assignment.id} className="border rounded-lg p-3 bg-muted/30">
-                            <div className="flex justify-between items-start mb-2">
-                              <div className="flex-1">
-                                <p className="font-medium text-sm">{pkg?.item_description || 'Sin descripción'}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {pkg?.purchase_origin} → {pkg?.package_destination}
-                                </p>
-                                <p className="text-xs text-primary font-medium">
-                                  Shopper: {formatFullName(shopperProfile?.first_name, shopperProfile?.last_name) || shopperProfile?.username || 'N/A'}
-                                </p>
+                    const renderAssignmentCard = (assignment: any, dimmed = false) => {
+                      const pkg = assignment.packages;
+                      const shopperProfile = pkg?.profiles;
+                      const tipAmount = assignment.quote?.price || assignment.admin_assigned_tip || 0;
+
+                      return (
+                        <div key={assignment.id} className={`border rounded-lg p-3 bg-muted/30 ${dimmed ? 'opacity-50' : ''}`}>
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{pkg?.item_description || 'Sin descripción'}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {pkg?.purchase_origin} → {pkg?.package_destination}
+                              </p>
+                              <p className="text-xs text-primary font-medium">
+                                Shopper: {formatFullName(shopperProfile?.first_name, shopperProfile?.last_name) || shopperProfile?.username || 'N/A'}
+                              </p>
+                            </div>
+                            <div className="text-right space-y-1">
+                              {getBidBadge(assignment.status)}
+                              <div className="text-xs text-muted-foreground">
+                                ${Number(pkg?.estimated_price || 0).toFixed(2)}
                               </div>
-                              <div className="text-right space-y-1">
-                                {getBidBadge(assignment.status)}
-                                <div className="text-xs text-muted-foreground">
-                                  ${Number(pkg?.estimated_price || 0).toFixed(2)}
+                              {tipAmount > 0 && (
+                                <div className="text-xs text-green-600 font-medium">
+                                  Tip: Q{Number(tipAmount).toFixed(2)}
                                 </div>
-                                {tipAmount > 0 && (
-                                  <div className="text-xs text-green-600 font-medium">
-                                    Tip: Q{Number(tipAmount).toFixed(2)}
-                                  </div>
-                                )}
-                              </div>
+                              )}
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                        </div>
+                      );
+                    };
+
+                    return (
+                      <div className="space-y-3">
+                        {activeAssignments.length > 0 ? (
+                          activeAssignments.map((a: any) => renderAssignmentCard(a))
+                        ) : (
+                          <p className="text-sm text-muted-foreground text-center py-2">No hay asignaciones activas</p>
+                        )}
+
+                        {terminalAssignments.length > 0 && (
+                          <Collapsible>
+                            <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors group w-full">
+                              <ChevronRight className="h-3 w-3 transition-transform group-data-[state=open]:rotate-90" />
+                              Ver {terminalAssignments.length} asignación{terminalAssignments.length !== 1 ? 'es' : ''} expirada{terminalAssignments.length !== 1 ? 's' : ''}/cancelada{terminalAssignments.length !== 1 ? 's' : ''}
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="space-y-3 mt-2">
+                              {terminalAssignments.map((a: any) => renderAssignmentCard(a, true))}
+                            </CollapsibleContent>
+                          </Collapsible>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </CardContent>
               </Card>
             </div>
