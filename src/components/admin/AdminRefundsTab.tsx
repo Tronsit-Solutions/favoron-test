@@ -211,7 +211,7 @@ const AdminRefundsTab = () => {
     let receiptUrl: string | undefined;
     let receiptFilename: string | undefined;
     
-    if (completeFile) {
+    if (refundMethod === 'bank_transfer' && completeFile) {
       const uploadedPath = await uploadRefundReceipt(actionModal.refund.id, completeFile);
       if (uploadedPath) {
         receiptUrl = uploadedPath;
@@ -219,11 +219,21 @@ const AdminRefundsTab = () => {
       }
     }
     
-    await updateRefundStatus(actionModal.refund.id, 'completed', notes || undefined, receiptUrl, receiptFilename);
+    await updateRefundStatus(
+      actionModal.refund.id,
+      'completed',
+      notes || undefined,
+      receiptUrl,
+      receiptFilename,
+      refundMethod,
+      actionModal.refund.shopper_id,
+      actionModal.refund.amount
+    );
     setProcessing(false);
     setActionModal(null);
     setNotes('');
     setCompleteFile(null);
+    setRefundMethod('bank_transfer');
   };
 
   const tableProps = {
