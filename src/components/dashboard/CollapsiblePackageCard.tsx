@@ -1415,7 +1415,7 @@ const CollapsiblePackageCard = ({
                   Cotizaciones recibidas
                 </DialogTitle>
               </DialogHeader>
-              {multiAssignments && onAcceptMultiAssignmentQuote && (
+               {multiAssignments && onAcceptMultiAssignmentQuote && (
                 <MultiQuoteSelector
                   assignments={multiAssignments}
                   onAcceptQuote={async (assignmentId, extras) => {
@@ -1431,6 +1431,10 @@ const CollapsiblePackageCard = ({
                       setMultiQuoteWizardStep('payment');
                     }
                   }}
+                  onRejectAllQuotes={onRejectAllQuotes ? async () => {
+                    await onRejectAllQuotes(pkg.id);
+                    setShowMultiQuoteModal(false);
+                  } : undefined}
                   packageDetails={{
                     delivery_method: pkg.delivery_method || 'pickup',
                     shopper_trust_level: profile?.trust_level,
