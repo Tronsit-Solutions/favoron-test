@@ -1,22 +1,34 @@
 
 
-## Plan: Actualizar propina a Q275 en paquete d6d157cd
+## Plan: Agregar opción "Acreditar a cuenta" en reembolsos
 
-### Situación actual
-El paquete `d6d157cd-0270-4e2f-a463-1587025a4a6c` y sus dos asignaciones (`bid_submitted` y `bid_pending`) tienen `admin_assigned_tip = 200`. El valor correcto debería ser **275**.
+### Concepto
+Al completar un reembolso, el admin tendrá dos opciones:
+1. **Transferencia bancaria** (flujo actual)
+2. **Acreditar a cuenta** — inserta un registro en `referrals` con `status='completed'` usando el shopper_id como referrer_id y referred_id (placeholder), dándole crédito disponible para su próximo pedido.
 
-### Cambio
+### Cambios
 
-**1. Migración SQL** para corregir los datos:
-- Actualizar `packages.admin_assigned_tip` a 275
-- Actualizar `packages.products_data` con el tip correcto en cada producto
-- Actualizar `package_assignments.admin_assigned_tip` a 275 en las dos asignaciones activas
-- Actualizar `package_assignments.products_data` en ambas asignaciones
+**1. Tabla `refund_orders` — nueva columna (migración)**
+- Agregar `refund_method` (`text`, default `'bank_transfer'`) para registrar si el reembolso fue por transferencia o crédito a cuenta.
+- Valores: `'bank_transfer'` | `'account_credit'`
+
+**2. AdminRefundsTab.tsx — UI del modal de completar**
+- Agregar un selector (radio buttons o toggle) entre "Transferencia bancaria" y "Acreditar a cuenta del shopper"
+- Si elige "Acreditar a cuenta": ocultar el campo de comprobante (no aplica), mostrar un mensaje confirmando que se acreditará Q{monto} al saldo del shopper
+- Si elige "Transferencia": flujo actual sin cambios
+
+**3. useRefundOrders.tsx — lógica de completar con crédito**
+- En `updateRefundStatus`, cuando el método es `'account_credit'`:
+  - Insertar un registro en `referrals` con `referrer_id = shopper_id`, `referred_id = shopper_id`, `status = 'completed'`, `reward_amount = monto`, `completed_at = now()` (siguiendo el patrón documentado para acreditar saldo manualmente)
+  - Guardar `refund_method = 'account_credit'` en la refund_order
+- Cuando es `'bank_transfer'`: flujo actual sin cambios
+
+**4. Indicador visual en tablas y detalle**
+- Mostrar un badge o icono que distinga si el reembolso completado fue por transferencia o crédito (ej: icono de banco vs icono de gift/wallet)
 
 ### Detalle técnico
-Un solo archivo de migración que ejecuta 2 UPDATEs:
-1. `UPDATE packages SET admin_assigned_tip = 275, products_data = ...` para el paquete
-2. `UPDATE package_assignments SET admin_assigned_tip = 275, products_data = ...` para las asignaciones con status `bid_pending` o `bid_submitted`
-
-No se toca la quote porque aún no se ha generado (`quote.price` es NULL en este paquete — la quote se genera al cambiar a `quote_sent`).
+- Migración: `ALTER TABLE refund_orders ADD COLUMN refund_method text DEFAULT 'bank_transfer'`
+- La inserción en `referrals` se hace directamente desde el frontend con el supabase client (mismo patrón que el crédito manual documentado en memoria)
+- El crédito quedará disponible automáticamente porque `useReferralCredit` ya suma `reward_amount` de referrals completados no usados
 
