@@ -1,15 +1,46 @@
 
 
-## Fix: Permitir editar Fecha Límite siempre (no solo fuera del modo edición)
+## Fix: Sincronizar quote a package_assignments al editar tips/cotización
 
 ### Problema
-El botón de edición de Fecha Límite está condicionado a `{!editMode && (...)}`, lo que lo oculta cuando el admin está en modo de edición de productos. En el screenshot se ve que los campos de producto son editables (modo edición activo), por lo que el ícono de lápiz no aparece.
+Cuando un admin edita el tip o la cotización de un paquete con asignaciones activas (`bid_submitted`), el campo `quote` en `package_assignments` no se actualiza. El viajero (y el shopper) siguen viendo los valores anteriores.
 
-### Solución
+**Dos hooks afectados:**
 
-**Archivo: `src/components/admin/PackageDetailModal.tsx`** (línea 2341)
+### Cambios
 
-Eliminar la condición `{!editMode && (` y su cierre `)}` correspondiente, dejando el `Popover` siempre visible. La edición de fecha límite es inline e independiente del modo edición de productos, por lo que no hay conflicto.
+**1. `src/hooks/useAdminTips.tsx`** (línea ~128)
+- Agregar `quote: updatedQuote` al update de `package_assignments` que ya existe (solo falta ese campo).
 
-Cambio: quitar las líneas de guarda `!editMode` (línea 2341 y su cierre en ~2370), manteniendo el `Popover` completo.
+```typescript
+// Línea 128-131: agregar quote
+.update({
+  products_data: normalizedProducts,
+  admin_assigned_tip: totalTip,
+  quote: updatedQuote,        // ← AGREGAR
+  updated_at: new Date().toISOString(),
+})
+```
+
+**2. `src/hooks/useQuoteManagement.tsx`** (después de línea 164)
+- Agregar un nuevo bloque que sincronice `quote`, `admin_assigned_tip` y `products_data` a todas las asignaciones activas del paquete.
+
+```typescript
+// Después del update a packages (línea 164)
+await supabase
+  .from('package_assignments')
+  .update({
+    quote: updatedQuote,
+    admin_assigned_tip: newTip,
+    products_data: updatedProductsData,
+    updated_at: new Date().toISOString(),
+  })
+  .eq('package_id', packageId)
+  .in('status', ['bid_pending', 'bid_submitted']);
+```
+
+### Impacto
+- El viajero verá el tip actualizado en su modal "Tip Asignado" inmediatamente (via realtime en `package_assignments`).
+- El shopper verá los valores actualizados en su selector de cotizaciones.
+- No se requieren migraciones ni cambios de schema.
 
