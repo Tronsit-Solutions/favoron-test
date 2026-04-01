@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Zap, ChevronDown, ChevronRight, User, Users, MapPin, Calendar, Package, Truck, DollarSign, Settings, Clock, MessageSquare, Star, XCircle, Phone, Globe, X, ExternalLink } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getHighResGoogleAvatar } from "@/lib/storageUrls";
