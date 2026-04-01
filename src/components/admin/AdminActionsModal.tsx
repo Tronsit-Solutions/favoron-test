@@ -691,45 +691,16 @@ const AdminActionsModal = ({ modalId, trips, onRefresh }: AdminActionsModalProps
     }
   };
 
-  const handleProductTipSave = async (productsWithTips: any[], totalTip: number) => {
-    setIsLoading(true);
+  const handleProductTipSave = async (_productsWithTips: any[], totalTip: number) => {
+    // NOTE: When persistOnSave=true (default), ProductTipAssignmentModal already
+    // calls saveProductTips() which handles DB update, quote recalculation, and
+    // assignment sync. We only need to log the action and refresh UI here.
     try {
-      // Ensure adminAssignedTip is always stored in products_data for consistency
-      const normalizedProducts = productsWithTips.map(product => ({
-        ...product,
-        adminAssignedTip: product.adminAssignedTip || 0 // Ensure field exists even if 0
-      }));
-
-      // Update the package with the new products data including individual tips
-      const { error } = await supabase
-        .from('packages')
-        .update({
-          products_data: normalizedProducts,
-          admin_assigned_tip: totalTip,
-          status: 'matched' // Set to matched so traveler can accept
-        })
-        .eq('id', pkg.id);
-
-      if (error) throw error;
-
       await logAction('product_tips_assigned', `Tips asignados por producto. Total: Q${totalTip.toFixed(2)}`);
-      
-      toast({
-        title: "Tips asignados",
-        description: `Se asignaron tips individuales por un total de Q${totalTip.toFixed(2)}`,
-      });
-
       onRefresh?.();
       setShowProductTipModal(false);
     } catch (error) {
-      console.error('Error saving product tips:', error);
-      toast({
-        title: "Error",
-        description: "No se pudieron asignar los tips",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+      console.error('Error in post-save actions:', error);
     }
   };
 
