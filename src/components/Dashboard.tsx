@@ -503,6 +503,42 @@ const Dashboard = ({ user }: DashboardProps) => {
     }
   };
 
+  // Handle reject all quotes - return package to approved status
+  const handleRejectAllQuotes = async (packageId: string) => {
+    try {
+      // 1. Update all active assignments to bid_lost
+      const { error: assignError } = await supabase
+        .from('package_assignments')
+        .update({ status: 'bid_lost' })
+        .eq('package_id', packageId)
+        .in('status', ['bid_pending', 'bid_submitted']);
+
+      if (assignError) throw assignError;
+
+      // 2. Reset package to approved
+      const { error: pkgError } = await supabase
+        .from('packages')
+        .update({ status: 'approved', matched_trip_id: null })
+        .eq('id', packageId);
+
+      if (pkgError) throw pkgError;
+
+      // 3. Refresh and notify
+      await refreshPackages();
+      toast({
+        title: "Cotizaciones rechazadas",
+        description: "Tu paquete volverá a buscar nuevos viajeros.",
+      });
+    } catch (error: any) {
+      console.error('Error rejecting quotes:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron rechazar las cotizaciones. Intenta de nuevo.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const { getStatusBadge } = useStatusHelpers();
 
   // Mostrar encuesta de adquisición si es necesario
