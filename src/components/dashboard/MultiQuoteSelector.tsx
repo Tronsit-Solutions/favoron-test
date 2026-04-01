@@ -96,6 +96,9 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, onRejectAllQuotes, pac
   );
 
   // Discount code state
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
+
   const [discountCode, setDiscountCode] = useState('');
   const [discountError, setDiscountError] = useState<string | null>(null);
   const [discountSuccess, setDiscountSuccess] = useState(false);
