@@ -653,9 +653,9 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, onRejectAllQuotes, pac
         </div>
       )}
 
-      {/* Sticky confirm button */}
+      {/* Sticky confirm button + reject */}
       {quotedAssignments.length > 0 && (
-        <div className="sticky bottom-0 pt-3 pb-1 bg-background">
+        <div className="sticky bottom-0 pt-3 pb-1 bg-background space-y-2">
           <Button
             variant="shopper"
             className="w-full"
@@ -674,8 +674,61 @@ const MultiQuoteSelector = ({ assignments, onAcceptQuote, onRejectAllQuotes, pac
               </>
             )}
           </Button>
+
+          {onRejectAllQuotes && (
+            <Button
+              variant="outline"
+              className="w-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => setShowRejectDialog(true)}
+              disabled={!!acceptingId || isRejecting}
+            >
+              {isRejecting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Rechazando...
+                </>
+              ) : (
+                <>
+                  <X className="h-4 w-4 mr-2" />
+                  Rechazar y buscar más viajeros
+                </>
+              )}
+            </Button>
+          )}
         </div>
       )}
+
+      {/* Reject confirmation dialog */}
+      <AlertDialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Rechazar cotizaciones?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Las cotizaciones actuales se descartarán y tu paquete volverá a buscar nuevos viajeros. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isRejecting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isRejecting}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!onRejectAllQuotes) return;
+                setIsRejecting(true);
+                try {
+                  await onRejectAllQuotes();
+                  setShowRejectDialog(false);
+                } finally {
+                  setIsRejecting(false);
+                }
+              }}
+            >
+              {isRejecting ? 'Rechazando...' : 'Sí, rechazar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
 
