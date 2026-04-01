@@ -230,6 +230,8 @@ const PackageDetailModal = ({ modalId, trips, onApprove, onReject, onUpdatePacka
   const [editMode, setEditMode] = useState(false);
   const [inlineNotesEdit, setInlineNotesEdit] = useState(false);
   const [inlineNotesValue, setInlineNotesValue] = useState('');
+  const [editDeadline, setEditDeadline] = useState(false);
+  const [editDeadlineValue, setEditDeadlineValue] = useState<Date | undefined>(undefined);
 const [editForm, setEditForm] = useState({
     purchase_origin: '',
     package_destination: '',
