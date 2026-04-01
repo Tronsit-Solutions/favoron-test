@@ -369,20 +369,18 @@ const [editForm, setEditForm] = useState({
     loadPaymentOrder();
   }, [pkg?.matched_trip_id, isOpen]);
 
-  // Load multi-traveler assignments when no matchedTrip
-  useEffect(() => {
-    const loadAssignments = async () => {
-      if (!isOpen || !pkg?.id) {
-        setPackageAssignments([]);
-        return;
-      }
-      
-      setLoadingAssignments(true);
-      try {
-        // Single query with JOINs instead of 3 sequential queries
-        const { data: assignments, error } = await supabase
-          .from('package_assignments')
-          .select(`
+  // Reusable function to load multi-traveler assignments
+  const loadAssignments = async () => {
+    if (!isOpen || !pkg?.id) {
+      setPackageAssignments([]);
+      return;
+    }
+    
+    setLoadingAssignments(true);
+    try {
+      const { data: assignments, error } = await supabase
+        .from('package_assignments')
+        .select(`
             id, package_id, trip_id, status, quote, admin_assigned_tip, 
             traveler_address, matched_trip_dates, products_data, 
             created_at, expires_at, quote_expires_at,
@@ -392,34 +390,35 @@ const [editForm, setEditForm] = useState({
               profiles:user_id (id, first_name, last_name, username, email, phone_number, country_code)
             )
           `)
-          .eq('package_id', pkg.id)
-          .not('status', 'eq', 'rejected');
+        .eq('package_id', pkg.id)
+        .not('status', 'eq', 'rejected');
 
-        if (error) throw error;
-        if (!assignments || assignments.length === 0) {
-          setPackageAssignments([]);
-          setLoadingAssignments(false);
-          return;
-        }
-
-        // Flatten joined data to match existing shape
-        const enriched = assignments.map(a => {
-          const tripData = a.trips as any;
-          const profile = tripData?.profiles || null;
-          const trip = tripData ? { ...tripData, profiles: undefined } : null;
-          if (trip) delete trip.profiles;
-          return { ...a, trips: undefined, trip, profile };
-        });
-
-        setPackageAssignments(enriched);
-      } catch (err) {
-        console.warn('Error loading package assignments:', err);
+      if (error) throw error;
+      if (!assignments || assignments.length === 0) {
         setPackageAssignments([]);
-      } finally {
         setLoadingAssignments(false);
+        return;
       }
-    };
 
+      const enriched = assignments.map(a => {
+        const tripData = a.trips as any;
+        const profile = tripData?.profiles || null;
+        const trip = tripData ? { ...tripData, profiles: undefined } : null;
+        if (trip) delete trip.profiles;
+        return { ...a, trips: undefined, trip, profile };
+      });
+
+      setPackageAssignments(enriched);
+    } catch (err) {
+      console.warn('Error loading package assignments:', err);
+      setPackageAssignments([]);
+    } finally {
+      setLoadingAssignments(false);
+    }
+  };
+
+  // Load assignments on open
+  useEffect(() => {
     loadAssignments();
   }, [isOpen, pkg?.id]);
 
