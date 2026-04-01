@@ -34,20 +34,15 @@ const faqs = [
 
 const FAQSection = () => {
   return (
-    <section className="relative py-20 px-4 overflow-hidden">
-      {/* Decorative background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white via-blue-50/40 to-white" />
-      <div className="absolute top-10 left-1/4 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-10 right-1/4 w-64 h-64 bg-blue-200/20 rounded-full blur-3xl" />
-
-      <div className="relative max-w-3xl mx-auto">
+    <section className="py-20 px-4 bg-muted/30">
+      <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-1.5 text-sm font-medium mb-4">
             <HelpCircle className="h-4 w-4" />
             FAQ
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
             Preguntas Frecuentes
           </h2>
           <p className="text-muted-foreground text-lg">
@@ -61,7 +56,7 @@ const FAQSection = () => {
             <AccordionItem
               key={i}
               value={`faq-${i}`}
-              className="border border-border/60 rounded-xl px-5 bg-card/60 backdrop-blur-sm shadow-sm data-[state=open]:shadow-md transition-shadow"
+              className="border border-border rounded-xl px-5 bg-white shadow-sm"
             >
               <AccordionTrigger className="text-base font-medium hover:no-underline text-left py-5">
                 {faq.question}

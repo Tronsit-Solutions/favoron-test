@@ -76,7 +76,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="min-h-screen bg-white">
       <NavBar 
         onOpenAuth={openAuth} 
         isAuthenticated={!!(user && profile)} 
