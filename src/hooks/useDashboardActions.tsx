@@ -455,6 +455,18 @@ export const useDashboardActions = (
                   "3": productName.substring(0, 50)
                 }
               });
+
+              // 📧 Enviar email al shopper
+              supabase.functions.invoke('send-notification-email', {
+                body: {
+                  user_id: selectedPackage.user_id,
+                  title: 'Nueva cotización recibida',
+                  message: `Un viajero ha enviado una cotización para tu producto "${productName}". El total de la cotización es Q${quoteTotal.toFixed(2)}. Tienes 48 horas para aceptar o rechazar esta cotización antes de que expire. Ingresa a tu dashboard para ver y comparar las cotizaciones recibidas.`,
+                  type: 'quote',
+                  priority: 'normal',
+                  action_url: 'https://favoron.app/dashboard'
+                }
+              }).catch(err => console.error('Error sending quote email to shopper:', err));
             }
             
             toast({
