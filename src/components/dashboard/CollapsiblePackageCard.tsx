@@ -64,6 +64,7 @@ interface CollapsiblePackageCardProps {
   // Multi-assignment props
   multiAssignments?: any[];
   onAcceptMultiAssignmentQuote?: (packageId: string, assignmentId: string, extras: MultiQuoteAcceptExtras) => Promise<void>;
+  onRejectAllQuotes?: (packageId: string) => Promise<void>;
 }
 const CollapsiblePackageCard = ({
   pkg,
