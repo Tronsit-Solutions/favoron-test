@@ -125,7 +125,16 @@ const RefundTable = ({ refunds, showActions = true, onViewRefund, onCompleteRefu
                   <p className="text-muted-foreground">{refund.bank_account_number}</p>
                 </div>
               </TableCell>
-              <TableCell>{getStatusBadge(refund.status)}</TableCell>
+              <TableCell>
+                <div className="space-y-1">
+                  {getStatusBadge(refund.status)}
+                  {refund.status === 'completed' && refund.refund_method === 'account_credit' && (
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px]">
+                      <Wallet className="h-2.5 w-2.5 mr-0.5" />Crédito
+                    </Badge>
+                  )}
+                </div>
+              </TableCell>
               {showActions && (
                 <TableCell>
                   <div className="flex gap-1">
