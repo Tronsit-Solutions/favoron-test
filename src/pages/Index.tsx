@@ -93,27 +93,27 @@ const Index = () => {
         />
         
         {/* Lazy load remaining sections with loading fallbacks */}
-        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
+        <Suspense fallback={<div className="h-96 bg-white" />}>
           <PlatformDescriptionSection />
         </Suspense>
         
-        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
+        <Suspense fallback={<div className="h-96 bg-white" />}>
           <TravelsHubSection />
         </Suspense>
         
-        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
+        <Suspense fallback={<div className="h-96 bg-white" />}>
           <HowItWorksSection />
         </Suspense>
         
-        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
+        <Suspense fallback={<div className="h-96 bg-white" />}>
           <BenefitsSection />
         </Suspense>
         
-        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
+        <Suspense fallback={<div className="h-96 bg-white" />}>
           <FAQSection />
         </Suspense>
         
-        <Suspense fallback={<div className="h-96 bg-gradient-to-br from-blue-50 to-white animate-pulse" />}>
+        <Suspense fallback={<div className="h-96 bg-white" />}>
           <CTASection onOpenAuth={openAuth} />
         </Suspense>
       </main>
