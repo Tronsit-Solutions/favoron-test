@@ -701,7 +701,7 @@ const CollapsiblePackageCard = ({
                 )}
               </div>
               {/* Right column: menu + chat */}
-              <div className="flex flex-col items-center flex-shrink-0 w-10 ml-2 gap-3">
+              <div className="flex flex-col items-center flex-shrink-0 w-10 ml-1 gap-3">
                 {/* Three dots at top */}
                 {viewMode === 'user' && <DropdownMenu>
                   <DropdownMenuTrigger asChild>
