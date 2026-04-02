@@ -616,7 +616,7 @@ const CollapsiblePackageCard = ({
 
                 {/* Action buttons - stacked vertically on mobile */}
                 {!isCancelledPackage && (
-                <div className="space-y-2 w-full max-w-full pl-5 overflow-hidden">
+                <div className="space-y-2 w-full max-w-full pl-5 overflow-hidden box-border">
                   {/* Botón re-cotización para cotizaciones expiradas (status quote_expired O cotización expirada en quote_sent/payment_pending/quote_accepted) */}
                   {(pkg.status === 'quote_expired' || 
                     ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending' || pkg.status === 'quote_accepted') && 
