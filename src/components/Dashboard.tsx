@@ -831,7 +831,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             </div>
           </TabsContent>
 
-          <TabsContent value="packages" className="space-y-4 sm:space-y-6 min-w-0 w-full max-w-full overflow-x-clip px-1">
+          <TabsContent value="packages" className="space-y-4 sm:space-y-6 min-w-0 w-full max-w-full overflow-x-clip px-0">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
                 <h3 className="text-xl sm:text-2xl font-bold">Mis Favorones</h3>
@@ -866,7 +866,7 @@ const Dashboard = ({ user }: DashboardProps) => {
                 onAction={() => navigateToForm('package')}
               />
             ) : (
-              <div className="grid gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-x-clip">
+              <div className="grid gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-x-clip box-border">
                  {userPackages.filter(pkg => {
                    // Excluir paquetes archivados y cancelados del dashboard activo
                     if (pkg.status === 'archived_by_shopper' || pkg.status === 'cancelled') return false;
