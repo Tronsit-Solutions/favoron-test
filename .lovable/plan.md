@@ -1,38 +1,24 @@
 
 
-## Plan: Fix mobile horizontal overflow on package cards
+## Plan: Fix card width and symmetric padding on mobile
 
 ### Problem
-The package cards overflow horizontally on mobile (391px viewport). The root causes:
-1. The card wrapper div (line 379) uses `pl-2` padding for the notification badge, but doesn't constrain total width properly
-2. The mobile layout splits into left column (`calc(100% - 48px)`) + right column (`w-10 ml-2`), totaling `100% + ml-2(8px)` which can exceed the container
-3. The parent grid (line 869) and TabsContent (line 834) use `px-1` which compounds with card padding
+Cards appear cut off on the right side while having visible spacing on the left. The `container mx-auto` class applies a max-width and auto-centering that, combined with `mobile-container` (`px-4`), creates uneven visual spacing on small viewports. The cards don't stretch to fill their parent's full width symmetrically.
 
 ### Changes
 
-**File: `src/components/dashboard/CollapsiblePackageCard.tsx`**
-
-1. **Line 379** - Card wrapper div: Change `pl-2` to `pl-0` and ensure `w-full box-border` is set. The notification badge is already absolutely positioned, so left padding is unnecessary.
-
-2. **Line 421** - Mobile flex container: Add `max-w-full` to prevent overflow.
-
-3. **Line 423** - Left content column: Change `calc(100% - 48px)` to `calc(100% - 44px)` to match the right column's actual width (`w-10` = 40px + `ml-2` gap = 8px = 48px is correct, but ensure the parent doesn't overflow).
-
-4. **Line 619** - Action buttons container: Add `box-border` to ensure padding doesn't cause overflow.
-
-5. **Line 704** - Right column: Change `ml-2` to `ml-1` to reduce total width pressure, and keep `w-10 flex-shrink-0`.
-
 **File: `src/components/Dashboard.tsx`**
 
-6. **Line 720** - Main container: Ensure `overflow-x-hidden` is applied.
+1. **Line 720** — Main container div: Replace `container mx-auto mobile-container` with just `mobile-container w-full` to remove the `container` class's max-width constraint that can cause asymmetric centering on mobile. Keep `overflow-x-hidden box-border`.
 
-7. **Line 834** - TabsContent for packages: Change `px-1` to `px-0` to eliminate extra padding that compounds with card margins.
+2. **Line 834** — TabsContent: Ensure it has `w-full` and no extra horizontal padding (already `px-0`, confirm).
 
-8. **Line 869** - Cards grid container: Add `box-border` class.
+3. **Line 869** — Cards grid: Ensure `w-full` is present (already is, confirm no conflicting styles).
+
+**File: `src/components/dashboard/CollapsiblePackageCard.tsx`**
+
+4. **Line 381** — Card component: Confirm `w-full` is set and no fixed widths. Already has `w-full max-w-full min-w-0 box-border overflow-hidden` — no change needed here.
 
 ### Summary
-- Remove unnecessary left padding on card wrapper
-- Reduce right column margin from `ml-2` to `ml-1`
-- Remove `px-1` from TabsContent to prevent compound padding
-- Add `box-border` where needed to prevent padding from expanding element widths
+The root fix is removing `container mx-auto` from the main wrapper (line 720), which imposes a responsive max-width that doesn't match the viewport on certain sizes, causing the right-side clipping. Replacing with `w-full` plus the existing `mobile-container` padding (`px-4`) ensures symmetric 16px padding on both sides.
 
