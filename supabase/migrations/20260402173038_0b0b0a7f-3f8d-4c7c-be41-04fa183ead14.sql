@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Public read purchase confirmations" ON storage.objects;
