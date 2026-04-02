@@ -1,27 +1,19 @@
 
 
-## Fix de Seguridad: Eliminar Lectura Pública del Bucket `purchase-confirmations`
+## Fix: Equal Left/Right Spacing on Package Cards
 
-### Problema
-La política **"Public read purchase confirmations"** permite a cualquier usuario (incluso anónimos) leer todos los archivos del bucket. Solo tiene `bucket_id = 'purchase-confirmations'` como condición, sin verificar `auth.uid()`.
+### Problem
+The packages tab content has `px-0` explicitly set, removing horizontal padding. The outer container uses `mobile-container` (which provides `px-4`), but the `TabsContent` for packages overrides this with `px-0`, causing cards to bleed to the right edge.
 
-### Solución
-Una migración SQL con un solo statement:
+### Solution
+Two changes in `src/components/Dashboard.tsx`:
 
-```sql
-DROP POLICY IF EXISTS "Public read purchase confirmations" ON storage.objects;
-```
+1. **Line 834**: Change the packages `TabsContent` from `px-0` to `px-1` (small inner padding to work with the outer `mobile-container` padding)
 
-Ya existe una política **"Restricted access to purchase confirmations"** (creada en migración `20250828201303`) que correctamente restringe el acceso SELECT a:
-- El dueño del paquete (shopper)
-- El viajero emparejado
-- Personal con rol de operaciones/admin
+2. **Line 869**: Add `px-0` to the grid container to ensure no extra offset — the spacing should come from the `TabsContent` wrapper consistently
 
-No se necesita crear una política nueva ni cambios en el frontend. Solo eliminar la política insegura.
+Actually, the simpler fix: just remove `px-0` from line 834's `TabsContent` so it inherits natural spacing, or change it to `px-2` or similar to add equal breathing room.
 
-### Verificación Post-Fix
-- Los shoppers seguirán pudiendo ver sus propias confirmaciones de compra
-- Los viajeros emparejados mantienen acceso
-- Admins/operaciones mantienen acceso completo
-- Usuarios no autorizados y anónimos quedan bloqueados
+### Files Changed
+- `src/components/Dashboard.tsx` — line 834: replace `px-0` with no explicit px override (remove `px-0`), letting the parent `mobile-container` padding apply evenly
 
