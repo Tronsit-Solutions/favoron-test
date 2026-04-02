@@ -831,7 +831,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             </div>
           </TabsContent>
 
-          <TabsContent value="packages" className="space-y-4 sm:space-y-6 min-w-0 w-full max-w-full overflow-x-clip px-0">
+          <TabsContent value="packages" className="space-y-4 sm:space-y-6 min-w-0 w-full max-w-full overflow-x-clip">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
                 <h3 className="text-xl sm:text-2xl font-bold">Mis Favorones</h3>
