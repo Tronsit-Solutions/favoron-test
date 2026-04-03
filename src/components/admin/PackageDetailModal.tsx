@@ -378,8 +378,15 @@ const [editForm, setEditForm] = useState({
     }
     
     setLoadingAssignments(true);
+    setAssignmentsError(false);
     try {
-      const { data: assignments, error } = await supabase
+      // Use timeout to prevent hanging forever on slow networks
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout loading assignments')), 8000)
+      );
+
+      // Step 1: Fetch assignments + trips (without nested profile join to avoid silent failures)
+      const fetchPromise = supabase
         .from('package_assignments')
         .select(`
             id, package_id, trip_id, status, quote, admin_assigned_tip, 
@@ -387,12 +394,13 @@ const [editForm, setEditForm] = useState({
             created_at, expires_at, quote_expires_at,
             trips:trip_id (
               id, from_city, from_country, to_city, to_country, 
-              arrival_date, delivery_date, first_day_packages, last_day_packages, user_id,
-              profiles:user_id (id, first_name, last_name, username, email, phone_number, country_code)
+              arrival_date, delivery_date, first_day_packages, last_day_packages, user_id
             )
           `)
         .eq('package_id', pkg.id)
         .not('status', 'eq', 'rejected');
+
+      const { data: assignments, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
       if (error) throw error;
       if (!assignments || assignments.length === 0) {
@@ -401,11 +409,22 @@ const [editForm, setEditForm] = useState({
         return;
       }
 
-      const enriched = assignments.map(a => {
+      // Step 2: Batch fetch profiles separately to avoid join failures
+      const userIds = [...new Set(assignments.map((a: any) => (a.trips as any)?.user_id).filter(Boolean))] as string[];
+      let profileMap: Record<string, any> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, username, email, phone_number, country_code')
+          .in('id', userIds);
+        profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
+      }
+
+      // Merge assignments with profiles
+      const enriched = assignments.map((a: any) => {
         const tripData = a.trips as any;
-        const profile = tripData?.profiles || null;
-        const trip = tripData ? { ...tripData, profiles: undefined } : null;
-        if (trip) delete trip.profiles;
+        const trip = tripData ? { ...tripData } : null;
+        const profile = tripData?.user_id ? (profileMap[tripData.user_id] || null) : null;
         return { ...a, trips: undefined, trip, profile };
       });
 
@@ -413,6 +432,7 @@ const [editForm, setEditForm] = useState({
     } catch (err) {
       console.warn('Error loading package assignments:', err);
       setPackageAssignments([]);
+      setAssignmentsError(true);
     } finally {
       setLoadingAssignments(false);
     }
