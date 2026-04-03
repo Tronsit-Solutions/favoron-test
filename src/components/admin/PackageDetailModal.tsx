@@ -285,6 +285,7 @@ const [editForm, setEditForm] = useState({
   // State for multi-traveler assignments
   const [packageAssignments, setPackageAssignments] = useState<any[]>([]);
   const [loadingAssignments, setLoadingAssignments] = useState(false);
+  const [assignmentsError, setAssignmentsError] = useState(false);
 
   // Resolve traveler confirmation photo (handles storage paths and signed URLs)
   // Must call this hook before any early returns to follow Rules of Hooks
