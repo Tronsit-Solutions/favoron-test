@@ -933,7 +933,7 @@ const QuoteDialog = ({
                 </div>
 
                 {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {packageDetails.products_data.map((product: any, index: number) => {
                       const quantity = parseInt(product.quantity || '1');
                       const unitPrice = parseFloat(product.estimatedPrice || '0');
@@ -941,10 +941,10 @@ const QuoteDialog = ({
                       const productLink = product.itemLink || packageDetails.item_link;
                       
                       return (
-                        <div key={index} className={`bg-background/60 rounded-lg ${isMobile ? 'p-2.5' : 'p-3'} border border-muted/30`}>
-                          {/* Product Name */}
-                          <div className="flex items-start gap-2 mb-2">
-                            <h4 className="text-base font-semibold text-foreground leading-snug flex-1">
+                        <div key={index} className="bg-background/60 rounded-lg p-2.5 border border-muted/30">
+                          {/* Product Name + Badge */}
+                          <div className="flex items-start gap-2 mb-1">
+                            <h4 className="text-sm font-semibold text-foreground leading-snug flex-1">
                               {product.itemDescription || packageDetails.item_description}
                             </h4>
                             {isPersonalOrder && (
@@ -952,48 +952,36 @@ const QuoteDialog = ({
                             )}
                           </div>
                           
-                          {/* Price and Quantity */}
-                          <p className="text-sm text-muted-foreground mb-2">
-                            ${unitPrice.toFixed(2)} USD × {quantity} {quantity === 1 ? 'unidad' : 'unidades'}
-                          </p>
-                          
-                          {/* Tip asignado para este producto */}
-                          {product.adminAssignedTip && (
-                            <div className="flex items-center gap-1.5 mb-3 text-sm">
-                              <Gift className="h-4 w-4 text-emerald-600" />
-                              <span className="text-gray-500">Tu tip por este producto:</span>
-                              <span className="font-bold text-emerald-600">
-                                Q{parseFloat(product.adminAssignedTip).toFixed(2)}
+                          {/* Price, Quantity, Tip & Link - compact row */}
+                          <div className="flex items-center flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground mb-1.5">
+                            <span>${unitPrice.toFixed(2)} USD × {quantity}</span>
+                            {product.adminAssignedTip && (
+                              <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold">
+                                <Gift className="h-3 w-3" />
+                                Tip: Q{parseFloat(product.adminAssignedTip).toFixed(2)}
                               </span>
-                            </div>
-                          )}
+                            )}
+                            {productLink && (
+                              <a 
+                                href={productLink} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-primary hover:underline"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                Ver en tienda
+                              </a>
+                            )}
+                          </div>
                           
-                          {/* Indicador de empaque original */}
-                          <p className={`text-xs flex items-center gap-1.5 mb-3 ${
+                          {/* Packaging indicator - single compact line */}
+                          <p className={`text-[11px] flex items-center gap-1 ${
                             product.needsOriginalPackaging 
                               ? 'text-amber-600' 
                               : 'text-muted-foreground'
                           }`}>
-                            📦 {product.needsOriginalPackaging ? 'Conservar empaque original del producto' : 'No requiere empaque original'}
-                            <span className="block text-[10px] text-muted-foreground font-normal ml-5">
-                              {product.needsOriginalPackaging 
-                                ? 'Se refiere al empaque de la marca, no a la caja de cartón del envío/delivery.' 
-                                : 'Puedes descartar el empaque de la marca y enviar solo el producto.'}
-                            </span>
+                            📦 {product.needsOriginalPackaging ? 'Conservar empaque original' : 'No requiere empaque original'}
                           </p>
-                          
-                          {/* Product Link Button */}
-                          {productLink && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="w-full"
-                              onClick={() => window.open(productLink, '_blank')}
-                            >
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Ver producto en tienda
-                            </Button>
-                          )}
                         </div>
                       );
                     })}
