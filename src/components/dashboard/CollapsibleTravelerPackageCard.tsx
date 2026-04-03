@@ -495,10 +495,6 @@ const CollapsibleTravelerPackageCard = ({
                           {pkg.status === 'matched' && (
                             pkg._assignmentStatus === 'bid_submitted' ? (
                               <div className="space-y-1">
-                                <div className="font-medium text-green-700">✅ Cotización enviada</div>
-                                <p className="text-xs text-muted-foreground">
-                                  El shopper tiene 48h para elegir un viajero. Si no acepta, el paquete se descartará de tu viaje.
-                                </p>
                                 {pkg._assignmentQuoteExpiresAt && new Date(pkg._assignmentQuoteExpiresAt) > new Date() && (
                                   <QuoteCountdown expiresAt={pkg._assignmentQuoteExpiresAt} micro={true} />
                                 )}
