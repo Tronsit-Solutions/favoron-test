@@ -906,14 +906,14 @@ const QuoteDialog = ({
           <>
           {/* COMPACT HERO TIP CARD - Only for travelers */}
           {isTravelerContext && displayAmount && (
-            <div className={`rounded-xl bg-gradient-to-r from-success/10 via-emerald-50 to-green-50 dark:from-success/20 dark:via-emerald-900/20 dark:to-green-900/10 border border-success/20 ${isMobile ? 'p-3' : 'p-4'} shadow-soft`}>
-              <div className={`flex items-center ${isMobile ? 'gap-3' : 'gap-4'}`}>
-                <div className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} rounded-xl bg-success flex items-center justify-center shadow-sm`}>
-                  <Banknote className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} text-white`} />
+            <div className="rounded-xl bg-gradient-to-r from-success/10 via-emerald-50 to-green-50 dark:from-success/20 dark:via-emerald-900/20 dark:to-green-900/10 border border-success/20 p-3 shadow-soft">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-success flex items-center justify-center shadow-sm">
+                  <Banknote className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground font-medium`}>Tu tip por llevarte este paquete</span>
-                  <p className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-success`}>
+                  <span className="text-xs text-muted-foreground font-medium">Tu tip por llevarte este paquete</span>
+                  <p className="text-2xl font-bold text-success">
                     Q{displayAmount.toFixed(2)}
                   </p>
                 </div>
