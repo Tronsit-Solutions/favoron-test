@@ -102,6 +102,7 @@ const Dashboard = ({ user }: DashboardProps) => {
   const [showAcquisitionSurvey, setShowAcquisitionSurvey] = useState(false);
   const [surveyDismissed, setSurveyDismissed] = useState(false);
   const [showReferralAnnouncement, setShowReferralAnnouncement] = useState(false);
+  const [showTravelerOnboarding, setShowTravelerOnboarding] = useState(false);
 
   const {
     currentUser,
