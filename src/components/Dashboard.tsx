@@ -938,10 +938,13 @@ const Dashboard = ({ user }: DashboardProps) => {
                   Gestiona tus viajes - envía cotizaciones y gestiona paquetes asignados a tu viaje.
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-center">
                 <Button variant="traveler" className="w-full sm:w-auto" onClick={() => navigateToForm('trip')}>
                   <Plus className="h-4 w-4 mr-2" />
                   Nuevo Viaje
+                </Button>
+                <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={() => setShowTravelerOnboarding(true)}>
+                  <HelpCircle className="h-4 w-4" />
                 </Button>
               </div>
             </div>
