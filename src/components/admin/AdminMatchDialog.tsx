@@ -2130,15 +2130,32 @@ const AdminMatchDialog = ({
                   </h3>
                 </CardHeader>
                 <CardContent>
-                  {loadingAssignments ? (
+                  {loadingTripAssigns ? (
                     <div className="text-center py-6 text-muted-foreground">
                       <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
                       <p>Cargando asignaciones...</p>
                     </div>
+                  ) : tripAssignsError ? (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <XCircle className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                      <p className="mb-2">No se pudieron cargar las asignaciones</p>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        if (selectedTraveler?.trip) {
+                          travelerDataCacheRef.current.delete(selectedTraveler.trip.id);
+                          handleTravelerClick(selectedTraveler.trip);
+                        }
+                      }}>Reintentar</Button>
+                    </div>
                   ) : loadingTimedOut && tripAssignments.length === 0 ? (
                     <div className="text-center py-6 text-muted-foreground">
                       <Clock className="h-10 w-10 mx-auto mb-3 opacity-50" />
-                      <p>La carga tardó demasiado. Los datos aparecerán cuando terminen de cargar.</p>
+                      <p className="mb-2">La carga tardó demasiado.</p>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        if (selectedTraveler?.trip) {
+                          travelerDataCacheRef.current.delete(selectedTraveler.trip.id);
+                          handleTravelerClick(selectedTraveler.trip);
+                        }
+                      }}>Reintentar</Button>
                     </div>
                   ) : tripAssignments.length === 0 ? (
                     <div className="text-center py-6 text-muted-foreground">
