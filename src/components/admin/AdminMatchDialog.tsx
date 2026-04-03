@@ -51,7 +51,9 @@ const AdminMatchDialog = ({
   const [selectedTraveler, setSelectedTraveler] = useState<any>(null);
   const [travelerPackages, setTravelerPackages] = useState<any[]>([]);
   const [tripAssignments, setTripAssignments] = useState<any[]>([]);
-  const [loadingAssignments, setLoadingAssignments] = useState(false);
+  const [loadingTravelerPkgs, setLoadingTravelerPkgs] = useState(false);
+  const [loadingTripAssigns, setLoadingTripAssigns] = useState(false);
+  const [tripAssignsError, setTripAssignsError] = useState(false);
   const [adminTip, setAdminTip] = useState<string>('');
   const [avatarViewerOpen, setAvatarViewerOpen] = useState(false);
   const [avatarViewerUrl, setAvatarViewerUrl] = useState('');
@@ -60,6 +62,15 @@ const AdminMatchDialog = ({
 
   // Cache for traveler data per trip to avoid re-fetching
   const travelerDataCacheRef = useRef<Map<string, { travelerPackages: any[]; tripAssignments: any[]; selectedTraveler: any }>>(new Map());
+
+  // Memoized index of packages already in memory (from admin dashboard)
+  const packagesById = useMemo(() => {
+    const map: Record<string, any> = {};
+    for (const pkg of packages) {
+      map[pkg.id] = pkg;
+    }
+    return map;
+  }, [packages]);
   const handleAvatarClick = (avatarUrl: string | null | undefined) => {
     if (!avatarUrl) return;
     setAvatarViewerUrl(avatarUrl);
