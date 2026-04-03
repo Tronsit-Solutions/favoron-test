@@ -16,7 +16,8 @@ export const useMatchFilters = (packages: any[], trips: any[], multiAssignedPack
       const hasMatch = pkg.matched_trip_id !== null && pkg.matched_trip_id !== undefined;
       const isMultiAssigned = multiAssignedPackageIds?.has(pkg.id) ?? false;
       
-      if (hasMatch || isMultiAssigned) {
+      const isMatchStatus = pkg.status === 'matched' || pkg.status === 'quote_sent';
+      if (hasMatch || isMultiAssigned || isMatchStatus) {
         if (BROKEN_STATUSES.includes(pkg.status)) {
           broken.push(pkg);
         } else {
