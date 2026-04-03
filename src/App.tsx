@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,33 +9,34 @@ import { PlatformFeesProvider } from "@/contexts/PlatformFeesContext";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { RequireOperations } from "@/components/auth/RequireOperations";
 import { toast } from "sonner";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Dashboard from "./pages/Dashboard";
 import SupportBubble from "./components/SupportBubble";
 
-// Lazy-loaded pages
-const CustomsRegulation = lazy(() => import("./pages/CustomsRegulation"));
-const CompleteProfile = lazy(() => import("./pages/CompleteProfile"));
-const TermsAndConditions = lazy(() => import("./pages/TermsAndConditions"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const MonthlyPackageDetails = lazy(() => import("./pages/MonthlyPackageDetails"));
-const AdminControl = lazy(() => import("./pages/AdminControl"));
-const AdminSurveys = lazy(() => import("./pages/AdminSurveys"));
-const AdminFavoronBanking = lazy(() => import("./pages/AdminFavoronBanking"));
-const AdminDiscounts = lazy(() => import("./pages/AdminDiscounts"));
-const AdminPlatformFees = lazy(() => import("./pages/AdminPlatformFees"));
-const AdminReports = lazy(() => import("./pages/AdminReports"));
-const AdminDeliveryPoints = lazy(() => import("./pages/AdminDeliveryPoints"));
-const AdminWhatsApp = lazy(() => import("./pages/AdminWhatsApp"));
-const AdminReferrals = lazy(() => import("./pages/AdminReferrals"));
-const AdminApplications = lazy(() => import("./pages/AdminApplications"));
-const AdminCustomerExperience = lazy(() => import("./pages/AdminCustomerExperience"));
-const AdminRoles = lazy(() => import("./pages/AdminRoles"));
-const Operations = lazy(() => import("./pages/Operations"));
-const AvisoLegal = lazy(() => import("./pages/AvisoLegal"));
-const WorkWithUs = lazy(() => import("./pages/WorkWithUs"));
-const PaymentCallback = lazy(() => import("./pages/PaymentCallback"));
+// Lazy-loaded pages with retry logic for chunk failures
+const CustomsRegulation = lazyWithRetry(() => import("./pages/CustomsRegulation"), "CustomsRegulation");
+const CompleteProfile = lazyWithRetry(() => import("./pages/CompleteProfile"), "CompleteProfile");
+const TermsAndConditions = lazyWithRetry(() => import("./pages/TermsAndConditions"), "TermsAndConditions");
+const MonthlyPackageDetails = lazyWithRetry(() => import("./pages/MonthlyPackageDetails"), "MonthlyPackageDetails");
+const AdminControl = lazyWithRetry(() => import("./pages/AdminControl"), "AdminControl");
+const AdminSurveys = lazyWithRetry(() => import("./pages/AdminSurveys"), "AdminSurveys");
+const AdminFavoronBanking = lazyWithRetry(() => import("./pages/AdminFavoronBanking"), "AdminFavoronBanking");
+const AdminDiscounts = lazyWithRetry(() => import("./pages/AdminDiscounts"), "AdminDiscounts");
+const AdminPlatformFees = lazyWithRetry(() => import("./pages/AdminPlatformFees"), "AdminPlatformFees");
+const AdminReports = lazyWithRetry(() => import("./pages/AdminReports"), "AdminReports");
+const AdminDeliveryPoints = lazyWithRetry(() => import("./pages/AdminDeliveryPoints"), "AdminDeliveryPoints");
+const AdminWhatsApp = lazyWithRetry(() => import("./pages/AdminWhatsApp"), "AdminWhatsApp");
+const AdminReferrals = lazyWithRetry(() => import("./pages/AdminReferrals"), "AdminReferrals");
+const AdminApplications = lazyWithRetry(() => import("./pages/AdminApplications"), "AdminApplications");
+const AdminCustomerExperience = lazyWithRetry(() => import("./pages/AdminCustomerExperience"), "AdminCustomerExperience");
+const AdminRoles = lazyWithRetry(() => import("./pages/AdminRoles"), "AdminRoles");
+const Operations = lazyWithRetry(() => import("./pages/Operations"), "Operations");
+const AvisoLegal = lazyWithRetry(() => import("./pages/AvisoLegal"), "AvisoLegal");
+const WorkWithUs = lazyWithRetry(() => import("./pages/WorkWithUs"), "WorkWithUs");
+const PaymentCallback = lazyWithRetry(() => import("./pages/PaymentCallback"), "PaymentCallback");
 
 const queryClient = new QueryClient();
 
