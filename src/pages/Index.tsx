@@ -1,35 +1,20 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { Suspense, lazy, ComponentType, useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
 
-// Retry wrapper for lazy imports to handle chunk loading failures after deployments
-const lazyWithRetry = <T extends ComponentType<any>>(
-  componentImport: () => Promise<{ default: T }>
-): React.LazyExoticComponent<T> =>
-  lazy(async () => {
-    try {
-      return await componentImport();
-    } catch (error) {
-      // Chunk failed to load - likely stale cache after deployment
-      console.warn('Chunk load failed, reloading page...', error);
-      window.location.reload();
-      // Return a dummy component to satisfy types (won't actually render)
-      return { default: (() => null) as unknown as T };
-    }
-  });
-
-// Lazy load heavy components with retry logic
-const PlatformDescriptionSection = lazyWithRetry(() => import("@/components/PlatformDescriptionSection"));
-const HowItWorksSection = lazyWithRetry(() => import("@/components/HowItWorksSection"));
-const BenefitsSection = lazyWithRetry(() => import("@/components/BenefitsSection"));
-const FAQSection = lazyWithRetry(() => import("@/components/FAQSection"));
-const CTASection = lazyWithRetry(() => import("@/components/CTASection"));
-const TravelsHubSection = lazyWithRetry(() => import("@/components/TravelsHubSection"));
+// Lazy load heavy components with shared retry logic
+const PlatformDescriptionSection = lazyWithRetry(() => import("@/components/PlatformDescriptionSection"), "PlatformDescription");
+const HowItWorksSection = lazyWithRetry(() => import("@/components/HowItWorksSection"), "HowItWorks");
+const BenefitsSection = lazyWithRetry(() => import("@/components/BenefitsSection"), "Benefits");
+const FAQSection = lazyWithRetry(() => import("@/components/FAQSection"), "FAQ");
+const CTASection = lazyWithRetry(() => import("@/components/CTASection"), "CTA");
+const TravelsHubSection = lazyWithRetry(() => import("@/components/TravelsHubSection"), "TravelsHub");
 
 const Index = () => {
   const { user, profile, userRole, loading, signOut } = useAuth();
@@ -67,9 +52,6 @@ const Index = () => {
     navigate(authUrl, { state: { mode } });
   };
 
-  // No blocking on auth - landing page renders immediately
-  // User-specific content (NavBar, HeroSection) handles its own loading state
-
   // On native, show nothing while redirecting
   if (nativeRedirecting || (Capacitor.isNativePlatform() && loading)) {
     return null;
@@ -92,7 +74,6 @@ const Index = () => {
           userRole={userRole}
         />
         
-        {/* Lazy load remaining sections with loading fallbacks */}
         <Suspense fallback={<div className="h-96 bg-white" />}>
           <PlatformDescriptionSection />
         </Suspense>
