@@ -987,29 +987,24 @@ const QuoteDialog = ({
                     })}
                   </div>
                 ) : (
-                  <div className={`bg-background/60 rounded-lg ${isMobile ? 'p-2.5' : 'p-3'} border border-muted/30`}>
-                    {/* Product Name */}
-                    <h4 className="text-base font-semibold text-foreground leading-snug mb-2">
+                  <div className="bg-background/60 rounded-lg p-2.5 border border-muted/30">
+                    <h4 className="text-sm font-semibold text-foreground leading-snug mb-1">
                       {packageDetails.item_description}
                     </h4>
-                    
-                    {/* Price and Quantity */}
-                    <p className="text-sm text-muted-foreground mb-3">
-                      ${packageDetails.estimated_price} USD × 1 unidad
-                    </p>
-                    
-                    {/* Product Link Button */}
-                    {packageDetails.item_link && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="w-full"
-                        onClick={() => window.open(packageDetails.item_link, '_blank')}
-                      >
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Ver producto en tienda
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>${packageDetails.estimated_price} USD × 1</span>
+                      {packageDetails.item_link && (
+                        <a 
+                          href={packageDetails.item_link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-primary hover:underline"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Ver en tienda
+                        </a>
+                      )}
+                    </div>
                   </div>
                 )}
 
