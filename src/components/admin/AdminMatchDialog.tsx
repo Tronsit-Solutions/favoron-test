@@ -51,7 +51,9 @@ const AdminMatchDialog = ({
   const [selectedTraveler, setSelectedTraveler] = useState<any>(null);
   const [travelerPackages, setTravelerPackages] = useState<any[]>([]);
   const [tripAssignments, setTripAssignments] = useState<any[]>([]);
-  const [loadingAssignments, setLoadingAssignments] = useState(false);
+  const [loadingTravelerPkgs, setLoadingTravelerPkgs] = useState(false);
+  const [loadingTripAssigns, setLoadingTripAssigns] = useState(false);
+  const [tripAssignsError, setTripAssignsError] = useState(false);
   const [adminTip, setAdminTip] = useState<string>('');
   const [avatarViewerOpen, setAvatarViewerOpen] = useState(false);
   const [avatarViewerUrl, setAvatarViewerUrl] = useState('');
@@ -60,6 +62,15 @@ const AdminMatchDialog = ({
 
   // Cache for traveler data per trip to avoid re-fetching
   const travelerDataCacheRef = useRef<Map<string, { travelerPackages: any[]; tripAssignments: any[]; selectedTraveler: any }>>(new Map());
+
+  // Memoized index of packages already in memory (from admin dashboard)
+  const packagesById = useMemo(() => {
+    const map: Record<string, any> = {};
+    for (const pkg of packages) {
+      map[pkg.id] = pkg;
+    }
+    return map;
+  }, [packages]);
   const handleAvatarClick = (avatarUrl: string | null | undefined) => {
     if (!avatarUrl) return;
     setAvatarViewerUrl(avatarUrl);
@@ -593,14 +604,18 @@ const AdminMatchDialog = ({
       setTravelerPackages(cached.travelerPackages);
       setTripAssignments(cached.tripAssignments);
       setSelectedTraveler(cached.selectedTraveler);
-      setLoadingAssignments(false);
+      setLoadingTravelerPkgs(false);
+      setLoadingTripAssigns(false);
+      setTripAssignsError(false);
       setShowTravelerInfo(true);
       return;
     }
 
     setTravelerPackages([]);
     setTripAssignments([]);
-    setLoadingAssignments(true);
+    setLoadingTravelerPkgs(true);
+    setLoadingTripAssigns(true);
+    setTripAssignsError(false);
     setShowTravelerInfo(true);
 
     const TIMER_STATUSES = ['matched', 'quote_sent', 'payment_pending'];
@@ -678,55 +693,71 @@ const AdminMatchDialog = ({
       );
       const filtered = (directResult.data || []).filter((pkg) => isTimerActive(pkg) || PAID_OR_POST_PAYMENT.includes(pkg.status));
 
-      // STEP 2: Fetch bidding packages + assignment package details in parallel
+      // STEP 2: Fetch bidding packages (only missing from memory)
       const directIds = new Set(filtered.map((p: any) => p.id));
       const assignmentPkgIds = (biddingAssignmentsResult.data || [])
         .map(a => a.package_id)
         .filter(id => !directIds.has(id));
 
-      // Collect all unique package IDs from all assignments for the assignments tab
-      const allAssignmentPkgIds = [...new Set((allAssignmentsResult.data || []).map(a => a.package_id))];
+      // For bidding packages, check memory first
+      const missingBiddingIds = assignmentPkgIds.filter(id => !packagesById[id]);
+      const memoryBiddingPkgs = assignmentPkgIds.filter(id => packagesById[id]).map(id => packagesById[id]);
 
-      const [biddingResult, assignmentPkgsResult] = await Promise.all([
-        // Bidding packages (only if needed)
-        assignmentPkgIds.length > 0
-          ? supabase
-              .from('packages')
-              .select(`*, profiles!packages_user_id_fkey (id, first_name, last_name, email, username)`)
-              .in('id', assignmentPkgIds)
-          : Promise.resolve({ data: [] as any[], error: null }),
-        // Assignment packages with profiles (flat query instead of nested join)
-        allAssignmentPkgIds.length > 0
-          ? supabase
-              .from('packages')
-              .select('id, item_description, estimated_price, purchase_origin, package_destination, user_id, profiles:user_id (first_name, last_name, username)')
-              .in('id', allAssignmentPkgIds)
-          : Promise.resolve({ data: [] as any[], error: null })
-      ]);
+      const biddingResult = missingBiddingIds.length > 0
+        ? await supabase
+            .from('packages')
+            .select(`*, profiles!packages_user_id_fkey (id, first_name, last_name, email, username)`)
+            .in('id', missingBiddingIds)
+        : { data: [] as any[], error: null };
 
       // Build bidding packages
       const assignmentStatusMap = new Map(
         (biddingAssignmentsResult.data || []).map(a => [a.package_id, a.status])
       );
-      const biddingPkgs = (biddingResult.data || []).map(p => ({
+      const allBiddingPkgs = [...memoryBiddingPkgs, ...(biddingResult.data || [])];
+      const biddingPkgs = allBiddingPkgs.map(p => ({
         ...p,
         _isBidding: true,
         _assignmentStatus: assignmentStatusMap.get(p.id) || 'bid_pending'
       }));
 
       const finalPackages = [...filtered, ...biddingPkgs];
+      setTravelerPackages(finalPackages);
+      setLoadingTravelerPkgs(false);
 
-      // Build assignments with package data (reconstruct the nested structure)
-      const pkgLookup = new Map((assignmentPkgsResult.data || []).map(p => [p.id, p]));
+      // STEP 3: Build trip assignments — reuse in-memory packages, fetch only missing
+      const allAssignmentPkgIds = [...new Set((allAssignmentsResult.data || []).map(a => a.package_id))];
+      const missingAssignPkgIds = allAssignmentPkgIds.filter(id => !packagesById[id]);
+      const memoryAssignPkgs = allAssignmentPkgIds.filter(id => packagesById[id]).map(id => {
+        const p = packagesById[id];
+        return {
+          id: p.id,
+          item_description: p.item_description,
+          estimated_price: p.estimated_price,
+          purchase_origin: p.purchase_origin,
+          package_destination: p.package_destination,
+          user_id: p.user_id,
+          profiles: p.profiles || null
+        };
+      });
+
+      let fetchedAssignPkgs: any[] = [];
+      if (missingAssignPkgIds.length > 0) {
+        const { data } = await supabase
+          .from('packages')
+          .select('id, item_description, estimated_price, purchase_origin, package_destination, user_id, profiles:user_id (first_name, last_name, username)')
+          .in('id', missingAssignPkgIds);
+        fetchedAssignPkgs = data || [];
+      }
+
+      const pkgLookup = new Map([...memoryAssignPkgs, ...fetchedAssignPkgs].map(p => [p.id, p]));
       const finalAssignments = (allAssignmentsResult.data || []).map(a => ({
         ...a,
         packages: pkgLookup.get(a.package_id) || null
       }));
 
-      // Update state
-      setTravelerPackages(finalPackages);
       setTripAssignments(finalAssignments);
-      setLoadingAssignments(false);
+      setLoadingTripAssigns(false);
 
       // Cache the result
       travelerDataCacheRef.current.set(trip.id, {
@@ -742,7 +773,8 @@ const AdminMatchDialog = ({
     if (result === 'timeout') {
       console.warn('Traveler data fetch timed out for trip:', trip.id);
       setLoadingTimedOut(true);
-      setLoadingAssignments(false);
+      setLoadingTravelerPkgs(false);
+      setLoadingTripAssigns(false);
       // Let the data promise continue in background — it will update state when done
     }
   };
@@ -2039,7 +2071,12 @@ const AdminMatchDialog = ({
                   </h3>
                 </CardHeader>
                 <CardContent>
-                  {travelerPackages.length === 0 ? (
+                  {loadingTravelerPkgs ? (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+                      <p>Cargando paquetes...</p>
+                    </div>
+                  ) : travelerPackages.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p>Este viaje no tiene paquetes asignados aún</p>
@@ -2093,15 +2130,32 @@ const AdminMatchDialog = ({
                   </h3>
                 </CardHeader>
                 <CardContent>
-                  {loadingAssignments ? (
+                  {loadingTripAssigns ? (
                     <div className="text-center py-6 text-muted-foreground">
                       <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
                       <p>Cargando asignaciones...</p>
                     </div>
+                  ) : tripAssignsError ? (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <XCircle className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                      <p className="mb-2">No se pudieron cargar las asignaciones</p>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        if (selectedTraveler?.trip) {
+                          travelerDataCacheRef.current.delete(selectedTraveler.trip.id);
+                          handleTravelerClick(selectedTraveler.trip);
+                        }
+                      }}>Reintentar</Button>
+                    </div>
                   ) : loadingTimedOut && tripAssignments.length === 0 ? (
                     <div className="text-center py-6 text-muted-foreground">
                       <Clock className="h-10 w-10 mx-auto mb-3 opacity-50" />
-                      <p>La carga tardó demasiado. Los datos aparecerán cuando terminen de cargar.</p>
+                      <p className="mb-2">La carga tardó demasiado.</p>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        if (selectedTraveler?.trip) {
+                          travelerDataCacheRef.current.delete(selectedTraveler.trip.id);
+                          handleTravelerClick(selectedTraveler.trip);
+                        }
+                      }}>Reintentar</Button>
                     </div>
                   ) : tripAssignments.length === 0 ? (
                     <div className="text-center py-6 text-muted-foreground">
