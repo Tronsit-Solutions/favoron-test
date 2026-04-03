@@ -1083,6 +1083,15 @@ const Dashboard = ({ user }: DashboardProps) => {
                 )}
               </div>
             </div>
+
+            <OnboardingBottomSheet
+              isOpen={showTravelerOnboarding}
+              onContinue={() => setShowTravelerOnboarding(false)}
+              onClose={() => setShowTravelerOnboarding(false)}
+              slides={travelerOnboardingSlides}
+              gradientClassName="from-traveler via-traveler/80 to-traveler/60"
+              variant="traveler"
+            />
           </TabsContent>
 
           {isAdmin && (
