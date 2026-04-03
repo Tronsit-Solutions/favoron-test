@@ -906,14 +906,14 @@ const QuoteDialog = ({
           <>
           {/* COMPACT HERO TIP CARD - Only for travelers */}
           {isTravelerContext && displayAmount && (
-            <div className={`rounded-xl bg-gradient-to-r from-success/10 via-emerald-50 to-green-50 dark:from-success/20 dark:via-emerald-900/20 dark:to-green-900/10 border border-success/20 ${isMobile ? 'p-3' : 'p-4'} shadow-soft`}>
-              <div className={`flex items-center ${isMobile ? 'gap-3' : 'gap-4'}`}>
-                <div className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} rounded-xl bg-success flex items-center justify-center shadow-sm`}>
-                  <Banknote className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} text-white`} />
+            <div className="rounded-xl bg-gradient-to-r from-success/10 via-emerald-50 to-green-50 dark:from-success/20 dark:via-emerald-900/20 dark:to-green-900/10 border border-success/20 p-3 shadow-soft">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-success flex items-center justify-center shadow-sm">
+                  <Banknote className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground font-medium`}>Tu tip por llevarte este paquete</span>
-                  <p className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-success`}>
+                  <span className="text-xs text-muted-foreground font-medium">Tu tip por llevarte este paquete</span>
+                  <p className="text-2xl font-bold text-success">
                     Q{displayAmount.toFixed(2)}
                   </p>
                 </div>
@@ -925,17 +925,15 @@ const QuoteDialog = ({
           <div className={`${isTravelerContext ? 'bg-muted/30 border border-muted/40' : 'bg-muted/50 border'} rounded-lg ${isMobile ? 'p-3' : 'p-4'} max-w-full`}>
             {isTravelerContext ? (
               /* Clear structured view for travelers */
-              <div className={isMobile ? 'space-y-2' : 'space-y-3'}>
+              <div className="space-y-2">
                 {/* Section Header */}
-                <div className={`flex items-center ${isMobile ? 'gap-1.5 pb-2' : 'gap-2 pb-3'} border-b border-muted/40`}>
-                  <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-lg bg-primary/10 flex items-center justify-center`}>
-                    <Package className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-primary`} />
-                  </div>
-                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-foreground`}>Producto solicitado</span>
+                <div className="flex items-center gap-1.5 pb-1.5 border-b border-muted/40">
+                  <Package className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs font-semibold text-foreground">Producto solicitado</span>
                 </div>
 
                 {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {packageDetails.products_data.map((product: any, index: number) => {
                       const quantity = parseInt(product.quantity || '1');
                       const unitPrice = parseFloat(product.estimatedPrice || '0');
@@ -943,10 +941,10 @@ const QuoteDialog = ({
                       const productLink = product.itemLink || packageDetails.item_link;
                       
                       return (
-                        <div key={index} className={`bg-background/60 rounded-lg ${isMobile ? 'p-2.5' : 'p-3'} border border-muted/30`}>
-                          {/* Product Name */}
-                          <div className="flex items-start gap-2 mb-2">
-                            <h4 className="text-base font-semibold text-foreground leading-snug flex-1">
+                        <div key={index} className="bg-background/60 rounded-lg p-2.5 border border-muted/30">
+                          {/* Product Name + Badge */}
+                          <div className="flex items-start gap-2 mb-1">
+                            <h4 className="text-sm font-semibold text-foreground leading-snug flex-1">
                               {product.itemDescription || packageDetails.item_description}
                             </h4>
                             {isPersonalOrder && (
@@ -954,76 +952,59 @@ const QuoteDialog = ({
                             )}
                           </div>
                           
-                          {/* Price and Quantity */}
-                          <p className="text-sm text-muted-foreground mb-2">
-                            ${unitPrice.toFixed(2)} USD × {quantity} {quantity === 1 ? 'unidad' : 'unidades'}
-                          </p>
-                          
-                          {/* Tip asignado para este producto */}
-                          {product.adminAssignedTip && (
-                            <div className="flex items-center gap-1.5 mb-3 text-sm">
-                              <Gift className="h-4 w-4 text-emerald-600" />
-                              <span className="text-gray-500">Tu tip por este producto:</span>
-                              <span className="font-bold text-emerald-600">
-                                Q{parseFloat(product.adminAssignedTip).toFixed(2)}
+                          {/* Price, Quantity, Tip & Link - compact row */}
+                          <div className="flex items-center flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground mb-1.5">
+                            <span>${unitPrice.toFixed(2)} USD × {quantity}</span>
+                            {product.adminAssignedTip && (
+                              <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold">
+                                <Gift className="h-3 w-3" />
+                                Tip: Q{parseFloat(product.adminAssignedTip).toFixed(2)}
                               </span>
-                            </div>
-                          )}
+                            )}
+                            {productLink && (
+                              <a 
+                                href={productLink} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-primary hover:underline"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                Ver en tienda
+                              </a>
+                            )}
+                          </div>
                           
-                          {/* Indicador de empaque original */}
-                          <p className={`text-xs flex items-center gap-1.5 mb-3 ${
+                          {/* Packaging indicator - single compact line */}
+                          <p className={`text-[11px] flex items-center gap-1 ${
                             product.needsOriginalPackaging 
                               ? 'text-amber-600' 
                               : 'text-muted-foreground'
                           }`}>
-                            📦 {product.needsOriginalPackaging ? 'Conservar empaque original del producto' : 'No requiere empaque original'}
-                            <span className="block text-[10px] text-muted-foreground font-normal ml-5">
-                              {product.needsOriginalPackaging 
-                                ? 'Se refiere al empaque de la marca, no a la caja de cartón del envío/delivery.' 
-                                : 'Puedes descartar el empaque de la marca y enviar solo el producto.'}
-                            </span>
+                            📦 {product.needsOriginalPackaging ? 'Conservar empaque original' : 'No requiere empaque original'}
                           </p>
-                          
-                          {/* Product Link Button */}
-                          {productLink && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="w-full"
-                              onClick={() => window.open(productLink, '_blank')}
-                            >
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Ver producto en tienda
-                            </Button>
-                          )}
                         </div>
                       );
                     })}
                   </div>
                 ) : (
-                  <div className={`bg-background/60 rounded-lg ${isMobile ? 'p-2.5' : 'p-3'} border border-muted/30`}>
-                    {/* Product Name */}
-                    <h4 className="text-base font-semibold text-foreground leading-snug mb-2">
+                  <div className="bg-background/60 rounded-lg p-2.5 border border-muted/30">
+                    <h4 className="text-sm font-semibold text-foreground leading-snug mb-1">
                       {packageDetails.item_description}
                     </h4>
-                    
-                    {/* Price and Quantity */}
-                    <p className="text-sm text-muted-foreground mb-3">
-                      ${packageDetails.estimated_price} USD × 1 unidad
-                    </p>
-                    
-                    {/* Product Link Button */}
-                    {packageDetails.item_link && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="w-full"
-                        onClick={() => window.open(packageDetails.item_link, '_blank')}
-                      >
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Ver producto en tienda
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>${packageDetails.estimated_price} USD × 1</span>
+                      {packageDetails.item_link && (
+                        <a 
+                          href={packageDetails.item_link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-primary hover:underline"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Ver en tienda
+                        </a>
+                      )}
+                    </div>
                   </div>
                 )}
 
