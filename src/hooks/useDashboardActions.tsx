@@ -1327,69 +1327,60 @@ export const useDashboardActions = (
       throw rpcError;
     }
 
-    // Optimistic local state update
-    const updateData: any = {
-      status: 'matched',
-      admin_assigned_tip: adminTip,
-      traveler_dismissal: null,
-      traveler_dismissed_at: null,
-      ...(updatedProductsData ? { products_data: updatedProductsData } : {})
-    };
-    setPackages(packages.map(pkg =>
-      pkg.id === packageId ? { ...pkg, ...updateData } : pkg
-    ));
+    // NOTE: Removed redundant optimistic setPackages here — AdminDashboard handles it in .then()
 
-    // Log package assignment to trip history for each trip
-    const adminName = currentUser?.first_name
-      ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
-      : 'Admin';
-    const shopperProfile = currentPackage?.profiles;
-    const shopperName = shopperProfile?.first_name
-      ? `${shopperProfile.first_name} ${shopperProfile.last_name || ''}`.trim()
-      : 'Shopper';
+    // Defer side effects (history logs + WhatsApp + email) to avoid network contention
+    // during the critical UI update window
+    setTimeout(() => {
+      const adminName = currentUser?.first_name
+        ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
+        : 'Admin';
+      const shopperProfile = currentPackage?.profiles;
+      const shopperName = shopperProfile?.first_name
+        ? `${shopperProfile.first_name} ${shopperProfile.last_name || ''}`.trim()
+        : 'Shopper';
 
-    // Fire-and-forget: history logs + WhatsApp notifications in parallel, non-blocking
-    Promise.all(tripIdsToAssign.map(tid => {
-      const historyEntry = createHistoryEntry(
-        'package_assigned',
-        currentUser?.id || null,
-        adminName,
-        {
-          package_id: packageId,
-          item_description: currentPackage?.item_description || '',
-          shopper_name: shopperName,
-          admin_tip: adminTip,
-          multi_assignment: true,
-          total_assignments: tripIdsToAssign.length,
+      Promise.all(tripIdsToAssign.map(tid => {
+        const historyEntry = createHistoryEntry(
+          'package_assigned',
+          currentUser?.id || null,
+          adminName,
+          {
+            package_id: packageId,
+            item_description: currentPackage?.item_description || '',
+            shopper_name: shopperName,
+            admin_tip: adminTip,
+            multi_assignment: true,
+            total_assignments: tripIdsToAssign.length,
+          }
+        );
+        appendTripHistoryEntry(tid, historyEntry);
+
+        const matchedTrip = trips.find(trip => trip.id === tid);
+        if (matchedTrip?.user_id) {
+          const destination = currentPackage?.package_destination || 'Guatemala';
+          sendWhatsAppNotification({
+            userId: matchedTrip.user_id,
+            templateId: 'package_assigned',
+            variables: {
+              "2": destination,
+              "3": `${adminTip?.toFixed(2) || '0.00'}`
+            }
+          });
+
+          supabase.functions.invoke('send-notification-email', {
+            body: {
+              user_id: matchedTrip.user_id,
+              title: 'Nuevo paquete asignado',
+              message: `Se te ha asignado un nuevo paquete con destino ${destination}. La propina asignada es Q${adminTip?.toFixed(2) || '0.00'}. Tienes 24 horas para aceptar esta asignación antes de que expire. Revisa tu dashboard para más detalles.`,
+              type: 'package',
+              priority: 'normal',
+              action_url: 'https://favoron.app/dashboard'
+            }
+          }).catch(err => console.error('Error sending assignment email to traveler:', err));
         }
-      );
-      appendTripHistoryEntry(tid, historyEntry);
-
-      const matchedTrip = trips.find(trip => trip.id === tid);
-      if (matchedTrip?.user_id) {
-        const destination = currentPackage?.package_destination || 'Guatemala';
-        sendWhatsAppNotification({
-          userId: matchedTrip.user_id,
-          templateId: 'package_assigned',
-          variables: {
-            "2": destination,
-            "3": `${adminTip?.toFixed(2) || '0.00'}`
-          }
-        });
-
-        // Email notification to traveler
-        supabase.functions.invoke('send-notification-email', {
-          body: {
-            user_id: matchedTrip.user_id,
-            title: 'Nuevo paquete asignado',
-            message: `Se te ha asignado un nuevo paquete con destino ${destination}. La propina asignada es Q${adminTip?.toFixed(2) || '0.00'}. Tienes 24 horas para aceptar esta asignación antes de que expire. Revisa tu dashboard para más detalles.`,
-            type: 'package',
-            priority: 'normal',
-            action_url: 'https://favoron.app/dashboard'
-          }
-        }).catch(err => console.error('Error sending assignment email to traveler:', err));
-      }
-    })).catch(err => console.error('Post-match side effects error:', err));
+      })).catch(err => console.error('Post-match side effects error:', err));
+    }, 500);
   };
 
   const handleStatusUpdate = async (type: 'package' | 'trip', id: string, status: string) => {

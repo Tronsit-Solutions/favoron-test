@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from '@/integrations/supabase/client';
@@ -104,35 +104,70 @@ const AdminMatchingTab = ({
     cleanupOldQuotes();
   }, []);
 
-  // Fetch package_assignments for multi-assigned packages
+  // Fetch package_assignments scoped to relevant packages only
   const [assignmentsMap, setAssignmentsMap] = useState<{ [packageId: string]: { count: number; assignments: any[] } }>({});
-  
-  useEffect(() => {
-    const fetchAssignments = async () => {
-      try {
+
+  // Compute relevant package IDs: packages that could have active assignments
+  const relevantPackageIds = useMemo(() => {
+    return packages
+      .filter(p => 
+        ['matched', 'quote_sent', 'approved', 'quote_rejected'].includes(p.status) ||
+        (!p.matched_trip_id && p.status !== 'delivered' && p.status !== 'cancelled' && p.status !== 'rejected')
+      )
+      .map(p => p.id);
+  }, [packages]);
+
+  // Stable key to avoid refetching on unrelated package changes
+  const packageIdsKey = useMemo(() => 
+    relevantPackageIds.slice().sort().join(','), 
+    [relevantPackageIds]
+  );
+
+  // Debounced fetch to collapse rapid state updates
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const fetchAssignments = useCallback(async (ids: string[]) => {
+    if (ids.length === 0) {
+      setAssignmentsMap({});
+      return;
+    }
+    try {
+      // Supabase .in() has a practical limit; chunk if needed
+      const chunkSize = 200;
+      const allData: any[] = [];
+      for (let i = 0; i < ids.length; i += chunkSize) {
+        const chunk = ids.slice(i, i + chunkSize);
         const { data, error } = await supabase
           .from('package_assignments')
           .select('id, package_id, trip_id, status, quote, admin_assigned_tip, traveler_address, matched_trip_dates, products_data, expires_at')
+          .in('package_id', chunk)
           .not('status', 'eq', 'bid_lost');
-
         if (error) throw error;
-        if (data) {
-          const map: { [packageId: string]: { count: number; assignments: any[] } } = {};
-          data.forEach(assignment => {
-            if (!map[assignment.package_id]) {
-              map[assignment.package_id] = { count: 0, assignments: [] };
-            }
-            map[assignment.package_id].count++;
-            map[assignment.package_id].assignments.push(assignment);
-          });
-          setAssignmentsMap(map);
-        }
-      } catch (err) {
-        console.warn('Error fetching package assignments:', err);
+        if (data) allData.push(...data);
       }
+      const map: { [packageId: string]: { count: number; assignments: any[] } } = {};
+      allData.forEach(assignment => {
+        if (!map[assignment.package_id]) {
+          map[assignment.package_id] = { count: 0, assignments: [] };
+        }
+        map[assignment.package_id].count++;
+        map[assignment.package_id].assignments.push(assignment);
+      });
+      setAssignmentsMap(map);
+    } catch (err) {
+      console.warn('Error fetching package assignments:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      fetchAssignments(relevantPackageIds);
+    }, 300);
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
-    fetchAssignments();
-  }, [packages]);
+  }, [packageIdsKey, fetchAssignments, relevantPackageIds]);
 
   // Multi-assigned package IDs (packages with assignments but no matched_trip_id)
   const multiAssignedPackageIds = useMemo(() => {
