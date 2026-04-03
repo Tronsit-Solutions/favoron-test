@@ -28,6 +28,8 @@ import CollapsibleTravelerPackageCard from "./dashboard/CollapsibleTravelerPacka
 import EmptyState from "./dashboard/EmptyState";
 import ProtectedEmptyState from "./dashboard/ProtectedEmptyState";
 import { TripSelector } from "./dashboard/TripSelector";
+import OnboardingBottomSheet from "./onboarding/OnboardingBottomSheet";
+import type { OnboardingSlide } from "./onboarding/OnboardingBottomSheet";
 
 
 import AvailableTripsCard from "./AvailableTripsCard";
