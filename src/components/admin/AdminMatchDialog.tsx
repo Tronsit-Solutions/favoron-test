@@ -604,14 +604,18 @@ const AdminMatchDialog = ({
       setTravelerPackages(cached.travelerPackages);
       setTripAssignments(cached.tripAssignments);
       setSelectedTraveler(cached.selectedTraveler);
-      setLoadingAssignments(false);
+      setLoadingTravelerPkgs(false);
+      setLoadingTripAssigns(false);
+      setTripAssignsError(false);
       setShowTravelerInfo(true);
       return;
     }
 
     setTravelerPackages([]);
     setTripAssignments([]);
-    setLoadingAssignments(true);
+    setLoadingTravelerPkgs(true);
+    setLoadingTripAssigns(true);
+    setTripAssignsError(false);
     setShowTravelerInfo(true);
 
     const TIMER_STATUSES = ['matched', 'quote_sent', 'payment_pending'];
