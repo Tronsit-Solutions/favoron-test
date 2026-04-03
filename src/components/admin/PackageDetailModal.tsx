@@ -285,6 +285,7 @@ const [editForm, setEditForm] = useState({
   // State for multi-traveler assignments
   const [packageAssignments, setPackageAssignments] = useState<any[]>([]);
   const [loadingAssignments, setLoadingAssignments] = useState(false);
+  const [assignmentsError, setAssignmentsError] = useState(false);
 
   // Resolve traveler confirmation photo (handles storage paths and signed URLs)
   // Must call this hook before any early returns to follow Rules of Hooks
@@ -377,8 +378,15 @@ const [editForm, setEditForm] = useState({
     }
     
     setLoadingAssignments(true);
+    setAssignmentsError(false);
     try {
-      const { data: assignments, error } = await supabase
+      // Use timeout to prevent hanging forever on slow networks
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout loading assignments')), 8000)
+      );
+
+      // Step 1: Fetch assignments + trips (without nested profile join to avoid silent failures)
+      const fetchPromise = supabase
         .from('package_assignments')
         .select(`
             id, package_id, trip_id, status, quote, admin_assigned_tip, 
@@ -386,12 +394,13 @@ const [editForm, setEditForm] = useState({
             created_at, expires_at, quote_expires_at,
             trips:trip_id (
               id, from_city, from_country, to_city, to_country, 
-              arrival_date, delivery_date, first_day_packages, last_day_packages, user_id,
-              profiles:user_id (id, first_name, last_name, username, email, phone_number, country_code)
+              arrival_date, delivery_date, first_day_packages, last_day_packages, user_id
             )
           `)
         .eq('package_id', pkg.id)
         .not('status', 'eq', 'rejected');
+
+      const { data: assignments, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
       if (error) throw error;
       if (!assignments || assignments.length === 0) {
@@ -400,11 +409,22 @@ const [editForm, setEditForm] = useState({
         return;
       }
 
-      const enriched = assignments.map(a => {
+      // Step 2: Batch fetch profiles separately to avoid join failures
+      const userIds = [...new Set(assignments.map((a: any) => (a.trips as any)?.user_id).filter(Boolean))] as string[];
+      let profileMap: Record<string, any> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, username, email, phone_number, country_code')
+          .in('id', userIds);
+        profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
+      }
+
+      // Merge assignments with profiles
+      const enriched = assignments.map((a: any) => {
         const tripData = a.trips as any;
-        const profile = tripData?.profiles || null;
-        const trip = tripData ? { ...tripData, profiles: undefined } : null;
-        if (trip) delete trip.profiles;
+        const trip = tripData ? { ...tripData } : null;
+        const profile = tripData?.user_id ? (profileMap[tripData.user_id] || null) : null;
         return { ...a, trips: undefined, trip, profile };
       });
 
@@ -412,6 +432,7 @@ const [editForm, setEditForm] = useState({
     } catch (err) {
       console.warn('Error loading package assignments:', err);
       setPackageAssignments([]);
+      setAssignmentsError(true);
     } finally {
       setLoadingAssignments(false);
     }
@@ -1338,23 +1359,40 @@ const [editForm, setEditForm] = useState({
               </Card>
             )}
 
-            {/* Multi-Traveler Assignments - when no single matchedTrip but assignments exist */}
-            {!matchedTrip && packageAssignments.length > 0 && (
+            {/* Multi-Traveler Assignments - visible during competition phase, loading, or when assignments exist */}
+            {!matchedTrip && (
+              loadingAssignments || 
+              assignmentsError ||
+              packageAssignments.length > 0 || 
+              (pkg.status === 'matched' || pkg.status === 'quote_sent')
+            ) && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2 text-lg">
                     <User className="h-4 w-4" />
-                    <span>✈️ Viajeros Asignados ({packageAssignments.length})</span>
+                    <span>✈️ Viajeros Asignados {packageAssignments.length > 0 ? `(${packageAssignments.length})` : ''}</span>
                   </CardTitle>
                   <CardDescription>
                     Paquete asignado a múltiples viajeros candidatos
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {loadingAssignments ? (
+                  {assignmentsError ? (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-muted-foreground mb-2">No se pudieron cargar las asignaciones</p>
+                      <Button variant="outline" size="sm" onClick={loadAssignments}>
+                        <Loader2 className="h-3 w-3 mr-1" />
+                        Reintentar
+                      </Button>
+                    </div>
+                  ) : loadingAssignments ? (
                     <div className="flex items-center justify-center py-4">
                       <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                      <span className="ml-2 text-sm text-muted-foreground">Cargando...</span>
+                      <span className="ml-2 text-sm text-muted-foreground">Cargando asignaciones...</span>
+                    </div>
+                  ) : packageAssignments.length === 0 ? (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-muted-foreground">Sin asignaciones encontradas para este paquete</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
