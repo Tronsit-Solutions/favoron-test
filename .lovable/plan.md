@@ -1,89 +1,112 @@
 
+## Fix: acelerar la carga de “Asignaciones del Viaje” en el modal de viajero del match
 
-## Fix: Viajeros asignados tardan o no se cargan en el modal de detalles
+### Qué está pasando
+En `src/components/admin/AdminMatchDialog.tsx`, al abrir el perfil del viajero (`handleTravelerClick`) se disparan varias consultas para poblar dos bloques a la vez:
 
-### Problemas encontrados
+- `Paquetes en este Viaje`
+- `Asignaciones del Viaje`
 
-**Problema 1 — Condición de visibilidad incorrecta (línea 1342)**
-La sección solo se muestra cuando `packageAssignments.length > 0`. Pero si las asignaciones están *cargando*, el array está vacío y la sección completa se oculta — incluyendo el spinner de carga. El usuario nunca ve feedback de que algo está cargando. Si la query falla silenciosamente (catch en línea 412-414 setea `[]`), la sección simplemente no aparece.
+Aunque las queries están parcialmente paralelizadas, la sección de asignaciones sigue dependiendo de una carga “pesada”:
+1. trae todas las asignaciones del viaje,
+2. extrae todos los `package_id`,
+3. vuelve a consultar `packages` para esos ids,
+4. además hace join con `profiles`.
 
-**Problema 2 — Query con joins anidados puede fallar silenciosamente**  
-La query usa un doble join (`trips:trip_id → profiles:user_id`). Si el join de `profiles` falla (por ejemplo, el `user_id` del trip no tiene perfil), PostgREST puede devolver `null` para todo el objeto `trips`, haciendo que el viajero "desaparezca". Además, no hay timeout ni retry — si la red es lenta, la query se queda colgada indefinidamente.
+Eso provoca que:
+- el modal abra rápido pero “Asignaciones del Viaje” tarde bastante,
+- si el segundo fetch se atrasa, la sección queda cargando demasiado tiempo,
+- ambas secciones comparten `loadingAssignments`, así que una lenta bloquea visualmente a la otra.
 
-**Problema 3 — Sin retry automático**  
-Si hay un error de red transitorio, el catch silencia el error y deja el array vacío. No hay botón de reintentar visible porque la sección desaparece.
+### Causa principal
+El cuello de botella no parece ser el render, sino la estrategia de fetch:
+- `tripAssignments` se arma en dos pasos dependientes,
+- la segunda query pide más datos de `packages` de los que la tarjeta realmente necesita,
+- el estado de loading es único para todo el modal del viajero,
+- no se aprovecha información que ya existe en memoria (`packages` del admin y `tripAssignmentsMap`) para resolver parte del bloque sin volver a pegarle tanto a Supabase.
 
-### Cambios propuestos
+### Plan de implementación
 
-#### `src/components/admin/PackageDetailModal.tsx`
+#### 1. Separar la carga del modal en dos estados
+En `AdminMatchDialog.tsx` dividir:
+- `loadingAssignments` en algo como:
+  - `loadingTravelerPackages`
+  - `loadingTripAssignments`
 
-**1. Corregir condición de visibilidad (línea 1342)**
-Mostrar la sección siempre que el paquete esté en fase de competencia O haya asignaciones O esté cargando:
+Así:
+- el perfil del viajero abre de inmediato,
+- “Paquetes en este Viaje” puede mostrarse antes,
+- “Asignaciones del Viaje” puede tener su propio spinner/error sin bloquear todo.
 
-```tsx
-// Antes:
-{!matchedTrip && packageAssignments.length > 0 && (
+#### 2. Reducir la query de asignaciones del viaje
+Cambiar el bloque de `handleTravelerClick` para que la consulta de `package_assignments` siga siendo la fuente de verdad, pero con enriquecimiento más liviano:
 
-// Después:
-{!matchedTrip && (
-  loadingAssignments || 
-  packageAssignments.length > 0 || 
-  (pkg.status === 'matched' || pkg.status === 'quote_sent')
-) && (
+- Query 1:
+  - `package_assignments` por `trip_id`
+  - solo columnas necesarias para la card:
+    - `id, package_id, status, admin_assigned_tip, quote, created_at`
+
+- Query 2:
+  - resolver detalles del paquete de forma más barata:
+    - primero reusar `packages` ya cargados en el dashboard para los `package_id` disponibles,
+    - solo consultar a Supabase los `package_id` faltantes,
+    - pedir campos mínimos:
+      - `id, item_description, estimated_price, purchase_origin, package_destination, user_id`
+
+- Query 3:
+  - perfiles solo para shoppers faltantes de esos paquetes faltantes, en batch.
+
+Esto elimina trabajo redundante y reduce el peso del segundo fetch.
+
+#### 3. Construir índices memoizados para reutilizar datos ya cargados
+Agregar en `AdminMatchDialog.tsx` índices memoizados con los datos ya disponibles:
+- `packagesById`
+- `profilesByUserId` para shoppers cuando existan en `pkg.profiles`
+
+Objetivo:
+- si un assignment apunta a un paquete ya presente en `packages`, la tarjeta se construye sin fetch extra,
+- solo se consulta Supabase para paquetes realmente ausentes del estado admin.
+
+#### 4. Mantener cache granular por viaje
+El `travelerDataCacheRef` ya existe, pero hoy cachea el resultado final completo.
+Extender el enfoque para que:
+- cachee por separado `travelerPackages` y `tripAssignments`,
+- si una parte ya está disponible, se pinte primero,
+- si la otra sigue cargando, no se pierda lo ya renderizado.
+
+#### 5. Mejorar feedback y fallback visual
+En la sección “Asignaciones del Viaje”:
+- mantener spinner propio,
+- mostrar mensaje de timeout específico si esa sección tarda demasiado,
+- agregar botón “Reintentar” solo para recargar asignaciones del viaje,
+- conservar las asignaciones viejas en pantalla si existe cache previa y se está refrescando en segundo plano.
+
+### Archivos a tocar
+- `src/components/admin/AdminMatchDialog.tsx`
+
+### Resultado esperado
+- abrir el perfil del viajero se sentirá mucho más inmediato,
+- “Asignaciones del Viaje” dejará de depender de una cascada pesada,
+- menos consultas redundantes a `packages` y `profiles`,
+- mejor resiliencia cuando Supabase responde lento,
+- la UI mostrará progreso real en vez de quedarse “pegada” cargando.
+
+### Detalle técnico
+```text
+Antes:
+click viajero
+  -> referral
+  -> packages directos
+  -> assignments del viaje
+  -> packages de assignments
+  -> profiles de shoppers implícitos
+  -> recién entonces se arma tripAssignments
+
+Después:
+click viajero
+  -> abrir modal inmediato
+  -> cargar travelerPackages y tripAssignments por separado
+  -> reusar packages ya presentes en memoria
+  -> consultar solo faltantes
+  -> spinner/retry independiente para Asignaciones del Viaje
 ```
-
-**2. Separar la query en dos pasos para evitar fallo silencioso por joins anidados**
-Primero traer las asignaciones con el trip, luego traer los perfiles por separado. Esto evita que un join fallido haga desaparecer toda la asignación:
-
-```tsx
-// Paso 1: assignments + trips (sin profiles)
-const { data: assignments } = await supabase
-  .from('package_assignments')
-  .select(`id, package_id, trip_id, status, quote, admin_assigned_tip,
-           traveler_address, matched_trip_dates, products_data,
-           created_at, expires_at, quote_expires_at,
-           trips:trip_id (id, from_city, from_country, to_city, to_country,
-             arrival_date, delivery_date, first_day_packages, last_day_packages, user_id)`)
-  .eq('package_id', pkg.id)
-  .not('status', 'eq', 'rejected');
-
-// Paso 2: perfiles en batch
-const userIds = [...new Set(assignments.map(a => a.trips?.user_id).filter(Boolean))];
-const { data: profiles } = await supabase
-  .from('profiles')
-  .select('id, first_name, last_name, username, email, phone_number, country_code')
-  .in('id', userIds);
-
-// Merge
-const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
-const enriched = assignments.map(a => ({
-  ...a,
-  trip: a.trips,
-  profile: profileMap[a.trips?.user_id] || null,
-}));
-```
-
-**3. Agregar timeout + estado de error con botón de reintentar**
-Envolver la query en un `Promise.race` con timeout de 8 segundos, y agregar un estado `assignmentsError` que muestre un botón de reintento dentro de la sección visible:
-
-```tsx
-{assignmentsError ? (
-  <div className="text-center py-4">
-    <p className="text-sm text-muted-foreground mb-2">No se pudieron cargar las asignaciones</p>
-    <Button variant="outline" size="sm" onClick={loadAssignments}>Reintentar</Button>
-  </div>
-) : loadingAssignments ? (
-  <Loader2 ... />
-) : packageAssignments.length === 0 ? (
-  <p className="text-sm text-muted-foreground">Sin asignaciones encontradas</p>
-) : (
-  // lista actual
-)}
-```
-
-### Resumen
-- La sección siempre será visible cuando el paquete está en competencia
-- La query es más robusta al separar los joins
-- Si falla, el admin verá un botón de reintentar en lugar de un espacio vacío
-- Un solo archivo modificado
-
