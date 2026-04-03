@@ -1,27 +1,30 @@
 
 
-## Add Traveler Onboarding Button Next to "Nuevo Viaje"
+## Ordenar Matches por Fecha de Creación (más recientes arriba)
 
-### What
-Add a small icon button (e.g., `HelpCircle` or `Info`) next to the "Nuevo Viaje" button in the Mis Viajes tab header that opens the traveler onboarding bottom sheet.
+### Problema
+Actualmente el sort tiene múltiples niveles de prioridad (admin actions, timers, statuses) antes de usar `created_at` como tiebreaker final. El usuario quiere que el orden principal sea por fecha de creación descendente.
 
-### Changes in `src/components/Dashboard.tsx`
+### Cambio en `src/components/admin/matching/ActiveMatchesTab.tsx`
 
-1. **Add state and imports**: Import `OnboardingBottomSheet`, `OnboardingSlide`, and the icons used by the traveler onboarding slides (`Plane, Users, DollarSign, Package, Truck`). Add `showTravelerOnboarding` state.
+Simplificar el `.sort()` (líneas 233-277) para que el orden principal sea `created_at` descendente, manteniendo solo la regla de broken matches al fondo:
 
-2. **Define the slides array**: Copy the `travelerOnboardingSlides` definition (already in TripForm.tsx) into Dashboard or extract to a shared constant.
-
-3. **Add button** (line ~940, inside the flex container next to "Nuevo Viaje"):
 ```tsx
-<Button variant="outline" size="icon" className="h-10 w-10" onClick={() => setShowTravelerOnboarding(true)}>
-  <HelpCircle className="h-4 w-4" />
-</Button>
+.sort((a, b) => {
+  // Broken matches always go to the bottom
+  const aIsBroken = BROKEN_STATUSES.includes(a.status);
+  const bIsBroken = BROKEN_STATUSES.includes(b.status);
+  
+  if (aIsBroken && !bIsBroken) return 1;
+  if (!aIsBroken && bIsBroken) return -1;
+  
+  // Otherwise, newest first
+  return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+});
 ```
 
-4. **Render `OnboardingBottomSheet`** at the bottom of the trips `TabsContent` with the slides, using `variant="traveler"` and the teal gradient.
-
-5. **Handle continue/close**: Simple handlers that just close the sheet (no "don't show again" persistence needed since this is manual).
-
-### Files
-- `src/components/Dashboard.tsx` — add button, state, onboarding component
+### Resultado
+- Los matches más recientes aparecen arriba
+- Los matches rotos/broken siguen al fondo
+- Un solo archivo modificado
 
