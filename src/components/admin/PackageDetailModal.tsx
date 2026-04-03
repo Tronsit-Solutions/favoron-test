@@ -1359,23 +1359,40 @@ const [editForm, setEditForm] = useState({
               </Card>
             )}
 
-            {/* Multi-Traveler Assignments - when no single matchedTrip but assignments exist */}
-            {!matchedTrip && packageAssignments.length > 0 && (
+            {/* Multi-Traveler Assignments - visible during competition phase, loading, or when assignments exist */}
+            {!matchedTrip && (
+              loadingAssignments || 
+              assignmentsError ||
+              packageAssignments.length > 0 || 
+              (pkg.status === 'matched' || pkg.status === 'quote_sent')
+            ) && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2 text-lg">
                     <User className="h-4 w-4" />
-                    <span>✈️ Viajeros Asignados ({packageAssignments.length})</span>
+                    <span>✈️ Viajeros Asignados {packageAssignments.length > 0 ? `(${packageAssignments.length})` : ''}</span>
                   </CardTitle>
                   <CardDescription>
                     Paquete asignado a múltiples viajeros candidatos
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {loadingAssignments ? (
+                  {assignmentsError ? (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-muted-foreground mb-2">No se pudieron cargar las asignaciones</p>
+                      <Button variant="outline" size="sm" onClick={loadAssignments}>
+                        <Loader2 className="h-3 w-3 mr-1" />
+                        Reintentar
+                      </Button>
+                    </div>
+                  ) : loadingAssignments ? (
                     <div className="flex items-center justify-center py-4">
                       <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                      <span className="ml-2 text-sm text-muted-foreground">Cargando...</span>
+                      <span className="ml-2 text-sm text-muted-foreground">Cargando asignaciones...</span>
+                    </div>
+                  ) : packageAssignments.length === 0 ? (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-muted-foreground">Sin asignaciones encontradas para este paquete</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
