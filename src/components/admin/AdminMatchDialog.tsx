@@ -2071,7 +2071,12 @@ const AdminMatchDialog = ({
                   </h3>
                 </CardHeader>
                 <CardContent>
-                  {travelerPackages.length === 0 ? (
+                  {loadingTravelerPkgs ? (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+                      <p>Cargando paquetes...</p>
+                    </div>
+                  ) : travelerPackages.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       <p>Este viaje no tiene paquetes asignados aún</p>
