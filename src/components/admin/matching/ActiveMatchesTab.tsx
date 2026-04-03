@@ -238,41 +238,7 @@ const ActiveMatchesTab = ({
         if (aIsBroken && !bIsBroken) return 1;
         if (!aIsBroken && bIsBroken) return -1;
         
-        const aAdminAction = adminActionStatuses.includes(a.status);
-        const bAdminAction = adminActionStatuses.includes(b.status);
-        
-        if (aAdminAction && !bAdminAction) return -1;
-        if (!aAdminAction && bAdminAction) return 1;
-        
-        const aHasTimer = timerStatuses.includes(a.status) && hasActiveTimer(a);
-        const bHasTimer = timerStatuses.includes(b.status) && hasActiveTimer(b);
-        
-        if (!aAdminAction && !bAdminAction) {
-          if (aHasTimer && !bHasTimer) return -1;
-          if (!aHasTimer && bHasTimer) return 1;
-          
-          if (!aHasTimer && !bHasTimer) {
-            const aReceivedByTraveler = receivedByTravelerStatuses.includes(a.status);
-            const bReceivedByTraveler = receivedByTravelerStatuses.includes(b.status);
-            const aCompleted = completedStatuses.includes(a.status);
-            const bCompleted = completedStatuses.includes(b.status);
-            
-            const aOtherStatus = !aReceivedByTraveler && !aCompleted;
-            const bOtherStatus = !bReceivedByTraveler && !bCompleted;
-            
-            if (aOtherStatus && !bOtherStatus) return -1;
-            if (!aOtherStatus && bOtherStatus) return 1;
-            
-            if (!aOtherStatus && !bOtherStatus) {
-              if (aReceivedByTraveler && !bReceivedByTraveler) return -1;
-              if (!aReceivedByTraveler && bReceivedByTraveler) return 1;
-              
-              if (aCompleted && !bCompleted) return 1;
-              if (!aCompleted && bCompleted) return -1;
-            }
-          }
-        }
-        
+        // Otherwise, newest first
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       });
   }, [allMatchedPackages, trips, searchTerm, selectedStatuses]);
