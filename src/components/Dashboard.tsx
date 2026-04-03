@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from "react";
 
-import { Star } from "lucide-react";
+import { Star, HelpCircle, Plane, Users, DollarSign, Package, Truck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,8 @@ import CollapsibleTravelerPackageCard from "./dashboard/CollapsibleTravelerPacka
 import EmptyState from "./dashboard/EmptyState";
 import ProtectedEmptyState from "./dashboard/ProtectedEmptyState";
 import { TripSelector } from "./dashboard/TripSelector";
+import OnboardingBottomSheet from "./onboarding/OnboardingBottomSheet";
+import type { OnboardingSlide } from "./onboarding/OnboardingBottomSheet";
 
 
 import AvailableTripsCard from "./AvailableTripsCard";
@@ -44,6 +46,13 @@ const AcquisitionSurveyModal = lazy(() => import("./AcquisitionSurveyModal"));
 import { useAcquisitionSurvey } from "@/hooks/useAcquisitionSurvey";
 import ReferralAnnouncementModal from "./dashboard/ReferralAnnouncementModal";
 
+const travelerOnboardingSlides: OnboardingSlide[] = [
+  { icon: Plane, title: "¡Conviértete en Viajero!", description: "Registra tu viaje: de dónde vienes, cuándo llegas y cuánto espacio tienes." },
+  { icon: Users, title: "Recibe solicitudes", description: "Los shoppers te enviarán solicitudes con una propina asignada. Tú decides cuáles aceptar." },
+  { icon: DollarSign, title: "Cotización y pago", description: "Envía tu cotización al shopper. Si no realiza el pago, el pedido no se completa." },
+  { icon: Package, title: "Recibe el paquete", description: "El shopper hará la compra y la enviará a tu dirección con comprobante y tracking. Si te cobran impuestos en aduana, se te reembolsarán con factura." },
+  { icon: Truck, title: "Entrega y cobra", description: "Entrega en nuestra oficina o programa recolección. Recibirás tu pago al completar la entrega." },
+];
 
 
 const UserManagement = lazy(() => import("./admin/UserManagement"));
@@ -102,6 +111,7 @@ const Dashboard = ({ user }: DashboardProps) => {
   const [showAcquisitionSurvey, setShowAcquisitionSurvey] = useState(false);
   const [surveyDismissed, setSurveyDismissed] = useState(false);
   const [showReferralAnnouncement, setShowReferralAnnouncement] = useState(false);
+  const [showTravelerOnboarding, setShowTravelerOnboarding] = useState(false);
 
   const {
     currentUser,
@@ -937,10 +947,13 @@ const Dashboard = ({ user }: DashboardProps) => {
                   Gestiona tus viajes - envía cotizaciones y gestiona paquetes asignados a tu viaje.
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-center">
                 <Button variant="traveler" className="w-full sm:w-auto" onClick={() => navigateToForm('trip')}>
                   <Plus className="h-4 w-4 mr-2" />
                   Nuevo Viaje
+                </Button>
+                <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={() => setShowTravelerOnboarding(true)}>
+                  <HelpCircle className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -1077,6 +1090,15 @@ const Dashboard = ({ user }: DashboardProps) => {
                 )}
               </div>
             </div>
+
+            <OnboardingBottomSheet
+              isOpen={showTravelerOnboarding}
+              onContinue={() => setShowTravelerOnboarding(false)}
+              onClose={() => setShowTravelerOnboarding(false)}
+              slides={travelerOnboardingSlides}
+              gradientClassName="from-traveler via-traveler/80 to-traveler/60"
+              variant="traveler"
+            />
           </TabsContent>
 
           {isAdmin && (
