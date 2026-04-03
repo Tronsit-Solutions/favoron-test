@@ -925,13 +925,11 @@ const QuoteDialog = ({
           <div className={`${isTravelerContext ? 'bg-muted/30 border border-muted/40' : 'bg-muted/50 border'} rounded-lg ${isMobile ? 'p-3' : 'p-4'} max-w-full`}>
             {isTravelerContext ? (
               /* Clear structured view for travelers */
-              <div className={isMobile ? 'space-y-2' : 'space-y-3'}>
+              <div className="space-y-2">
                 {/* Section Header */}
-                <div className={`flex items-center ${isMobile ? 'gap-1.5 pb-2' : 'gap-2 pb-3'} border-b border-muted/40`}>
-                  <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-lg bg-primary/10 flex items-center justify-center`}>
-                    <Package className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-primary`} />
-                  </div>
-                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-foreground`}>Producto solicitado</span>
+                <div className="flex items-center gap-1.5 pb-1.5 border-b border-muted/40">
+                  <Package className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs font-semibold text-foreground">Producto solicitado</span>
                 </div>
 
                 {packageDetails.products_data && Array.isArray(packageDetails.products_data) && packageDetails.products_data.length > 0 ? (
