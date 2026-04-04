@@ -1,56 +1,80 @@
 
-Objetivo: eliminar el error frecuente que manda al usuario a “Algo salió mal” al entrar a `/dashboard`, especialmente cuando Vite intenta cargar dinámicamente `src/pages/Dashboard.tsx`.
 
-Qué confirmé
-- El error actual no apunta a una excepción dentro del dashboard; apunta a un fallo de carga del módulo lazy:
-  `Failed to fetch dynamically imported module: /src/pages/Dashboard.tsx?...`
-- `src/App.tsx` carga `Dashboard` con `lazy(() => import("./pages/Dashboard"))` sin protección.
-- Ya existe una solución parcial en `src/pages/Index.tsx`: un `lazyWithRetry(...)` pensado exactamente para fallos de chunks tras cambios de build.
-- El `ErrorBoundary` actual captura el fallo, pero solo muestra la pantalla genérica; no intenta recuperación específica para errores de carga de chunks/módulos.
+## Fix: Paquetes fantasma por respuesta perdida
 
-Diagnóstico
-- Esto huele a fallo intermitente de lazy import por despliegue/caché/HMR del preview, no a un bug funcional del matching.
-- Por eso “sucede mucho esto” incluso antes de usar la UI: el módulo de la ruta no llega a descargarse y React cae al boundary.
+### Causa raíz confirmada
 
-Plan de implementación
-1. Centralizar un helper de lazy import resiliente
-- Extraer la lógica de `lazyWithRetry` a un util compartido, por ejemplo `src/lib/lazyWithRetry.ts`.
-- Agregar protección de “solo un reload automático por ruta/chunk” usando `sessionStorage`, para evitar loops infinitos.
+El RPC `assign_package_to_travelers` funciona correctamente. El problema es que cuando la respuesta de red se pierde:
+1. El servidor SÍ procesa la asignación (status → `matched`, inserta en `package_assignments`)
+2. El `withRetry` reintenta y recibe `NO_NEW_TRIPS` (porque ya se asignaron)
+3. El cliente lo trata como error total → no actualiza estado local → paquete "fantasma"
 
-2. Aplicarlo a las rutas lazy críticas
-- Reemplazar en `src/App.tsx` los `lazy(() => import(...))` por `lazyWithRetry(() => import(...))`.
-- Prioridad alta: `Dashboard`, `Operations`, y páginas admin.
-- Así, si falla el import dinámico por un build desincronizado, la app hace una recuperación automática controlada antes de caer definitivamente.
+### Cambios
 
-3. Endurecer el ErrorBoundary para chunk/module load errors
-- Detectar mensajes como:
-  - `Failed to fetch dynamically imported module`
-  - `Importing a module script failed`
-  - `Loading chunk ... failed`
-- Mostrar un mensaje más útil tipo “La aplicación se actualizó, estamos recargando”.
-- Ofrecer recarga limpia solo si el auto-reintento ya falló.
+#### 1. Tratar `NO_NEW_TRIPS` en retry como éxito (el trabajo ya se hizo)
+**Archivo**: `src/hooks/useDashboardActions.tsx`
 
-4. Reducir la probabilidad en la ruta principal
-- Evaluar dejar `src/pages/Dashboard.tsx` como import estático en `App.tsx` si es la ruta principal de usuarios autenticados.
-- Mantener lazy solo en pantallas secundarias/pesadas.
-- Esto elimina por completo el punto de falla más visible para la app.
+En el bloque catch del RPC (línea 1318), detectar si el error es `NO_NEW_TRIPS` y si estamos en un reintento. Si el servidor dice "ya están asignados", significa que el intento anterior SÍ funcionó. Tratarlo como éxito en lugar de error.
 
-5. Verificación
-- Confirmar que entrar a `/dashboard?tab=admin&matching=matches` ya no termine en el ErrorBoundary por fallos de import.
-- Verificar también refresh duro y navegación repetida entre auth/dashboard.
-- Revisar que no haya loop de recarga si el import falla persistentemente.
+```typescript
+// Inside withRetry callback, after catching res.error:
+if (res.error?.message?.includes('NO_NEW_TRIPS')) {
+  // Check if package is actually matched in DB (previous attempt succeeded)
+  const { data: dbPkg } = await supabase
+    .from('packages')
+    .select('status')
+    .eq('id', packageId)
+    .single();
+  if (dbPkg?.status === 'matched') {
+    // Previous attempt succeeded — treat as success
+    return { assigned_trip_ids: tripIdsToAssign, recovered: true };
+  }
+}
+throw res.error;
+```
 
-Archivos a tocar
-- `src/App.tsx`
-- `src/lib/lazyWithRetry.ts` (nuevo helper compartido)
-- `src/components/ErrorBoundary.tsx`
-- opcionalmente `src/pages/Index.tsx` para reutilizar el helper nuevo y evitar lógica duplicada
+#### 2. Sincronizar con DB en caso de error genérico
+**Archivo**: `src/components/AdminDashboard.tsx`
 
-Decisión técnica recomendada
-- Mejor enfoque: combinar `lazyWithRetry` + guard de un solo reload + mejor manejo en `ErrorBoundary`.
-- Si quieres máxima estabilidad para admins, la mejora adicional más fuerte es quitar el lazy de `Dashboard` por completo.
+En el `.catch()` (línea 293), antes de mostrar el toast de error, consultar el estado real del paquete en la DB. Si la DB dice `matched`, actualizar el estado local y tratar como éxito silencioso.
 
-Resultado esperado
-- Mucha menos frecuencia de la pantalla “Algo salió mal”.
-- Recuperación automática cuando el preview/publicación queda con módulos desincronizados.
-- Menor fricción al entrar al dashboard después de cambios o despliegues.
+```typescript
+.catch(async (error) => {
+  // Check if server actually processed it despite client error
+  const { data: dbPkg } = await supabase
+    .from('packages')
+    .select('status')
+    .eq('id', matchPackageId)
+    .single();
+  
+  if (dbPkg?.status === 'matched') {
+    // Server DID process it — sync local state
+    setLocalPackages(prev => prev.map(pkg => 
+      pkg.id === matchPackageId ? { ...pkg, status: 'matched' } : pkg
+    ));
+    toast({ title: "Match exitoso", description: "El paquete fue asignado correctamente." });
+    setActiveTab("matching");
+    onMatchingTabChange?.("active");
+    return; // Don't show error
+  }
+  
+  // Genuine failure — show error
+  toast({ title: "Error al hacer match", variant: "destructive" });
+})
+```
+
+#### 3. Incluir `status === 'matched'` en filtro de activeMatches (safety net)
+**Archivo**: `src/components/admin/AdminMatchingTab.tsx`
+
+Agregar `pkg.status === 'matched'` como condición en el filtro `activeMatches` para que paquetes matched nunca queden invisibles, incluso si `assignmentsMap` aún no se cargó.
+
+### Archivos a modificar
+- `src/hooks/useDashboardActions.tsx` — recuperación en NO_NEW_TRIPS
+- `src/components/AdminDashboard.tsx` — verificación de DB en .catch()
+- `src/components/admin/AdminMatchingTab.tsx` — safety net en filtro activeMatches
+
+### Resultado esperado
+- Si la red falla pero el servidor procesó: el cliente se sincroniza automáticamente y muestra "Match exitoso"
+- Si realmente falló: el paquete reaparece correctamente en Solicitudes
+- No más paquetes fantasma en ningún escenario
+
