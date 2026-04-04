@@ -1317,14 +1317,37 @@ export const useDashboardActions = (
       rpcResult = result;
     } catch (rpcError: any) {
       console.error('Error in assign_package_to_travelers RPC:', rpcError);
-      toast({
-        title: "Error",
-        description: rpcError.message?.includes('NO_NEW_TRIPS')
-          ? "Todos los viajeros seleccionados ya tienen asignaciones activas."
-          : "No se pudo realizar el match. Inténtalo de nuevo.",
-        variant: "destructive",
-      });
-      throw rpcError;
+      
+      // NO_NEW_TRIPS means all travelers already have active assignments.
+      // This often happens when a previous attempt succeeded but the response was lost.
+      // Check the DB to see if the package is actually matched.
+      if (rpcError.message?.includes('NO_NEW_TRIPS')) {
+        const { data: dbPkg } = await supabase
+          .from('packages')
+          .select('status')
+          .eq('id', packageId)
+          .single();
+        
+        if (dbPkg?.status === 'matched' || dbPkg?.status === 'quote_sent') {
+          console.log('✅ Package already matched in DB — treating as success (recovered from lost response)');
+          rpcResult = { assigned_trip_ids: tripIdsToAssign, recovered: true };
+          // Don't throw — continue as success
+        } else {
+          toast({
+            title: "Error",
+            description: "Todos los viajeros seleccionados ya tienen asignaciones activas.",
+            variant: "destructive",
+          });
+          throw rpcError;
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: "No se pudo realizar el match. Inténtalo de nuevo.",
+          variant: "destructive",
+        });
+        throw rpcError;
+      }
     }
 
     // NOTE: Removed redundant optimistic setPackages here — AdminDashboard handles it in .then()

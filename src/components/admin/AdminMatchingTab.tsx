@@ -194,7 +194,10 @@ const AdminMatchingTab = ({
     .filter(p => !matchingPackageIds.has(p.id));
   const availableTrips = trips.filter(trip => ['approved', 'active'].includes(trip.status));
   const activeMatches = packages.filter(pkg => {
-    return (pkg.matched_trip_id !== null && pkg.matched_trip_id !== undefined) || multiAssignedPackageIds.has(pkg.id);
+    return (pkg.matched_trip_id !== null && pkg.matched_trip_id !== undefined) 
+      || multiAssignedPackageIds.has(pkg.id)
+      || pkg.status === 'matched' 
+      || pkg.status === 'quote_sent';
   });
   const pendingPayments = packages.filter(pkg => 
     pkg.status === 'payment_pending_approval' && pkg.payment_receipt

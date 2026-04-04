@@ -290,8 +290,39 @@ const AdminDashboard = ({
           setActiveTab("matching");
           onMatchingTabChange?.("active");
         })
-        .catch((error) => {
+        .catch(async (error) => {
           console.error('Error during match:', error);
+          
+          // Before showing error, check if the server actually processed it
+          // (e.g. RPC succeeded but response was lost due to network issues)
+          try {
+            const { data: dbPkg } = await supabase
+              .from('packages')
+              .select('status')
+              .eq('id', matchPackageId)
+              .single();
+            
+            if (dbPkg && (dbPkg.status === 'matched' || dbPkg.status === 'quote_sent')) {
+              // Server DID process it — sync local state and treat as success
+              console.log('✅ DB confirms package is matched — recovering from client error');
+              setLocalPackages(prev => prev.map(pkg => 
+                pkg.id === matchPackageId ? { ...pkg, status: dbPkg.status, updated_at: new Date().toISOString() } : pkg
+              ));
+              recentMatchRef.current[matchPackageId] = Date.now();
+              setTimeout(() => { delete recentMatchRef.current[matchPackageId]; }, 3500);
+              toast({
+                title: "¡Match exitoso!",
+                description: "El paquete fue asignado correctamente.",
+              });
+              setActiveTab("matching");
+              onMatchingTabChange?.("active");
+              return;
+            }
+          } catch (syncError) {
+            console.warn('Could not verify package status in DB:', syncError);
+          }
+          
+          // Genuine failure — show error
           toast({
             title: "Error al hacer match",
             description: "El match no se guardó. Intenta de nuevo.",
