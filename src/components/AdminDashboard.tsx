@@ -212,7 +212,7 @@ const AdminDashboard = ({
         pendingSnapshotRef.current = { packages, trips, activeTab };
       }
     }
-  }, [packages, trips, hasOpenModals, localPackages.length, localTrips.length]);
+  }, [packages, trips, hasOpenModals, showMatchDialog, localPackages.length, localTrips.length]);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
