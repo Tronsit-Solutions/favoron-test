@@ -1,38 +1,95 @@
 
 
-## Plan: Simplificar el flujo de matching
+## Plan: Simplificar completamente el flujo de match
 
-### Problema actual
-El flujo de matching tiene demasiadas capas defensivas que lo hacen lento y frágil:
-- Timeout de 5s con `Promise.race`
-- Recovery path con polling cada 600ms durante 4s
-- Verificación post-match con `setTimeout` a 1s
-- Verificación UI a 2s
-- Side effects diferidos a 300ms con WhatsApp, email, history logs
-- Logging extensivo con traceIds
-
-El RPC `assign_package_to_travelers` en sí es simple y rápido (INSERT + UPDATE). Todo lo demás es overhead del cliente.
+### Problema
+Aunque el RPC `assign_package_to_travelers` es rápido (~100ms), el flujo completo tarda ~30s por capas de protección innecesarias en el cliente:
+- `matchingPackageIds` Set con tracking visual
+- `recentMatchRef` con protección anti-stale de 3.5s
+- Snapshot/pending sync con `processQueuedUpdates` y delays de 200ms
+- Navegación automática a tab "matches" con `requestAnimationFrame`
+- La sincronización `useEffect` en AdminDashboard tiene 6 dependencias y múltiples branches que disparan re-renders en cascada
 
 ### Cambios
 
-**1. `src/hooks/useDashboardActions.tsx` — Simplificar `handleMatchPackage`**
+**1. `src/components/AdminDashboard.tsx` — Simplificar `handleMatch`**
 
-Reemplazar todo el bloque de ~200 líneas por un flujo directo:
-- Preparar `updatedProductsData` (mantener, es necesario)
-- Llamar `supabase.rpc('assign_package_to_travelers', ...)` directamente sin timeout ni Promise.race
-- Si hay error, mostrar toast y throw
-- Si OK, disparar side effects (WhatsApp/email/history) en un `setTimeout(..., 0)` sin bloquear
-- Eliminar: `verifyPackageMatched`, `waitForMatchConfirmation`, el recovery path completo, el DB VERIFY setTimeout
+Reducir a lo esencial:
+```
+const handleMatch = async (adminTip, productsWithTips, selectedTripIds) => {
+  // Validar
+  // Cerrar modal inmediatamente
+  setSelectedPackage(null);
+  setShowMatchDialog(false);
+  
+  // Llamar al RPC (ya simplificado en useDashboardActions)
+  await onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds);
+  
+  // Actualizar estado local optimista
+  setLocalPackages(prev => prev.map(pkg => 
+    pkg.id === matchPackageId ? { ...pkg, status: 'matched' } : pkg
+  ));
+  
+  // Toast de éxito
+  toast({ title: "¡Match exitoso!", description: "..." });
+};
+```
 
-**2. `src/components/AdminDashboard.tsx` — Simplificar `handleMatch`**
+Eliminar:
+- `matchingPackageIds` state y su tracking (ya no se necesita)
+- `recentMatchRef` y su protección de 3.5s
+- `requestAnimationFrame` + navegación a tab "matches" (el usuario quiere quedarse en pendiente)
 
-- Mantener: cerrar modal, llamar `onMatchPackage`, actualizar `localPackages` en `.then()`
-- Eliminar: el `setTimeout` de UI VERIFY a 2s, los logs excesivos de timing
-- Mantener toast de éxito y navegación a matches tab
+**2. `src/components/AdminDashboard.tsx` — Simplificar sync `useEffect`**
+
+Reemplazar el bloque complejo de sincronización (líneas 136-215) por uno directo:
+```
+useEffect(() => {
+  if (!hasOpenModals() && !showMatchDialog) {
+    setLocalPackages(packages);
+    setLocalTrips(trips);
+  }
+}, [packages, trips]);
+```
+
+Eliminar: snapshot pending, `pendingSnapshotRef`, `modalStateRef`, `processQueuedUpdates` setTimeout, protección por `recentMatchRef`.
+
+**3. `src/components/admin/AdminMatchDialog.tsx` — Simplificar `handleMatch`**
+
+Mantener solo lo esencial:
+```
+const handleMatch = async () => {
+  if (selectedTripIds.size === 0 || isSubmittingMatch) return;
+  setIsSubmittingMatch(true);
+  try {
+    const tipAmount = getTotalAssignedTip();
+    const tripIdsArray = Array.from(selectedTripIds);
+    await onMatch(tipAmount, isMultiProductOrder() ? assignedProductsWithTips : undefined, tripIdsArray);
+  } catch (err) {
+    console.error('[MATCH] error:', err);
+  } finally {
+    setIsSubmittingMatch(false);
+  }
+};
+```
+
+Eliminar: cache invalidation de `travelerDataCacheRef`, logs excesivos.
+
+**4. `src/hooks/useDashboardActions.tsx` — Ya está simplificado**
+
+El código actual (líneas 1245-1378) ya es directo: prepara datos → llama RPC → side effects en setTimeout(0). No necesita cambios adicionales.
+
+**5. Eliminar prop `matchingPackageIds`**
+
+Remover de `AdminDashboard` → `AdminMatchingTab` → `PendingRequestsTab` ya que no se necesita el tracking visual de "en progreso".
+
+### Archivos a modificar
+- `src/components/AdminDashboard.tsx` — Simplificar handleMatch y sync useEffect
+- `src/components/admin/AdminMatchDialog.tsx` — Simplificar handleMatch
 
 ### Resultado esperado
-- El match se completa en <1s (es un INSERT + UPDATE en Postgres)
-- Si falla, se muestra un toast inmediato con el error real
-- Side effects (WhatsApp, email) se disparan sin bloquear la respuesta
-- Código reducido de ~200 líneas a ~60
+- Match completo en <1s (RPC directo)
+- Sin re-renders en cascada por sync protection
+- El usuario se queda en la pestaña actual después del match
+- Side effects (WhatsApp, email) siguen corriendo en background sin afectar la UX
 
