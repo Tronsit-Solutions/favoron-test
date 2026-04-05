@@ -527,7 +527,6 @@ const AdminDashboard = ({
           <AdminMatchingTab
             packages={localPackages}
             trips={localTrips}
-            matchingPackageIds={matchingPackageIds}
             modalDataCache={modalDataCache}
             activeMatchingTab={matchingTab}
             onMatchingTabChange={onMatchingTabChange}
