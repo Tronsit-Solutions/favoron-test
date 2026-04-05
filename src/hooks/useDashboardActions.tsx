@@ -1316,7 +1316,7 @@ export const useDashboardActions = (
       return false;
     };
 
-    const rpcTimeoutMs = 12000;
+    const rpcTimeoutMs = 8000;
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('MATCH_TIMEOUT')), rpcTimeoutMs)
     );
