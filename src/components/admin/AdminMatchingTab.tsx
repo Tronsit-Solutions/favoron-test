@@ -99,7 +99,7 @@ const AdminMatchingTab = ({
         (!p.matched_trip_id && p.status !== 'delivered' && p.status !== 'cancelled' && p.status !== 'rejected')
       )
       .map(p => p.id);
-  }, [currentTab === 'matches' ? packages : null, currentTab]);
+  }, [packages, currentTab]);
 
   const fetchAssignments = useCallback(async (ids: string[]) => {
     if (ids.length === 0) {
