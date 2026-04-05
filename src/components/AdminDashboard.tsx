@@ -565,7 +565,8 @@ const AdminDashboard = ({
     packages: localPackages,
     trips: localTrips,
     userRole: 'admin',
-    enabled: true
+    enabled: true,
+    recentMutationsRef: recentMatchRef
   });
   
   // Create tabs array for mobile and desktop tabs

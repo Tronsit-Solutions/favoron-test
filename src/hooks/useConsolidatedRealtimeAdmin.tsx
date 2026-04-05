@@ -94,7 +94,7 @@ export const useConsolidatedRealtimeAdmin = ({
         return updatedTrips;
       });
     }
-  }, [onPackageUpdate, onTripUpdate, onIncrement]);
+  }, [onPackageUpdate, onTripUpdate, onIncrement, recentMutationsRef]);
 
   // Process queued updates when modals close
   const processQueuedUpdates = useCallback(() => {

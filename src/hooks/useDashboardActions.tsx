@@ -1373,7 +1373,7 @@ export const useDashboardActions = (
           throw rpcError;
         }
       } else {
-        const confirmed = await waitForMatchConfirmation(4000, 1000);
+        const confirmed = await waitForMatchConfirmation(3000, 800);
         if (confirmed) {
           console.log('✅ Package matched in DB despite RPC error');
           rpcResult = { assigned_trip_ids: tripIdsToAssign, recovered: true };
