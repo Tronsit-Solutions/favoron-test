@@ -833,8 +833,25 @@ const AdminMatchDialog = ({
     if (isMultiProductOrder() && assignedProductsWithTips.length > 0) {
       return assignedProductsWithTips.reduce((total, product) => total + (product.adminAssignedTip || 0), 0);
     }
+    // Fallback: even if multi-product but no tips assigned yet, use the simple adminTip
     return adminTip ? parseFloat(adminTip) : 0;
   };
+
+  // Auto-migrate simple tip to multi-product when product data loads asynchronously
+  const prevIsMultiRef = useRef(false);
+  useEffect(() => {
+    const isMulti = isMultiProductOrder();
+    if (isMulti && !prevIsMultiRef.current && adminTip && parseFloat(adminTip) > 0 && assignedProductsWithTips.length === 0) {
+      console.log('[MATCH-DIALOG] Product mode flipped to multi — auto-distributing tip:', adminTip);
+      const products = getProductsForModal();
+      if (products.length > 0) {
+        const tipPerProduct = parseFloat(adminTip) / products.length;
+        const distributed = products.map((p: any) => ({ ...p, adminAssignedTip: Math.round(tipPerProduct * 100) / 100 }));
+        setAssignedProductsWithTips(distributed);
+      }
+    }
+    prevIsMultiRef.current = isMulti;
+  }, [fullPackage?.products_data, adminTip]);
 
   const handleProductTipSave = (productsWithTips: any[], totalTip: number) => {
     setAssignedProductsWithTips(productsWithTips);
