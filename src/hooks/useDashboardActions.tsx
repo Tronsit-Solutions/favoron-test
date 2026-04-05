@@ -1307,7 +1307,7 @@ export const useDashboardActions = (
       return dbPkg?.status === 'matched' || dbPkg?.status === 'quote_sent';
     };
 
-    const waitForMatchConfirmation = async (timeoutMs = 12000, intervalMs = 1200) => {
+    const waitForMatchConfirmation = async (timeoutMs = 6000, intervalMs = 800) => {
       const startedAt = Date.now();
       while (Date.now() - startedAt < timeoutMs) {
         if (await verifyPackageMatched()) return true;
