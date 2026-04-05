@@ -1360,7 +1360,7 @@ export const useDashboardActions = (
       } else if (rpcError.message?.includes('NO_NEW_TRIPS')) {
         // NO_NEW_TRIPS means all travelers already have active assignments.
         // This often happens when a previous attempt succeeded but the response was lost.
-        const confirmed = await waitForMatchConfirmation(5000, 1000);
+        const confirmed = await waitForMatchConfirmation(3000, 800);
         if (confirmed) {
           console.log('✅ Package already matched in DB — treating as success (recovered from lost response)');
           rpcResult = { assigned_trip_ids: tripIdsToAssign, recovered: true };
