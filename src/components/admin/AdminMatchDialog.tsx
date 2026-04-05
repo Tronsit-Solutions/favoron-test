@@ -431,12 +431,19 @@ const AdminMatchDialog = ({
     }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
   }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
 
-  // Reset selection only when the selected package changes
+  // Reset selection only when the selected package ID truly changes (not on reference updates)
+  const prevPackageIdRef = useRef<string | undefined>(undefined);
   useEffect(() => {
-    setShowAllTrips(false);
-    setShowOtherCities(false);
-    setSelectedTripIds(new Set());
-    setSelectedTripId(null);
+    if (selectedPackage?.id !== prevPackageIdRef.current) {
+      prevPackageIdRef.current = selectedPackage?.id;
+      console.log('[MATCH-DIALOG] Package ID changed, resetting selections:', selectedPackage?.id);
+      setShowAllTrips(false);
+      setShowOtherCities(false);
+      setSelectedTripIds(new Set());
+      setSelectedTripId(null);
+      setAssignedProductsWithTips([]);
+      setAdminTip('');
+    }
   }, [selectedPackage?.id]);
 
   // Fetch existing assignments + trip assignments in parallel (without resetting selection)
@@ -826,8 +833,25 @@ const AdminMatchDialog = ({
     if (isMultiProductOrder() && assignedProductsWithTips.length > 0) {
       return assignedProductsWithTips.reduce((total, product) => total + (product.adminAssignedTip || 0), 0);
     }
+    // Fallback: even if multi-product but no tips assigned yet, use the simple adminTip
     return adminTip ? parseFloat(adminTip) : 0;
   };
+
+  // Auto-migrate simple tip to multi-product when product data loads asynchronously
+  const prevIsMultiRef = useRef(false);
+  useEffect(() => {
+    const isMulti = isMultiProductOrder();
+    if (isMulti && !prevIsMultiRef.current && adminTip && parseFloat(adminTip) > 0 && assignedProductsWithTips.length === 0) {
+      console.log('[MATCH-DIALOG] Product mode flipped to multi — auto-distributing tip:', adminTip);
+      const products = getProductsForModal();
+      if (products.length > 0) {
+        const tipPerProduct = parseFloat(adminTip) / products.length;
+        const distributed = products.map((p: any) => ({ ...p, adminAssignedTip: Math.round(tipPerProduct * 100) / 100 }));
+        setAssignedProductsWithTips(distributed);
+      }
+    }
+    prevIsMultiRef.current = isMulti;
+  }, [fullPackage?.products_data, adminTip]);
 
   const handleProductTipSave = (productsWithTips: any[], totalTip: number) => {
     setAssignedProductsWithTips(productsWithTips);
@@ -1816,7 +1840,15 @@ const AdminMatchDialog = ({
               <Button 
                 onClick={handleMatch} 
                 className="flex-1 sm:flex-none sm:w-auto h-11"
-                disabled={selectedTripIds.size === 0 || getTotalAssignedTip() <= 0 || isSubmittingMatch}
+                disabled={(() => {
+                  const noTrips = selectedTripIds.size === 0;
+                  const noTip = getTotalAssignedTip() <= 0;
+                  const disabled = noTrips || noTip || isSubmittingMatch;
+                  if (disabled) {
+                    console.log(`[MATCH-BTN] disabled=${disabled} | noTrips=${noTrips} | noTip=${noTip} (tip=${getTotalAssignedTip()}) | submitting=${isSubmittingMatch} | multiProduct=${isMultiProductOrder()} | assignedProducts=${assignedProductsWithTips.length}`);
+                  }
+                  return disabled;
+                })()}
                 variant="shopper"
               >
                 {isSubmittingMatch ? (
