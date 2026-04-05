@@ -721,6 +721,36 @@ export const useAdminData = (): AdminData => {
     }
   }, [loading, authLoading, isAdmin, wasAdmin, user, packages.length, trips.length, error, refreshData]);
 
+  // Real-time subscription for admin trip updates
+  useEffect(() => {
+    if (!user || (!isAdmin && !wasAdmin)) return;
+
+    const channel = supabase
+      .channel('admin-trips-realtime')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'trips'
+      }, async (payload) => {
+        console.log('✈️ Admin: Realtime trip update received:', payload.eventType);
+        if (payload.eventType === 'UPDATE' && payload.new) {
+          // Optimistic update for the changed trip
+          setTrips(prev => prev.map(trip => 
+            trip.id === (payload.new as any).id ? { ...trip, ...(payload.new as any) } : trip
+          ));
+        } else {
+          // For INSERT/DELETE, do a full refresh of trips
+          const tripsData = await fetchAdminTrips();
+          setTrips(tripsData);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, isAdmin, wasAdmin, fetchAdminTrips]);
+
   const optimisticUpdatePackage = useCallback((packageId: string, updates: any) => {
     console.log('🚀 Admin: Optimistic package update:', packageId, updates);
     setPackages(prevPackages => 
