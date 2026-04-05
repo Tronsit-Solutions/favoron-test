@@ -19,6 +19,7 @@ interface ConsolidatedRealtimeProps {
   trips?: any[];
   userRole?: 'admin' | 'traveler' | 'shopper';
   enabled?: boolean;
+  recentMutationsRef?: React.MutableRefObject<Record<string, number>>;
 }
 
 export const useConsolidatedRealtimeAdmin = ({
