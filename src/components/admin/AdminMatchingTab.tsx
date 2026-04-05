@@ -33,7 +33,7 @@ interface AdminMatchingTabProps {
   getStatusBadge?: (status: string) => JSX.Element;
   unreadCounts?: { [packageId: string]: number };
   markPackageMessagesAsRead?: (packageId: string) => Promise<void>;
-  matchingPackageIds?: Set<string>;
+  
   // Pagination props
   loadMorePackages?: () => Promise<void>;
   hasMorePackages?: boolean;
