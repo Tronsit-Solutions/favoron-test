@@ -18,7 +18,34 @@ interface PackageDetails {
   delivery_deadline?: string;
   status?: string;
 }
-...
+
+interface UsePackageDetailsReturn {
+  details: PackageDetails | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+/**
+ * Hook for loading package details on-demand when opening detail modals.
+ */
+export const usePackageDetails = (packageId: string | null): UsePackageDetailsReturn => {
+  const [details, setDetails] = useState<PackageDetails | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDetails = async () => {
+    if (!packageId) {
+      setDetails(null);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log('🔄 Loading package details on-demand for:', packageId);
+
       const { data, error: fetchError } = await supabase
         .from('packages')
         .select(`
@@ -65,6 +92,6 @@ interface PackageDetails {
     details,
     loading,
     error,
-    refetch: fetchDetails
+    refetch: fetchDetails,
   };
 };
