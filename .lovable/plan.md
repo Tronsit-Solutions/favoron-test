@@ -1,118 +1,59 @@
 
-Objetivo: dejar de “adivinar” el bug del match y convertirlo en un flujo trazable, reproducible y acotado para arreglarlo rápido.
 
-Qué nos dice el código actual:
-- El RPC `assign_package_to_travelers` ya está en “happy path” directo con timeout de 5s y recovery solo si falla.
-- El problema persistente ya no parece ser solo “la llamada RPC”, sino la coordinación entre:
-  - `useDashboardActions.handleMatchPackage`
-  - cierre del modal en `AdminDashboard`
-  - cambio de tabs a `matching/matches`
-  - `AdminMatchingTab` y su `fetchAssignments(...)`
-  - realtime + snapshot protection (`recentMatchRef`, `pendingSnapshotRef`)
-- Además, `AdminMatchingTab` hace trabajo extra al entrar:
-  - llama `expire_old_quotes()` al montar
-  - recalcula `relevantPackageIds`
-  - hace `fetchAssignments` con debounce de 300ms
-- Eso significa que un bug persistente aquí no se arregla bien “tocando un timeout”; la forma eficiente es aislar en qué capa se rompe.
+## Diagnosis: Why "Confirmar Match" Fails Silently
 
-La forma más eficiente para bugs persistentes como este:
-1. Reproducir siempre el mismo caso
-   - Elegir 1 paquete y 1-2 viajeros concretos.
-   - No cambiar varias cosas a la vez.
-   - Definir resultado esperado exacto:
-     - modal se cierra
-     - toast sale
-     - paquete desaparece de Solicitudes
-     - aparece en Matches
-     - assignment existe en DB
-2. Instrumentar con un `traceId` por match
-   - Generar un ID único por intento.
-   - Loggear ese mismo ID en todos los puntos del flujo.
-   - Así evitamos logs sueltos imposibles de correlacionar.
-3. Medir fronteras, no funciones sueltas
-   - Tiempos exactos:
-     - click
-     - cierre modal
-     - RPC start/end
-     - recovery start/end
-     - update localPackages
-     - cambio a tab matches
-     - `AdminMatchingTab` mount
-     - `fetchAssignments` start/end
-     - primer render donde el paquete ya está visible en Matches
-4. Confirmar la “fuente de verdad”
-   - Si DB ya quedó en `matched` pero UI no refleja, el bug es de sincronización/UI.
-   - Si DB no cambió, el bug es de RPC/condiciones de negocio.
-5. Aislar una sola capa cada vez
-   - Primero confirmar DB.
-   - Luego local state.
-   - Luego navegación/tab.
-   - Luego realtime/snapshots.
-   - Luego side effects.
+### Root Cause Found
 
-Plan concreto para este proyecto:
-1. Añadir trazabilidad end-to-end del match
-   - En `useDashboardActions.tsx`:
-     - `traceId`
-     - logs de RPC start/end/error
-     - logs de recovery/polling
-     - log final de “DB confirmed”
-   - En `AdminDashboard.tsx`:
-     - log al cerrar modal
-     - log al actualizar `localPackages`
-     - log al hacer `setActiveTab("matching")`
-     - log al hacer `onMatchingTabChange("matches")`
-   - En `AdminMatchingTab.tsx`:
-     - log al montar/renderizar
-     - log en `fetchAssignments`
-     - log del tamaño de `relevantPackageIds`
-     - log cuando el paquete aparece en `activeMatches`
-2. Añadir una verificación explícita de estado final
-   - Después del éxito, comprobar una sola vez:
-     - si el paquete está en `localPackages` como `matched`
-     - si aparece en `activeMatches`
-   - Si no aparece, registrar exactamente qué condición lo excluye.
-3. Detectar si el cuello está en la pestaña Matches
-   - `AdminMatchingTab` hoy probablemente introduce latencia visible.
-   - Revisar especialmente:
-     - `expire_old_quotes()` en mount
-     - `fetchAssignments` al entrar
-     - recálculo de listas grandes
-   - Si el problema está ahí, mover trabajo no crítico a background o diferirlo.
-4. Detectar sobrescrituras de estado
-   - Auditar cuándo `packages` externos vuelven a pisar `localPackages`.
-   - Loggear cuándo actúan:
-     - `recentMatchRef`
-     - snapshot sync
-     - realtime admin hook
-   - Objetivo: saber si el paquete “hace match” y luego otra capa lo devuelve temporalmente atrás.
-5. Corregir con cambios mínimos y verificables
-   - Si el problema es UI:
-     - no cambiar de tab automáticamente hasta que el estado local esté asentado, o
-     - mostrar feedback inmediato sin depender de `AdminMatchingTab`
-   - Si el problema es sync:
-     - ampliar/ajustar la ventana de protección de mutaciones
-     - evitar resync agresivo justo tras un match
-   - Si el problema es carga:
-     - evitar que Matches dispare consultas pesadas al instante
+The session replay reveals the "Confirmar Match" button was **enabled for ~134ms then immediately disabled again**. The dialog then closed because you clicked "Cancelar" (or X) since Confirmar was no longer clickable. No `[MATCH]` logs appeared because the match function never executed.
 
-Qué construiría para arreglarlo rápido:
-- Un “debug trace” temporal del flujo de match con un solo `traceId`.
-- Un chequeo explícito de “DB ok / UI no ok”.
-- Un aislamiento del tab Matches para saber si el retraso real ocurre antes o después del RPC.
-- Luego un fix pequeño en la capa exacta culpable, no otro parche global.
+**Two interacting bugs cause this:**
 
-Resultado esperado:
-- En 1 o 2 reproducciones sabremos si el bug es:
-  1. RPC/negocio,
-  2. recuperación,
-  3. navegación a Matches,
-  4. `fetchAssignments`,
-  5. realtime/snapshot overwrite.
-- Con eso, el arreglo deja de ser ensayo-error y pasa a ser quirúrgico.
+#### Bug 1: Selection Reset from Stale Props
+In `AdminMatchDialog.tsx` (line 434-440), there's a `useEffect` that resets `selectedTripIds` whenever `selectedPackage?.id` changes. The problem: `selectedPackage` is passed from `AdminDashboard`'s `localPackages` state. When any realtime update or snapshot sync refreshes `localPackages`, the `selectedPackage` object reference changes — even if the ID is the same — which can trigger React to re-run effects that depend on `selectedPackage`, causing cascading state resets.
 
-Archivos a inspeccionar/ajustar en la siguiente implementación:
-- `src/hooks/useDashboardActions.tsx`
-- `src/components/AdminDashboard.tsx`
-- `src/components/admin/AdminMatchingTab.tsx`
-- opcionalmente `src/components/admin/AdminMatchDialog.tsx` si queremos capturar el click inicial con `traceId`
+#### Bug 2: Async Product Data Flips the Tip Mode
+When the dialog opens, `heavyDetails` loads asynchronously (via `usePackageDetails`). If the initial `selectedPackage` has no `products_data` or 1 product, the dialog shows a simple tip input. But once `heavyDetails` loads and reveals multiple products, `isMultiProductOrder()` flips to `true`. Now `getTotalAssignedTip()` ignores the simple `adminTip` input and checks `assignedProductsWithTips` (which is empty) → returns 0 → button becomes disabled. The tip the user already entered is silently discarded.
+
+### Fix Plan
+
+#### 1. Stabilize the selection reset effect
+Change the dependency from `selectedPackage?.id` to a ref-based comparison, so the effect only fires when the ID **actually changes**, not when the object reference updates.
+
+```
+// Before: resets on every selectedPackage reference change
+useEffect(() => { ... reset ... }, [selectedPackage?.id]);
+
+// After: only reset when ID truly changes
+const prevPackageIdRef = useRef(selectedPackage?.id);
+useEffect(() => {
+  if (selectedPackage?.id !== prevPackageIdRef.current) {
+    prevPackageIdRef.current = selectedPackage?.id;
+    // ... reset selections ...
+  }
+}, [selectedPackage?.id]);
+```
+
+#### 2. Auto-migrate tip when product mode changes
+When `isMultiProductOrder()` becomes true after loading, automatically initialize `assignedProductsWithTips` from the simple `adminTip` value (distributing it evenly), so the user doesn't lose their entered tip.
+
+#### 3. Add defensive logging to the confirm button
+Log exactly why the button is disabled at render time, so if it happens again we see the exact condition in the console:
+
+```
+// Log when button disabled state changes
+if (selectedTripIds.size === 0) console.log('[MATCH-BTN] disabled: no trips selected');
+if (getTotalAssignedTip() <= 0) console.log('[MATCH-BTN] disabled: tip is 0');
+```
+
+#### 4. Prevent realtime from mutating selectedPackage mid-dialog
+In `AdminDashboard.tsx`, skip updating `selectedPackage` from external sources while the match dialog is open. The current `recentMatchRef` protection only activates **after** a match — it doesn't protect during the dialog interaction.
+
+### Files to Modify
+- `src/components/admin/AdminMatchDialog.tsx` — Fixes 1, 2, 3
+- `src/components/AdminDashboard.tsx` — Fix 4
+
+### Expected Result
+- The "Confirmar Match" button stays enabled after selecting a trip and entering a tip
+- No silent state resets from realtime updates while the dialog is open
+- Console logs clearly show button state transitions for future debugging
+
