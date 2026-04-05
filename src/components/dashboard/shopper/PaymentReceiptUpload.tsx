@@ -81,8 +81,8 @@ const PaymentReceiptUpload = ({ pkg, onUploadComplete, onPickerOpen, onPickerClo
       if (!user) throw new Error('Debes iniciar sesión para subir archivos');
 
       const fileExt = file.name.split('.').pop();
-      const fileName = `${pkg.id}_payment_receipt.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
+      const fileName = `payment_receipt_${Date.now()}.${fileExt}`;
+      const filePath = `${pkg.id}/${fileName}`;
 
       // Upload file to Supabase Storage
       const { error: uploadError } = await supabase.storage
