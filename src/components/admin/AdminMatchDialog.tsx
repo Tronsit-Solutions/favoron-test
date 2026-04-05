@@ -631,11 +631,12 @@ const AdminMatchDialog = ({
 
     const dataPromise = (async () => {
       // STEP 1: All independent queries in parallel (no waterfall)
+      // Referral now includes a join to profiles to avoid a sequential round
       const [referralResult, directResult, biddingAssignmentsResult, allAssignmentsResult] = await Promise.all([
-        // Referral
+        // Referral + referrer profile in one query
         supabase
           .from('referrals')
-          .select('referrer_id, status')
+          .select('referrer_id, status, profiles!referrals_referrer_id_fkey (first_name, last_name)')
           .eq('referred_id', trip.user_id)
           .maybeSingle(),
         // Direct packages
@@ -663,26 +664,18 @@ const AdminMatchDialog = ({
           .order('created_at', { ascending: false })
       ]);
 
-      // Process referral (fire-and-forget style update)
+      // Process referral — no extra query needed, profile came from join
       let updatedTraveler = baseTraveler;
       if (referralResult.data) {
-        try {
-          const { data: referrerProfile } = await supabase
-            .from('profiles')
-            .select('first_name, last_name')
-            .eq('id', referralResult.data.referrer_id)
-            .single();
-          updatedTraveler = {
-            ...baseTraveler,
-            referral: {
-              referrerName: referrerProfile ? `${referrerProfile.first_name || ''} ${referrerProfile.last_name || ''}`.trim() || 'Desconocido' : 'Desconocido',
-              status: referralResult.data.status,
-            }
-          };
-          setSelectedTraveler(updatedTraveler);
-        } catch (err) {
-          console.error('Error fetching referrer profile:', err);
-        }
+        const referrerProfile = (referralResult.data as any).profiles;
+        updatedTraveler = {
+          ...baseTraveler,
+          referral: {
+            referrerName: referrerProfile ? `${referrerProfile.first_name || ''} ${referrerProfile.last_name || ''}`.trim() || 'Desconocido' : 'Desconocido',
+            status: referralResult.data.status,
+          }
+        };
+        setSelectedTraveler(updatedTraveler);
       }
 
       // Process direct packages
@@ -693,64 +686,63 @@ const AdminMatchDialog = ({
       );
       const filtered = (directResult.data || []).filter((pkg) => isTimerActive(pkg) || PAID_OR_POST_PAYMENT.includes(pkg.status));
 
-      // STEP 2: Fetch bidding packages (only missing from memory)
+      // STEP 2: Collect ALL missing package IDs from both bidding and assignments, fetch in ONE query
       const directIds = new Set(filtered.map((p: any) => p.id));
-      const assignmentPkgIds = (biddingAssignmentsResult.data || [])
+      const biddingPkgIds = (biddingAssignmentsResult.data || [])
         .map(a => a.package_id)
         .filter(id => !directIds.has(id));
+      const allAssignmentPkgIds = [...new Set((allAssignmentsResult.data || []).map(a => a.package_id))];
 
-      // For bidding packages, check memory first
-      const missingBiddingIds = assignmentPkgIds.filter(id => !packagesById[id]);
-      const memoryBiddingPkgs = assignmentPkgIds.filter(id => packagesById[id]).map(id => packagesById[id]);
+      // Combine all IDs that need fetching, deduplicate, filter out ones already in memory
+      const allNeededIds = [...new Set([...biddingPkgIds, ...allAssignmentPkgIds])];
+      const allMissingIds = allNeededIds.filter(id => !packagesById[id]);
 
-      const biddingResult = missingBiddingIds.length > 0
-        ? await supabase
-            .from('packages')
-            .select(`*, profiles!packages_user_id_fkey (id, first_name, last_name, email, username)`)
-            .in('id', missingBiddingIds)
-        : { data: [] as any[], error: null };
+      // Single fetch for all missing packages
+      let fetchedPkgsMap = new Map<string, any>();
+      if (allMissingIds.length > 0) {
+        const { data } = await supabase
+          .from('packages')
+          .select(`*, profiles!packages_user_id_fkey (id, first_name, last_name, email, username)`)
+          .in('id', allMissingIds);
+        (data || []).forEach(p => fetchedPkgsMap.set(p.id, p));
+      }
+
+      // Helper to resolve a package by ID from memory or fetched
+      const resolvePackage = (id: string) => packagesById[id] || fetchedPkgsMap.get(id);
 
       // Build bidding packages
       const assignmentStatusMap = new Map(
         (biddingAssignmentsResult.data || []).map(a => [a.package_id, a.status])
       );
-      const allBiddingPkgs = [...memoryBiddingPkgs, ...(biddingResult.data || [])];
-      const biddingPkgs = allBiddingPkgs.map(p => ({
-        ...p,
-        _isBidding: true,
-        _assignmentStatus: assignmentStatusMap.get(p.id) || 'bid_pending'
-      }));
+      const biddingPkgs = biddingPkgIds
+        .map(id => resolvePackage(id))
+        .filter(Boolean)
+        .map(p => ({
+          ...p,
+          _isBidding: true,
+          _assignmentStatus: assignmentStatusMap.get(p.id) || 'bid_pending'
+        }));
 
       const finalPackages = [...filtered, ...biddingPkgs];
       setTravelerPackages(finalPackages);
       setLoadingTravelerPkgs(false);
 
-      // STEP 3: Build trip assignments — reuse in-memory packages, fetch only missing
-      const allAssignmentPkgIds = [...new Set((allAssignmentsResult.data || []).map(a => a.package_id))];
-      const missingAssignPkgIds = allAssignmentPkgIds.filter(id => !packagesById[id]);
-      const memoryAssignPkgs = allAssignmentPkgIds.filter(id => packagesById[id]).map(id => {
-        const p = packagesById[id];
-        return {
-          id: p.id,
-          item_description: p.item_description,
-          estimated_price: p.estimated_price,
-          purchase_origin: p.purchase_origin,
-          package_destination: p.package_destination,
-          user_id: p.user_id,
-          profiles: p.profiles || null
-        };
-      });
-
-      let fetchedAssignPkgs: any[] = [];
-      if (missingAssignPkgIds.length > 0) {
-        const { data } = await supabase
-          .from('packages')
-          .select('id, item_description, estimated_price, purchase_origin, package_destination, user_id, profiles:user_id (first_name, last_name, username)')
-          .in('id', missingAssignPkgIds);
-        fetchedAssignPkgs = data || [];
-      }
-
-      const pkgLookup = new Map([...memoryAssignPkgs, ...fetchedAssignPkgs].map(p => [p.id, p]));
+      // Build trip assignments — reuse resolved packages
+      const pkgLookup = new Map(
+        allAssignmentPkgIds.map(id => {
+          const p = resolvePackage(id);
+          if (!p) return [id, null] as const;
+          return [id, {
+            id: p.id,
+            item_description: p.item_description,
+            estimated_price: p.estimated_price,
+            purchase_origin: p.purchase_origin,
+            package_destination: p.package_destination,
+            user_id: p.user_id,
+            profiles: p.profiles || null
+          }] as const;
+        })
+      );
       const finalAssignments = (allAssignmentsResult.data || []).map(a => ({
         ...a,
         packages: pkgLookup.get(a.package_id) || null
