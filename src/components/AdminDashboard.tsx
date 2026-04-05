@@ -125,87 +125,17 @@ const AdminDashboard = ({
     }
   }, [activeTab]);
 
-  // Improved snapshot synchronization to prevent emptying
+  // Simple sync: update local state when props change and no modals are open
   useEffect(() => {
-    const hasModalsOpen = hasOpenModals();
-    
-    // Detect modal state changes
-    if (modalStateRef.current !== hasModalsOpen) {
-      modalStateRef.current = hasModalsOpen;
-      
-      if (!hasModalsOpen && pendingSnapshotRef.current) {
-        // Modal closed - apply pending snapshot
-        console.log('🔓 Modals closed - applying pending snapshot:', {
-          pendingPackages: pendingSnapshotRef.current.packages.length,
-          pendingTrips: pendingSnapshotRef.current.trips.length,
-          preservedTab: pendingSnapshotRef.current.activeTab
-        });
-        
-        setLocalPackages(pendingSnapshotRef.current.packages);
-        setLocalTrips(pendingSnapshotRef.current.trips);
-        
-        // Restore active tab if it was preserved in snapshot
-        if (pendingSnapshotRef.current.activeTab) {
-          setActiveTab(pendingSnapshotRef.current.activeTab);
-        }
-        
-        pendingSnapshotRef.current = null;
-        
-        // Process any queued realtime updates after a short delay
-        setTimeout(() => {
-          console.log('⏰ Processing queued updates after snapshot flush');
-          processQueuedUpdates();
-        }, 200);
-        
-        return;
-      }
-    }
-
-    // Prevent emptying during refresh - only update if new data is meaningful
-    if (!hasModalsOpen && !showMatchDialog) {
-      // No modals open and match dialog closed - apply updates directly but protect against emptying
+    if (!hasOpenModals() && !showMatchDialog) {
       if (packages.length > 0 || localPackages.length === 0) {
-        // Protect recently matched packages from being overwritten by stale props
-        const now = Date.now();
-        const protectedIds = new Set(
-          Object.entries(recentMatchRef.current)
-            .filter(([, ts]) => now - ts < 3000)
-            .map(([id]) => id)
-        );
-        
-        if (protectedIds.size > 0) {
-          console.log('🛡️ [SYNC] Protecting recently matched packages from stale sync:', [...protectedIds]);
-          setLocalPackages(prev => {
-            const protectedPkgs = prev.filter(p => protectedIds.has(p.id));
-            const incomingFiltered = packages.filter(p => !protectedIds.has(p.id));
-            // Log what's being protected vs overwritten
-            protectedPkgs.forEach(p => {
-              const incoming = packages.find(ip => ip.id === p.id);
-              if (incoming && incoming.status !== p.status) {
-                console.log(`🛡️ [SYNC] BLOCKED overwrite: pkg=${p.id.slice(0,8)} local=${p.status} → incoming=${incoming.status}`);
-              }
-            });
-            return [...incomingFiltered, ...protectedPkgs];
-          });
-        } else {
-          setLocalPackages(packages);
-        }
+        setLocalPackages(packages);
       }
       if (trips.length > 0 || localTrips.length === 0) {
         setLocalTrips(trips);
       }
-    } else {
-      // Modals open - save to pending snapshot only if data is meaningful
-      if (packages.length > 0 || trips.length > 0) {
-        console.log('💾 [SYNC] Modals open - saving to pending snapshot:', {
-          packages: packages.length,
-          trips: trips.length,
-          currentTab: activeTab
-        });
-        pendingSnapshotRef.current = { packages, trips, activeTab };
-      }
     }
-  }, [packages, trips, hasOpenModals, showMatchDialog, localPackages.length, localTrips.length]);
+  }, [packages, trips]);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
