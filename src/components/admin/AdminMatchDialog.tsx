@@ -861,32 +861,18 @@ const AdminMatchDialog = ({
   const [isSubmittingMatch, setIsSubmittingMatch] = useState(false);
 
   const handleMatch = async () => {
-    console.log(`🔵 [MATCH] handleMatch CALLED | trips=${selectedTripIds.size} | tip=${getTotalAssignedTip()} | submitting=${isSubmittingMatch} | pkg=${selectedPackage?.id}`);
-    if (selectedTripIds.size === 0) {
-      console.log(`🔴 [MATCH] Aborted: no trips selected`);
-      return;
-    }
-    if (isSubmittingMatch) {
-      console.log(`🔴 [MATCH] Aborted: already submitting`);
-      return;
-    }
+    if (selectedTripIds.size === 0 || isSubmittingMatch) return;
     setIsSubmittingMatch(true);
     try {
       const tipAmount = getTotalAssignedTip();
       const tripIdsArray = Array.from(selectedTripIds);
-      console.log(`🟢 [MATCH] Calling onMatch tip=${tipAmount} trips=${tripIdsArray.join(',')}`);
-      // Invalidate cache for matched trips
-      for (const tid of tripIdsArray) {
-        travelerDataCacheRef.current.delete(tid);
-      }
       if (isMultiProductOrder()) {
         await onMatch(tipAmount, assignedProductsWithTips, tripIdsArray);
       } else {
         await onMatch(tipAmount, undefined, tripIdsArray);
       }
-      console.log(`🟢 [MATCH] onMatch resolved successfully`);
     } catch (err) {
-      console.error(`🔴 [MATCH] onMatch error:`, err);
+      console.error('[MATCH] error:', err);
     } finally {
       setIsSubmittingMatch(false);
     }

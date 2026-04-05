@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { getStatusLabel } from "@/lib/formatters";
@@ -111,17 +111,10 @@ const AdminDashboard = ({
   const [localPackages, setLocalPackages] = useState(packages);
   const [localTrips, setLocalTrips] = useState(trips);
   const [modalDataCache, setModalDataCache] = useState<{ selectedPackage: any; matchedTrip: any } | null>(null);
-  const [matchingPackageIds, setMatchingPackageIds] = useState<Set<string>>(new Set());
-  const recentMatchRef = useRef<Record<string, number>>({});
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { openModal } = useModalState();
   const { hasOpenModals } = useModalProtection();
-  
-  
-  // Snapshot mechanism for modal protection
-  const pendingSnapshotRef = useRef<{ packages: any[]; trips: any[]; activeTab?: string } | null>(null);
-  const modalStateRef = useRef(false);
 
   // Persist activeTab changes to sessionStorage
   useEffect(() => {
@@ -132,87 +125,17 @@ const AdminDashboard = ({
     }
   }, [activeTab]);
 
-  // Improved snapshot synchronization to prevent emptying
+  // Simple sync: update local state when props change and no modals are open
   useEffect(() => {
-    const hasModalsOpen = hasOpenModals();
-    
-    // Detect modal state changes
-    if (modalStateRef.current !== hasModalsOpen) {
-      modalStateRef.current = hasModalsOpen;
-      
-      if (!hasModalsOpen && pendingSnapshotRef.current) {
-        // Modal closed - apply pending snapshot
-        console.log('🔓 Modals closed - applying pending snapshot:', {
-          pendingPackages: pendingSnapshotRef.current.packages.length,
-          pendingTrips: pendingSnapshotRef.current.trips.length,
-          preservedTab: pendingSnapshotRef.current.activeTab
-        });
-        
-        setLocalPackages(pendingSnapshotRef.current.packages);
-        setLocalTrips(pendingSnapshotRef.current.trips);
-        
-        // Restore active tab if it was preserved in snapshot
-        if (pendingSnapshotRef.current.activeTab) {
-          setActiveTab(pendingSnapshotRef.current.activeTab);
-        }
-        
-        pendingSnapshotRef.current = null;
-        
-        // Process any queued realtime updates after a short delay
-        setTimeout(() => {
-          console.log('⏰ Processing queued updates after snapshot flush');
-          processQueuedUpdates();
-        }, 200);
-        
-        return;
-      }
-    }
-
-    // Prevent emptying during refresh - only update if new data is meaningful
-    if (!hasModalsOpen && !showMatchDialog) {
-      // No modals open and match dialog closed - apply updates directly but protect against emptying
+    if (!hasOpenModals() && !showMatchDialog) {
       if (packages.length > 0 || localPackages.length === 0) {
-        // Protect recently matched packages from being overwritten by stale props
-        const now = Date.now();
-        const protectedIds = new Set(
-          Object.entries(recentMatchRef.current)
-            .filter(([, ts]) => now - ts < 3000)
-            .map(([id]) => id)
-        );
-        
-        if (protectedIds.size > 0) {
-          console.log('🛡️ [SYNC] Protecting recently matched packages from stale sync:', [...protectedIds]);
-          setLocalPackages(prev => {
-            const protectedPkgs = prev.filter(p => protectedIds.has(p.id));
-            const incomingFiltered = packages.filter(p => !protectedIds.has(p.id));
-            // Log what's being protected vs overwritten
-            protectedPkgs.forEach(p => {
-              const incoming = packages.find(ip => ip.id === p.id);
-              if (incoming && incoming.status !== p.status) {
-                console.log(`🛡️ [SYNC] BLOCKED overwrite: pkg=${p.id.slice(0,8)} local=${p.status} → incoming=${incoming.status}`);
-              }
-            });
-            return [...incomingFiltered, ...protectedPkgs];
-          });
-        } else {
-          setLocalPackages(packages);
-        }
+        setLocalPackages(packages);
       }
       if (trips.length > 0 || localTrips.length === 0) {
         setLocalTrips(trips);
       }
-    } else {
-      // Modals open - save to pending snapshot only if data is meaningful
-      if (packages.length > 0 || trips.length > 0) {
-        console.log('💾 [SYNC] Modals open - saving to pending snapshot:', {
-          packages: packages.length,
-          trips: trips.length,
-          currentTab: activeTab
-        });
-        pendingSnapshotRef.current = { packages, trips, activeTab };
-      }
     }
-  }, [packages, trips, hasOpenModals, showMatchDialog, localPackages.length, localTrips.length]);
+  }, [packages, trips]);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -257,47 +180,30 @@ const AdminDashboard = ({
     const matchPackageId = selectedPackage.id;
     const isMultiProduct = productsWithTips && productsWithTips.length > 1;
 
-    // Mark as in-progress and close modal
-    setMatchingPackageIds(prev => new Set(prev).add(matchPackageId));
+    // Close modal immediately
     setSelectedPackage(null);
     setMatchingTrip("");
     setShowMatchDialog(false);
 
-    onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds)
-      .then(() => {
-        // Update local state
-        setLocalPackages(prev => prev.map(pkg => 
-          pkg.id === matchPackageId ? { ...pkg, status: 'matched', updated_at: new Date().toISOString() } : pkg
-        ));
+    try {
+      await onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds);
 
-        // Protect from stale Realtime overwrites
-        recentMatchRef.current[matchPackageId] = Date.now();
-        setTimeout(() => { delete recentMatchRef.current[matchPackageId]; }, 3500);
+      // Optimistic local update
+      setLocalPackages(prev => prev.map(pkg => 
+        pkg.id === matchPackageId ? { ...pkg, status: 'matched', updated_at: new Date().toISOString() } : pkg
+      ));
 
-        toast({
-          title: "¡Match exitoso!",
-          description: tripIds.length > 1
-            ? `Paquete asignado a ${tripIds.length} viajeros.`
-            : isMultiProduct 
-              ? `Paquete emparejado con tips por producto (Total: Q${adminTip})`
-              : `Paquete emparejado con tip de Q${adminTip}`,
-        });
-
-        requestAnimationFrame(() => {
-          setActiveTab("matching");
-          onMatchingTabChange?.("matches");
-        });
-      })
-      .catch((error) => {
-        console.error('[DASH] Match FAILED:', error?.message);
-      })
-      .finally(() => {
-        setMatchingPackageIds(prev => {
-          const next = new Set(prev);
-          next.delete(matchPackageId);
-          return next;
-        });
+      toast({
+        title: "¡Match exitoso!",
+        description: tripIds.length > 1
+          ? `Paquete asignado a ${tripIds.length} viajeros.`
+          : isMultiProduct 
+            ? `Paquete emparejado con tips por producto (Total: Q${adminTip})`
+            : `Paquete emparejado con tip de Q${adminTip}`,
       });
+    } catch (error: any) {
+      console.error('[DASH] Match FAILED:', error?.message);
+    }
   };
 
   const handleOpenMatchDialog = (pkg: any) => {
@@ -527,7 +433,6 @@ const AdminDashboard = ({
     trips: localTrips,
     userRole: 'admin',
     enabled: true,
-    recentMutationsRef: recentMatchRef
   });
   
   // Create tabs array for mobile and desktop tabs
@@ -621,7 +526,6 @@ const AdminDashboard = ({
           <AdminMatchingTab
             packages={localPackages}
             trips={localTrips}
-            matchingPackageIds={matchingPackageIds}
             modalDataCache={modalDataCache}
             activeMatchingTab={matchingTab}
             onMatchingTabChange={onMatchingTabChange}
