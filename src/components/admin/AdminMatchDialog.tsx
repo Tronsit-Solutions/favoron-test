@@ -431,12 +431,19 @@ const AdminMatchDialog = ({
     }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
   }, [availableTrips, selectedPackage?.purchase_origin, selectedPackage?.package_destination]);
 
-  // Reset selection only when the selected package changes
+  // Reset selection only when the selected package ID truly changes (not on reference updates)
+  const prevPackageIdRef = useRef<string | undefined>(undefined);
   useEffect(() => {
-    setShowAllTrips(false);
-    setShowOtherCities(false);
-    setSelectedTripIds(new Set());
-    setSelectedTripId(null);
+    if (selectedPackage?.id !== prevPackageIdRef.current) {
+      prevPackageIdRef.current = selectedPackage?.id;
+      console.log('[MATCH-DIALOG] Package ID changed, resetting selections:', selectedPackage?.id);
+      setShowAllTrips(false);
+      setShowOtherCities(false);
+      setSelectedTripIds(new Set());
+      setSelectedTripId(null);
+      setAssignedProductsWithTips([]);
+      setAdminTip('');
+    }
   }, [selectedPackage?.id]);
 
   // Fetch existing assignments + trip assignments in parallel (without resetting selection)
