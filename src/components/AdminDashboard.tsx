@@ -288,7 +288,7 @@ const AdminDashboard = ({
 
           // Navigate to matches tab so admin sees the result
           setActiveTab("matching");
-          onMatchingTabChange?.("active");
+          onMatchingTabChange?.("matches");
         })
         .catch(async (error) => {
           console.error('Error during match:', error);
@@ -315,7 +315,7 @@ const AdminDashboard = ({
                 description: "El paquete fue asignado correctamente.",
               });
               setActiveTab("matching");
-              onMatchingTabChange?.("active");
+              onMatchingTabChange?.("matches");
               return;
             }
           } catch (syncError) {
