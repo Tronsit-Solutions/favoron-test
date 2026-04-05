@@ -1317,11 +1317,13 @@ export const useDashboardActions = (
     };
 
     // === HAPPY PATH: Direct RPC call with a safety timeout ===
+    const traceId = `match-${packageId.slice(0,8)}-${Date.now().toString(36)}`;
     const t0 = performance.now();
-    console.log(`⏱️ [MATCH] START packageId=${packageId} trips=${tripIdsToAssign.length}`);
+    console.log(`⏱️ [MATCH][${traceId}] START packageId=${packageId} trips=${tripIdsToAssign.join(',')} tip=${adminTip}`);
 
     let rpcResult: any;
     try {
+      console.log(`⏱️ [MATCH][${traceId}] RPC calling assign_package_to_travelers...`);
       const rpcPromise = supabase.rpc('assign_package_to_travelers', {
         _package_id: packageId,
         _trip_ids: tripIdsToAssign,
@@ -1338,9 +1340,9 @@ export const useDashboardActions = (
       );
 
       rpcResult = await Promise.race([rpcPromise, timeoutPromise]);
-      console.log(`⏱️ [MATCH] RPC OK in ${(performance.now() - t0).toFixed(0)}ms`);
+      console.log(`⏱️ [MATCH][${traceId}] RPC OK in ${(performance.now() - t0).toFixed(0)}ms, result:`, rpcResult);
     } catch (rpcError: any) {
-      console.error(`⏱️ [MATCH] RPC FAILED in ${(performance.now() - t0).toFixed(0)}ms:`, rpcError?.message);
+      console.error(`⏱️ [MATCH][${traceId}] RPC FAILED in ${(performance.now() - t0).toFixed(0)}ms:`, rpcError?.message);
 
       // === RECOVERY PATH: Only activated on actual errors ===
       const isTimeoutOrNetwork = 
@@ -1349,13 +1351,16 @@ export const useDashboardActions = (
         rpcError.message?.includes('Load failed');
       const isNoNewTrips = rpcError.message?.includes('NO_NEW_TRIPS');
 
+      console.log(`⏱️ [MATCH][${traceId}] RECOVERY starting (timeout=${isTimeoutOrNetwork}, noNewTrips=${isNoNewTrips})`);
+
       // For any error, check if the server actually processed it
       const confirmed = await waitForMatchConfirmation(isTimeoutOrNetwork ? 4000 : 2500, 600);
       
       if (confirmed) {
-        console.log(`✅ [MATCH] DB confirms match despite error (recovered in ${(performance.now() - t0).toFixed(0)}ms)`);
+        console.log(`✅ [MATCH][${traceId}] DB confirms match despite error (recovered in ${(performance.now() - t0).toFixed(0)}ms)`);
         rpcResult = { assigned_trip_ids: tripIdsToAssign, recovered: true };
       } else {
+        console.error(`❌ [MATCH][${traceId}] DB does NOT confirm match — genuine failure`);
         // Genuine failure
         const errorMsg = isNoNewTrips
           ? "Todos los viajeros seleccionados ya tienen asignaciones activas."
@@ -1371,7 +1376,26 @@ export const useDashboardActions = (
       }
     }
 
-    console.log(`⏱️ [MATCH] COMPLETE in ${(performance.now() - t0).toFixed(0)}ms`);
+    console.log(`⏱️ [MATCH][${traceId}] COMPLETE in ${(performance.now() - t0).toFixed(0)}ms`);
+
+    // Post-match DB verification (single check for diagnostics)
+    setTimeout(async () => {
+      try {
+        const { data: verifyPkg } = await supabase
+          .from('packages')
+          .select('status, matched_trip_id')
+          .eq('id', packageId)
+          .single();
+        const { data: assignments } = await supabase
+          .from('package_assignments')
+          .select('id, status, trip_id')
+          .eq('package_id', packageId)
+          .not('status', 'eq', 'bid_lost');
+        console.log(`🔍 [MATCH][${traceId}] DB VERIFY (1s post-match): pkg.status=${verifyPkg?.status}, matched_trip_id=${verifyPkg?.matched_trip_id}, assignments=${assignments?.length}`, assignments?.map(a => `${a.trip_id.slice(0,8)}:${a.status}`));
+      } catch (e) {
+        console.warn(`🔍 [MATCH][${traceId}] DB VERIFY failed:`, e);
+      }
+    }, 1000);
 
     // Defer side effects (history logs + WhatsApp + email) — fully non-blocking
     setTimeout(() => {
