@@ -1,6 +1,6 @@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { withRetry } from '@/lib/supabaseWithRetry';
+
 import { useRef } from 'react';
 import { normalizeQuote, shouldRecalculateQuote, createNormalizedQuote } from '@/lib/quoteHelpers';
 import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
@@ -1297,17 +1297,17 @@ export const useDashboardActions = (
       }
     }
 
+    // === RECOVERY HELPERS (only used on error) ===
     const verifyPackageMatched = async () => {
       const { data: dbPkg } = await supabase
         .from('packages')
         .select('status')
         .eq('id', packageId)
         .single();
-
       return dbPkg?.status === 'matched' || dbPkg?.status === 'quote_sent';
     };
 
-    const waitForMatchConfirmation = async (timeoutMs = 6000, intervalMs = 800) => {
+    const waitForMatchConfirmation = async (timeoutMs = 4000, intervalMs = 600) => {
       const startedAt = Date.now();
       while (Date.now() - startedAt < timeoutMs) {
         if (await verifyPackageMatched()) return true;
@@ -1316,82 +1316,64 @@ export const useDashboardActions = (
       return false;
     };
 
-    const rpcTimeoutMs = 8000;
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('MATCH_TIMEOUT')), rpcTimeoutMs)
-    );
+    // === HAPPY PATH: Direct RPC call with a safety timeout ===
+    const t0 = performance.now();
+    console.log(`⏱️ [MATCH] START packageId=${packageId} trips=${tripIdsToAssign.length}`);
 
-    // Single atomic RPC call with retry for transient network errors, but never hang forever
     let rpcResult: any;
     try {
-      const rpcPromise = withRetry(
-        async () => {
-          const res = await supabase.rpc('assign_package_to_travelers', {
-            _package_id: packageId,
-            _trip_ids: tripIdsToAssign,
-            _admin_tip: adminTip,
-            _products_data: updatedProductsData || null
-          });
-          if (res.error) throw res.error;
-          return res.data;
-        },
-        'assign_package_to_travelers',
-        { maxRetries: 1, baseDelay: 500 }
+      const rpcPromise = supabase.rpc('assign_package_to_travelers', {
+        _package_id: packageId,
+        _trip_ids: tripIdsToAssign,
+        _admin_tip: adminTip,
+        _products_data: updatedProductsData || null
+      }).then(res => {
+        if (res.error) throw res.error;
+        return res.data;
+      });
+
+      // Safety timeout: 5s max (RPC normally completes in <500ms)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('MATCH_TIMEOUT')), 5000)
       );
 
       rpcResult = await Promise.race([rpcPromise, timeoutPromise]);
+      console.log(`⏱️ [MATCH] RPC OK in ${(performance.now() - t0).toFixed(0)}ms`);
     } catch (rpcError: any) {
-      console.error('Error in assign_package_to_travelers RPC:', rpcError);
+      console.error(`⏱️ [MATCH] RPC FAILED in ${(performance.now() - t0).toFixed(0)}ms:`, rpcError?.message);
 
-      // Timeout or network loss: verify/poll DB because the server may still complete the assignment
-      if (rpcError.message?.includes('MATCH_TIMEOUT') || rpcError.message?.includes('Failed to fetch') || rpcError.message?.includes('Load failed')) {
-        const confirmed = await waitForMatchConfirmation();
-        if (confirmed) {
-          console.log('✅ Match confirmed in DB after timeout/network error');
-          rpcResult = { assigned_trip_ids: tripIdsToAssign, recovered: true };
-        } else {
-          toast({
-            title: "Match tardó demasiado",
-            description: "No pudimos confirmar el resultado a tiempo. Verifica si el paquete pasó a Matches e inténtalo una sola vez más si sigue pendiente.",
-            variant: "destructive",
-          });
-          throw rpcError;
-        }
-      } else if (rpcError.message?.includes('NO_NEW_TRIPS')) {
-        // NO_NEW_TRIPS means all travelers already have active assignments.
-        // This often happens when a previous attempt succeeded but the response was lost.
-        const confirmed = await waitForMatchConfirmation(3000, 800);
-        if (confirmed) {
-          console.log('✅ Package already matched in DB — treating as success (recovered from lost response)');
-          rpcResult = { assigned_trip_ids: tripIdsToAssign, recovered: true };
-        } else {
-          toast({
-            title: "Error",
-            description: "Todos los viajeros seleccionados ya tienen asignaciones activas.",
-            variant: "destructive",
-          });
-          throw rpcError;
-        }
+      // === RECOVERY PATH: Only activated on actual errors ===
+      const isTimeoutOrNetwork = 
+        rpcError.message?.includes('MATCH_TIMEOUT') || 
+        rpcError.message?.includes('Failed to fetch') || 
+        rpcError.message?.includes('Load failed');
+      const isNoNewTrips = rpcError.message?.includes('NO_NEW_TRIPS');
+
+      // For any error, check if the server actually processed it
+      const confirmed = await waitForMatchConfirmation(isTimeoutOrNetwork ? 4000 : 2500, 600);
+      
+      if (confirmed) {
+        console.log(`✅ [MATCH] DB confirms match despite error (recovered in ${(performance.now() - t0).toFixed(0)}ms)`);
+        rpcResult = { assigned_trip_ids: tripIdsToAssign, recovered: true };
       } else {
-        const confirmed = await waitForMatchConfirmation(3000, 800);
-        if (confirmed) {
-          console.log('✅ Package matched in DB despite RPC error');
-          rpcResult = { assigned_trip_ids: tripIdsToAssign, recovered: true };
-        } else {
-          toast({
-            title: "Error",
-            description: "No se pudo realizar el match. Inténtalo de nuevo.",
-            variant: "destructive",
-          });
-          throw rpcError;
-        }
+        // Genuine failure
+        const errorMsg = isNoNewTrips
+          ? "Todos los viajeros seleccionados ya tienen asignaciones activas."
+          : isTimeoutOrNetwork
+            ? "No pudimos confirmar el resultado a tiempo. Verifica si el paquete pasó a Matches."
+            : "No se pudo realizar el match. Inténtalo de nuevo.";
+        toast({
+          title: "Error",
+          description: errorMsg,
+          variant: "destructive",
+        });
+        throw rpcError;
       }
     }
 
-    // NOTE: Removed redundant optimistic setPackages here — AdminDashboard handles it in .then()
+    console.log(`⏱️ [MATCH] COMPLETE in ${(performance.now() - t0).toFixed(0)}ms`);
 
-    // Defer side effects (history logs + WhatsApp + email) to avoid network contention
-    // during the critical UI update window
+    // Defer side effects (history logs + WhatsApp + email) — fully non-blocking
     setTimeout(() => {
       const adminName = currentUser?.first_name
         ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
@@ -1441,7 +1423,7 @@ export const useDashboardActions = (
           }).catch(err => console.error('Error sending assignment email to traveler:', err));
         }
       })).catch(err => console.error('Post-match side effects error:', err));
-    }, 500);
+    }, 300);
 
     return rpcResult;
   };
