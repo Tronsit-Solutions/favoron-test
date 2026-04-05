@@ -29,7 +29,8 @@ export const useConsolidatedRealtimeAdmin = ({
   packages = [],
   trips = [],
   userRole = 'admin',
-  enabled = true
+  enabled = true,
+  recentMutationsRef
 }: ConsolidatedRealtimeProps) => {
   const { user } = useAuth();
   const { canRefresh, hasOpenModals } = useModalProtection();
