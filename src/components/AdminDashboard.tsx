@@ -239,99 +239,65 @@ const AdminDashboard = ({
 
 
   const handleMatch = async (adminTip?: number, productsWithTips?: any[], selectedTripIds?: string[]) => {
-    const t0 = performance.now();
-    const traceId = `dash-${Date.now().toString(36)}`;
-    // Use selectedTripIds if provided, otherwise fall back to matchingTrip (single)
     const tripIds = selectedTripIds && selectedTripIds.length > 0 
       ? selectedTripIds 
       : matchingTrip ? [matchingTrip] : [];
 
-    if (selectedPackage && tripIds.length > 0) {
-      if (!adminTip || adminTip <= 0) {
-        toast({
-          title: "Tip requerido",
-          description: "Debes asignar un tip al viajero para confirmar el match.",
-          variant: "destructive",
-        });
-        return;
-      }
+    if (!selectedPackage || tripIds.length === 0) return;
 
-      const matchPackageId = selectedPackage.id;
-      const isMultiProduct = productsWithTips && productsWithTips.length > 1;
-
-      console.log(`⏱️ [DASH][${traceId}] handleMatch START pkg=${matchPackageId} trips=${tripIds.length}`);
-
-      // Mark package as "matching in progress" — hides from Solicitudes, shows spinner
-      setMatchingPackageIds(prev => new Set(prev).add(matchPackageId));
-
-      // Close modal immediately for snappy feedback
-      setSelectedPackage(null);
-      setMatchingTrip("");
-      setShowMatchDialog(false);
-      console.log(`⏱️ [DASH][${traceId}] Modal closed at ${(performance.now() - t0).toFixed(0)}ms`);
-
-      // Execute RPC — handleMatchPackage already handles recovery internally,
-      // so we don't need redundant DB checks here
-      onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds)
-        .then(() => {
-          console.log(`⏱️ [DASH][${traceId}] RPC resolved at ${(performance.now() - t0).toFixed(0)}ms`);
-          
-          // RPC succeeded (or recovered) — apply local state update immediately
-          setLocalPackages(prevPackages => {
-            const updated = prevPackages.map(pkg => 
-              pkg.id === matchPackageId ? {
-                ...pkg,
-                status: 'matched',
-                updated_at: new Date().toISOString()
-              } : pkg
-            );
-            const matchedPkg = updated.find(p => p.id === matchPackageId);
-            console.log(`⏱️ [DASH][${traceId}] setLocalPackages: pkg found=${!!matchedPkg}, newStatus=${matchedPkg?.status}`);
-            return updated;
-          });
-
-          // Protect this package from stale Realtime overwrites for 3s
-          recentMatchRef.current[matchPackageId] = Date.now();
-          setTimeout(() => { delete recentMatchRef.current[matchPackageId]; }, 3500);
-
-          toast({
-            title: "¡Match exitoso!",
-            description: tripIds.length > 1
-              ? `Paquete asignado a ${tripIds.length} viajeros. El shopper podrá comparar cotizaciones.`
-              : isMultiProduct 
-                ? `Paquete emparejado con viaje con tips por producto (Total: Q${adminTip})`
-                : `Paquete emparejado con viaje con tip de Q${adminTip}`,
-          });
-
-          // Navigate to matches tab after a microtask to avoid blocking the toast render
-          requestAnimationFrame(() => {
-            console.log(`⏱️ [DASH][${traceId}] Navigating to matching/matches at ${(performance.now() - t0).toFixed(0)}ms`);
-            setActiveTab("matching");
-            onMatchingTabChange?.("matches");
-          });
-          
-          // Post-match UI verification (2s later, check if package is visible in the right list)
-          setTimeout(() => {
-            const currentPkgs = localPackages; // capture closure
-            const pkg = currentPkgs.find(p => p.id === matchPackageId);
-            console.log(`🔍 [DASH][${traceId}] UI VERIFY (2s): pkg in localPackages=${!!pkg}, status=${pkg?.status}, matched_trip_id=${pkg?.matched_trip_id}`);
-          }, 2000);
-
-          console.log(`⏱️ [DASH][${traceId}] UI updated at ${(performance.now() - t0).toFixed(0)}ms`);
-        })
-        .catch((error) => {
-          // handleMatchPackage already showed a toast for the specific error
-          // and only throws if DB verification also failed — genuine failure
-          console.error(`⏱️ [DASH][${traceId}] Match FAILED at ${(performance.now() - t0).toFixed(0)}ms:`, error?.message);
-        })
-        .finally(() => {
-          setMatchingPackageIds(prev => {
-            const next = new Set(prev);
-            next.delete(matchPackageId);
-            return next;
-          });
-        });
+    if (!adminTip || adminTip <= 0) {
+      toast({
+        title: "Tip requerido",
+        description: "Debes asignar un tip al viajero para confirmar el match.",
+        variant: "destructive",
+      });
+      return;
     }
+
+    const matchPackageId = selectedPackage.id;
+    const isMultiProduct = productsWithTips && productsWithTips.length > 1;
+
+    // Mark as in-progress and close modal
+    setMatchingPackageIds(prev => new Set(prev).add(matchPackageId));
+    setSelectedPackage(null);
+    setMatchingTrip("");
+    setShowMatchDialog(false);
+
+    onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds)
+      .then(() => {
+        // Update local state
+        setLocalPackages(prev => prev.map(pkg => 
+          pkg.id === matchPackageId ? { ...pkg, status: 'matched', updated_at: new Date().toISOString() } : pkg
+        ));
+
+        // Protect from stale Realtime overwrites
+        recentMatchRef.current[matchPackageId] = Date.now();
+        setTimeout(() => { delete recentMatchRef.current[matchPackageId]; }, 3500);
+
+        toast({
+          title: "¡Match exitoso!",
+          description: tripIds.length > 1
+            ? `Paquete asignado a ${tripIds.length} viajeros.`
+            : isMultiProduct 
+              ? `Paquete emparejado con tips por producto (Total: Q${adminTip})`
+              : `Paquete emparejado con tip de Q${adminTip}`,
+        });
+
+        requestAnimationFrame(() => {
+          setActiveTab("matching");
+          onMatchingTabChange?.("matches");
+        });
+      })
+      .catch((error) => {
+        console.error('[DASH] Match FAILED:', error?.message);
+      })
+      .finally(() => {
+        setMatchingPackageIds(prev => {
+          const next = new Set(prev);
+          next.delete(matchPackageId);
+          return next;
+        });
+      });
   };
 
   const handleOpenMatchDialog = (pkg: any) => {

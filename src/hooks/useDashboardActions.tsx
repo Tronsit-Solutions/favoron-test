@@ -1297,107 +1297,32 @@ export const useDashboardActions = (
       }
     }
 
-    // === RECOVERY HELPERS (only used on error) ===
-    const verifyPackageMatched = async () => {
-      const { data: dbPkg } = await supabase
-        .from('packages')
-        .select('status')
-        .eq('id', packageId)
-        .single();
-      return dbPkg?.status === 'matched' || dbPkg?.status === 'quote_sent';
-    };
+    // === Direct RPC call — no timeout, no polling, no recovery ===
+    console.log(`[MATCH] START packageId=${packageId} trips=${tripIdsToAssign.join(',')} tip=${adminTip}`);
 
-    const waitForMatchConfirmation = async (timeoutMs = 4000, intervalMs = 600) => {
-      const startedAt = Date.now();
-      while (Date.now() - startedAt < timeoutMs) {
-        if (await verifyPackageMatched()) return true;
-        await new Promise(resolve => setTimeout(resolve, intervalMs));
-      }
-      return false;
-    };
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('assign_package_to_travelers', {
+      _package_id: packageId,
+      _trip_ids: tripIdsToAssign,
+      _admin_tip: adminTip,
+      _products_data: updatedProductsData || null
+    });
 
-    // === HAPPY PATH: Direct RPC call with a safety timeout ===
-    const traceId = `match-${packageId.slice(0,8)}-${Date.now().toString(36)}`;
-    const t0 = performance.now();
-    console.log(`⏱️ [MATCH][${traceId}] START packageId=${packageId} trips=${tripIdsToAssign.join(',')} tip=${adminTip}`);
-
-    let rpcResult: any;
-    try {
-      console.log(`⏱️ [MATCH][${traceId}] RPC calling assign_package_to_travelers...`);
-      const rpcPromise = supabase.rpc('assign_package_to_travelers', {
-        _package_id: packageId,
-        _trip_ids: tripIdsToAssign,
-        _admin_tip: adminTip,
-        _products_data: updatedProductsData || null
-      }).then(res => {
-        if (res.error) throw res.error;
-        return res.data;
+    if (rpcError) {
+      console.error('[MATCH] RPC FAILED:', rpcError.message);
+      const errorMsg = rpcError.message?.includes('NO_NEW_TRIPS')
+        ? "Todos los viajeros seleccionados ya tienen asignaciones activas."
+        : "No se pudo realizar el match. Inténtalo de nuevo.";
+      toast({
+        title: "Error",
+        description: errorMsg,
+        variant: "destructive",
       });
-
-      // Safety timeout: 5s max (RPC normally completes in <500ms)
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('MATCH_TIMEOUT')), 5000)
-      );
-
-      rpcResult = await Promise.race([rpcPromise, timeoutPromise]);
-      console.log(`⏱️ [MATCH][${traceId}] RPC OK in ${(performance.now() - t0).toFixed(0)}ms, result:`, rpcResult);
-    } catch (rpcError: any) {
-      console.error(`⏱️ [MATCH][${traceId}] RPC FAILED in ${(performance.now() - t0).toFixed(0)}ms:`, rpcError?.message);
-
-      // === RECOVERY PATH: Only activated on actual errors ===
-      const isTimeoutOrNetwork = 
-        rpcError.message?.includes('MATCH_TIMEOUT') || 
-        rpcError.message?.includes('Failed to fetch') || 
-        rpcError.message?.includes('Load failed');
-      const isNoNewTrips = rpcError.message?.includes('NO_NEW_TRIPS');
-
-      console.log(`⏱️ [MATCH][${traceId}] RECOVERY starting (timeout=${isTimeoutOrNetwork}, noNewTrips=${isNoNewTrips})`);
-
-      // For any error, check if the server actually processed it
-      const confirmed = await waitForMatchConfirmation(isTimeoutOrNetwork ? 4000 : 2500, 600);
-      
-      if (confirmed) {
-        console.log(`✅ [MATCH][${traceId}] DB confirms match despite error (recovered in ${(performance.now() - t0).toFixed(0)}ms)`);
-        rpcResult = { assigned_trip_ids: tripIdsToAssign, recovered: true };
-      } else {
-        console.error(`❌ [MATCH][${traceId}] DB does NOT confirm match — genuine failure`);
-        // Genuine failure
-        const errorMsg = isNoNewTrips
-          ? "Todos los viajeros seleccionados ya tienen asignaciones activas."
-          : isTimeoutOrNetwork
-            ? "No pudimos confirmar el resultado a tiempo. Verifica si el paquete pasó a Matches."
-            : "No se pudo realizar el match. Inténtalo de nuevo.";
-        toast({
-          title: "Error",
-          description: errorMsg,
-          variant: "destructive",
-        });
-        throw rpcError;
-      }
+      throw rpcError;
     }
 
-    console.log(`⏱️ [MATCH][${traceId}] COMPLETE in ${(performance.now() - t0).toFixed(0)}ms`);
+    console.log('[MATCH] RPC OK, result:', rpcResult);
 
-    // Post-match DB verification (single check for diagnostics)
-    setTimeout(async () => {
-      try {
-        const { data: verifyPkg } = await supabase
-          .from('packages')
-          .select('status, matched_trip_id')
-          .eq('id', packageId)
-          .single();
-        const { data: assignments } = await supabase
-          .from('package_assignments')
-          .select('id, status, trip_id')
-          .eq('package_id', packageId)
-          .not('status', 'eq', 'bid_lost');
-        console.log(`🔍 [MATCH][${traceId}] DB VERIFY (1s post-match): pkg.status=${verifyPkg?.status}, matched_trip_id=${verifyPkg?.matched_trip_id}, assignments=${assignments?.length}`, assignments?.map(a => `${a.trip_id.slice(0,8)}:${a.status}`));
-      } catch (e) {
-        console.warn(`🔍 [MATCH][${traceId}] DB VERIFY failed:`, e);
-      }
-    }, 1000);
-
-    // Defer side effects (history logs + WhatsApp + email) — fully non-blocking
+    // Fire-and-forget side effects (WhatsApp + email + history)
     setTimeout(() => {
       const adminName = currentUser?.first_name
         ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
@@ -1444,10 +1369,10 @@ export const useDashboardActions = (
               priority: 'normal',
               action_url: 'https://favoron.app/dashboard'
             }
-          }).catch(err => console.error('Error sending assignment email to traveler:', err));
+          }).catch(err => console.error('Error sending assignment email:', err));
         }
       })).catch(err => console.error('Post-match side effects error:', err));
-    }, 300);
+    }, 0);
 
     return rpcResult;
   };
