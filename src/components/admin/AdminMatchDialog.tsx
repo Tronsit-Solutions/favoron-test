@@ -545,25 +545,28 @@ const AdminMatchDialog = ({
         // Get unique IDs from ALL available trips
         const userIds = [...new Set(allTrips.map(trip => trip.user_id))];
         
+        // Skip IDs we already have cached
+        const missingIds = userIds.filter(id => !travelerProfiles[id]);
+        if (missingIds.length === 0) return;
+        
         try {
-          // Fetch profiles directly from the profiles table
           const { data, error } = await supabase
             .from('profiles')
             .select('id, first_name, last_name, username, email, country_code, phone_number, avatar_url')
-            .in('id', userIds);
+            .in('id', missingIds);
           
           if (error) {
             console.error('Error fetching traveler profiles:', error);
             return;
           }
           
-          // Create profiles map
-          const profilesMap = data?.reduce((acc, profile) => {
+          // Merge new profiles with existing ones
+          const newProfiles = (data || []).reduce((acc, profile) => {
             acc[profile.id] = profile;
             return acc;
-          }, {}) || {};
+          }, {} as Record<string, any>);
           
-          setTravelerProfiles(profilesMap);
+          setTravelerProfiles(prev => ({ ...prev, ...newProfiles }));
         } catch (error) {
           console.error('Error fetching traveler profiles:', error);
         }
@@ -571,7 +574,7 @@ const AdminMatchDialog = ({
       
       fetchTravelerProfiles();
     }
-  }, [showMatchDialog, validTrips, otherCityTrips, otherUSCityTrips]);
+  }, [showMatchDialog, validTrips, otherCityTrips, otherUSCityTrips, otherSpainCityTrips]);
 
   const getTravelerName = (userId: string) => {
     const profile = travelerProfiles[userId];
