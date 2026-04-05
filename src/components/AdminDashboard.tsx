@@ -232,6 +232,7 @@ const AdminDashboard = ({
 
 
   const handleMatch = async (adminTip?: number, productsWithTips?: any[], selectedTripIds?: string[]) => {
+    const t0 = performance.now();
     // Use selectedTripIds if provided, otherwise fall back to matchingTrip (single)
     const tripIds = selectedTripIds && selectedTripIds.length > 0 
       ? selectedTripIds 
@@ -248,6 +249,7 @@ const AdminDashboard = ({
       }
 
       const matchPackageId = selectedPackage.id;
+      const isMultiProduct = productsWithTips && productsWithTips.length > 1;
 
       // Mark package as "matching in progress" — hides from Solicitudes, shows spinner
       setMatchingPackageIds(prev => new Set(prev).add(matchPackageId));
@@ -256,13 +258,15 @@ const AdminDashboard = ({
       setSelectedPackage(null);
       setMatchingTrip("");
       setShowMatchDialog(false);
+      console.log(`⏱️ [DASHBOARD] Modal closed at ${(performance.now() - t0).toFixed(0)}ms`);
 
-      const isMultiProduct = productsWithTips && productsWithTips.length > 1;
-
-      // Execute RPC and only show success after confirmation
+      // Execute RPC — handleMatchPackage already handles recovery internally,
+      // so we don't need redundant DB checks here
       onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds)
         .then(() => {
-          // RPC succeeded — apply local state update
+          console.log(`⏱️ [DASHBOARD] RPC resolved at ${(performance.now() - t0).toFixed(0)}ms`);
+          
+          // RPC succeeded (or recovered) — apply local state update immediately
           setLocalPackages(prevPackages => 
             prevPackages.map(pkg => 
               pkg.id === matchPackageId ? {
@@ -273,7 +277,7 @@ const AdminDashboard = ({
             )
           );
 
-          // Protect this package from stale prop overwrites for 3s
+          // Protect this package from stale Realtime overwrites for 3s
           recentMatchRef.current[matchPackageId] = Date.now();
           setTimeout(() => { delete recentMatchRef.current[matchPackageId]; }, 3500);
 
@@ -286,48 +290,18 @@ const AdminDashboard = ({
                 : `Paquete emparejado con viaje con tip de Q${adminTip}`,
           });
 
-          // Navigate to matches tab so admin sees the result
-          setActiveTab("matching");
-          onMatchingTabChange?.("matches");
-        })
-        .catch(async (error) => {
-          console.error('Error during match:', error);
-          
-          // Before showing error, check if the server actually processed it
-          // (e.g. RPC succeeded but response was lost due to network issues)
-          try {
-            const { data: dbPkg } = await supabase
-              .from('packages')
-              .select('status')
-              .eq('id', matchPackageId)
-              .single();
-            
-            if (dbPkg && (dbPkg.status === 'matched' || dbPkg.status === 'quote_sent')) {
-              // Server DID process it — sync local state and treat as success
-              console.log('✅ DB confirms package is matched — recovering from client error');
-              setLocalPackages(prev => prev.map(pkg => 
-                pkg.id === matchPackageId ? { ...pkg, status: dbPkg.status, updated_at: new Date().toISOString() } : pkg
-              ));
-              recentMatchRef.current[matchPackageId] = Date.now();
-              setTimeout(() => { delete recentMatchRef.current[matchPackageId]; }, 3500);
-              toast({
-                title: "¡Match exitoso!",
-                description: "El paquete fue asignado correctamente.",
-              });
-              setActiveTab("matching");
-              onMatchingTabChange?.("matches");
-              return;
-            }
-          } catch (syncError) {
-            console.warn('Could not verify package status in DB:', syncError);
-          }
-          
-          // Genuine failure — show error
-          toast({
-            title: "Error al hacer match",
-            description: "El match no se guardó. Intenta de nuevo.",
-            variant: "destructive",
+          // Navigate to matches tab after a microtask to avoid blocking the toast render
+          requestAnimationFrame(() => {
+            setActiveTab("matching");
+            onMatchingTabChange?.("matches");
           });
+          
+          console.log(`⏱️ [DASHBOARD] UI updated at ${(performance.now() - t0).toFixed(0)}ms`);
+        })
+        .catch((error) => {
+          // handleMatchPackage already showed a toast for the specific error
+          // and only throws if DB verification also failed — genuine failure
+          console.error(`⏱️ [DASHBOARD] Match FAILED at ${(performance.now() - t0).toFixed(0)}ms:`, error?.message);
         })
         .finally(() => {
           setMatchingPackageIds(prev => {
