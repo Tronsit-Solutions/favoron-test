@@ -169,8 +169,8 @@ const AdminDashboard = ({
     }
 
     // Prevent emptying during refresh - only update if new data is meaningful
-    if (!hasModalsOpen) {
-      // No modals open - apply updates directly but protect against emptying
+    if (!hasModalsOpen && !showMatchDialog) {
+      // No modals open and match dialog closed - apply updates directly but protect against emptying
       if (packages.length > 0 || localPackages.length === 0) {
         // Protect recently matched packages from being overwritten by stale props
         const now = Date.now();
