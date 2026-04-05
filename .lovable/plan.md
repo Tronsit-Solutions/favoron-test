@@ -1,87 +1,118 @@
 
-Objetivo: investigar y corregir el cuello de botella real del match para que el flujo normal quede en 2–3 segundos, sin romper la resiliencia cuando falle la red.
+Objetivo: dejar de “adivinar” el bug del match y convertirlo en un flujo trazable, reproducible y acotado para arreglarlo rápido.
 
-Qué he encontrado en el código:
-- El RPC `assign_package_to_travelers` en SQL es simple y atómico: filtra viajeros ya activos, inserta filas en `package_assignments` y actualiza `packages.status = 'matched'`. No hace notificaciones ni trabajo pesado en DB.
-- Por tanto, si a veces tarda mucho, el problema no parece ser “crear assignments”, sino el flujo defensivo y de sincronización alrededor del RPC.
-- Ahora mismo hay varias capas que pueden alargar muchísimo un fallo o una respuesta perdida:
-  1. `withRetry(..., { maxRetries: 1, baseDelay: 500 })`
-  2. `Promise.race` con timeout de 8s
-  3. `waitForMatchConfirmation()` con polling de hasta 6s
-  4. En `AdminDashboard`, si falla, se vuelve a consultar `packages.status`
-- Eso explica por qué algunos casos pueden dispararse muy por encima de 2–3s: cuando la respuesta del RPC se pierde, el cliente entra en timeout + polling + verificación extra.
-- Además, el flujo UI hace más trabajo después del éxito:
-  - cambia tabs automáticamente a `matches`
-  - refresca listas derivadas
-  - `AdminMatchingTab` vuelve a consultar `package_assignments` con debounce
-  - realtime y protección de snapshots pueden volver a tocar estado local
-- Las notificaciones WhatsApp/email e historial están diferidas con `setTimeout(500)`, así que no deberían bloquear el éxito inicial, aunque siguen generando actividad de red y escrituras poco después.
+Qué nos dice el código actual:
+- El RPC `assign_package_to_travelers` ya está en “happy path” directo con timeout de 5s y recovery solo si falla.
+- El problema persistente ya no parece ser solo “la llamada RPC”, sino la coordinación entre:
+  - `useDashboardActions.handleMatchPackage`
+  - cierre del modal en `AdminDashboard`
+  - cambio de tabs a `matching/matches`
+  - `AdminMatchingTab` y su `fetchAssignments(...)`
+  - realtime + snapshot protection (`recentMatchRef`, `pendingSnapshotRef`)
+- Además, `AdminMatchingTab` hace trabajo extra al entrar:
+  - llama `expire_old_quotes()` al montar
+  - recalcula `relevantPackageIds`
+  - hace `fetchAssignments` con debounce de 300ms
+- Eso significa que un bug persistente aquí no se arregla bien “tocando un timeout”; la forma eficiente es aislar en qué capa se rompe.
 
-Conclusión:
-- Tu planteamiento es correcto para el caso ideal: el match debería ser casi inmediato porque el RPC hace poco.
-- Pero hoy el sistema está optimizado para “recuperarse” de respuestas perdidas, no para minimizar latencia observable.
-- El cuello de botella probable no es la inserción SQL sino la suma de:
-  - timeout/retry/polling de resiliencia
-  - verificación duplicada en el dashboard
-  - navegación/recálculo del tab de matches tras éxito
-  - resincronización por realtime y queries derivadas
+La forma más eficiente para bugs persistentes como este:
+1. Reproducir siempre el mismo caso
+   - Elegir 1 paquete y 1-2 viajeros concretos.
+   - No cambiar varias cosas a la vez.
+   - Definir resultado esperado exacto:
+     - modal se cierra
+     - toast sale
+     - paquete desaparece de Solicitudes
+     - aparece en Matches
+     - assignment existe en DB
+2. Instrumentar con un `traceId` por match
+   - Generar un ID único por intento.
+   - Loggear ese mismo ID en todos los puntos del flujo.
+   - Así evitamos logs sueltos imposibles de correlacionar.
+3. Medir fronteras, no funciones sueltas
+   - Tiempos exactos:
+     - click
+     - cierre modal
+     - RPC start/end
+     - recovery start/end
+     - update localPackages
+     - cambio a tab matches
+     - `AdminMatchingTab` mount
+     - `fetchAssignments` start/end
+     - primer render donde el paquete ya está visible en Matches
+4. Confirmar la “fuente de verdad”
+   - Si DB ya quedó en `matched` pero UI no refleja, el bug es de sincronización/UI.
+   - Si DB no cambió, el bug es de RPC/condiciones de negocio.
+5. Aislar una sola capa cada vez
+   - Primero confirmar DB.
+   - Luego local state.
+   - Luego navegación/tab.
+   - Luego realtime/snapshots.
+   - Luego side effects.
 
-Plan de implementación propuesto:
-1. Instrumentar el flujo de match con timestamps precisos
-   - Medir: click → inicio RPC → fin RPC → cierre modal → toast → cambio de tab → render de matches.
-   - Añadir logs temporales en `AdminMatchDialog`, `AdminDashboard`, `useDashboardActions` y `AdminMatchingTab`.
-   - Así sabremos si el retraso está en RPC, recuperación post-error, cambio de tab o rerender/query del tab.
+Plan concreto para este proyecto:
+1. Añadir trazabilidad end-to-end del match
+   - En `useDashboardActions.tsx`:
+     - `traceId`
+     - logs de RPC start/end/error
+     - logs de recovery/polling
+     - log final de “DB confirmed”
+   - En `AdminDashboard.tsx`:
+     - log al cerrar modal
+     - log al actualizar `localPackages`
+     - log al hacer `setActiveTab("matching")`
+     - log al hacer `onMatchingTabChange("matches")`
+   - En `AdminMatchingTab.tsx`:
+     - log al montar/renderizar
+     - log en `fetchAssignments`
+     - log del tamaño de `relevantPackageIds`
+     - log cuando el paquete aparece en `activeMatches`
+2. Añadir una verificación explícita de estado final
+   - Después del éxito, comprobar una sola vez:
+     - si el paquete está en `localPackages` como `matched`
+     - si aparece en `activeMatches`
+   - Si no aparece, registrar exactamente qué condición lo excluye.
+3. Detectar si el cuello está en la pestaña Matches
+   - `AdminMatchingTab` hoy probablemente introduce latencia visible.
+   - Revisar especialmente:
+     - `expire_old_quotes()` en mount
+     - `fetchAssignments` al entrar
+     - recálculo de listas grandes
+   - Si el problema está ahí, mover trabajo no crítico a background o diferirlo.
+4. Detectar sobrescrituras de estado
+   - Auditar cuándo `packages` externos vuelven a pisar `localPackages`.
+   - Loggear cuándo actúan:
+     - `recentMatchRef`
+     - snapshot sync
+     - realtime admin hook
+   - Objetivo: saber si el paquete “hace match” y luego otra capa lo devuelve temporalmente atrás.
+5. Corregir con cambios mínimos y verificables
+   - Si el problema es UI:
+     - no cambiar de tab automáticamente hasta que el estado local esté asentado, o
+     - mostrar feedback inmediato sin depender de `AdminMatchingTab`
+   - Si el problema es sync:
+     - ampliar/ajustar la ventana de protección de mutaciones
+     - evitar resync agresivo justo tras un match
+   - Si el problema es carga:
+     - evitar que Matches dispare consultas pesadas al instante
 
-2. Separar “happy path” de “recovery path”
-   - Mantener defensas, pero solo para errores reales.
-   - Si el RPC responde bien, salir inmediatamente sin verificaciones extra.
-   - Si hay timeout/red caída, entonces sí activar polling de confirmación.
-   - Revisar que no haya segunda verificación redundante en `AdminDashboard` cuando `handleMatchPackage` ya recuperó el estado.
-
-3. Reducir coste visible del post-match en UI
-   - Evitar que el cambio automático a tab `matches` bloquee la percepción de rapidez.
-   - Mantener update local optimista del paquete y posponer cualquier refresco pesado.
-   - Revisar si `AdminMatchingTab` dispara un fetch de assignments innecesario justo al entrar.
-
-4. Afinar sincronización realtime/admin
-   - Consolidar la protección `recentMatchRef` / `recentMutationsRef` para que no haya sobrescrituras ni recomputaciones dobles.
-   - Evitar que snapshots o realtime fuercen renders extra en los primeros segundos tras el match.
-
-5. Revisar side effects secundarios
-   - Confirmar que `appendTripHistoryEntry`, WhatsApp y email sigan totalmente no bloqueantes.
-   - Si hace falta, mover historial y notificaciones a backend/trigger/edge function para desacoplarlos más del cliente.
+Qué construiría para arreglarlo rápido:
+- Un “debug trace” temporal del flujo de match con un solo `traceId`.
+- Un chequeo explícito de “DB ok / UI no ok”.
+- Un aislamiento del tab Matches para saber si el retraso real ocurre antes o después del RPC.
+- Luego un fix pequeño en la capa exacta culpable, no otro parche global.
 
 Resultado esperado:
-- Caso normal: 1–3s end-to-end.
-- Caso con red mala: sigue habiendo recuperación, pero solo entonces se paga el coste de timeout/polling.
-- Mejor trazabilidad para distinguir “RPC lento”, “respuesta perdida” y “UI lenta después del éxito”.
+- En 1 o 2 reproducciones sabremos si el bug es:
+  1. RPC/negocio,
+  2. recuperación,
+  3. navegación a Matches,
+  4. `fetchAssignments`,
+  5. realtime/snapshot overwrite.
+- Con eso, el arreglo deja de ser ensayo-error y pasa a ser quirúrgico.
 
-Detalles técnicos:
-```text
-Flujo ideal deseado:
-click
-  -> RPC assign_package_to_travelers
-  -> update local package status
-  -> cerrar modal / feedback inmediato
-  -> side effects asíncronos
-  -> refrescos no críticos en background
-
-Flujo actual sospechoso:
-click
-  -> RPC con retry/timeout
-  -> si falla o parece fallar: polling DB
-  -> dashboard vuelve a verificar
-  -> cambio de tab a matches
-  -> fetchAssignments + realtime/snapshots
-```
-
-Archivos a tocar:
+Archivos a inspeccionar/ajustar en la siguiente implementación:
 - `src/hooks/useDashboardActions.tsx`
 - `src/components/AdminDashboard.tsx`
-- `src/components/admin/AdminMatchDialog.tsx`
 - `src/components/admin/AdminMatchingTab.tsx`
-
-Enfoque recomendado:
-- Primero medir exactamente dónde se van esos minutos.
-- Después recortar solo el tramo culpable, no a ciegas.
-- Así preservamos la resiliencia sin aceptar esperas absurdas en el flujo normal.
+- opcionalmente `src/components/admin/AdminMatchDialog.tsx` si queremos capturar el click inicial con `traceId`
