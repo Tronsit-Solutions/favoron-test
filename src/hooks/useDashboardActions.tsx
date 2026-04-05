@@ -1,6 +1,6 @@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { withRetry } from '@/lib/supabaseWithRetry';
+
 import { useRef } from 'react';
 import { normalizeQuote, shouldRecalculateQuote, createNormalizedQuote } from '@/lib/quoteHelpers';
 import { usePlatformFeesContext } from "@/contexts/PlatformFeesContext";
