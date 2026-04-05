@@ -780,8 +780,8 @@ const AdminDashboard = ({
           );
           setLocalPackages(updatedPackages);
           
-          // Call the update action from dashboard actions (expects a single object)
-          onUpdatePackageProp({ id, ...updates });
+          // Return the async update so the modal can await the real save before refetching
+          return onUpdatePackageProp({ id, ...updates });
         }}
       />
 

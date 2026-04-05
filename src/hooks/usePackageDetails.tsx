@@ -8,37 +8,17 @@ interface PackageDetails {
   tracking_info?: any;
   office_delivery?: any;
   quote?: any;
+  purchase_origin?: string;
+  package_destination?: string;
+  package_destination_country?: string | null;
+  additional_notes?: string | null;
+  item_description?: string;
+  item_link?: string | null;
+  estimated_price?: number | null;
+  delivery_deadline?: string;
+  status?: string;
 }
-
-interface UsePackageDetailsReturn {
-  details: PackageDetails | null;
-  loading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
-}
-
-/**
- * Hook for loading heavy package details on-demand
- * Only fetches JSONB fields when needed (e.g., when opening detail modals)
- */
-export const usePackageDetails = (packageId: string | null): UsePackageDetailsReturn => {
-  const [details, setDetails] = useState<PackageDetails | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchDetails = async () => {
-    if (!packageId) {
-      setDetails(null);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setDetails(null);
-
-    try {
-      console.log('🔄 Loading package details on-demand for:', packageId);
-      
+...
       const { data, error: fetchError } = await supabase
         .from('packages')
         .select(`
@@ -47,7 +27,16 @@ export const usePackageDetails = (packageId: string | null): UsePackageDetailsRe
           purchase_confirmation,
           tracking_info,
           office_delivery,
-          quote
+          quote,
+          purchase_origin,
+          package_destination,
+          package_destination_country,
+          additional_notes,
+          item_description,
+          item_link,
+          estimated_price,
+          delivery_deadline,
+          status
         `)
         .eq('id', packageId)
         .single();

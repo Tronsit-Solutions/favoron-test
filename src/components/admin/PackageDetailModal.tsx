@@ -814,45 +814,51 @@ const [editForm, setEditForm] = useState({
   };
 
   // Handle save changes
-  const handleSaveChanges = () => {
-    if (onUpdatePackage) {
-      // Normalize products to save
-      const normalizedProducts = editProducts.map(product => ({
-        ...product, // Preserve fields not being edited (adminAssignedTip, requestType, etc.)
-        itemDescription: product.itemDescription?.trim() || '',
-        estimatedPrice: product.estimatedPrice?.toString() || '0',
-        quantity: product.quantity?.toString() || '1',
-        itemLink: product.itemLink?.trim() || null,
-        additionalNotes: product.additionalNotes?.trim() || null,
-        weight: product.weight?.trim() || null
-      }));
-
-      // Calculate total price from individual products
-      const totalPrice = normalizedProducts.reduce((sum, p) => 
-        sum + ((parseFloat(p.estimatedPrice) || 0) * (parseInt(p.quantity) || 1)), 0
-      );
-      
-      // Generate auto description for package
-      const autoDescription = normalizedProducts.length > 1
-        ? `Pedido de ${normalizedProducts.length} productos: ${normalizedProducts.map(p => p.itemDescription?.substring(0, 30)).join(', ')}`
-        : normalizedProducts[0]?.itemDescription || '';
-
-      const updates = {
-        products_data: normalizedProducts,
-        item_description: autoDescription,
-        item_link: normalizedProducts[0]?.itemLink || null, // First link for legacy field
-        estimated_price: totalPrice,
-        purchase_origin: editForm.purchase_origin,
-        package_destination: editForm.package_destination,
-        package_destination_country: selectedDestinationCountry || inferCountryFromCity(editForm.package_destination) || null,
-        additional_notes: editForm.additional_notes?.trim() || null
-      };
-      
-      onUpdatePackage(pkg.id, updates);
-      refetchPackageDetails();
-      loadAssignments();
+  const handleSaveChanges = async () => {
+    if (!onUpdatePackage) {
+      setEditMode(false);
+      return;
     }
-    setEditMode(false);
+
+    // Normalize products to save
+    const normalizedProducts = editProducts.map(product => ({
+      ...product, // Preserve fields not being edited (adminAssignedTip, requestType, etc.)
+      itemDescription: product.itemDescription?.trim() || '',
+      estimatedPrice: product.estimatedPrice?.toString() || '0',
+      quantity: product.quantity?.toString() || '1',
+      itemLink: product.itemLink?.trim() || null,
+      additionalNotes: product.additionalNotes?.trim() || null,
+      weight: product.weight?.trim() || null
+    }));
+
+    // Calculate total price from individual products
+    const totalPrice = normalizedProducts.reduce((sum, p) => 
+      sum + ((parseFloat(p.estimatedPrice) || 0) * (parseInt(p.quantity) || 1)), 0
+    );
+    
+    // Generate auto description for package
+    const autoDescription = normalizedProducts.length > 1
+      ? `Pedido de ${normalizedProducts.length} productos: ${normalizedProducts.map(p => p.itemDescription?.substring(0, 30)).join(', ')}`
+      : normalizedProducts[0]?.itemDescription || '';
+
+    const updates = {
+      products_data: normalizedProducts,
+      item_description: autoDescription,
+      item_link: normalizedProducts[0]?.itemLink || null, // First link for legacy field
+      estimated_price: totalPrice,
+      purchase_origin: editForm.purchase_origin,
+      package_destination: editForm.package_destination,
+      package_destination_country: selectedDestinationCountry || inferCountryFromCity(editForm.package_destination) || null,
+      additional_notes: editForm.additional_notes?.trim() || null
+    };
+
+    try {
+      await Promise.resolve(onUpdatePackage(pkg.id, updates));
+      await Promise.all([refetchPackageDetails(), loadAssignments()]);
+      setEditMode(false);
+    } catch (error) {
+      console.error('Error saving package changes:', error);
+    }
   };
 
   // Handle inline notes save (quick edit without full modal edit mode)
