@@ -1374,7 +1374,7 @@ export const useDashboardActions = (
       })).catch(err => console.error('Post-match side effects error:', err));
     }, 0);
 
-    return rpcResult;
+    // Don't return rpcResult to keep Promise<void> signature
   };
 
   const handleStatusUpdate = async (type: 'package' | 'trip', id: string, status: string) => {
