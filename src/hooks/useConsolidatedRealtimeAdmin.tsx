@@ -44,6 +44,16 @@ export const useConsolidatedRealtimeAdmin = ({
   const applyIncrementalUpdate = useCallback((update: ConsolidatedRealtimeUpdate) => {
     const { type, data, eventType } = update;
     
+    // Skip updates for recently mutated packages to prevent Realtime overwrites
+    if (type === 'package' && recentMutationsRef?.current) {
+      const packageId = data.new?.id || data.old?.id;
+      const mutatedAt = packageId ? recentMutationsRef.current[packageId] : undefined;
+      if (mutatedAt && Date.now() - mutatedAt < 2000) {
+        console.log(`🛡️ Skipping Realtime update for recently mutated package ${packageId}`);
+        return;
+      }
+    }
+    
     console.log(`🔄 Applying incremental ${type} update:`, eventType);
 
     if (type === 'package' && onPackageUpdate) {
