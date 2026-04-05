@@ -861,23 +861,34 @@ const AdminMatchDialog = ({
   const [isSubmittingMatch, setIsSubmittingMatch] = useState(false);
 
   const handleMatch = async () => {
-    if (selectedTripIds.size > 0 && !isSubmittingMatch) {
-      setIsSubmittingMatch(true);
-      try {
-        const tipAmount = getTotalAssignedTip();
-        const tripIdsArray = Array.from(selectedTripIds);
-        // Invalidate cache for matched trips
-        for (const tid of tripIdsArray) {
-          travelerDataCacheRef.current.delete(tid);
-        }
-        if (isMultiProductOrder()) {
-          await onMatch(tipAmount, assignedProductsWithTips, tripIdsArray);
-        } else {
-          await onMatch(tipAmount, undefined, tripIdsArray);
-        }
-      } finally {
-        setIsSubmittingMatch(false);
+    console.log(`🔵 [MATCH] handleMatch CALLED | trips=${selectedTripIds.size} | tip=${getTotalAssignedTip()} | submitting=${isSubmittingMatch} | pkg=${selectedPackage?.id}`);
+    if (selectedTripIds.size === 0) {
+      console.log(`🔴 [MATCH] Aborted: no trips selected`);
+      return;
+    }
+    if (isSubmittingMatch) {
+      console.log(`🔴 [MATCH] Aborted: already submitting`);
+      return;
+    }
+    setIsSubmittingMatch(true);
+    try {
+      const tipAmount = getTotalAssignedTip();
+      const tripIdsArray = Array.from(selectedTripIds);
+      console.log(`🟢 [MATCH] Calling onMatch tip=${tipAmount} trips=${tripIdsArray.join(',')}`);
+      // Invalidate cache for matched trips
+      for (const tid of tripIdsArray) {
+        travelerDataCacheRef.current.delete(tid);
       }
+      if (isMultiProductOrder()) {
+        await onMatch(tipAmount, assignedProductsWithTips, tripIdsArray);
+      } else {
+        await onMatch(tipAmount, undefined, tripIdsArray);
+      }
+      console.log(`🟢 [MATCH] onMatch resolved successfully`);
+    } catch (err) {
+      console.error(`🔴 [MATCH] onMatch error:`, err);
+    } finally {
+      setIsSubmittingMatch(false);
     }
   };
 
@@ -897,15 +908,46 @@ const AdminMatchDialog = ({
            (selectedPackage?.profiles?.prime_expires_at && new Date(selectedPackage.profiles.prime_expires_at) > new Date());
   };
 
-  const handleCloseDialog = () => {
-    closeModal(MODAL_ID);
-    setShowMatchDialog(false);
+  const handleCloseDialog = (open: boolean) => {
+    if (!open && isSubmittingMatch) {
+      console.log(`🛡️ [MATCH] Dialog closure BLOCKED during submission`);
+      return;
+    }
+    if (!open) {
+      console.log(`🚪 [MATCH] Dialog closing via onOpenChange`);
+      closeModal(MODAL_ID);
+      setShowMatchDialog(false);
+    }
   };
 
   return (
     <>
     <Dialog open={showMatchDialog} onOpenChange={handleCloseDialog}>
-      <DialogContent className="w-[98vw] max-w-5xl h-[98vh] sm:h-[95vh] overflow-hidden flex flex-col p-2 sm:p-4">
+      <DialogContent 
+        className="w-[98vw] max-w-5xl h-[98vh] sm:h-[95vh] overflow-hidden flex flex-col p-2 sm:p-4"
+        onEscapeKeyDown={(e) => {
+          if (isSubmittingMatch) {
+            e.preventDefault();
+            console.log(`🛡️ [MATCH] Escape BLOCKED during submission`);
+          }
+        }}
+        onPointerDownOutside={(e) => {
+          if (isSubmittingMatch) {
+            e.preventDefault();
+            console.log(`🛡️ [MATCH] Outside click BLOCKED during submission`);
+          }
+          // Preserve existing Google Places Autocomplete fix
+          const target = e.target as HTMLElement;
+          if (target?.closest('.pac-container')) {
+            e.preventDefault();
+          }
+        }}
+        onInteractOutside={(e) => {
+          if (isSubmittingMatch) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader className="pb-4 border-b">
           <DialogTitle className="text-xl font-semibold flex items-center space-x-2">
             <Zap className="h-5 w-5 text-primary" />
@@ -1867,8 +1909,13 @@ const AdminMatchDialog = ({
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => setShowMatchDialog(false)}
+                onClick={() => {
+                  console.log(`🚪 [MATCH] Cancel button clicked`);
+                  closeModal(MODAL_ID);
+                  setShowMatchDialog(false);
+                }}
                 className="px-8 h-11"
+                disabled={isSubmittingMatch}
               >
                 Cancelar
               </Button>
