@@ -1,48 +1,41 @@
 
 
-## Fix: Cambios de admin en viajes no se reflejan para el viajero sin hard refresh
+## Plan: Optimizar carga de datos del viajero en AdminMatchDialog
 
-### Causa raíz
+### Problema
 
-El hook `useOptimizedTripsData` (que usa el viajero) cachea los datos de viajes con un TTL de 30 segundos y no tiene suscripción en tiempo real a cambios en la tabla `trips`. Cuando el admin edita un viaje desde `AdminDashboard`, solo se llama `refreshAdminData()` que actualiza la vista del admin. El viajero no recibe ninguna señal de que sus datos cambiaron.
+Cuando el admin selecciona un viajero en el diálogo de match, se ejecutan **3 rondas secuenciales** de queries a Supabase:
+
+1. **Ronda 1** (paralela): 4 queries — referral, direct packages, bidding assignments, all assignments
+2. **Ronda 2** (secuencial): fetch del perfil del referidor + fetch de bidding packages faltantes
+3. **Ronda 3** (secuencial): fetch de packages faltantes para la sección de asignaciones
+
+Cada ronda agrega ~200-500ms de latencia de red. Total: hasta 1.5s+ solo en red, sin contar procesamiento.
 
 ### Solución
 
-Agregar una suscripción de Supabase Realtime en `useOptimizedTripsData` que escuche cambios (`UPDATE`) en la tabla `trips` filtrados por el `user_id` del viajero. Cuando se detecte un cambio, invalidar el cache y refrescar los datos automáticamente.
+Reorganizar las queries para eliminar las rondas secuenciales:
 
-### Cambios
+**Archivo: `src/components/admin/AdminMatchDialog.tsx` (~líneas 632-770)**
 
-**Archivo: `src/hooks/useOptimizedTripsData.tsx`**
+1. **Mover el fetch del referrer profile a la Ronda 1**: En lugar de esperar el resultado de `referralResult` para luego hacer otro query, hacer el fetch del perfil del referidor directamente en paralelo usando un approach de "fetch all referrer profiles" o simplemente moverlo al batch inicial con un join.
 
-Agregar un `useEffect` con suscripción Realtime:
+2. **Combinar los fetches de packages faltantes (Rondas 2 y 3)**: Actualmente se hacen dos queries separadas para `missingBiddingIds` y `missingAssignPkgIds`. Unificarlos en un solo query con todos los IDs faltantes combinados.
 
-```typescript
-useEffect(() => {
-  if (!userId) return;
+3. **Resultado**: De 3 rondas secuenciales → máximo 2 rondas (la primera paralela con todo lo posible, la segunda solo para packages que no están en memoria).
 
-  const channel = supabase
-    .channel(`trips-realtime-${userId}`)
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'trips',
-      filter: `user_id=eq.${userId}`
-    }, (payload) => {
-      console.log('✈️ Realtime trip update received:', payload.eventType);
-      refreshCache();
-    })
-    .subscribe();
+### Cambio técnico
 
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}, [userId, refreshCache]);
+```text
+ANTES:
+  Ronda 1: [referral, directPkgs, biddingAssigns, allAssigns]  (paralelo)
+  Ronda 2: referrerProfile + biddingPkgs                        (secuencial)  
+  Ronda 3: assignmentPkgs                                       (secuencial)
+
+DESPUÉS:
+  Ronda 1: [referral+profile(join), directPkgs, biddingAssigns, allAssigns]  (paralelo)
+  Ronda 2: [allMissingPkgs]  (un solo query combinando bidding + assignment IDs)
 ```
 
-Esto es todo lo que se necesita. Cuando el admin guarda cambios en un viaje, Supabase emite el evento, el hook del viajero lo recibe, refresca el cache, y los datos se actualizan sin necesidad de reload.
-
-### Resultado esperado
-- Admin edita viaje → viajero ve los cambios en ~1-2 segundos sin refresh
-- Sin impacto en performance (un solo canal por usuario)
-- Compatible con el sistema de cache existente
+Esto debería reducir la latencia total en ~30-50%.
 
