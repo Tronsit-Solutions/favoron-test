@@ -1840,7 +1840,15 @@ const AdminMatchDialog = ({
               <Button 
                 onClick={handleMatch} 
                 className="flex-1 sm:flex-none sm:w-auto h-11"
-                disabled={selectedTripIds.size === 0 || getTotalAssignedTip() <= 0 || isSubmittingMatch}
+                disabled={(() => {
+                  const noTrips = selectedTripIds.size === 0;
+                  const noTip = getTotalAssignedTip() <= 0;
+                  const disabled = noTrips || noTip || isSubmittingMatch;
+                  if (disabled) {
+                    console.log(`[MATCH-BTN] disabled=${disabled} | noTrips=${noTrips} | noTip=${noTip} (tip=${getTotalAssignedTip()}) | submitting=${isSubmittingMatch} | multiProduct=${isMultiProductOrder()} | assignedProducts=${assignedProductsWithTips.length}`);
+                  }
+                  return disabled;
+                })()}
                 variant="shopper"
               >
                 {isSubmittingMatch ? (
