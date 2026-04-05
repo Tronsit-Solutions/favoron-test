@@ -19,6 +19,7 @@ interface ConsolidatedRealtimeProps {
   trips?: any[];
   userRole?: 'admin' | 'traveler' | 'shopper';
   enabled?: boolean;
+  recentMutationsRef?: React.MutableRefObject<Record<string, number>>;
 }
 
 export const useConsolidatedRealtimeAdmin = ({
@@ -28,7 +29,8 @@ export const useConsolidatedRealtimeAdmin = ({
   packages = [],
   trips = [],
   userRole = 'admin',
-  enabled = true
+  enabled = true,
+  recentMutationsRef
 }: ConsolidatedRealtimeProps) => {
   const { user } = useAuth();
   const { canRefresh, hasOpenModals } = useModalProtection();
@@ -41,6 +43,16 @@ export const useConsolidatedRealtimeAdmin = ({
   // Process incremental updates without full refresh using functional updates
   const applyIncrementalUpdate = useCallback((update: ConsolidatedRealtimeUpdate) => {
     const { type, data, eventType } = update;
+    
+    // Skip updates for recently mutated packages to prevent Realtime overwrites
+    if (type === 'package' && recentMutationsRef?.current) {
+      const packageId = data.new?.id || data.old?.id;
+      const mutatedAt = packageId ? recentMutationsRef.current[packageId] : undefined;
+      if (mutatedAt && Date.now() - mutatedAt < 2000) {
+        console.log(`🛡️ Skipping Realtime update for recently mutated package ${packageId}`);
+        return;
+      }
+    }
     
     console.log(`🔄 Applying incremental ${type} update:`, eventType);
 
@@ -82,7 +94,7 @@ export const useConsolidatedRealtimeAdmin = ({
         return updatedTrips;
       });
     }
-  }, [onPackageUpdate, onTripUpdate, onIncrement]);
+  }, [onPackageUpdate, onTripUpdate, onIncrement, recentMutationsRef]);
 
   // Process queued updates when modals close
   const processQueuedUpdates = useCallback(() => {

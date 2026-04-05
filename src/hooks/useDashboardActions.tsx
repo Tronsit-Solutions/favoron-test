@@ -1307,7 +1307,7 @@ export const useDashboardActions = (
       return dbPkg?.status === 'matched' || dbPkg?.status === 'quote_sent';
     };
 
-    const waitForMatchConfirmation = async (timeoutMs = 12000, intervalMs = 1200) => {
+    const waitForMatchConfirmation = async (timeoutMs = 6000, intervalMs = 800) => {
       const startedAt = Date.now();
       while (Date.now() - startedAt < timeoutMs) {
         if (await verifyPackageMatched()) return true;
@@ -1316,7 +1316,7 @@ export const useDashboardActions = (
       return false;
     };
 
-    const rpcTimeoutMs = 12000;
+    const rpcTimeoutMs = 8000;
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('MATCH_TIMEOUT')), rpcTimeoutMs)
     );
@@ -1336,7 +1336,7 @@ export const useDashboardActions = (
           return res.data;
         },
         'assign_package_to_travelers',
-        { maxRetries: 1, baseDelay: 2000 }
+        { maxRetries: 1, baseDelay: 500 }
       );
 
       rpcResult = await Promise.race([rpcPromise, timeoutPromise]);
@@ -1360,7 +1360,7 @@ export const useDashboardActions = (
       } else if (rpcError.message?.includes('NO_NEW_TRIPS')) {
         // NO_NEW_TRIPS means all travelers already have active assignments.
         // This often happens when a previous attempt succeeded but the response was lost.
-        const confirmed = await waitForMatchConfirmation(5000, 1000);
+        const confirmed = await waitForMatchConfirmation(3000, 800);
         if (confirmed) {
           console.log('✅ Package already matched in DB — treating as success (recovered from lost response)');
           rpcResult = { assigned_trip_ids: tripIdsToAssign, recovered: true };
@@ -1373,7 +1373,7 @@ export const useDashboardActions = (
           throw rpcError;
         }
       } else {
-        const confirmed = await waitForMatchConfirmation(4000, 1000);
+        const confirmed = await waitForMatchConfirmation(3000, 800);
         if (confirmed) {
           console.log('✅ Package matched in DB despite RPC error');
           rpcResult = { assigned_trip_ids: tripIdsToAssign, recovered: true };
