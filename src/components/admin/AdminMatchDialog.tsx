@@ -1909,8 +1909,13 @@ const AdminMatchDialog = ({
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => setShowMatchDialog(false)}
+                onClick={() => {
+                  console.log(`🚪 [MATCH] Cancel button clicked`);
+                  closeModal(MODAL_ID);
+                  setShowMatchDialog(false);
+                }}
                 className="px-8 h-11"
+                disabled={isSubmittingMatch}
               >
                 Cancelar
               </Button>
