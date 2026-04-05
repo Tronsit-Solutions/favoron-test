@@ -1,41 +1,37 @@
 
 
-## Plan: Optimizar carga de datos del viajero en AdminMatchDialog
+## Plan revisado: Optimizar tiempos sin eliminar protecciones
 
-### Problema
+### Problema real
 
-Cuando el admin selecciona un viajero en el diálogo de match, se ejecutan **3 rondas secuenciales** de queries a Supabase:
+Las protecciones son necesarias, pero los tiempos son excesivos:
+- Retry delay: 2000ms → debería ser 500ms
+- RPC timeout: 12000ms → debería ser 8000ms  
+- Polling: 12000ms con intervalos de 1200ms → 6000ms con intervalos de 800ms
+- Branch genérico: polling 4000ms → 3000ms
 
-1. **Ronda 1** (paralela): 4 queries — referral, direct packages, bidding assignments, all assignments
-2. **Ronda 2** (secuencial): fetch del perfil del referidor + fetch de bidding packages faltantes
-3. **Ronda 3** (secuencial): fetch de packages faltantes para la sección de asignaciones
+### Cambios
 
-Cada ronda agrega ~200-500ms de latencia de red. Total: hasta 1.5s+ solo en red, sin contar procesamiento.
+**Archivo: `src/hooks/useDashboardActions.tsx`**
 
-### Solución
+1. Reducir `baseDelay` de `withRetry` de 2000 a 500 (línea ~1339)
+2. Reducir `rpcTimeoutMs` de 12000 a 8000 (línea ~1319)
+3. Reducir `waitForMatchConfirmation` default timeout de 12000 a 6000 e intervalo de 1200 a 800 (línea ~1310)
+4. Reducir timeout del branch `NO_NEW_TRIPS` de 5000 a 3000 (línea ~1363)
+5. Reducir timeout del branch genérico de 4000 a 3000 (línea ~1376)
 
-Reorganizar las queries para eliminar las rondas secuenciales:
+**Archivo: `src/hooks/useConsolidatedRealtimeAdmin.tsx`**
 
-**Archivo: `src/components/admin/AdminMatchDialog.tsx` (~líneas 632-770)**
+6. Agregar `recentMutationsRef` para ignorar eventos Realtime de paquetes mutados en los últimos 2s (evita overwrites post-match)
 
-1. **Mover el fetch del referrer profile a la Ronda 1**: En lugar de esperar el resultado de `referralResult` para luego hacer otro query, hacer el fetch del perfil del referidor directamente en paralelo usando un approach de "fetch all referrer profiles" o simplemente moverlo al batch inicial con un join.
+**Archivo: `src/components/AdminDashboard.tsx`**
 
-2. **Combinar los fetches de packages faltantes (Rondas 2 y 3)**: Actualmente se hacen dos queries separadas para `missingBiddingIds` y `missingAssignPkgIds`. Unificarlos en un solo query con todos los IDs faltantes combinados.
+7. Crear y pasar `recentMutationsRef`, registrar packageId al iniciar match
 
-3. **Resultado**: De 3 rondas secuenciales → máximo 2 rondas (la primera paralela con todo lo posible, la segunda solo para packages que no están en memoria).
+### Resultado
 
-### Cambio técnico
-
-```text
-ANTES:
-  Ronda 1: [referral, directPkgs, biddingAssigns, allAssigns]  (paralelo)
-  Ronda 2: referrerProfile + biddingPkgs                        (secuencial)  
-  Ronda 3: assignmentPkgs                                       (secuencial)
-
-DESPUÉS:
-  Ronda 1: [referral+profile(join), directPkgs, biddingAssigns, allAssigns]  (paralelo)
-  Ronda 2: [allMissingPkgs]  (un solo query combinando bidding + assignment IDs)
-```
-
-Esto debería reducir la latencia total en ~30-50%.
+- Peor caso: de ~26s a ~14s
+- Caso normal (red estable): ~100-300ms (sin cambios, el RPC responde rápido)
+- Caso red lenta: retry a 500ms en vez de 2s
+- Sin riesgo de UI colgado o matches fantasma
 
