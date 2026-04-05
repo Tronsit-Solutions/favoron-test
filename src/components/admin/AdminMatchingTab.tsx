@@ -86,55 +86,27 @@ const AdminMatchingTab = ({
   const isMobile = useIsMobile();
   const { hasMessages } = usePackageMessageCounts();
 
-  // One-time server-side cleanup of old quotes
-  useEffect(() => {
-    const cleanupOldQuotes = async () => {
-      try {
-        const { error } = await supabase.rpc('expire_old_quotes');
-        if (error) {
-          console.warn('Error cleaning up old quotes:', error);
-        } else {
-          console.log('✅ Old quotes cleanup completed');
-        }
-      } catch (error) {
-        console.warn('Error during quote cleanup:', error);
-      }
-    };
-    
-    cleanupOldQuotes();
-  }, []);
-
-  // Fetch package_assignments scoped to relevant packages only
+  // Lazy-load assignments only when the "matches" tab is active
   const [assignmentsMap, setAssignmentsMap] = useState<{ [packageId: string]: { count: number; assignments: any[] } }>({});
+  const assignmentsFetchedForTab = useRef<string | null>(null);
 
-  // Compute relevant package IDs: packages that could have active assignments
+  // Compute relevant package IDs for assignments (only needed for matches tab)
   const relevantPackageIds = useMemo(() => {
+    if (currentTab !== 'matches') return [];
     return packages
       .filter(p => 
         ['matched', 'quote_sent', 'approved', 'quote_rejected'].includes(p.status) ||
         (!p.matched_trip_id && p.status !== 'delivered' && p.status !== 'cancelled' && p.status !== 'rejected')
       )
       .map(p => p.id);
-  }, [packages]);
-
-  // Stable key to avoid refetching on unrelated package changes
-  const packageIdsKey = useMemo(() => 
-    relevantPackageIds.slice().sort().join(','), 
-    [relevantPackageIds]
-  );
-
-  // Debounced fetch to collapse rapid state updates
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  }, [currentTab === 'matches' ? packages : null, currentTab]);
 
   const fetchAssignments = useCallback(async (ids: string[]) => {
-    const ft0 = performance.now();
-    console.log(`⏱️ [MATCHING-TAB] fetchAssignments START ids=${ids.length}`);
     if (ids.length === 0) {
       setAssignmentsMap({});
       return;
     }
     try {
-      // Supabase .in() has a practical limit; chunk if needed
       const chunkSize = 200;
       const allData: any[] = [];
       for (let i = 0; i < ids.length; i += chunkSize) {
@@ -156,22 +128,17 @@ const AdminMatchingTab = ({
         map[assignment.package_id].assignments.push(assignment);
       });
       setAssignmentsMap(map);
-      console.log(`⏱️ [MATCHING-TAB] fetchAssignments DONE in ${(performance.now() - ft0).toFixed(0)}ms, assignments=${allData.length}, packages=${Object.keys(map).length}`);
     } catch (err) {
-      console.warn(`⏱️ [MATCHING-TAB] fetchAssignments ERROR in ${(performance.now() - ft0).toFixed(0)}ms:`, err);
+      console.warn('[MATCHING-TAB] fetchAssignments error:', err);
     }
   }, []);
 
+  // Only fetch assignments when switching TO the matches tab
   useEffect(() => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
-      console.log(`⏱️ [MATCHING-TAB] debounce fired, relevantPackageIds=${relevantPackageIds.length}`);
+    if (currentTab === 'matches' && relevantPackageIds.length > 0) {
       fetchAssignments(relevantPackageIds);
-    }, 300);
-    return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    };
-  }, [packageIdsKey, fetchAssignments, relevantPackageIds]);
+    }
+  }, [currentTab, relevantPackageIds, fetchAssignments]);
 
   // Multi-assigned package IDs (packages with assignments but no matched_trip_id)
   const multiAssignedPackageIds = useMemo(() => {
