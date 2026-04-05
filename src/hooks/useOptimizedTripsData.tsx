@@ -89,6 +89,28 @@ export const useOptimizedTripsData = () => {
     setLoading(cacheLoading);
   }, [cachedTrips, cacheLoading]);
 
+  // Real-time subscription for trip updates (e.g. admin edits)
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`trips-realtime-${userId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'trips',
+        filter: `user_id=eq.${userId}`
+      }, (payload) => {
+        console.log('✈️ Realtime trip update received:', payload.eventType);
+        refreshCache();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, refreshCache]);
+
   const createTrip = useCallback(async (tripData: TripInsert) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
