@@ -1336,7 +1336,7 @@ export const useDashboardActions = (
           return res.data;
         },
         'assign_package_to_travelers',
-        { maxRetries: 1, baseDelay: 2000 }
+        { maxRetries: 1, baseDelay: 500 }
       );
 
       rpcResult = await Promise.race([rpcPromise, timeoutPromise]);
