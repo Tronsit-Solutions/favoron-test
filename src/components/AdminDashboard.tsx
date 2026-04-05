@@ -315,7 +315,7 @@ const AdminDashboard = ({
                 description: "El paquete fue asignado correctamente.",
               });
               setActiveTab("matching");
-              onMatchingTabChange?.("active");
+              onMatchingTabChange?.("matches");
               return;
             }
           } catch (syncError) {
