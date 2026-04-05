@@ -180,47 +180,30 @@ const AdminDashboard = ({
     const matchPackageId = selectedPackage.id;
     const isMultiProduct = productsWithTips && productsWithTips.length > 1;
 
-    // Mark as in-progress and close modal
-    setMatchingPackageIds(prev => new Set(prev).add(matchPackageId));
+    // Close modal immediately
     setSelectedPackage(null);
     setMatchingTrip("");
     setShowMatchDialog(false);
 
-    onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds)
-      .then(() => {
-        // Update local state
-        setLocalPackages(prev => prev.map(pkg => 
-          pkg.id === matchPackageId ? { ...pkg, status: 'matched', updated_at: new Date().toISOString() } : pkg
-        ));
+    try {
+      await onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds);
 
-        // Protect from stale Realtime overwrites
-        recentMatchRef.current[matchPackageId] = Date.now();
-        setTimeout(() => { delete recentMatchRef.current[matchPackageId]; }, 3500);
+      // Optimistic local update
+      setLocalPackages(prev => prev.map(pkg => 
+        pkg.id === matchPackageId ? { ...pkg, status: 'matched', updated_at: new Date().toISOString() } : pkg
+      ));
 
-        toast({
-          title: "¡Match exitoso!",
-          description: tripIds.length > 1
-            ? `Paquete asignado a ${tripIds.length} viajeros.`
-            : isMultiProduct 
-              ? `Paquete emparejado con tips por producto (Total: Q${adminTip})`
-              : `Paquete emparejado con tip de Q${adminTip}`,
-        });
-
-        requestAnimationFrame(() => {
-          setActiveTab("matching");
-          onMatchingTabChange?.("matches");
-        });
-      })
-      .catch((error) => {
-        console.error('[DASH] Match FAILED:', error?.message);
-      })
-      .finally(() => {
-        setMatchingPackageIds(prev => {
-          const next = new Set(prev);
-          next.delete(matchPackageId);
-          return next;
-        });
+      toast({
+        title: "¡Match exitoso!",
+        description: tripIds.length > 1
+          ? `Paquete asignado a ${tripIds.length} viajeros.`
+          : isMultiProduct 
+            ? `Paquete emparejado con tips por producto (Total: Q${adminTip})`
+            : `Paquete emparejado con tip de Q${adminTip}`,
       });
+    } catch (error: any) {
+      console.error('[DASH] Match FAILED:', error?.message);
+    }
   };
 
   const handleOpenMatchDialog = (pkg: any) => {
