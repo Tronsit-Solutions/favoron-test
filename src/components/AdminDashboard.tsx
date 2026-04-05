@@ -181,10 +181,17 @@ const AdminDashboard = ({
         );
         
         if (protectedIds.size > 0) {
-          console.log('🛡️ Protecting recently matched packages from stale sync:', [...protectedIds]);
+          console.log('🛡️ [SYNC] Protecting recently matched packages from stale sync:', [...protectedIds]);
           setLocalPackages(prev => {
             const protectedPkgs = prev.filter(p => protectedIds.has(p.id));
             const incomingFiltered = packages.filter(p => !protectedIds.has(p.id));
+            // Log what's being protected vs overwritten
+            protectedPkgs.forEach(p => {
+              const incoming = packages.find(ip => ip.id === p.id);
+              if (incoming && incoming.status !== p.status) {
+                console.log(`🛡️ [SYNC] BLOCKED overwrite: pkg=${p.id.slice(0,8)} local=${p.status} → incoming=${incoming.status}`);
+              }
+            });
             return [...incomingFiltered, ...protectedPkgs];
           });
         } else {
@@ -197,7 +204,7 @@ const AdminDashboard = ({
     } else {
       // Modals open - save to pending snapshot only if data is meaningful
       if (packages.length > 0 || trips.length > 0) {
-        console.log('💾 Modals open - saving to pending snapshot:', {
+        console.log('💾 [SYNC] Modals open - saving to pending snapshot:', {
           packages: packages.length,
           trips: trips.length,
           currentTab: activeTab

@@ -127,6 +127,8 @@ const AdminMatchingTab = ({
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchAssignments = useCallback(async (ids: string[]) => {
+    const ft0 = performance.now();
+    console.log(`⏱️ [MATCHING-TAB] fetchAssignments START ids=${ids.length}`);
     if (ids.length === 0) {
       setAssignmentsMap({});
       return;
@@ -154,14 +156,16 @@ const AdminMatchingTab = ({
         map[assignment.package_id].assignments.push(assignment);
       });
       setAssignmentsMap(map);
+      console.log(`⏱️ [MATCHING-TAB] fetchAssignments DONE in ${(performance.now() - ft0).toFixed(0)}ms, assignments=${allData.length}, packages=${Object.keys(map).length}`);
     } catch (err) {
-      console.warn('Error fetching package assignments:', err);
+      console.warn(`⏱️ [MATCHING-TAB] fetchAssignments ERROR in ${(performance.now() - ft0).toFixed(0)}ms:`, err);
     }
   }, []);
 
   useEffect(() => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
+      console.log(`⏱️ [MATCHING-TAB] debounce fired, relevantPackageIds=${relevantPackageIds.length}`);
       fetchAssignments(relevantPackageIds);
     }, 300);
     return () => {
