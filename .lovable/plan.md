@@ -1,95 +1,68 @@
 
+Objetivo: volver el match a la sensación “instantánea” que tenía antes del multiassignment, sin quitar la arquitectura de `package_assignments`.
 
-## Plan: Simplificar completamente el flujo de match
+Diagnóstico de código
+- El RPC principal ya está simplificado: `src/hooks/useDashboardActions.tsx` solo llama `assign_package_to_travelers`.
+- El cuello de botella ahora no parece ser el RPC, sino la capa de UI/lectura añadida con multiassignment:
+  - `src/components/admin/AdminMatchingTab.tsx` ejecuta `expire_old_quotes()` al montar.
+  - Ese mismo componente hace fetch global de `package_assignments` para muchos paquetes “relevantes”, con debounce, cada vez que cambia `packages`.
+  - El tab “pending” sigue cargando lógica de multiassignment aunque para confirmar un match solo necesitamos: actualizar `packages.status = 'matched'` y crear filas en `package_assignments`.
+  - `src/components/admin/AdminMatchDialog.tsx` mantiene hidratación pesada de datos de viajeros/asignaciones que no es necesaria para cerrar el match.
 
-### Problema
-Aunque el RPC `assign_package_to_travelers` es rápido (~100ms), el flujo completo tarda ~30s por capas de protección innecesarias en el cliente:
-- `matchingPackageIds` Set con tracking visual
-- `recentMatchRef` con protección anti-stale de 3.5s
-- Snapshot/pending sync con `processQueuedUpdates` y delays de 200ms
-- Navegación automática a tab "matches" con `requestAnimationFrame`
-- La sincronización `useEffect` en AdminDashboard tiene 6 dependencias y múltiples branches que disparan re-renders en cascada
+Plan de implementación
+1. Separar completamente el flujo “Pendientes” del flujo “Matches”
+- En `AdminMatchingTab.tsx`, el tab `pending` dejará de depender de `assignmentsMap`.
+- “Pendientes” se calculará solo desde `packages` por estado.
+- La carga de `package_assignments` pasará a ser lazy y solo ocurrirá cuando el admin entre al tab `matches`.
 
-### Cambios
+2. Quitar el trabajo global del render de matching
+- Eliminar `supabase.rpc('expire_old_quotes')` del montaje de `AdminMatchingTab`.
+- Ese cleanup debe salir del render-path del admin; lo moveré a un mecanismo manual/background para que no compita con el match.
+- También eliminaré el fetch global/debounced de asignaciones mientras el admin está en `matching=pending`.
 
-**1. `src/components/AdminDashboard.tsx` — Simplificar `handleMatch`**
+3. Hacer que el match solo haga la operación mínima visible
+- Mantener el RPC `assign_package_to_travelers` como operación atómica única.
+- Tras éxito:
+  - cerrar modal,
+  - marcar el paquete localmente como `matched`,
+  - quitarlo de “Pendientes” de inmediato,
+  - no disparar refresh global del dashboard,
+  - no esperar a hidratar `package_assignments`.
 
-Reducir a lo esencial:
+4. Reducir la carga del `AdminMatchDialog`
+- Mantener solo lo necesario para confirmar: `selectedTripIds`, tip y productos con tip.
+- Dejar datos secundarios de viajeros/asignaciones como carga bajo demanda al expandir detalles, no como parte del flujo crítico de confirmación.
+
+5. Mantener multiassignment, pero con lectura diferida
+- El multiassignment seguirá existiendo igual en DB:
+  - se insertan filas en `package_assignments`,
+  - el paquete pasa a `matched`.
+- Lo que cambia es cuándo se leen/escanéan esas asignaciones: después, cuando realmente hacen falta.
+
+Archivos a tocar
+- `src/components/admin/AdminMatchingTab.tsx`
+- `src/components/AdminDashboard.tsx`
+- `src/components/admin/AdminMatchDialog.tsx`
+- Opcionalmente, una mejora pequeña en el RPC para devolver un resumen más útil al cliente, pero sin cambiar la lógica de negocio.
+
+Resultado esperado
+- Confirmar match vuelve a sentirse inmediato.
+- El paquete desaparece al instante de “Pendientes”.
+- Las filas en `package_assignments` se siguen creando igual.
+- El costo de multiassignment se mueve fuera del camino crítico y solo se paga al entrar a “Matches”.
+
+Detalle técnico
+```text
+Antes:
+Confirmar Match
+→ RPC
+→ refreshes / scans globales / expire_old_quotes / fetchAssignments
+→ UI termina tarde
+
+Después:
+Confirmar Match
+→ RPC
+→ update local package.status = matched
+→ remover de Pendientes
+→ cargar asignaciones solo si luego abren “Matches”
 ```
-const handleMatch = async (adminTip, productsWithTips, selectedTripIds) => {
-  // Validar
-  // Cerrar modal inmediatamente
-  setSelectedPackage(null);
-  setShowMatchDialog(false);
-  
-  // Llamar al RPC (ya simplificado en useDashboardActions)
-  await onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds);
-  
-  // Actualizar estado local optimista
-  setLocalPackages(prev => prev.map(pkg => 
-    pkg.id === matchPackageId ? { ...pkg, status: 'matched' } : pkg
-  ));
-  
-  // Toast de éxito
-  toast({ title: "¡Match exitoso!", description: "..." });
-};
-```
-
-Eliminar:
-- `matchingPackageIds` state y su tracking (ya no se necesita)
-- `recentMatchRef` y su protección de 3.5s
-- `requestAnimationFrame` + navegación a tab "matches" (el usuario quiere quedarse en pendiente)
-
-**2. `src/components/AdminDashboard.tsx` — Simplificar sync `useEffect`**
-
-Reemplazar el bloque complejo de sincronización (líneas 136-215) por uno directo:
-```
-useEffect(() => {
-  if (!hasOpenModals() && !showMatchDialog) {
-    setLocalPackages(packages);
-    setLocalTrips(trips);
-  }
-}, [packages, trips]);
-```
-
-Eliminar: snapshot pending, `pendingSnapshotRef`, `modalStateRef`, `processQueuedUpdates` setTimeout, protección por `recentMatchRef`.
-
-**3. `src/components/admin/AdminMatchDialog.tsx` — Simplificar `handleMatch`**
-
-Mantener solo lo esencial:
-```
-const handleMatch = async () => {
-  if (selectedTripIds.size === 0 || isSubmittingMatch) return;
-  setIsSubmittingMatch(true);
-  try {
-    const tipAmount = getTotalAssignedTip();
-    const tripIdsArray = Array.from(selectedTripIds);
-    await onMatch(tipAmount, isMultiProductOrder() ? assignedProductsWithTips : undefined, tripIdsArray);
-  } catch (err) {
-    console.error('[MATCH] error:', err);
-  } finally {
-    setIsSubmittingMatch(false);
-  }
-};
-```
-
-Eliminar: cache invalidation de `travelerDataCacheRef`, logs excesivos.
-
-**4. `src/hooks/useDashboardActions.tsx` — Ya está simplificado**
-
-El código actual (líneas 1245-1378) ya es directo: prepara datos → llama RPC → side effects en setTimeout(0). No necesita cambios adicionales.
-
-**5. Eliminar prop `matchingPackageIds`**
-
-Remover de `AdminDashboard` → `AdminMatchingTab` → `PendingRequestsTab` ya que no se necesita el tracking visual de "en progreso".
-
-### Archivos a modificar
-- `src/components/AdminDashboard.tsx` — Simplificar handleMatch y sync useEffect
-- `src/components/admin/AdminMatchDialog.tsx` — Simplificar handleMatch
-
-### Resultado esperado
-- Match completo en <1s (RPC directo)
-- Sin re-renders en cascada por sync protection
-- El usuario se queda en la pestaña actual después del match
-- Side effects (WhatsApp, email) siguen corriendo en background sin afectar la UX
-
