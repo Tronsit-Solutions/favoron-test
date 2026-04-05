@@ -1,59 +1,100 @@
 
+Objetivo: arreglar el caso donde el botón “Confirmar Match” aparentemente se puede pulsar, pero el diálogo se cierra sin toast, sin logs y sin ejecutar el match.
 
-## Diagnosis: Why "Confirmar Match" Fails Silently
+Lo que ahora sugiere el código:
+- La lógica de estabilidad ya existe:
+  - reset por `packageId` real
+  - migración automática de tip
+  - guardado contra sync externo mientras el diálogo está abierto
+- Pero el síntoma nuevo es distinto:
+  - no aparecen logs `[MATCH]`
+  - no aparecen logs `[DASH]`
+  - no hay toast
+  - el modal sí se cierra
+- Eso apunta a que el cierre está ocurriendo en la capa del diálogo/UI antes de que el flujo de match llegue realmente a ejecutarse o a dejar rastro.
 
-### Root Cause Found
+Problema más probable:
+1. `AdminMatchDialog` usa `Dialog open={showMatchDialog} onOpenChange={handleCloseDialog}`.
+2. `handleCloseDialog` cierra siempre el modal, sin distinguir si Radix lo llamó por overlay/close button/Escape o por otra transición.
+3. Como no hay logs visibles ni en `handleMatch` ni en `AdminDashboard.handleMatch`, el siguiente paso correcto no es “parchar más lógica de negocio”, sino instrumentar la frontera exacta del click/cierre.
+4. También hay un riesgo de carrera:
+   - `handleMatch` pone `isSubmittingMatch=true`
+   - pero el `Dialog` podría cerrar por `onOpenChange(false)` antes de que el árbol termine de procesar el flujo, especialmente si algún evento del contenido o close control se dispara en paralelo.
 
-The session replay reveals the "Confirmar Match" button was **enabled for ~134ms then immediately disabled again**. The dialog then closed because you clicked "Cancelar" (or X) since Confirmar was no longer clickable. No `[MATCH]` logs appeared because the match function never executed.
+Plan de implementación:
+1. Instrumentar el click real del botón de confirmar
+   - Agregar logs al inicio de `AdminMatchDialog.handleMatch` antes de cualquier condición.
+   - Loggear:
+     - `selectedTripIds.size`
+     - `getTotalAssignedTip()`
+     - `isSubmittingMatch`
+     - `selectedPackage?.id`
+   - Confirmar si el handler corre en absoluto.
 
-**Two interacting bugs cause this:**
+2. Instrumentar el cierre del diálogo con causa explícita
+   - Cambiar `handleCloseDialog` para registrar cuándo y por qué se intenta cerrar.
+   - Hacer que `onOpenChange` reciba `open` y:
+     - si `open === false`, loggear que Radix pidió cierre
+     - si `isSubmittingMatch === true`, bloquear el cierre automático durante confirmación
+   - Mantener cierre manual con Cancelar y X, pero diferenciarlo con logs claros.
 
-#### Bug 1: Selection Reset from Stale Props
-In `AdminMatchDialog.tsx` (line 434-440), there's a `useEffect` that resets `selectedTripIds` whenever `selectedPackage?.id` changes. The problem: `selectedPackage` is passed from `AdminDashboard`'s `localPackages` state. When any realtime update or snapshot sync refreshes `localPackages`, the `selectedPackage` object reference changes — even if the ID is the same — which can trigger React to re-run effects that depend on `selectedPackage`, causing cascading state resets.
+3. Blindar el flujo de confirmación contra cierres prematuros
+   - Durante `isSubmittingMatch`, deshabilitar cierre por:
+     - Escape
+     - click fuera
+     - botón X
+     - `onOpenChange(false)` automático
+   - Así el modal no desaparece antes de que `onMatch` arranque o falle explícitamente.
 
-#### Bug 2: Async Product Data Flips the Tip Mode
-When the dialog opens, `heavyDetails` loads asynchronously (via `usePackageDetails`). If the initial `selectedPackage` has no `products_data` or 1 product, the dialog shows a simple tip input. But once `heavyDetails` loads and reveals multiple products, `isMultiProductOrder()` flips to `true`. Now `getTotalAssignedTip()` ignores the simple `adminTip` input and checks `assignedProductsWithTips` (which is empty) → returns 0 → button becomes disabled. The tip the user already entered is silently discarded.
+4. Separar cierre manual vs cierre por éxito
+   - Hacer que solo `AdminDashboard.handleMatch` cierre el diálogo después de iniciar correctamente el flujo.
+   - En `AdminMatchDialog`, “Cancelar” debe cerrar explícitamente.
+   - El botón confirmar no debe depender de ningún comportamiento implícito del `Dialog`.
 
-### Fix Plan
+5. Añadir verificación visual/funcional mínima del estado del botón
+   - Loggear en render solo cuando cambie el motivo de disabled.
+   - Evitar spam, pero dejar trazabilidad de:
+     - `noTrips`
+     - `noTip`
+     - `submitting`
+   - Esto sirve para distinguir “el click no entró” vs “el botón realmente ya estaba deshabilitado”.
 
-#### 1. Stabilize the selection reset effect
-Change the dependency from `selectedPackage?.id` to a ref-based comparison, so the effect only fires when the ID **actually changes**, not when the object reference updates.
+Archivos a tocar:
+- `src/components/admin/AdminMatchDialog.tsx`
+  - instrumentación del botón
+  - bloqueo de cierre durante submit
+  - separación de causas de cierre
+- `src/components/ui/dialog.tsx`
+  - solo si hace falta exponer mejor el control de cierre por outside click / escape
+- `src/components/AdminDashboard.tsx`
+  - mantener el cierre del modal únicamente en éxito/inicio confirmado del flujo
 
+Resultado esperado:
+- Si el usuario vuelve a pulsar Confirmar, debe ocurrir una de estas dos cosas de forma visible:
+  1. se ven logs de inicio y arranca el match, o
+  2. se ve exactamente qué mecanismo cerró el diálogo
+- El modal ya no debería desaparecer silenciosamente durante la confirmación.
+- Con eso, el bug deja de ser “silencioso” y pasa a estar totalmente localizado.
+
+Detalles técnicos:
+```text
+Flujo deseado
+
+Click Confirmar
+  -> AdminMatchDialog.handleMatch() log START
+  -> set isSubmittingMatch = true
+  -> bloquear cierre implícito del Dialog
+  -> await onMatch(...)
+  -> AdminDashboard.handleMatch() log START
+  -> cierre controlado del modal + toast + navegación
+
+Cierres permitidos
+  - Cancelar
+  - X manual
+  - éxito explícito del match
+
+Cierres bloqueados durante submit
+  - onOpenChange(false) implícito
+  - overlay click
+  - Escape
 ```
-// Before: resets on every selectedPackage reference change
-useEffect(() => { ... reset ... }, [selectedPackage?.id]);
-
-// After: only reset when ID truly changes
-const prevPackageIdRef = useRef(selectedPackage?.id);
-useEffect(() => {
-  if (selectedPackage?.id !== prevPackageIdRef.current) {
-    prevPackageIdRef.current = selectedPackage?.id;
-    // ... reset selections ...
-  }
-}, [selectedPackage?.id]);
-```
-
-#### 2. Auto-migrate tip when product mode changes
-When `isMultiProductOrder()` becomes true after loading, automatically initialize `assignedProductsWithTips` from the simple `adminTip` value (distributing it evenly), so the user doesn't lose their entered tip.
-
-#### 3. Add defensive logging to the confirm button
-Log exactly why the button is disabled at render time, so if it happens again we see the exact condition in the console:
-
-```
-// Log when button disabled state changes
-if (selectedTripIds.size === 0) console.log('[MATCH-BTN] disabled: no trips selected');
-if (getTotalAssignedTip() <= 0) console.log('[MATCH-BTN] disabled: tip is 0');
-```
-
-#### 4. Prevent realtime from mutating selectedPackage mid-dialog
-In `AdminDashboard.tsx`, skip updating `selectedPackage` from external sources while the match dialog is open. The current `recentMatchRef` protection only activates **after** a match — it doesn't protect during the dialog interaction.
-
-### Files to Modify
-- `src/components/admin/AdminMatchDialog.tsx` — Fixes 1, 2, 3
-- `src/components/AdminDashboard.tsx` — Fix 4
-
-### Expected Result
-- The "Confirmar Match" button stays enabled after selecting a trip and entering a tip
-- No silent state resets from realtime updates while the dialog is open
-- Console logs clearly show button state transitions for future debugging
-
