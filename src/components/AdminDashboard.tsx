@@ -111,17 +111,10 @@ const AdminDashboard = ({
   const [localPackages, setLocalPackages] = useState(packages);
   const [localTrips, setLocalTrips] = useState(trips);
   const [modalDataCache, setModalDataCache] = useState<{ selectedPackage: any; matchedTrip: any } | null>(null);
-  const [matchingPackageIds, setMatchingPackageIds] = useState<Set<string>>(new Set());
-  const recentMatchRef = useRef<Record<string, number>>({});
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const { openModal } = useModalState();
   const { hasOpenModals } = useModalProtection();
-  
-  
-  // Snapshot mechanism for modal protection
-  const pendingSnapshotRef = useRef<{ packages: any[]; trips: any[]; activeTab?: string } | null>(null);
-  const modalStateRef = useRef(false);
 
   // Persist activeTab changes to sessionStorage
   useEffect(() => {
