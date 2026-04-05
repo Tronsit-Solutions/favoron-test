@@ -433,7 +433,6 @@ const AdminDashboard = ({
     trips: localTrips,
     userRole: 'admin',
     enabled: true,
-    recentMutationsRef: recentMatchRef
   });
   
   // Create tabs array for mobile and desktop tabs
