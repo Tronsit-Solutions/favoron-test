@@ -1,68 +1,41 @@
 
-Objetivo: volver el match a la sensación “instantánea” que tenía antes del multiassignment, sin quitar la arquitectura de `package_assignments`.
 
-Diagnóstico de código
-- El RPC principal ya está simplificado: `src/hooks/useDashboardActions.tsx` solo llama `assign_package_to_travelers`.
-- El cuello de botella ahora no parece ser el RPC, sino la capa de UI/lectura añadida con multiassignment:
-  - `src/components/admin/AdminMatchingTab.tsx` ejecuta `expire_old_quotes()` al montar.
-  - Ese mismo componente hace fetch global de `package_assignments` para muchos paquetes “relevantes”, con debounce, cada vez que cambia `packages`.
-  - El tab “pending” sigue cargando lógica de multiassignment aunque para confirmar un match solo necesitamos: actualizar `packages.status = 'matched'` y crear filas en `package_assignments`.
-  - `src/components/admin/AdminMatchDialog.tsx` mantiene hidratación pesada de datos de viajeros/asignaciones que no es necesaria para cerrar el match.
+## Problema encontrado
 
-Plan de implementación
-1. Separar completamente el flujo “Pendientes” del flujo “Matches”
-- En `AdminMatchingTab.tsx`, el tab `pending` dejará de depender de `assignmentsMap`.
-- “Pendientes” se calculará solo desde `packages` por estado.
-- La carga de `package_assignments` pasará a ser lazy y solo ocurrirá cuando el admin entre al tab `matches`.
+El componente `PaymentReceiptUpload.tsx` sube archivos con la ruta `{user_id}/{package_id}_payment_receipt.{ext}`, pero la política RLS de storage espera que el **primer segmento** de la ruta sea el `package_id` (no el `user_id`).
 
-2. Quitar el trabajo global del render de matching
-- Eliminar `supabase.rpc('expire_old_quotes')` del montaje de `AdminMatchingTab`.
-- Ese cleanup debe salir del render-path del admin; lo moveré a un mecanismo manual/background para que no compita con el match.
-- También eliminaré el fetch global/debounced de asignaciones mientras el admin está en `matching=pending`.
-
-3. Hacer que el match solo haga la operación mínima visible
-- Mantener el RPC `assign_package_to_travelers` como operación atómica única.
-- Tras éxito:
-  - cerrar modal,
-  - marcar el paquete localmente como `matched`,
-  - quitarlo de “Pendientes” de inmediato,
-  - no disparar refresh global del dashboard,
-  - no esperar a hidratar `package_assignments`.
-
-4. Reducir la carga del `AdminMatchDialog`
-- Mantener solo lo necesario para confirmar: `selectedTripIds`, tip y productos con tip.
-- Dejar datos secundarios de viajeros/asignaciones como carga bajo demanda al expandir detalles, no como parte del flujo crítico de confirmación.
-
-5. Mantener multiassignment, pero con lectura diferida
-- El multiassignment seguirá existiendo igual en DB:
-  - se insertan filas en `package_assignments`,
-  - el paquete pasa a `matched`.
-- Lo que cambia es cuándo se leen/escanéan esas asignaciones: después, cuando realmente hacen falta.
-
-Archivos a tocar
-- `src/components/admin/AdminMatchingTab.tsx`
-- `src/components/AdminDashboard.tsx`
-- `src/components/admin/AdminMatchDialog.tsx`
-- Opcionalmente, una mejora pequeña en el RPC para devolver un resumen más útil al cliente, pero sin cambiar la lógica de negocio.
-
-Resultado esperado
-- Confirmar match vuelve a sentirse inmediato.
-- El paquete desaparece al instante de “Pendientes”.
-- Las filas en `package_assignments` se siguen creando igual.
-- El costo de multiassignment se mueve fuera del camino crítico y solo se paga al entrar a “Matches”.
-
-Detalle técnico
-```text
-Antes:
-Confirmar Match
-→ RPC
-→ refreshes / scans globales / expire_old_quotes / fetchAssignments
-→ UI termina tarde
-
-Después:
-Confirmar Match
-→ RPC
-→ update local package.status = matched
-→ remover de Pendientes
-→ cargar asignaciones solo si luego abren “Matches”
+La RLS hace:
+```sql
+WHERE p.id::text = (string_to_array(name, '/'))[1]
 ```
+
+Pero el código genera:
+```typescript
+const filePath = `${user.id}/${fileName}`;  // user_id es el primer segmento
+```
+
+Resultado: la RLS no encuentra ningún paquete cuyo ID coincida con el `user_id`, y **bloquea la subida silenciosamente** (o con error). Los admins no tienen este problema porque tienen una excepción por rol.
+
+## Solución
+
+Cambiar la estructura del path en `PaymentReceiptUpload.tsx` (línea 84-85) para que el primer segmento sea el `package_id`:
+
+```typescript
+// Antes:
+const fileName = `${pkg.id}_payment_receipt.${fileExt}`;
+const filePath = `${user.id}/${fileName}`;
+
+// Después:
+const fileName = `payment_receipt_${Date.now()}.${fileExt}`;
+const filePath = `${pkg.id}/${fileName}`;
+```
+
+Esto alinea la ruta del archivo con lo que la política RLS espera, permitiendo que los shoppers suban sus comprobantes.
+
+## Archivo a modificar
+- `src/components/dashboard/shopper/PaymentReceiptUpload.tsx` — líneas 83-85: cambiar la estructura del path de `{user_id}/{package_id}_receipt` a `{package_id}/{receipt_file}`.
+
+## Resultado esperado
+- Dominika (y todos los shoppers) podrán subir comprobantes de pago sin errores de RLS.
+- La funcionalidad existente de admins no se ve afectada (ya tienen excepción por rol).
+
