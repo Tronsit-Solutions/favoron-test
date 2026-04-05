@@ -49,7 +49,8 @@ export const useConsolidatedRealtimeAdmin = ({
       const packageId = data.new?.id || data.old?.id;
       const mutatedAt = packageId ? recentMutationsRef.current[packageId] : undefined;
       if (mutatedAt && Date.now() - mutatedAt < 2000) {
-        console.log(`🛡️ Skipping Realtime update for recently mutated package ${packageId}`);
+        const incomingStatus = data.new?.status;
+        console.log(`🛡️ [REALTIME] BLOCKED update for recently mutated package ${packageId?.slice(0,8)} (incoming=${incomingStatus}, age=${Date.now() - mutatedAt}ms)`);
         return;
       }
     }
