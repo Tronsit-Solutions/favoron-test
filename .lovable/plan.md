@@ -1,74 +1,49 @@
 
 
-## Plan: Fix slow matches — synchronous HTTP calls blocking the DB transaction
+## Plan: Add Assignment Stats and Traveler History to Trip Cards
 
-### Root cause
+### What you'll see
 
-The slowness is **not** network latency to Supabase. The real bottleneck is inside the database itself.
+Each trip card in "Viajes disponibles" will show two new compact sections:
 
-When the RPC `assign_package_to_travelers` updates `packages.status = 'matched'`, it fires **22 triggers** on the `packages` table. Two of these triggers make **synchronous HTTP calls** that block the entire transaction until they complete:
+**1. Assignment stats (this trip)** — colored badges showing:
+- 🟢 Respondidos (bid_submitted + bid_won + bid_lost + bid_expired WHERE quote IS NOT NULL)
+- 🔴 Sin respuesta (bid_expired WHERE quote IS NULL)
+- 🟡 Pendientes (bid_pending)
+- ⚪ Cancelados (bid_cancelled) — only if > 0
 
-1. **`notify_shopper_package_status`** → calls `create_notification_with_direct_email()` which uses **`extensions.http()`** (synchronous) to:
-   - Call the Resend API to send an email
-   - Call the WhatsApp edge function
+**2. Traveler track record** — small text line:
+- "X viajes completados · Y paquetes entregados"
+- Shows below traveler name, using data from all their historical trips
 
-2. **`notify_traveler_package_status`** → calls `create_notification()` which uses **`net.http_post()`** (this one is async/non-blocking, so it's fine)
+### How we distinguish "responded" vs "no response"
 
-The function `create_notification_with_direct_email` on lines 159-173 and 193-209 uses `extensions.http()` — this is a **synchronous** HTTP extension that waits for the external API to respond before returning. If Resend takes 1-3 seconds, and WhatsApp another 1-3 seconds, the entire RPC is blocked for 2-6 seconds just on notifications.
+The `quote` field in `package_assignments` tells us:
+- `bid_expired` + `quote IS NULL` = traveler never responded (24h timeout)
+- `bid_expired` + `quote IS NOT NULL` = traveler responded but shopper didn't accept (48h timeout)
 
-Additionally, `create_notification` (used by other triggers) uses `net.http_post()` which is the async pg_net version — that's fine and doesn't block.
+### Technical approach
 
-### Solution
+**1. Create `src/hooks/useTripAssignmentStats.ts`**
 
-Replace `extensions.http()` with `net.http_post()` in `create_notification_with_direct_email`. The `net.http_post` function from the pg_net extension is asynchronous — it queues the HTTP request and returns immediately without waiting for the response.
+Single hook that takes an array of `{ tripId, userId }` and fetches:
+- All `package_assignments` for those trip IDs → group by trip, categorize by status + quote presence
+- Traveler history: count of trips with `completed_paid` status and packages with `completed`/`completed_paid` status per unique user_id
+- Uses two parallel Supabase queries, returns a map keyed by tripId
 
-### Technical detail — single SQL migration
+**2. Modify `src/components/admin/matching/AvailableTripsTab.tsx`**
 
-Rewrite `create_notification_with_direct_email` to replace both HTTP calls:
+- Call the hook with filtered trip IDs/user IDs
+- Pass stats to each TripCard
 
-**Email (Resend)**: Change from `extensions.http(('POST', 'https://api.resend.com/emails', ...))` to:
-```sql
-PERFORM net.http_post(
-  url := 'https://api.resend.com/emails',
-  headers := jsonb_build_object(
-    'Content-Type', 'application/json',
-    'Authorization', 'Bearer ' || current_setting('app.resend_api_key', true)
-  ),
-  body := jsonb_build_object(
-    'from', 'Favoron <noreply@favoron.app>',
-    'to', ARRAY[user_email],
-    'subject', 'Favoron - ' || _title,
-    'html', email_body
-  )::jsonb
-);
-```
+**3. Modify `src/components/admin/matching/TripCard.tsx`**
 
-**WhatsApp**: Change from `extensions.http(('POST', 'https://dfhoduirmqbarjnspbdh.supabase.co/functions/v1/send-whatsapp-notification', ...))` to:
-```sql
-PERFORM net.http_post(
-  url := 'https://dfhoduirmqbarjnspbdh.supabase.co/functions/v1/send-whatsapp-notification',
-  headers := jsonb_build_object(
-    'Content-Type', 'application/json',
-    'Authorization', 'Bearer ' || current_setting('app.service_role_key', true)
-  ),
-  body := jsonb_build_object(
-    'user_id', _user_id::text,
-    'title', _title,
-    'message', _message,
-    'type', _type,
-    'priority', _priority,
-    'action_url', _action_url
-  )
-);
-```
+- Add optional `assignmentStats` and `travelerHistory` props
+- Render compact badge row for assignments between traveler info and dates
+- Render "X viajes · Y entregas" text next to or below the traveler name
 
-The trade-off is that we lose the ability to log HTTP response status, but since errors are already caught silently this is acceptable. The notifications will still be sent — just without blocking the transaction.
-
-### Expected result
-- Match completes in ~100-200ms instead of 2-6 seconds
-- Emails and WhatsApp messages still get sent, just asynchronously
-- No client-side code changes needed
-
-### Files to modify
-1. **SQL migration only** — rewrite `create_notification_with_direct_email` function
+### Files
+1. **Create** `src/hooks/useTripAssignmentStats.ts`
+2. **Modify** `src/components/admin/matching/AvailableTripsTab.tsx`
+3. **Modify** `src/components/admin/matching/TripCard.tsx`
 
