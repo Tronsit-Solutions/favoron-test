@@ -1,45 +1,59 @@
 
 
-## Plan: Fix Payment Receipt Storage RLS Policies
+## Plan: Paquetes sin cotización deben volver a "approved", no "quote_expired"
 
-### Problem
+### Problema
 
-The `payment-receipts` storage bucket has **conflicting RLS policies** with two different path conventions:
+Cuando todos los viajeros asignados a un paquete dejan expirar su ventana de 24h **sin enviar cotización** (todos terminan en `bid_expired` sin haber pasado por `bid_submitted`), el paquete se marca como `quote_expired`. Esto es incorrecto porque nunca existió una cotización — el paquete debería regresar a `approved` para que el admin lo reasigne a otros viajeros.
 
-- **Old policies** expect path: `{user_id}/{fileName}` (checking `auth.uid() = foldername[1]`)
-- **Current code** uses path: `{package_id}/{fileName}` (matching the memory constraint)
+**`quote_expired`** solo debe aplicarse cuando al menos un viajero **sí envió cotización** pero el shopper no la aceptó a tiempo.
 
-The old policies silently fail for shoppers when they conflict with the correct package-ID-based policies, especially during re-uploads (upsert requires UPDATE permission).
+### Cambio
 
-### Policies to DROP (legacy, wrong path convention)
+Modificar la función `expire_unresponded_assignments()` en **Step 2b** (la sección que evalúa paquetes con todas las asignaciones terminales).
 
-| Policy Name | Operation | Problem |
-|---|---|---|
-| `Users can upload their own payment receipts` | INSERT | Expects user_id as first folder |
-| `Users can update their own payment receipts` | UPDATE | Expects user_id as first folder |
-| `Users can delete their own payment receipts` | DELETE | Expects user_id as first folder |
-| `Shoppers can upload purchase confirmations` | INSERT | Too permissive, no path validation |
-| `Shoppers and admins can update purchase confirmations` | UPDATE | Checks `purchase_confirmation` field instead of `payment_receipt` |
-| `Restricted access to purchase confirmations` | SELECT | Checks `purchase_confirmation->>'filePath'` for payment-receipts bucket (wrong field) |
+**Lógica actual (líneas 199-205):**
+Siempre pone `status = 'quote_expired'`.
 
-### Policies that STAY (correct, package-ID-based)
+**Lógica nueva:**
+1. Contar cuántas asignaciones terminaron con `bid_submitted` → `bid_expired` (es decir, el viajero sí cotizó pero el shopper no respondió).
+2. Si **ningún viajero envió cotización** (todos fueron `bid_expired` desde `bid_pending`, o `bid_cancelled`): → `status = 'approved'` (listo para reasignar).
+3. Si **al menos un viajero envió cotización** pero expiró sin respuesta del shopper: → `status = 'quote_expired'` (como ahora).
 
-These already exist and handle all operations correctly:
+### Implementación
 
-| Policy Name | Operation | Logic |
-|---|---|---|
-| `Users can upload package documents` | INSERT | Validates pkg.id in path + user ownership |
-| `Users can update package documents` | UPDATE | Same validation |
-| `Users can delete package documents` | DELETE | Same validation |
-| `Users can view their own package documents` | SELECT | Same validation |
-| `Admins can insert/view/update/delete payment receipts` | ALL | Admin access |
-| `Operations staff can view payment receipts` | SELECT | Operations access |
-| `Travelers can view matched package payment receipts` | SELECT | Traveler access |
+**Un solo archivo:** migración SQL que reemplaza `expire_unresponded_assignments()`.
 
-### Implementation
+Cambio clave en Step 2b:
 
-**Single SQL migration** that drops the 6 conflicting policies. No code changes needed — the frontend already uses the correct `${pkg.id}/${fileName}` path structure.
+```text
+-- Antes:
+IF remaining_active = 0 THEN
+  UPDATE packages SET status = 'quote_expired' ...
 
-### Files
-1. **Migration only** — drop 6 legacy storage policies
+-- Después:
+IF remaining_active = 0 THEN
+  -- Check if any traveler actually submitted a quote
+  SELECT COUNT(*) INTO submitted_count
+  FROM package_assignments pa
+  WHERE pa.package_id = package_record.id
+    AND pa.status = 'bid_expired'
+    AND pa.quote IS NOT NULL;  -- had a quote = traveler submitted
+
+  IF submitted_count > 0 THEN
+    -- Shopper didn't respond → quote_expired
+    UPDATE packages SET status = 'quote_expired' ...
+  ELSE
+    -- No traveler ever quoted → back to approved for reassignment
+    UPDATE packages SET status = 'approved' ...
+  END IF;
+```
+
+Las notificaciones se ajustan acorde:
+- **→ approved**: notificar admins "paquete disponible para reasignación" (ningún viajero cotizó)
+- **→ quote_expired**: mantener notificación actual (shopper no respondió a cotizaciones)
+
+### Corrección del paquete Puma
+
+La migración también incluirá un fix puntual para corregir el paquete `8532da77` (Puma Softride Escalate) de `quote_expired` → `approved`, ya que sus viajeros nunca enviaron cotización.
 
