@@ -20,7 +20,9 @@ export const TripCard = ({
   trip,
   packagesTotal,
   onViewTripDetail,
-  hasBoost = false
+  hasBoost = false,
+  assignmentStats,
+  travelerHistory,
 }: TripCardProps) => {
   const name = trip.first_name && trip.last_name
     ? `${trip.first_name} ${trip.last_name}`
