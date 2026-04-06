@@ -864,7 +864,9 @@ const AdminMatchDialog = ({
   const handleMatch = async () => {
     if (selectedTripIds.size === 0 || isSubmittingMatch) return;
     setIsSubmittingMatch(true);
-    toast.info("Procesando asignación...", { description: "Confirmando el match con el viajero seleccionado." });
+    const toastId = toast.loading("Procesando asignación...", {
+      description: "Confirmando el match con el viajero seleccionado."
+    });
     try {
       const tipAmount = getTotalAssignedTip();
       const tripIdsArray = Array.from(selectedTripIds);
@@ -873,8 +875,10 @@ const AdminMatchDialog = ({
       } else {
         await onMatch(tipAmount, undefined, tripIdsArray);
       }
-    } catch (err) {
+      toast.success("¡Match confirmado!", { id: toastId, description: "Paquete asignado exitosamente." });
+    } catch (err: any) {
       console.error('[MATCH] error:', err);
+      toast.error("Error al confirmar match", { id: toastId, description: err?.message || "Intenta de nuevo." });
     } finally {
       setIsSubmittingMatch(false);
     }

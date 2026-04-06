@@ -166,24 +166,15 @@ const AdminDashboard = ({
       ? selectedTripIds 
       : matchingTrip ? [matchingTrip] : [];
 
-    if (!selectedPackage || tripIds.length === 0) return;
+    if (!selectedPackage || tripIds.length === 0) {
+      throw new Error("No se encontró el paquete o viajeros seleccionados");
+    }
 
     if (!adminTip || adminTip <= 0) {
-      toast({
-        title: "Tip requerido",
-        description: "Debes asignar un tip al viajero para confirmar el match.",
-        variant: "destructive",
-      });
-      return;
+      throw new Error("Debes asignar un tip al viajero para confirmar el match.");
     }
 
     const matchPackageId = selectedPackage.id;
-    const isMultiProduct = productsWithTips && productsWithTips.length > 1;
-
-    // Close modal immediately
-    setSelectedPackage(null);
-    setMatchingTrip("");
-    setShowMatchDialog(false);
 
     try {
       await onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds);
@@ -193,16 +184,13 @@ const AdminDashboard = ({
         pkg.id === matchPackageId ? { ...pkg, status: 'matched', updated_at: new Date().toISOString() } : pkg
       ));
 
-      toast({
-        title: "¡Match exitoso!",
-        description: tripIds.length > 1
-          ? `Paquete asignado a ${tripIds.length} viajeros.`
-          : isMultiProduct 
-            ? `Paquete emparejado con tips por producto (Total: Q${adminTip})`
-            : `Paquete emparejado con tip de Q${adminTip}`,
-      });
+      // Close modal after success
+      setSelectedPackage(null);
+      setMatchingTrip("");
+      setShowMatchDialog(false);
     } catch (error: any) {
       console.error('[DASH] Match FAILED:', error?.message);
+      throw error; // Re-throw so AdminMatchDialog catches it
     }
   };
 
