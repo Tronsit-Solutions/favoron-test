@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -863,6 +864,7 @@ const AdminMatchDialog = ({
   const handleMatch = async () => {
     if (selectedTripIds.size === 0 || isSubmittingMatch) return;
     setIsSubmittingMatch(true);
+    toast.info("Procesando asignación...", { description: "Confirmando el match con el viajero seleccionado." });
     try {
       const tipAmount = getTotalAssignedTip();
       const tripIdsArray = Array.from(selectedTripIds);
