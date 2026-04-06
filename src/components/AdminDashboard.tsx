@@ -173,7 +173,7 @@ const AdminDashboard = ({
     }
 
     if (!adminTip || adminTip <= 0) {
-      toast.error("Debes asignar un tip al viajero para confirmar el match.");
+      sonnerToast.error("Debes asignar un tip al viajero para confirmar el match.");
       return;
     }
 
