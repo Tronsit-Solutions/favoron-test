@@ -29,7 +29,7 @@ interface AdminMatchDialogProps {
   setMatchingTrip: (trip: string) => void;
   availableTrips: any[];
   packages: any[];
-  onMatch: (adminTip?: number, productsWithTips?: any[], selectedTripIds?: string[]) => Promise<void>;
+  onMatch: (adminTip?: number, productsWithTips?: any[], selectedTripIds?: string[]) => Promise<void> | void;
 }
 
 const AdminMatchDialog = ({ 
