@@ -3,14 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Eye, Plane, Star, CalendarDays, PackageCheck, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
+import { Eye, Plane, Star, CalendarDays, PackageCheck, ArrowDownToLine, ArrowUpFromLine, TrendingUp } from "lucide-react";
 import { formatDateUTC } from "@/lib/formatters";
+import type { AssignmentStats, TravelerHistory } from "@/hooks/useTripAssignmentStats";
 
 interface TripCardProps {
   trip: any;
   packagesTotal?: number;
   onViewTripDetail: (trip: any) => void;
   hasBoost?: boolean;
+  assignmentStats?: AssignmentStats;
+  travelerHistory?: TravelerHistory;
 }
 
 export const TripCard = ({
