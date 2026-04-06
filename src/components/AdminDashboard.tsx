@@ -188,15 +188,16 @@ const AdminDashboard = ({
     setMatchingTrip("");
     setShowMatchDialog(false);
 
-    // Run RPC in background
+    // Show loading toast and run RPC in background
+    const loadingToastId = sonnerToast.loading("Asignando paquete...", { description: "Procesando match en segundo plano." });
     try {
       await onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds);
-      sonnerToast.success("¡Match confirmado!", { description: "Paquete asignado exitosamente." });
+      sonnerToast.success("¡Match confirmado!", { id: loadingToastId, description: "Paquete asignado exitosamente." });
     } catch (error: any) {
       console.error('[DASH] Match FAILED:', error?.message);
       // Rollback optimistic update
       setLocalPackages(previousPackages);
-      sonnerToast.error("Error al confirmar match", { description: error?.message || "Intenta de nuevo." });
+      sonnerToast.error("Error al confirmar match", { id: loadingToastId, description: error?.message || "Intenta de nuevo." });
     }
   };
 
