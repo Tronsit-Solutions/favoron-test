@@ -29,7 +29,7 @@ interface AdminMatchDialogProps {
   setMatchingTrip: (trip: string) => void;
   availableTrips: any[];
   packages: any[];
-  onMatch: (adminTip?: number, productsWithTips?: any[], selectedTripIds?: string[]) => Promise<void>;
+  onMatch: (adminTip?: number, productsWithTips?: any[], selectedTripIds?: string[]) => Promise<void> | void;
 }
 
 const AdminMatchDialog = ({ 
@@ -861,26 +861,18 @@ const AdminMatchDialog = ({
 
   const [isSubmittingMatch, setIsSubmittingMatch] = useState(false);
 
-  const handleMatch = async () => {
+  const handleMatch = () => {
     if (selectedTripIds.size === 0 || isSubmittingMatch) return;
     setIsSubmittingMatch(true);
-    const toastId = toast.loading("Procesando asignación...", {
-      description: "Confirmando el match con el viajero seleccionado."
-    });
-    try {
-      const tipAmount = getTotalAssignedTip();
-      const tripIdsArray = Array.from(selectedTripIds);
-      if (isMultiProductOrder()) {
-        await onMatch(tipAmount, assignedProductsWithTips, tripIdsArray);
-      } else {
-        await onMatch(tipAmount, undefined, tripIdsArray);
-      }
-      toast.success("¡Match confirmado!", { id: toastId, description: "Paquete asignado exitosamente." });
-    } catch (err: any) {
-      console.error('[MATCH] error:', err);
-      toast.error("Error al confirmar match", { id: toastId, description: err?.message || "Intenta de nuevo." });
-    } finally {
-      setIsSubmittingMatch(false);
+    
+    const tipAmount = getTotalAssignedTip();
+    const tripIdsArray = Array.from(selectedTripIds);
+    
+    // Fire-and-forget: close dialog immediately, RPC runs in background
+    if (isMultiProductOrder()) {
+      onMatch(tipAmount, assignedProductsWithTips, tripIdsArray);
+    } else {
+      onMatch(tipAmount, undefined, tripIdsArray);
     }
   };
 

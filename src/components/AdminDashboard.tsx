@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast as sonnerToast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { getStatusLabel } from "@/lib/formatters";
@@ -167,30 +168,35 @@ const AdminDashboard = ({
       : matchingTrip ? [matchingTrip] : [];
 
     if (!selectedPackage || tripIds.length === 0) {
-      throw new Error("No se encontró el paquete o viajeros seleccionados");
+      sonnerToast.error("No se encontró el paquete o viajeros seleccionados");
+      return;
     }
 
     if (!adminTip || adminTip <= 0) {
-      throw new Error("Debes asignar un tip al viajero para confirmar el match.");
+      sonnerToast.error("Debes asignar un tip al viajero para confirmar el match.");
+      return;
     }
 
     const matchPackageId = selectedPackage.id;
 
+    // Optimistic: close dialog and update UI immediately
+    const previousPackages = [...localPackages];
+    setLocalPackages(prev => prev.map(pkg => 
+      pkg.id === matchPackageId ? { ...pkg, status: 'matched', updated_at: new Date().toISOString() } : pkg
+    ));
+    setSelectedPackage(null);
+    setMatchingTrip("");
+    setShowMatchDialog(false);
+
+    // Run RPC in background
     try {
       await onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds);
-
-      // Optimistic local update
-      setLocalPackages(prev => prev.map(pkg => 
-        pkg.id === matchPackageId ? { ...pkg, status: 'matched', updated_at: new Date().toISOString() } : pkg
-      ));
-
-      // Close modal after success
-      setSelectedPackage(null);
-      setMatchingTrip("");
-      setShowMatchDialog(false);
+      sonnerToast.success("¡Match confirmado!", { description: "Paquete asignado exitosamente." });
     } catch (error: any) {
       console.error('[DASH] Match FAILED:', error?.message);
-      throw error; // Re-throw so AdminMatchDialog catches it
+      // Rollback optimistic update
+      setLocalPackages(previousPackages);
+      sonnerToast.error("Error al confirmar match", { description: error?.message || "Intenta de nuevo." });
     }
   };
 
