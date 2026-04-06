@@ -1,54 +1,42 @@
 
 
-## Diagnóstico: Paquete de Valeria en "Aprobado" con bid activo
+## Mostrar nombres de viajeros con estado del bid en el preview de MatchCard
 
-### El problema
+### Qué cambia
 
-El paquete `3d6eff9d` de Valeria Andreatta tiene:
-- **Status del paquete**: `approved` 
-- **Asignación 1**: `bid_expired` (viaje `a906e...`)
-- **Asignación 2**: `bid_submitted` (viaje `4e9a2...`) — **activa**
+Donde actualmente dice "🤝 2 viajeros asignados ✈️" (tanto en mobile como desktop), se reemplaza por una lista compacta de los nombres de los viajeros con un icono indicando el estado de su bid:
+- ⏳ `bid_pending` — pendiente
+- ✅ `bid_submitted` — bid enviado  
+- ❌ `bid_expired` — expirado
 
-El paquete debería estar en estado `matched` (o `quote_sent`), no `approved`, porque tiene un bid activo.
+Ejemplo visual: `🤝 Ana G. ✅ • Luis R. ⏳`
 
-### Causa raíz
+### Cambios necesarios
 
-La función `expire_old_quotes` (en la migración `20260330103652`) tiene un **Step 1** que resetea paquetes con `matched_assignment_expires_at` expirado:
+**1. `src/components/admin/AdminMatchingTab.tsx` — Enriquecer el fetch de assignments**
 
+La query actual solo trae campos de `package_assignments`. Necesitamos hacer un join con `trips` para obtener el `user_id` del viajero, y luego un segundo fetch (o join) a `profiles` para los nombres.
+
+Opción más simple: agregar al select un join a trips y profiles:
 ```sql
--- Step 1: Packages with direct matched_trip_id expiration
-WHERE p.status = 'matched' 
-  AND p.matched_assignment_expires_at < NOW()
-→ SET status = 'approved', matched_trip_id = NULL
+select('id, package_id, trip_id, status, ..., trips!inner(user_id, profiles!inner(first_name, last_name))')
 ```
 
-Este paso **no verifica** si hay otras asignaciones activas (`bid_pending` o `bid_submitted`) antes de resetear a `approved`. Cuando el primer bid expiró, la función reseteó el paquete a `approved` sin considerar que el segundo viajero ya había enviado su cotización.
+Esto traerá `assignment.trips.profiles.first_name` y `last_name` en cada assignment.
 
-El **Step 2b** (líneas 172-200) sí verifica `remaining_active`, pero solo para paquetes que entran por la ruta de `bid_expired` individual — no para los que ya fueron reseteados en Step 1.
+**2. `src/components/admin/matching/MatchCard.tsx` — Reemplazar "X viajeros asignados"**
 
-### Solución
+En las 3 ubicaciones donde se muestra `{assignmentInfo.count} viajeros asignados`:
+- Líneas ~285-288 (mobile, bloque sin matchedTrip)
+- Líneas ~308-311 (desktop, bloque sin matchedTrip)
 
-Crear una migración SQL que:
+Reemplazar con un componente inline que itere `assignmentInfo.assignments` y muestre:
+- Nombre del viajero (First Name + inicial del apellido)
+- Icono de estado del bid al lado
 
-1. **Corrija el dato**: Actualizar el paquete de Valeria a `matched` (o el estado correcto dado que tiene un `bid_submitted`).
+**3. Interfaz `assignmentInfo`** — Actualizar el tipo para reflejar que cada assignment ahora incluye datos del viajero anidados.
 
-2. **Arregle la lógica de expiración**: Modificar el Step 1 de `expire_old_quotes` para que antes de resetear un paquete a `approved`, verifique si existen otras asignaciones activas:
-
-```sql
--- Solo resetear si NO hay asignaciones activas restantes
-AND NOT EXISTS (
-  SELECT 1 FROM public.package_assignments pa
-  WHERE pa.package_id = p.id
-  AND pa.status IN ('bid_pending', 'bid_submitted', 'bid_won')
-)
-```
-
-3. **Agregar verificación general**: Añadir un paso final que detecte paquetes en `approved` que tengan asignaciones activas y los corrija automáticamente.
-
-### Archivos a crear/modificar
-- Nueva migración SQL para corregir `expire_old_quotes` y el dato de Valeria
-
-### Resultado esperado
-- El paquete de Valeria se corrige inmediatamente a estado `matched`
-- La función `expire_old_quotes` ya no reseteará paquetes que aún tengan bids activos
+### Archivos a modificar
+- `src/components/admin/AdminMatchingTab.tsx` — enriquecer query de assignments con join a trips→profiles
+- `src/components/admin/matching/MatchCard.tsx` — reemplazar texto genérico por lista de nombres con iconos de estado
 
