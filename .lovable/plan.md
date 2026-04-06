@@ -1,41 +1,54 @@
 
 
-## Problema encontrado
+## Diagnóstico: Paquete de Valeria en "Aprobado" con bid activo
 
-El componente `PaymentReceiptUpload.tsx` sube archivos con la ruta `{user_id}/{package_id}_payment_receipt.{ext}`, pero la política RLS de storage espera que el **primer segmento** de la ruta sea el `package_id` (no el `user_id`).
+### El problema
 
-La RLS hace:
+El paquete `3d6eff9d` de Valeria Andreatta tiene:
+- **Status del paquete**: `approved` 
+- **Asignación 1**: `bid_expired` (viaje `a906e...`)
+- **Asignación 2**: `bid_submitted` (viaje `4e9a2...`) — **activa**
+
+El paquete debería estar en estado `matched` (o `quote_sent`), no `approved`, porque tiene un bid activo.
+
+### Causa raíz
+
+La función `expire_old_quotes` (en la migración `20260330103652`) tiene un **Step 1** que resetea paquetes con `matched_assignment_expires_at` expirado:
+
 ```sql
-WHERE p.id::text = (string_to_array(name, '/'))[1]
+-- Step 1: Packages with direct matched_trip_id expiration
+WHERE p.status = 'matched' 
+  AND p.matched_assignment_expires_at < NOW()
+→ SET status = 'approved', matched_trip_id = NULL
 ```
 
-Pero el código genera:
-```typescript
-const filePath = `${user.id}/${fileName}`;  // user_id es el primer segmento
+Este paso **no verifica** si hay otras asignaciones activas (`bid_pending` o `bid_submitted`) antes de resetear a `approved`. Cuando el primer bid expiró, la función reseteó el paquete a `approved` sin considerar que el segundo viajero ya había enviado su cotización.
+
+El **Step 2b** (líneas 172-200) sí verifica `remaining_active`, pero solo para paquetes que entran por la ruta de `bid_expired` individual — no para los que ya fueron reseteados en Step 1.
+
+### Solución
+
+Crear una migración SQL que:
+
+1. **Corrija el dato**: Actualizar el paquete de Valeria a `matched` (o el estado correcto dado que tiene un `bid_submitted`).
+
+2. **Arregle la lógica de expiración**: Modificar el Step 1 de `expire_old_quotes` para que antes de resetear un paquete a `approved`, verifique si existen otras asignaciones activas:
+
+```sql
+-- Solo resetear si NO hay asignaciones activas restantes
+AND NOT EXISTS (
+  SELECT 1 FROM public.package_assignments pa
+  WHERE pa.package_id = p.id
+  AND pa.status IN ('bid_pending', 'bid_submitted', 'bid_won')
+)
 ```
 
-Resultado: la RLS no encuentra ningún paquete cuyo ID coincida con el `user_id`, y **bloquea la subida silenciosamente** (o con error). Los admins no tienen este problema porque tienen una excepción por rol.
+3. **Agregar verificación general**: Añadir un paso final que detecte paquetes en `approved` que tengan asignaciones activas y los corrija automáticamente.
 
-## Solución
+### Archivos a crear/modificar
+- Nueva migración SQL para corregir `expire_old_quotes` y el dato de Valeria
 
-Cambiar la estructura del path en `PaymentReceiptUpload.tsx` (línea 84-85) para que el primer segmento sea el `package_id`:
-
-```typescript
-// Antes:
-const fileName = `${pkg.id}_payment_receipt.${fileExt}`;
-const filePath = `${user.id}/${fileName}`;
-
-// Después:
-const fileName = `payment_receipt_${Date.now()}.${fileExt}`;
-const filePath = `${pkg.id}/${fileName}`;
-```
-
-Esto alinea la ruta del archivo con lo que la política RLS espera, permitiendo que los shoppers suban sus comprobantes.
-
-## Archivo a modificar
-- `src/components/dashboard/shopper/PaymentReceiptUpload.tsx` — líneas 83-85: cambiar la estructura del path de `{user_id}/{package_id}_receipt` a `{package_id}/{receipt_file}`.
-
-## Resultado esperado
-- Dominika (y todos los shoppers) podrán subir comprobantes de pago sin errores de RLS.
-- La funcionalidad existente de admins no se ve afectada (ya tienen excepción por rol).
+### Resultado esperado
+- El paquete de Valeria se corrige inmediatamente a estado `matched`
+- La función `expire_old_quotes` ya no reseteará paquetes que aún tengan bids activos
 
