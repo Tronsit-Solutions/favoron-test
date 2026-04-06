@@ -3,10 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMemo } from "react";
 
 export interface AssignmentStats {
-  responded: number;   // bid_submitted + bid_won + bid_lost + bid_expired with quote
-  noResponse: number;  // bid_expired without quote
-  pending: number;     // bid_pending
-  cancelled: number;   // bid_cancelled
+  responded: number;
+  noResponse: number;
+  pending: number;
+  cancelled: number;
 }
 
 export interface TravelerHistory {
@@ -22,118 +22,67 @@ export interface TripStats {
 export const useTripAssignmentStats = (
   trips: { tripId: string; userId: string }[]
 ) => {
-  const tripIds = useMemo(() => trips.map(t => t.tripId), [trips]);
   const userIds = useMemo(() => [...new Set(trips.map(t => t.userId))], [trips]);
 
-  // Fetch assignment data for all trip IDs
-  const { data: assignmentsData } = useQuery({
-    queryKey: ["trip-assignment-stats", tripIds],
-    queryFn: async () => {
-      if (tripIds.length === 0) return [];
-      const { data, error } = await supabase
-        .from("package_assignments")
-        .select("trip_id, status, quote")
-        .in("trip_id", tripIds);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: tripIds.length > 0,
-  });
-
-  // Fetch traveler history: completed trips
-  const { data: travelerTripsData } = useQuery({
-    queryKey: ["traveler-completed-trips", userIds],
+  // Single RPC call replaces 3 separate queries + client-side counting
+  const { data: batchStats } = useQuery({
+    queryKey: ["traveler-stats-batch", userIds],
     queryFn: async () => {
       if (userIds.length === 0) return [];
-      const { data, error } = await supabase
-        .from("trips")
-        .select("user_id, status")
-        .in("user_id", userIds)
-        .in("status", ["completed_paid"]);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: userIds.length > 0,
-  });
-
-  // Fetch traveler history: delivered packages (via matched_trip_id -> trip.user_id)
-  const { data: deliveredPackagesData } = useQuery({
-    queryKey: ["traveler-delivered-packages", userIds],
-    queryFn: async () => {
-      if (userIds.length === 0) return [];
-      // Get all trips for these users, then count packages
-      const { data: userTrips, error: tripsError } = await supabase
-        .from("trips")
-        .select("id, user_id")
-        .in("user_id", userIds);
-      if (tripsError) throw tripsError;
-      if (!userTrips || userTrips.length === 0) return [];
-
-      const allTripIds = userTrips.map(t => t.id);
-      const { data: pkgs, error: pkgsError } = await supabase
-        .from("packages")
-        .select("matched_trip_id, status")
-        .in("matched_trip_id", allTripIds)
-        .in("status", ["completed", "completed_paid", "delivered_to_office"]);
-      if (pkgsError) throw pkgsError;
-
-      // Map trip_id -> user_id
-      const tripToUser = new Map(userTrips.map(t => [t.id, t.user_id]));
-      
-      // Count per user
-      const counts: Record<string, number> = {};
-      (pkgs || []).forEach(pkg => {
-        const uid = tripToUser.get(pkg.matched_trip_id!);
-        if (uid) counts[uid] = (counts[uid] || 0) + 1;
+      const { data, error } = await supabase.rpc('get_traveler_stats_batch', {
+        p_user_ids: userIds
       });
-      return counts;
+      if (error) throw error;
+      return data || [];
     },
     enabled: userIds.length > 0,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
   });
 
   const statsMap = useMemo(() => {
     const map: Record<string, TripStats> = {};
-    
-    // Build assignments per trip
-    const assignmentsByTrip: Record<string, AssignmentStats> = {};
-    (assignmentsData || []).forEach(a => {
-      if (!assignmentsByTrip[a.trip_id]) {
-        assignmentsByTrip[a.trip_id] = { responded: 0, noResponse: 0, pending: 0, cancelled: 0 };
-      }
-      const stats = assignmentsByTrip[a.trip_id];
-      if (['bid_submitted', 'bid_won', 'bid_lost'].includes(a.status)) {
-        stats.responded++;
-      } else if (a.status === 'bid_expired') {
-        if (a.quote) stats.responded++;
-        else stats.noResponse++;
-      } else if (a.status === 'bid_pending') {
-        stats.pending++;
-      } else if (a.status === 'bid_cancelled') {
-        stats.cancelled++;
-      }
+
+    // Build a user_id -> stats lookup from the RPC result
+    const userStatsMap = new Map<string, {
+      completedTrips: number;
+      deliveredPackages: number;
+      responded: number;
+      noResponse: number;
+      pending: number;
+      cancelled: number;
+    }>();
+
+    (batchStats || []).forEach((row: any) => {
+      userStatsMap.set(row.user_id, {
+        completedTrips: Number(row.completed_trips) || 0,
+        deliveredPackages: Number(row.delivered_packages) || 0,
+        responded: Number(row.assignments_responded) || 0,
+        noResponse: Number(row.assignments_no_response) || 0,
+        pending: Number(row.assignments_pending) || 0,
+        cancelled: Number(row.assignments_cancelled) || 0,
+      });
     });
 
-    // Build traveler history per user
-    const completedTripsPerUser: Record<string, number> = {};
-    (travelerTripsData || []).forEach(t => {
-      completedTripsPerUser[t.user_id] = (completedTripsPerUser[t.user_id] || 0) + 1;
-    });
-
-    const deliveredPkgPerUser = (deliveredPackagesData as Record<string, number>) || {};
-
-    // Combine
+    // Map each trip to its traveler's stats
     trips.forEach(({ tripId, userId }) => {
+      const userStats = userStatsMap.get(userId);
       map[tripId] = {
-        assignments: assignmentsByTrip[tripId] || { responded: 0, noResponse: 0, pending: 0, cancelled: 0 },
+        assignments: {
+          responded: userStats?.responded || 0,
+          noResponse: userStats?.noResponse || 0,
+          pending: userStats?.pending || 0,
+          cancelled: userStats?.cancelled || 0,
+        },
         travelerHistory: {
-          completedTrips: completedTripsPerUser[userId] || 0,
-          deliveredPackages: deliveredPkgPerUser[userId] || 0,
+          completedTrips: userStats?.completedTrips || 0,
+          deliveredPackages: userStats?.deliveredPackages || 0,
         },
       };
     });
 
     return map;
-  }, [assignmentsData, travelerTripsData, deliveredPackagesData, trips]);
+  }, [batchStats, trips]);
 
   return statsMap;
 };

@@ -2443,6 +2443,18 @@ export type Database = {
           to_city: string
         }[]
       }
+      get_traveler_stats_batch: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          assignments_cancelled: number
+          assignments_no_response: number
+          assignments_pending: number
+          assignments_responded: number
+          completed_trips: number
+          delivered_packages: number
+          user_id: string
+        }[]
+      }
       get_trip_with_traveler_info: {
         Args: { trip_id: string }
         Returns: {
