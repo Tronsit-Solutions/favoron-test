@@ -320,7 +320,19 @@ export const MatchCard = ({
                       </>
                     ) : assignmentInfo && assignmentInfo.count > 0 ? (
                       <>
-                        {' '} 🤝 {assignmentInfo.count} viajeros asignados ✈️
+                        {' '} 🤝 {assignmentInfo.assignments.map((a: any, i: number) => {
+                          const profile = a.trips?.profiles;
+                          const name = profile 
+                            ? `${profile.first_name || ''}${profile.last_name ? ' ' + profile.last_name.charAt(0) + '.' : ''}`.trim()
+                            : 'Viajero';
+                          const statusIcon = a.status === 'bid_submitted' ? '✅' : a.status === 'bid_pending' ? '⏳' : a.status === 'bid_expired' ? '❌' : '•';
+                          return (
+                            <span key={a.id}>
+                              {i > 0 && ' • '}
+                              {name} {statusIcon}
+                            </span>
+                          );
+                        })}
                       </>
                     ) : null}
                   </span>
