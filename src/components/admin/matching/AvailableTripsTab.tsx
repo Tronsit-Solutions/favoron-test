@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { TripFilters } from "./TripFilters";
 import { TripStatsHeader } from "./TripStatsHeader";
 import { TripCard } from "./TripCard";
 import { EmptyTripsState } from "./EmptyTripsState";
+import { useTripAssignmentStats } from "@/hooks/useTripAssignmentStats";
 
 interface AvailableTripsTabProps {
   trips: any[];
