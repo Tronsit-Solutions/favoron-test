@@ -69,8 +69,13 @@ const AvailableTripsTab = ({ trips, packages, onViewTripDetail }: AvailableTrips
     return matchesSearch && matchesOrigin;
   }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
 
+  const tripInputs = useMemo(() => 
+    filteredTrips.map(t => ({ tripId: t.id, userId: t.user_id })),
+    [filteredTrips]
+  );
+  const statsMap = useTripAssignmentStats(tripInputs);
+
   const approvedCount = filteredTrips.filter(t => t.status === 'approved').length;
-  // Un viaje se considera "activo" cuando tiene paquetes asignados
   const activeCount = filteredTrips.filter(t => {
     const hasMatchedPackages = packages.some(p => p.matched_trip_id === t.id);
     return t.status === 'approved' && hasMatchedPackages;
