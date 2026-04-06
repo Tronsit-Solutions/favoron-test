@@ -191,7 +191,7 @@ serve(async (req) => {
     await serviceClient.rpc('create_notification', {
       _user_id: userId,
       _title: '💳 Pago con tarjeta confirmado',
-      _message: `Tu pago con tarjeta para "${pkg.item_description}" ha sido confirmado. Procederemos con la compra de tu producto.`,
+      _message: `¡Perfecto! Tu pago para el pedido "${pkg.item_description}" ha sido confirmado. El viajero procederá con la compra de tu producto y te mantendremos informado del progreso.`,
       _type: 'payment',
       _priority: 'high',
       _metadata: { package_id, payment_method: 'card', auto_approved: true, verified_via: 'callback' }

@@ -204,7 +204,7 @@ serve(async (req) => {
         const { error: notifyError } = await supabase.rpc('create_notification', {
           _user_id: packageData.user_id,
           _title: '💳 Pago con tarjeta confirmado',
-          _message: `Tu pago con tarjeta para "${packageData.item_description}" ha sido confirmado. Procederemos con la compra de tu producto.`,
+          _message: `¡Perfecto! Tu pago para el pedido "${packageData.item_description}" ha sido confirmado. El viajero procederá con la compra de tu producto y te mantendremos informado del progreso.`,
           _type: 'payment',
           _priority: 'high',
           _metadata: { package_id: packageData.id, payment_method: 'card', auto_approved: true }
