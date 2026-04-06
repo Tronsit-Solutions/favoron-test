@@ -1,51 +1,74 @@
 
 
-## Plan: Hacer el proceso de matching fail-proof
+## Plan: Fix slow matches — synchronous HTTP calls blocking the DB transaction
 
-### Problemas identificados
+### Root cause
 
-1. **Fallo silencioso en AdminDashboard**: Línea 169 — si `selectedPackage` es null o `tripIds` está vacío, el `return` es silencioso. El dialog ya cerró en AdminMatchDialog y el admin no sabe qué pasó.
+The slowness is **not** network latency to Supabase. The real bottleneck is inside the database itself.
 
-2. **El dialog se cierra antes de saber si el match funcionó**: AdminDashboard cierra el modal (líneas 184-186) ANTES de llamar al RPC. Si falla, el admin ya perdió contexto.
+When the RPC `assign_package_to_travelers` updates `packages.status = 'matched'`, it fires **22 triggers** on the `packages` table. Two of these triggers make **synchronous HTTP calls** that block the entire transaction until they complete:
 
-3. **El catch en AdminDashboard no muestra error**: Línea 204-206 solo hace `console.error`, el admin no ve nada.
+1. **`notify_shopper_package_status`** → calls `create_notification_with_direct_email()` which uses **`extensions.http()`** (synchronous) to:
+   - Call the Resend API to send an email
+   - Call the WhatsApp edge function
 
-4. **Toast "Procesando" desaparece solo**: Usa `toast.info` que auto-cierra en ~4s sin importar el resultado.
+2. **`notify_traveler_package_status`** → calls `create_notification()` which uses **`net.http_post()`** (this one is async/non-blocking, so it's fine)
 
-5. **Dos sistemas de toast en conflicto**: AdminDashboard usa `useToast` (legacy), AdminMatchDialog usa `sonner`. Los mensajes pueden no ser visibles o aparecer en lugares distintos.
+The function `create_notification_with_direct_email` on lines 159-173 and 193-209 uses `extensions.http()` — this is a **synchronous** HTTP extension that waits for the external API to respond before returning. If Resend takes 1-3 seconds, and WhatsApp another 1-3 seconds, the entire RPC is blocked for 2-6 seconds just on notifications.
 
-6. **El tipo de `onMatch` es `void`**: El dialog no puede awaitar el resultado real del RPC.
+Additionally, `create_notification` (used by other triggers) uses `net.http_post()` which is the async pg_net version — that's fine and doesn't block.
 
-### Solución
+### Solution
 
-**Archivo 1: `src/components/admin/AdminMatchDialog.tsx`**
+Replace `extensions.http()` with `net.http_post()` in `create_notification_with_direct_email`. The `net.http_post` function from the pg_net extension is asynchronous — it queues the HTTP request and returns immediately without waiting for the response.
 
-- Cambiar tipo de `onMatch` de `void` a `Promise<void>`
-- Reemplazar `toast.info` por `toast.loading()` que persiste hasta ser reemplazado
-- En el `try`: awaitar `onMatch`, luego reemplazar con `toast.success("¡Match confirmado!")`
-- En el `catch`: reemplazar con `toast.error("Error al confirmar match")`
-- Mantener el dialog abierto durante el proceso (ya lo hace con `isSubmittingMatch`)
+### Technical detail — single SQL migration
 
-```typescript
-const toastId = toast.loading("Procesando asignación...", {
-  description: "Confirmando el match con el viajero seleccionado."
-});
-try {
-  await onMatch(...);
-  toast.success("¡Match confirmado!", { id: toastId, description: "Paquete asignado exitosamente." });
-} catch (err) {
-  toast.error("Error al confirmar match", { id: toastId, description: err?.message || "Intenta de nuevo." });
-} finally {
-  setIsSubmittingMatch(false);
-}
+Rewrite `create_notification_with_direct_email` to replace both HTTP calls:
+
+**Email (Resend)**: Change from `extensions.http(('POST', 'https://api.resend.com/emails', ...))` to:
+```sql
+PERFORM net.http_post(
+  url := 'https://api.resend.com/emails',
+  headers := jsonb_build_object(
+    'Content-Type', 'application/json',
+    'Authorization', 'Bearer ' || current_setting('app.resend_api_key', true)
+  ),
+  body := jsonb_build_object(
+    'from', 'Favoron <noreply@favoron.app>',
+    'to', ARRAY[user_email],
+    'subject', 'Favoron - ' || _title,
+    'html', email_body
+  )::jsonb
+);
 ```
 
-**Archivo 2: `src/components/AdminDashboard.tsx`**
+**WhatsApp**: Change from `extensions.http(('POST', 'https://dfhoduirmqbarjnspbdh.supabase.co/functions/v1/send-whatsapp-notification', ...))` to:
+```sql
+PERFORM net.http_post(
+  url := 'https://dfhoduirmqbarjnspbdh.supabase.co/functions/v1/send-whatsapp-notification',
+  headers := jsonb_build_object(
+    'Content-Type', 'application/json',
+    'Authorization', 'Bearer ' || current_setting('app.service_role_key', true)
+  ),
+  body := jsonb_build_object(
+    'user_id', _user_id::text,
+    'title', _title,
+    'message', _message,
+    'type', _type,
+    'priority', _priority,
+    'action_url', _action_url
+  )
+);
+```
 
-- Línea 169: Reemplazar `return` silencioso con `throw new Error("No se encontró el paquete o viajeros seleccionados")` para que el dialog lo capture
-- Mover el cierre del modal (líneas 184-186) DESPUÉS del `await onMatchPackage` exitoso
-- Eliminar el toast legacy de éxito (líneas 196-203) — el feedback ahora lo maneja el dialog con sonner
-- Agregar `toast.error` con sonner en el `catch` (línea 204) como respaldo
+The trade-off is that we lose the ability to log HTTP response status, but since errors are already caught silently this is acceptable. The notifications will still be sent — just without blocking the transaction.
 
-**Resultado**: El admin siempre ve feedback claro — un spinner persistente mientras procesa, éxito verde o error rojo al terminar. No hay más fallos silenciosos ni toasts que desaparecen prematuramente.
+### Expected result
+- Match completes in ~100-200ms instead of 2-6 seconds
+- Emails and WhatsApp messages still get sent, just asynchronously
+- No client-side code changes needed
+
+### Files to modify
+1. **SQL migration only** — rewrite `create_notification_with_direct_email` function
 
