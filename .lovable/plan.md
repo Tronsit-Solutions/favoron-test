@@ -1,49 +1,45 @@
 
 
-## Plan: Add Assignment Stats and Traveler History to Trip Cards
+## Plan: Fix Payment Receipt Storage RLS Policies
 
-### What you'll see
+### Problem
 
-Each trip card in "Viajes disponibles" will show two new compact sections:
+The `payment-receipts` storage bucket has **conflicting RLS policies** with two different path conventions:
 
-**1. Assignment stats (this trip)** — colored badges showing:
-- 🟢 Respondidos (bid_submitted + bid_won + bid_lost + bid_expired WHERE quote IS NOT NULL)
-- 🔴 Sin respuesta (bid_expired WHERE quote IS NULL)
-- 🟡 Pendientes (bid_pending)
-- ⚪ Cancelados (bid_cancelled) — only if > 0
+- **Old policies** expect path: `{user_id}/{fileName}` (checking `auth.uid() = foldername[1]`)
+- **Current code** uses path: `{package_id}/{fileName}` (matching the memory constraint)
 
-**2. Traveler track record** — small text line:
-- "X viajes completados · Y paquetes entregados"
-- Shows below traveler name, using data from all their historical trips
+The old policies silently fail for shoppers when they conflict with the correct package-ID-based policies, especially during re-uploads (upsert requires UPDATE permission).
 
-### How we distinguish "responded" vs "no response"
+### Policies to DROP (legacy, wrong path convention)
 
-The `quote` field in `package_assignments` tells us:
-- `bid_expired` + `quote IS NULL` = traveler never responded (24h timeout)
-- `bid_expired` + `quote IS NOT NULL` = traveler responded but shopper didn't accept (48h timeout)
+| Policy Name | Operation | Problem |
+|---|---|---|
+| `Users can upload their own payment receipts` | INSERT | Expects user_id as first folder |
+| `Users can update their own payment receipts` | UPDATE | Expects user_id as first folder |
+| `Users can delete their own payment receipts` | DELETE | Expects user_id as first folder |
+| `Shoppers can upload purchase confirmations` | INSERT | Too permissive, no path validation |
+| `Shoppers and admins can update purchase confirmations` | UPDATE | Checks `purchase_confirmation` field instead of `payment_receipt` |
+| `Restricted access to purchase confirmations` | SELECT | Checks `purchase_confirmation->>'filePath'` for payment-receipts bucket (wrong field) |
 
-### Technical approach
+### Policies that STAY (correct, package-ID-based)
 
-**1. Create `src/hooks/useTripAssignmentStats.ts`**
+These already exist and handle all operations correctly:
 
-Single hook that takes an array of `{ tripId, userId }` and fetches:
-- All `package_assignments` for those trip IDs → group by trip, categorize by status + quote presence
-- Traveler history: count of trips with `completed_paid` status and packages with `completed`/`completed_paid` status per unique user_id
-- Uses two parallel Supabase queries, returns a map keyed by tripId
+| Policy Name | Operation | Logic |
+|---|---|---|
+| `Users can upload package documents` | INSERT | Validates pkg.id in path + user ownership |
+| `Users can update package documents` | UPDATE | Same validation |
+| `Users can delete package documents` | DELETE | Same validation |
+| `Users can view their own package documents` | SELECT | Same validation |
+| `Admins can insert/view/update/delete payment receipts` | ALL | Admin access |
+| `Operations staff can view payment receipts` | SELECT | Operations access |
+| `Travelers can view matched package payment receipts` | SELECT | Traveler access |
 
-**2. Modify `src/components/admin/matching/AvailableTripsTab.tsx`**
+### Implementation
 
-- Call the hook with filtered trip IDs/user IDs
-- Pass stats to each TripCard
-
-**3. Modify `src/components/admin/matching/TripCard.tsx`**
-
-- Add optional `assignmentStats` and `travelerHistory` props
-- Render compact badge row for assignments between traveler info and dates
-- Render "X viajes · Y entregas" text next to or below the traveler name
+**Single SQL migration** that drops the 6 conflicting policies. No code changes needed — the frontend already uses the correct `${pkg.id}/${fileName}` path structure.
 
 ### Files
-1. **Create** `src/hooks/useTripAssignmentStats.ts`
-2. **Modify** `src/components/admin/matching/AvailableTripsTab.tsx`
-3. **Modify** `src/components/admin/matching/TripCard.tsx`
+1. **Migration only** — drop 6 legacy storage policies
 
