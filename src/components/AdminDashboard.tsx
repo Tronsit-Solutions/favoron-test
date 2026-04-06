@@ -168,7 +168,7 @@ const AdminDashboard = ({
       : matchingTrip ? [matchingTrip] : [];
 
     if (!selectedPackage || tripIds.length === 0) {
-      toast.error("No se encontró el paquete o viajeros seleccionados");
+      sonnerToast.error("No se encontró el paquete o viajeros seleccionados");
       return;
     }
 
