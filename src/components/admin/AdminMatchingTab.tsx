@@ -113,7 +113,7 @@ const AdminMatchingTab = ({
         const chunk = ids.slice(i, i + chunkSize);
         const { data, error } = await supabase
           .from('package_assignments')
-          .select('id, package_id, trip_id, status, quote, admin_assigned_tip, traveler_address, matched_trip_dates, products_data, expires_at, trips!inner(user_id, profiles:profiles!inner(first_name, last_name))')
+          .select('id, package_id, trip_id, status, quote, admin_assigned_tip, traveler_address, matched_trip_dates, products_data, expires_at, trips(user_id, profiles(first_name, last_name))')
           .in('package_id', chunk)
           .not('status', 'eq', 'bid_lost');
         if (error) throw error;
