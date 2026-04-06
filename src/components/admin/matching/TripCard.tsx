@@ -3,21 +3,26 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Eye, Plane, Star, CalendarDays, PackageCheck, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
+import { Eye, Plane, Star, CalendarDays, PackageCheck, ArrowDownToLine, ArrowUpFromLine, TrendingUp } from "lucide-react";
 import { formatDateUTC } from "@/lib/formatters";
+import type { AssignmentStats, TravelerHistory } from "@/hooks/useTripAssignmentStats";
 
 interface TripCardProps {
   trip: any;
   packagesTotal?: number;
   onViewTripDetail: (trip: any) => void;
   hasBoost?: boolean;
+  assignmentStats?: AssignmentStats;
+  travelerHistory?: TravelerHistory;
 }
 
 export const TripCard = ({
   trip,
   packagesTotal,
   onViewTripDetail,
-  hasBoost = false
+  hasBoost = false,
+  assignmentStats,
+  travelerHistory,
 }: TripCardProps) => {
   const name = trip.first_name && trip.last_name
     ? `${trip.first_name} ${trip.last_name}`
@@ -68,7 +73,41 @@ export const TripCard = ({
           )}
         </div>
 
-        {/* Dates grid */}
+        {/* Traveler history */}
+        {travelerHistory && (
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <TrendingUp className="h-3 w-3" />
+            <span>{travelerHistory.completedTrips} viajes completados · {travelerHistory.deliveredPackages} entregas</span>
+          </div>
+        )}
+
+        {/* Assignment stats */}
+        {assignmentStats && (
+          <div className="flex flex-wrap gap-1.5">
+            {assignmentStats.responded > 0 && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-green-300 text-green-700 bg-green-50">
+                ✅ {assignmentStats.responded} respondidos
+              </Badge>
+            )}
+            {assignmentStats.noResponse > 0 && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-destructive/30 text-destructive bg-destructive/5">
+                ❌ {assignmentStats.noResponse} sin respuesta
+              </Badge>
+            )}
+            {assignmentStats.pending > 0 && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-yellow-300 text-yellow-700 bg-yellow-50">
+                ⏳ {assignmentStats.pending} pendientes
+              </Badge>
+            )}
+            {assignmentStats.cancelled > 0 && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-muted text-muted-foreground">
+                🚫 {assignmentStats.cancelled} cancelados
+              </Badge>
+            )}
+          </div>
+        )}
+
+
         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
           <div className="flex items-center gap-1 text-primary">
             <CalendarDays className="h-3 w-3" />

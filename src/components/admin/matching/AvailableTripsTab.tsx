@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { TripFilters } from "./TripFilters";
 import { TripStatsHeader } from "./TripStatsHeader";
 import { TripCard } from "./TripCard";
 import { EmptyTripsState } from "./EmptyTripsState";
+import { useTripAssignmentStats } from "@/hooks/useTripAssignmentStats";
 
 interface AvailableTripsTabProps {
   trips: any[];
@@ -68,8 +69,13 @@ const AvailableTripsTab = ({ trips, packages, onViewTripDetail }: AvailableTrips
     return matchesSearch && matchesOrigin;
   }).sort((a, b) => new Date(a.arrival_date).getTime() - new Date(b.arrival_date).getTime());
 
+  const tripInputs = useMemo(() => 
+    filteredTrips.map(t => ({ tripId: t.id, userId: t.user_id })),
+    [filteredTrips]
+  );
+  const statsMap = useTripAssignmentStats(tripInputs);
+
   const approvedCount = filteredTrips.filter(t => t.status === 'approved').length;
-  // Un viaje se considera "activo" cuando tiene paquetes asignados
   const activeCount = filteredTrips.filter(t => {
     const hasMatchedPackages = packages.some(p => p.matched_trip_id === t.id);
     return t.status === 'approved' && hasMatchedPackages;
@@ -99,15 +105,20 @@ const AvailableTripsTab = ({ trips, packages, onViewTripDetail }: AvailableTrips
         {filteredTrips.length === 0 ? (
           <EmptyTripsState hasFilters={hasFilters} />
         ) : (
-          filteredTrips.map(trip => (
-            <TripCard
-              key={trip.id}
-              trip={trip}
-              packagesTotal={calculateTripPackagesTotal(trip.id)}
-              onViewTripDetail={onViewTripDetail}
-              hasBoost={Boolean(trip.boost_code)}
-            />
-          ))
+          filteredTrips.map(trip => {
+            const tripStats = statsMap[trip.id];
+            return (
+              <TripCard
+                key={trip.id}
+                trip={trip}
+                packagesTotal={calculateTripPackagesTotal(trip.id)}
+                onViewTripDetail={onViewTripDetail}
+                hasBoost={Boolean(trip.boost_code)}
+                assignmentStats={tripStats?.assignments}
+                travelerHistory={tripStats?.travelerHistory}
+              />
+            );
+          })
         )}
       </div>
     </div>
