@@ -105,15 +105,20 @@ const AvailableTripsTab = ({ trips, packages, onViewTripDetail }: AvailableTrips
         {filteredTrips.length === 0 ? (
           <EmptyTripsState hasFilters={hasFilters} />
         ) : (
-          filteredTrips.map(trip => (
-            <TripCard
-              key={trip.id}
-              trip={trip}
-              packagesTotal={calculateTripPackagesTotal(trip.id)}
-              onViewTripDetail={onViewTripDetail}
-              hasBoost={Boolean(trip.boost_code)}
-            />
-          ))
+          filteredTrips.map(trip => {
+            const tripStats = statsMap[trip.id];
+            return (
+              <TripCard
+                key={trip.id}
+                trip={trip}
+                packagesTotal={calculateTripPackagesTotal(trip.id)}
+                onViewTripDetail={onViewTripDetail}
+                hasBoost={Boolean(trip.boost_code)}
+                assignmentStats={tripStats?.assignments}
+                travelerHistory={tripStats?.travelerHistory}
+              />
+            );
+          })
         )}
       </div>
     </div>
