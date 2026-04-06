@@ -1297,27 +1297,59 @@ export const useDashboardActions = (
       }
     }
 
-    // === Direct RPC call — no timeout, no polling, no recovery ===
+    // === RPC call with retry for network errors ===
     console.log(`[MATCH] START packageId=${packageId} trips=${tripIdsToAssign.join(',')} tip=${adminTip}`);
 
-    const { data: rpcResult, error: rpcError } = await supabase.rpc('assign_package_to_travelers', {
-      _package_id: packageId,
-      _trip_ids: tripIdsToAssign,
-      _admin_tip: adminTip,
-      _products_data: updatedProductsData || null
-    });
+    const MAX_RETRIES = 2;
+    let rpcResult: any = null;
+    let lastError: any = null;
 
-    if (rpcError) {
-      console.error('[MATCH] RPC FAILED:', rpcError.message);
-      const errorMsg = rpcError.message?.includes('NO_NEW_TRIPS')
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      if (attempt > 0) {
+        console.warn(`[MATCH] Retry attempt ${attempt}/${MAX_RETRIES}`);
+        await new Promise(r => setTimeout(r, 2000 * attempt));
+      }
+
+      const { data, error } = await supabase.rpc('assign_package_to_travelers', {
+        _package_id: packageId,
+        _trip_ids: tripIdsToAssign,
+        _admin_tip: adminTip,
+        _products_data: updatedProductsData || null
+      });
+
+      if (!error) {
+        rpcResult = data;
+        lastError = null;
+        break;
+      }
+
+      lastError = error;
+      const msg = error.message || '';
+
+      // Only retry on network errors, not on business logic errors
+      if (msg.includes('Failed to fetch') || msg.includes('Load failed') || msg.includes('fetch failed') || msg.includes('NetworkError')) {
+        console.warn(`[MATCH] Network error on attempt ${attempt}:`, msg);
+        continue;
+      }
+
+      // Non-retryable error — break immediately
+      break;
+    }
+
+    if (lastError) {
+      console.error('[MATCH] RPC FAILED:', lastError.message);
+      const msg = lastError.message || '';
+      const errorMsg = msg.includes('NO_NEW_TRIPS')
         ? "Todos los viajeros seleccionados ya tienen asignaciones activas."
-        : "No se pudo realizar el match. Inténtalo de nuevo.";
+        : msg.includes('Failed to fetch') || msg.includes('Load failed')
+          ? "Error de conexión. Verifica tu internet e inténtalo de nuevo."
+          : "No se pudo realizar el match. Inténtalo de nuevo.";
       toast({
-        title: "Error",
+        title: "Error al confirmar match",
         description: errorMsg,
         variant: "destructive",
       });
-      throw rpcError;
+      throw lastError;
     }
 
     console.log('[MATCH] RPC OK, result:', rpcResult);
