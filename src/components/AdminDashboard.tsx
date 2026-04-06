@@ -191,7 +191,7 @@ const AdminDashboard = ({
     // Run RPC in background
     try {
       await onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds);
-      toast.success("¡Match confirmado!", { description: "Paquete asignado exitosamente." });
+      sonnerToast.success("¡Match confirmado!", { description: "Paquete asignado exitosamente." });
     } catch (error: any) {
       console.error('[DASH] Match FAILED:', error?.message);
       // Rollback optimistic update
