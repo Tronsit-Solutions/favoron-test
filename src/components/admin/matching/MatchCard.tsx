@@ -283,8 +283,21 @@ export const MatchCard = ({
                       <span>🤝 {getTravelerName()} ✈️</span>
                     </div>
                   ) : assignmentInfo && assignmentInfo.count > 0 ? (
-                    <div className="flex items-center space-x-2">
-                      <span>🤝 {assignmentInfo.count} viajeros asignados ✈️</span>
+                    <div className="flex items-center space-x-2 flex-wrap gap-1">
+                      <span>🤝</span>
+                      {assignmentInfo.assignments.map((a: any, i: number) => {
+                        const profile = a.trips?.profiles;
+                        const name = profile 
+                          ? `${profile.first_name || ''}${profile.last_name ? ' ' + profile.last_name.charAt(0) + '.' : ''}`.trim()
+                          : 'Viajero';
+                        const statusIcon = a.status === 'bid_submitted' ? '✅' : a.status === 'bid_pending' ? '⏳' : a.status === 'bid_expired' ? '❌' : '•';
+                        return (
+                          <span key={a.id} className="text-sm">
+                            {i > 0 && <span className="mx-0.5">•</span>}
+                            {name} {statusIcon}
+                          </span>
+                        );
+                      })}
                     </div>
                   ) : null}
                   <div className="flex items-center justify-between">
