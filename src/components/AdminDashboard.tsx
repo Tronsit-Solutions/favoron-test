@@ -196,7 +196,7 @@ const AdminDashboard = ({
       console.error('[DASH] Match FAILED:', error?.message);
       // Rollback optimistic update
       setLocalPackages(previousPackages);
-      toast.error("Error al confirmar match", { description: error?.message || "Intenta de nuevo." });
+      sonnerToast.error("Error al confirmar match", { description: error?.message || "Intenta de nuevo." });
     }
   };
 
