@@ -1,51 +1,74 @@
 
 
-## Investigation Results
+## Why matches take minutes (or never complete)
 
-### What I found
-- **Database**: No UNIQUE constraint on `package_assignments`. The RPC logic correctly handles terminal statuses (`bid_cancelled`). Both trips have valid data.
-- **Current state**: Package `fb569aa9` is still `approved`. Only one old assignment exists (José Sincuir, `bid_cancelled`). No new assignments were created.
-- **Error logs**: No match-related errors in `client_errors` table. No network requests captured in the preview session.
-- **Session replay**: Shows a "Asignando paquete..." loading toast appeared, meaning the dialog closed and the RPC was attempted — but it apparently failed without any visible error feedback reaching the user.
+### Root Cause: 21 triggers fire inside one transaction
 
-### Root Cause
-The RPC call either failed silently (error not displayed) or hit a network timeout. The current error handling in `useDashboardActions.tsx` catches errors and shows a toast, but:
-1. **No server-side error logging** — match failures aren't logged to `client_errors`, so we have zero visibility
-2. **The error toast may have been dismissed too quickly** or the user didn't notice it among other toasts
+When the RPC `assign_package_to_travelers` runs `UPDATE packages SET status = 'matched'`, **21 triggers** execute inside the same database transaction. Even though most are no-ops for this specific transition and `create_notification_with_direct_email` uses async `pg_net`, the sheer number of trigger evaluations adds overhead. But this alone shouldn't cause minutes of delay.
 
-The RPC itself is correct — I verified the function source, the data, and the schema. There is no constraint that would block this insert.
+**The real problem is simpler**: the match attempt for `fb569aa9` **never reached the database at all**. The package is still `approved`, no new `package_assignments` rows exist, and no error was logged to `client_errors`. This means the RPC call timed out at the browser/network level before Postgres even processed it.
 
-### Fix: Add error visibility
+The likely chain:
+1. Browser `fetch()` has a default timeout (~60s on most browsers, but Safari can be as low as 30s)
+2. PostgREST/Supabase has a default statement timeout (~8s for the free tier, configurable on paid tiers)
+3. If the RPC call hits a slow query plan or lock contention, it exceeds the timeout
+4. The `fetch` promise rejects with "Failed to fetch" or similar
+5. The retry mechanism kicks in (2s delay, then 4s delay) adding ~6s of dead time
+6. All 3 attempts time out → total ~30-60s of waiting
+7. But the error handling in `handleMatchPackage` only catches Supabase errors with `.error` — a **network timeout throws a raw Error** that might not be caught properly
 
-**File: `src/hooks/useDashboardActions.tsx`** — Inside `handleMatchPackage`, after the RPC fails (around line 1339):
+### What I confirmed
+- `create_notification_with_direct_email` → uses `net.http_post` (async, non-blocking) — not the bottleneck
+- All notification triggers call this via `PERFORM` — lightweight, returns quickly
+- The `package_assignments` INSERT triggers are minimal (just set `expires_at`)
+- No synchronous HTTP calls (`extensions.http`) found
 
-1. **Log match failures to `client_errors`** so we have a permanent record:
-```typescript
-if (lastError) {
-  // Log to client_errors for debugging
-  supabase.from('client_errors').insert({
-    message: `Match RPC failed: ${lastError.message}`,
-    type: 'match_error',
-    route: '/dashboard?tab=admin',
-    context: {
-      packageId,
-      tripIds: tripIdsToAssign,
-      adminTip,
-      attempt: attempt,
-      errorCode: lastError.code,
-      errorDetails: lastError.details,
-    }
-  }).then(() => {}).catch(() => {});
-  // ... existing toast error handling
-}
-```
+### Proposed fix: Add timing instrumentation + increase RPC timeout
 
-2. **Add `console.error` with full error details** before the toast, including `error.code`, `error.details`, `error.hint` from the Supabase response.
+**1. Add timing logs to `handleMatchPackage`** (`src/hooks/useDashboardActions.tsx`)
+- Wrap the RPC call with `performance.now()` markers to measure exact duration
+- Log timing to console AND to `client_errors` on failure
+- This will tell us definitively whether it's a 8s PostgREST timeout, a 30s browser timeout, or something else
 
-3. **Persist the error toast longer** — change the error sonner toast to include `duration: 10000` so the admin has time to read it.
+**2. Set an explicit fetch timeout on the RPC call**
+- Use `AbortController` with a 25s timeout so the call fails fast instead of hanging for minutes
+- This prevents the "minutes of waiting" — worst case is 25s + retry delays
 
-### What to do next
-After deploying this fix, ask the user to **retry the assignment on the preview URL**. If it fails again, we'll have the exact error in `client_errors` and console. If it succeeds (which I expect based on the data), then the previous failure was a transient network issue.
+**3. Reduce retry delays**
+- Change from exponential backoff (2s, 4s) to fixed 1s intervals
+- Total worst-case wait drops from ~60s+ to ~30s
 
 ### Files to change
-1. `src/hooks/useDashboardActions.tsx` — Add error logging to `handleMatchPackage`
+1. `src/hooks/useDashboardActions.tsx` — Add timing, AbortController timeout, reduce retry delays
+
+### Technical detail
+
+```typescript
+// In handleMatchPackage, wrap the RPC call:
+const controller = new AbortController();
+const timeout = setTimeout(() => controller.abort(), 25000);
+
+const startTime = performance.now();
+const { data, error } = await supabase.rpc('assign_package_to_travelers', {
+  _package_id: packageId,
+  _trip_ids: tripIdsToAssign,
+  _admin_tip: adminTip,
+  _products_data: updatedProductsData || null
+}, { signal: controller.signal });
+clearTimeout(timeout);
+
+const elapsed = Math.round(performance.now() - startTime);
+console.log(`[MATCH] RPC completed in ${elapsed}ms`);
+```
+
+And reduce retry delays:
+```typescript
+// Change from: await new Promise(r => setTimeout(r, 2000 * attempt));
+// To: await new Promise(r => setTimeout(r, 1000));
+```
+
+This won't fix the underlying timeout issue (which may be a Supabase tier limit), but it will:
+- Give us exact timing data on the next attempt
+- Cap the maximum wait to ~28s instead of minutes
+- Provide actionable diagnostic data to determine if we need to optimize the trigger chain
+
