@@ -90,6 +90,10 @@ const AdminMatchingTab = ({
   const [assignmentsMap, setAssignmentsMap] = useState<{ [packageId: string]: { count: number; assignments: any[] } }>({});
   const assignmentsFetchedForTab = useRef<string | null>(null);
 
+  // Track packages that recently became 'matched' to auto-refetch their assignments
+  const prevPackageStatusesRef = useRef<Map<string, string>>(new Map());
+  const pendingRefetchTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
   // Compute relevant package IDs for assignments (only needed for matches tab)
   const relevantPackageIds = useMemo(() => {
     if (currentTab !== 'matches') return [];
@@ -100,6 +104,26 @@ const AdminMatchingTab = ({
       )
       .map(p => p.id);
   }, [packages, currentTab]);
+
+  // Fetch assignments for a single package and merge into map
+  const fetchAssignmentsForPackage = useCallback(async (packageId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('package_assignments')
+        .select('id, package_id, trip_id, status, quote, admin_assigned_tip, traveler_address, matched_trip_dates, products_data, expires_at, trips(user_id, profiles(first_name, last_name))')
+        .eq('package_id', packageId)
+        .not('status', 'eq', 'bid_lost');
+      if (error) throw error;
+      if (data && data.length > 0) {
+        setAssignmentsMap(prev => ({
+          ...prev,
+          [packageId]: { count: data.length, assignments: data }
+        }));
+      }
+    } catch (err) {
+      console.warn('[MATCHING-TAB] fetchAssignmentsForPackage error:', err);
+    }
+  }, []);
 
   const fetchAssignments = useCallback(async (ids: string[]) => {
     if (ids.length === 0) {
@@ -139,6 +163,47 @@ const AdminMatchingTab = ({
       fetchAssignments(relevantPackageIds);
     }
   }, [currentTab, relevantPackageIds, fetchAssignments]);
+
+  // Detect packages that just changed to 'matched' and schedule a targeted re-fetch
+  useEffect(() => {
+    const prevStatuses = prevPackageStatusesRef.current;
+    
+    packages.forEach(pkg => {
+      const prevStatus = prevStatuses.get(pkg.id);
+      // Package just became 'matched' (was something else before, or is new)
+      if (pkg.status === 'matched' && prevStatus !== 'matched' && prevStatus !== undefined) {
+        // Don't schedule if we already have assignments for this package
+        if (!assignmentsMap[pkg.id] || assignmentsMap[pkg.id].count === 0) {
+          // Clear any existing timer for this package
+          const existing = pendingRefetchTimers.current.get(pkg.id);
+          if (existing) clearTimeout(existing);
+
+          // Schedule re-fetch: 1s delay to let the RPC finish, then retry at 3s if still empty
+          const timer = setTimeout(() => {
+            fetchAssignmentsForPackage(pkg.id).then(() => {
+              // Second attempt after 2 more seconds if first came back empty
+              const retryTimer = setTimeout(() => {
+                fetchAssignmentsForPackage(pkg.id);
+                pendingRefetchTimers.current.delete(pkg.id);
+              }, 2000);
+              pendingRefetchTimers.current.set(pkg.id, retryTimer);
+            });
+          }, 1000);
+          pendingRefetchTimers.current.set(pkg.id, timer);
+        }
+      }
+    });
+
+    // Update previous statuses
+    const newMap = new Map<string, string>();
+    packages.forEach(pkg => newMap.set(pkg.id, pkg.status));
+    prevPackageStatusesRef.current = newMap;
+
+    // Cleanup timers on unmount
+    return () => {
+      pendingRefetchTimers.current.forEach(timer => clearTimeout(timer));
+    };
+  }, [packages, assignmentsMap, fetchAssignmentsForPackage]);
 
   // Multi-assigned package IDs (packages with assignments but no matched_trip_id)
   const multiAssignedPackageIds = useMemo(() => {
