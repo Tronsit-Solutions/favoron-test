@@ -79,17 +79,26 @@ export function useCancelledPackages() {
       // Fetch profiles
       const profileMap: Record<string, { name: string; phone: string | null }> = {};
       if (allUserIds.size > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, first_name, last_name, phone_number")
-          .in("id", [...allUserIds]);
-        if (profiles) {
-          profiles.forEach(pr => {
-            profileMap[pr.id] = {
-              name: `${pr.first_name || ""} ${pr.last_name || ""}`.trim() || "Sin nombre",
-              phone: pr.phone_number,
-            };
-          });
+        const userIdArray = [...allUserIds];
+        const BATCH_SIZE = 200;
+        for (let i = 0; i < userIdArray.length; i += BATCH_SIZE) {
+          const batch = userIdArray.slice(i, i + BATCH_SIZE);
+          const { data: profiles, error } = await supabase
+            .from("profiles")
+            .select("id, first_name, last_name, phone_number")
+            .in("id", batch);
+          if (error) console.warn("Profile fetch error (cancelled pkgs):", error);
+          if (profiles) {
+            profiles.forEach(pr => {
+              profileMap[pr.id] = {
+                name: `${pr.first_name || ""} ${pr.last_name || ""}`.trim() || "Sin nombre",
+                phone: pr.phone_number,
+              };
+            });
+          }
+        }
+        if (Object.keys(profileMap).length === 0) {
+          console.warn("No profiles resolved — RLS may be blocking access. User IDs attempted:", userIdArray.length);
         }
       }
 
