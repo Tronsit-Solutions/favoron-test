@@ -1,6 +1,11 @@
+import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { Package, Calendar, MapPin, User, AlertCircle, Globe } from "lucide-react";
+import PackageProductDisplay from "@/components/dashboard/PackageProductDisplay";
 import { CancelledPackageRow } from "@/hooks/useCancelledPackages";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
