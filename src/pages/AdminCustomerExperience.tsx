@@ -6,9 +6,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Headphones, Phone, CheckCircle, Clock, Star, Search, CalendarClock } from "lucide-react";
+import { Headphones, Phone, CheckCircle, Clock, Star, Search, CalendarClock, XCircle, Ban, TimerOff, ThumbsDown, HourglassIcon } from "lucide-react";
 import { useCustomerExperience } from "@/hooks/useCustomerExperience";
+import { useCancelledPackages } from "@/hooks/useCancelledPackages";
 import CustomerExperienceTable from "@/components/admin/cx/CustomerExperienceTable";
+import CancelledPackagesTable from "@/components/admin/cx/CancelledPackagesTable";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
@@ -98,6 +100,86 @@ function CXTab({ userType }: { userType: "shopper" | "traveler" }) {
   );
 }
 
+function CancelledTab() {
+  const { rows, loading, stats, statusFilter, setStatusFilter, searchTerm, setSearchTerm } = useCancelledPackages();
+
+  return (
+    <div className="space-y-4">
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              <XCircle className="h-4 w-4" /> Total
+            </CardTitle>
+          </CardHeader>
+          <CardContent><p className="text-2xl font-bold">{stats.total}</p></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              <Ban className="h-4 w-4" /> Cancelados
+            </CardTitle>
+          </CardHeader>
+          <CardContent><p className="text-2xl font-bold">{stats.cancelled}</p></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              <TimerOff className="h-4 w-4" /> Cotiz. Expirada
+            </CardTitle>
+          </CardHeader>
+          <CardContent><p className="text-2xl font-bold">{stats.quote_expired}</p></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              <ThumbsDown className="h-4 w-4" /> Cotiz. Rechazada
+            </CardTitle>
+          </CardHeader>
+          <CardContent><p className="text-2xl font-bold">{stats.quote_rejected}</p></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+              <HourglassIcon className="h-4 w-4" /> Fecha Vencida
+            </CardTitle>
+          </CardHeader>
+          <CardContent><p className="text-2xl font-bold">{stats.deadline_expired}</p></CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nombre..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <span className="text-sm text-muted-foreground">Filtrar:</span>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="cancelled">Cancelado</SelectItem>
+            <SelectItem value="quote_expired">Cotización expirada</SelectItem>
+            <SelectItem value="quote_rejected">Cotización rechazada</SelectItem>
+            <SelectItem value="deadline_expired">Fecha vencida</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <CancelledPackagesTable rows={rows} loading={loading} />
+    </div>
+  );
+}
+
 const AdminCustomerExperience = () => {
   const { user, profile, userRole } = useAuth();
   const navigate = useNavigate();
@@ -143,12 +225,18 @@ const AdminCustomerExperience = () => {
             <TabsList>
               <TabsTrigger value="shoppers">Shoppers</TabsTrigger>
               <TabsTrigger value="travelers">Viajeros</TabsTrigger>
+              <TabsTrigger value="cancelled" className="flex items-center gap-1">
+                <XCircle className="h-4 w-4" /> Cancelados
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="shoppers" className="mt-4">
               <CXTab userType="shopper" />
             </TabsContent>
             <TabsContent value="travelers" className="mt-4">
               <CXTab userType="traveler" />
+            </TabsContent>
+            <TabsContent value="cancelled" className="mt-4">
+              <CancelledTab />
             </TabsContent>
           </Tabs>
         </div>
