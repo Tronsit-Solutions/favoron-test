@@ -1298,6 +1298,7 @@ export const useDashboardActions = (
     }
 
     // === RPC call with retry for network errors ===
+    const matchStartTime = performance.now();
     console.log(`[MATCH] START packageId=${packageId} trips=${tripIdsToAssign.join(',')} tip=${adminTip}`);
 
     const MAX_RETRIES = 2;
@@ -1306,35 +1307,62 @@ export const useDashboardActions = (
 
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       if (attempt > 0) {
-        console.warn(`[MATCH] Retry attempt ${attempt}/${MAX_RETRIES}`);
-        await new Promise(r => setTimeout(r, 2000 * attempt));
+        console.warn(`[MATCH] Retry attempt ${attempt}/${MAX_RETRIES} after 1s`);
+        await new Promise(r => setTimeout(r, 1000));
       }
 
-      const { data, error } = await supabase.rpc('assign_package_to_travelers', {
-        _package_id: packageId,
-        _trip_ids: tripIdsToAssign,
-        _admin_tip: adminTip,
-        _products_data: updatedProductsData || null
-      });
+      const attemptStart = performance.now();
+      try {
+        const controller = new AbortController();
+        const abortTimeout = setTimeout(() => controller.abort(), 25000);
 
-      if (!error) {
-        rpcResult = data;
-        lastError = null;
+        const { data, error } = await supabase.rpc('assign_package_to_travelers', {
+          _package_id: packageId,
+          _trip_ids: tripIdsToAssign,
+          _admin_tip: adminTip,
+          _products_data: updatedProductsData || null
+        }, { signal: controller.signal } as any);
+
+        clearTimeout(abortTimeout);
+        const attemptElapsed = Math.round(performance.now() - attemptStart);
+        console.log(`[MATCH] Attempt ${attempt} completed in ${attemptElapsed}ms, error=${!!error}`);
+
+        if (!error) {
+          rpcResult = data;
+          lastError = null;
+          break;
+        }
+
+        lastError = error;
+        const msg = error.message || '';
+
+        // Only retry on network errors, not on business logic errors
+        if (msg.includes('Failed to fetch') || msg.includes('Load failed') || msg.includes('fetch failed') || msg.includes('NetworkError')) {
+          console.warn(`[MATCH] Network error on attempt ${attempt} (${attemptElapsed}ms):`, msg);
+          continue;
+        }
+
+        // Non-retryable error — break immediately
+        break;
+      } catch (fetchError: any) {
+        const attemptElapsed = Math.round(performance.now() - attemptStart);
+        console.error(`[MATCH] Fetch exception on attempt ${attempt} (${attemptElapsed}ms):`, fetchError?.name, fetchError?.message);
+        
+        // AbortError means our 25s timeout fired
+        if (fetchError?.name === 'AbortError') {
+          lastError = { message: `RPC timeout after 25s (attempt ${attempt})`, code: 'TIMEOUT', details: 'AbortController fired', hint: 'Check Supabase statement timeout or trigger chain' };
+        } else {
+          lastError = { message: fetchError?.message || 'Unknown fetch error', code: 'FETCH_ERROR', details: fetchError?.name };
+        }
+
+        // Retry on fetch exceptions (network/timeout)
+        if (attempt < MAX_RETRIES) continue;
         break;
       }
-
-      lastError = error;
-      const msg = error.message || '';
-
-      // Only retry on network errors, not on business logic errors
-      if (msg.includes('Failed to fetch') || msg.includes('Load failed') || msg.includes('fetch failed') || msg.includes('NetworkError')) {
-        console.warn(`[MATCH] Network error on attempt ${attempt}:`, msg);
-        continue;
-      }
-
-      // Non-retryable error — break immediately
-      break;
     }
+
+    const totalElapsed = Math.round(performance.now() - matchStartTime);
+    console.log(`[MATCH] Total elapsed: ${totalElapsed}ms, success=${!lastError}`);
 
     if (lastError) {
       console.error('[MATCH] RPC FAILED — full error:', {
@@ -1345,6 +1373,7 @@ export const useDashboardActions = (
         packageId,
         tripIds: tripIdsToAssign,
         adminTip,
+        totalElapsedMs: totalElapsed,
       });
 
       // Log to client_errors for permanent visibility
@@ -1360,6 +1389,7 @@ export const useDashboardActions = (
           errorCode: lastError.code,
           errorDetails: lastError.details,
           errorHint: lastError.hint,
+          totalElapsedMs: totalElapsed,
         },
       }).then(() => {}, () => {});
 
