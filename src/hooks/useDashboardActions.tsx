@@ -1297,13 +1297,38 @@ export const useDashboardActions = (
       }
     }
 
-    // === RPC call with retry for network errors ===
+    // === RPC call with native fetch() + real AbortController timeout ===
     const matchStartTime = performance.now();
     console.log(`[MATCH] START packageId=${packageId} trips=${tripIdsToAssign.join(',')} tip=${adminTip}`);
 
+    const SUPABASE_URL = "https://dfhoduirmqbarjnspbdh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmaG9kdWlybXFiYXJqbnNwYmRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNTE4NjYsImV4cCI6MjA2NzYyNzg2Nn0.w1PWz_sugNUIlOfVb1dqKFulcDVPiKb_0SdkhUho8wY";
+    const RPC_TIMEOUT_MS = 12000;
     const MAX_RETRIES = 1;
     let rpcResult: any = null;
     let lastError: any = null;
+
+    // Get current session token for authenticated RPC call
+    let accessToken: string | null = null;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      accessToken = sessionData?.session?.access_token || null;
+    } catch { /* use anon key only */ }
+
+    // Log match_attempt BEFORE the fetch so we can detect silent hangs
+    supabase.from('client_errors').insert({
+      message: `Match attempt: pkg=${packageId} trips=${tripIdsToAssign.join(',')}`,
+      type: 'match_attempt',
+      severity: 'info',
+      route: '/dashboard?tab=admin',
+      context: {
+        packageId,
+        tripIds: tripIdsToAssign,
+        adminTip,
+        timeoutMs: RPC_TIMEOUT_MS,
+        maxRetries: MAX_RETRIES,
+      },
+    }).then(() => {}, () => {});
 
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       if (attempt > 0) {
@@ -1312,50 +1337,57 @@ export const useDashboardActions = (
       }
 
       const attemptStart = performance.now();
-      try {
-        const controller = new AbortController();
-        const abortTimeout = setTimeout(() => controller.abort(), 10000);
+      const controller = new AbortController();
+      const abortTimeout = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
 
-        const { data, error } = await supabase.rpc('assign_package_to_travelers', {
-          _package_id: packageId,
-          _trip_ids: tripIdsToAssign,
-          _admin_tip: adminTip,
-          _products_data: updatedProductsData || null
-        }, { signal: controller.signal } as any);
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/assign_package_to_travelers`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${accessToken || SUPABASE_ANON_KEY}`,
+            'X-Client-Info': 'favoron-web-app',
+          },
+          body: JSON.stringify({
+            _package_id: packageId,
+            _trip_ids: tripIdsToAssign,
+            _admin_tip: adminTip,
+            _products_data: updatedProductsData || null,
+          }),
+          signal: controller.signal,
+        });
 
         clearTimeout(abortTimeout);
         const attemptElapsed = Math.round(performance.now() - attemptStart);
-        console.log(`[MATCH] Attempt ${attempt} completed in ${attemptElapsed}ms, error=${!!error}`);
 
-        if (!error) {
-          rpcResult = data;
-          lastError = null;
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => ({}));
+          const msg = errorBody?.message || errorBody?.error || `HTTP ${response.status}`;
+          console.error(`[MATCH] Attempt ${attempt} HTTP error ${response.status} in ${attemptElapsed}ms:`, msg);
+          lastError = { message: msg, code: errorBody?.code || `HTTP_${response.status}`, details: errorBody?.details, hint: errorBody?.hint };
+
+          // Retry on 5xx server errors
+          if (response.status >= 500 && attempt < MAX_RETRIES) continue;
           break;
         }
 
-        lastError = error;
-        const msg = error.message || '';
-
-        // Only retry on network errors, not on business logic errors
-        if (msg.includes('Failed to fetch') || msg.includes('Load failed') || msg.includes('fetch failed') || msg.includes('NetworkError')) {
-          console.warn(`[MATCH] Network error on attempt ${attempt} (${attemptElapsed}ms):`, msg);
-          continue;
-        }
-
-        // Non-retryable error — break immediately
+        const data = await response.json().catch(() => null);
+        console.log(`[MATCH] Attempt ${attempt} completed in ${attemptElapsed}ms, success`);
+        rpcResult = data;
+        lastError = null;
         break;
       } catch (fetchError: any) {
+        clearTimeout(abortTimeout);
         const attemptElapsed = Math.round(performance.now() - attemptStart);
         console.error(`[MATCH] Fetch exception on attempt ${attempt} (${attemptElapsed}ms):`, fetchError?.name, fetchError?.message);
-        
-        // AbortError means our 25s timeout fired
+
         if (fetchError?.name === 'AbortError') {
-          lastError = { message: `RPC timeout after 10s (attempt ${attempt})`, code: 'TIMEOUT', details: 'AbortController fired', hint: 'Check Supabase statement timeout or trigger chain' };
+          lastError = { message: `RPC timeout after ${RPC_TIMEOUT_MS / 1000}s (attempt ${attempt})`, code: 'TIMEOUT', details: 'AbortController fired', hint: 'PostgREST or network not responding in time' };
         } else {
           lastError = { message: fetchError?.message || 'Unknown fetch error', code: 'FETCH_ERROR', details: fetchError?.name };
         }
 
-        // Retry on fetch exceptions (network/timeout)
         if (attempt < MAX_RETRIES) continue;
         break;
       }
