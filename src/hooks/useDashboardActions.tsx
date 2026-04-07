@@ -1361,7 +1361,7 @@ export const useDashboardActions = (
           errorDetails: lastError.details,
           errorHint: lastError.hint,
         },
-      }).then(() => {}).catch(() => {});
+      }).then(() => {}, () => {});
 
       const msg = lastError.message || '';
       const errorMsg = msg.includes('NO_NEW_TRIPS')
