@@ -1,46 +1,49 @@
 
 
-## Nueva pestaña: Pedidos Cancelados / Expirados en Customer Experience
+## Problema: Todos los shoppers muestran "Sin nombre"
 
-### Objetivo
-Agregar una tercera pestaña "Cancelados / Expirados" en la página de Customer Experience que muestre todos los paquetes con status `cancelled`, `quote_expired`, `quote_rejected`, y `deadline_expired`. El objetivo es entender por qué los usuarios no continuaron con su pedido.
+### Causa probable
 
-### Cambios
+La query a `profiles` con `.in("id", [...allUserIds])` probablemente falla por dos razones:
 
-**1. `src/hooks/useCustomerExperience.ts`** — Nuevo hook o extensión
-- Crear un nuevo hook `useCancelledPackages()` que consulte paquetes con status IN (`cancelled`, `quote_expired`, `quote_rejected`, `deadline_expired`)
-- Traer: `id`, `status`, `item_description`, `products_data`, `user_id`, `estimated_price`, `created_at`, `updated_at`, `rejection_reason`, `quote_rejection`, `traveler_rejection`, `package_destination`, `purchase_origin`, `delivery_deadline`
-- Resolver perfiles de los shoppers (nombre, teléfono)
-- Resolver viajero asignado si existe (`matched_trip_id` → trips → profiles)
-- Ordenar por `updated_at` descendente
-- Incluir filtro por status específico y búsqueda por nombre
+1. **RLS restrictivo**: La tabla `profiles` tiene RLS que solo permite acceso a usuarios con el permiso específico `'users'`. Si el admin logueado no tiene ese permiso, la query retorna 0 filas silenciosamente.
 
-**2. `src/pages/AdminCustomerExperience.tsx`**
-- Agregar tercera pestaña "Cancelados" con icono `XCircle`
-- Usar el nuevo hook dentro de un componente `CancelledTab`
-- Mostrar stats: total, por cada sub-status (cancelled, quote_expired, etc.)
-- Filtro por sub-status y búsqueda por nombre
+2. **Límite de Supabase `.in()`**: Con 1000 paquetes hay potencialmente cientos de user_ids únicos. Supabase tiene un límite práctico en la cantidad de IDs en un `.in()` (~300). Si hay más, la query puede fallar.
 
-**3. Nuevo componente `src/components/admin/cx/CancelledPackagesTable.tsx`**
-- Tabla con columnas: Shopper, Producto, Status, Razón, Viajero asignado, Precio estimado, Fecha creación, Fecha cancelación/expiración
-- Badge de color por status (cancelled=rojo, quote_expired=naranja, etc.)
-- Mostrar `rejection_reason`, `quote_rejection.reason`, o `traveler_rejection.reason` según aplique como "Razón"
-- Botón para ver detalle del paquete
-- Sin funcionalidad de llamadas CX (es solo para análisis)
+### Solución
 
-### Detalle técnico
+**`src/hooks/useCancelledPackages.ts`**:
 
-```text
-Statuses a incluir:
-  - cancelled: el shopper canceló manualmente
-  - quote_expired: el shopper no aceptó la cotización a tiempo
-  - quote_rejected: el shopper rechazó la cotización
-  - deadline_expired: la fecha límite pasó sin match
+1. **Batching de profiles**: Dividir los user_ids en lotes de 200 y hacer múltiples queries a `profiles`.
 
-Columna "Razón" se extrae de:
-  - rejection_reason (campo directo)
-  - quote_rejection->reason (JSON)
-  - traveler_rejection->reason (JSON)
-  - Si ninguno existe: "Sin razón registrada"
+2. **Logging de errores**: Agregar `console.warn` si la query de profiles retorna error o 0 resultados para facilitar debugging.
+
+3. **Alternativa si RLS bloquea**: Si el problema es RLS, usar una edge function o RPC que tenga `security definer` para resolver los nombres. Sin embargo, primero verificar si el admin actual tiene el permiso `'users'` — si lo tiene, el batching debería resolver el problema.
+
+### Cambio principal
+
+```typescript
+// Dividir en batches de 200
+const userIdArray = [...allUserIds];
+const BATCH_SIZE = 200;
+for (let i = 0; i < userIdArray.length; i += BATCH_SIZE) {
+  const batch = userIdArray.slice(i, i + BATCH_SIZE);
+  const { data: profiles, error } = await supabase
+    .from("profiles")
+    .select("id, first_name, last_name, phone_number")
+    .in("id", batch);
+  if (error) console.warn("Profile fetch error:", error);
+  if (profiles) {
+    profiles.forEach(pr => {
+      profileMap[pr.id] = {
+        name: `${pr.first_name || ""} ${pr.last_name || ""}`.trim() || "Sin nombre",
+        phone: pr.phone_number,
+      };
+    });
+  }
+}
 ```
+
+### Archivo a modificar
+- `src/hooks/useCancelledPackages.ts` — reemplazar la sección de fetch profiles (líneas 81-93) con batching
 
