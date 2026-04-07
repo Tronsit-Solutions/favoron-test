@@ -1,49 +1,20 @@
 
 
-## Problema: Todos los shoppers muestran "Sin nombre"
+## Agregar modal de detalle al hacer click en filas de Cancelados
 
-### Causa probable
+### Cambios
 
-La query a `profiles` con `.in("id", [...allUserIds])` probablemente falla por dos razones:
+**1. `src/components/admin/cx/CancelledPackagesTable.tsx`**
+- Agregar estado local `selectedRow` y `modalOpen`
+- Hacer cada `TableRow` clickeable con `cursor-pointer` y `hover:bg-muted/50`
+- Al hacer click, setear `selectedRow` con la fila y abrir el modal
+- Renderizar un `Dialog` con la info del pedido: shopper, producto(s), status, razón de cancelación, viajero, precio, origen, destino, deadline, fechas, notas
 
-1. **RLS restrictivo**: La tabla `profiles` tiene RLS que solo permite acceso a usuarios con el permiso específico `'users'`. Si el admin logueado no tiene ese permiso, la query retorna 0 filas silenciosamente.
+**2. Modal inline en el mismo componente** (no reusar `CXPackageDetailModal` porque ese espera `CXPackageRow` con campos diferentes como `completed_at`, `counterpart_name`, `label_number`)
+- Mostrar: nombre del shopper y teléfono, productos (usando `PackageProductDisplay`), status badge, razón de cancelación/expiración, viajero asignado, precio estimado, origen y destino, deadline, fechas de creación y actualización
+- Usar el mismo estilo visual que `CXPackageDetailModal`
 
-2. **Límite de Supabase `.in()`**: Con 1000 paquetes hay potencialmente cientos de user_ids únicos. Supabase tiene un límite práctico en la cantidad de IDs en un `.in()` (~300). Si hay más, la query puede fallar.
-
-### Solución
-
-**`src/hooks/useCancelledPackages.ts`**:
-
-1. **Batching de profiles**: Dividir los user_ids en lotes de 200 y hacer múltiples queries a `profiles`.
-
-2. **Logging de errores**: Agregar `console.warn` si la query de profiles retorna error o 0 resultados para facilitar debugging.
-
-3. **Alternativa si RLS bloquea**: Si el problema es RLS, usar una edge function o RPC que tenga `security definer` para resolver los nombres. Sin embargo, primero verificar si el admin actual tiene el permiso `'users'` — si lo tiene, el batching debería resolver el problema.
-
-### Cambio principal
-
-```typescript
-// Dividir en batches de 200
-const userIdArray = [...allUserIds];
-const BATCH_SIZE = 200;
-for (let i = 0; i < userIdArray.length; i += BATCH_SIZE) {
-  const batch = userIdArray.slice(i, i + BATCH_SIZE);
-  const { data: profiles, error } = await supabase
-    .from("profiles")
-    .select("id, first_name, last_name, phone_number")
-    .in("id", batch);
-  if (error) console.warn("Profile fetch error:", error);
-  if (profiles) {
-    profiles.forEach(pr => {
-      profileMap[pr.id] = {
-        name: `${pr.first_name || ""} ${pr.last_name || ""}`.trim() || "Sin nombre",
-        phone: pr.phone_number,
-      };
-    });
-  }
-}
-```
-
-### Archivo a modificar
-- `src/hooks/useCancelledPackages.ts` — reemplazar la sección de fetch profiles (líneas 81-93) con batching
+### Detalle
+- No se necesitan cambios en el hook ni en la página
+- Solo se modifica `CancelledPackagesTable.tsx` agregando estado + modal
 
