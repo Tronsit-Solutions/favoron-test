@@ -861,6 +861,13 @@ const AdminMatchDialog = ({
 
   const [isSubmittingMatch, setIsSubmittingMatch] = useState(false);
 
+  // Safety reset: ensure submitting state is cleared when dialog opens
+  useEffect(() => {
+    if (showMatchDialog) {
+      setIsSubmittingMatch(false);
+    }
+  }, [showMatchDialog]);
+
   const handleMatch = async () => {
     if (selectedTripIds.size === 0 || isSubmittingMatch) return;
     setIsSubmittingMatch(true);
