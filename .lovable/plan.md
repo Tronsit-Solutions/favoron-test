@@ -1,74 +1,99 @@
 
+Problema confirmado: el sistema sí sigue pudiendo tardar “minutos” por diseño actual, aunque el toast diga que va “en segundo plano”.
 
-## Why matches take minutes (or never complete)
+Qué encontré
+- En `src/components/AdminDashboard.tsx`, al confirmar el match se cierra el modal y se muestra el toast: `"Asignando paquete..." / "Procesando match en segundo plano."`
+- Pero ese flujo hace `await onMatchPackage(...)`. O sea: visualmente parece background, pero en realidad el cliente sigue esperando el RPC.
+- En `src/hooks/useDashboardActions.tsx`, `handleMatchPackage` puede durar muchísimo porque hoy hace:
+  - hasta 3 intentos totales (`MAX_RETRIES = 2`)
+  - cada intento puede esperar hasta 25s por `AbortController`
+  - entre reintentos agrega 1s + 1s
+- Peor caso actual aproximado:
+  - `25s + 1s + 25s + 1s + 25s = 77s`
+  - si además hay latencia del navegador / red / Supabase, la percepción se acerca a “minutos”
+- Las notificaciones no son el cuello de botella principal:
+  - después del RPC exitoso se disparan dentro de `setTimeout(0)`
+  - WhatsApp y email están fuera del camino crítico del match exitoso
+- El texto del toast es engañoso:
+  - dice “en segundo plano”
+  - pero el proceso crítico sigue siendo bloqueante desde el lado del cliente
 
-### Root Cause: 21 triggers fire inside one transaction
+Causa más probable
+- El problema no parece ser “crear filas + cambiar status” como lógica de negocio, sino que el RPC `assign_package_to_travelers` está tardando o quedándose colgado hasta timeout.
+- Y como encima hay reintentos largos, un solo match fallido se convierte en una espera enorme.
 
-When the RPC `assign_package_to_travelers` runs `UPDATE packages SET status = 'matched'`, **21 triggers** execute inside the same database transaction. Even though most are no-ops for this specific transition and `create_notification_with_direct_email` uses async `pg_net`, the sheer number of trigger evaluations adds overhead. But this alone shouldn't cause minutes of delay.
+Plan de solución
+1. Corregir la UX del toast
+- Cambiar el mensaje para que no diga “en segundo plano” mientras realmente se está esperando.
+- Mostrar algo como:
+  - “Confirmando match...”
+  - “Esto puede tardar unos segundos”
+- Así evitamos una expectativa falsa.
 
-**The real problem is simpler**: the match attempt for `fb569aa9` **never reached the database at all**. The package is still `approved`, no new `package_assignments` rows exist, and no error was logged to `client_errors`. This means the RPC call timed out at the browser/network level before Postgres even processed it.
+2. Reducir drásticamente el tiempo máximo de espera
+- Bajar el timeout por intento de 25s a un rango más agresivo (por ejemplo 8–12s).
+- Reducir reintentos a 1 intento extra o incluso 0 mientras diagnosticamos.
+- Objetivo: que un fallo responda rápido en vez de congelar al admin por más de 1 minuto.
 
-The likely chain:
-1. Browser `fetch()` has a default timeout (~60s on most browsers, but Safari can be as low as 30s)
-2. PostgREST/Supabase has a default statement timeout (~8s for the free tier, configurable on paid tiers)
-3. If the RPC call hits a slow query plan or lock contention, it exceeds the timeout
-4. The `fetch` promise rejects with "Failed to fetch" or similar
-5. The retry mechanism kicks in (2s delay, then 4s delay) adding ~6s of dead time
-6. All 3 attempts time out → total ~30-60s of waiting
-7. But the error handling in `handleMatchPackage` only catches Supabase errors with `.error` — a **network timeout throws a raw Error** that might not be caught properly
+3. Instrumentar mejor la latencia real
+- Mantener logs por intento y total.
+- Agregar también logging explícito del inicio y fin del flujo en `AdminDashboard.tsx`, para diferenciar:
+  - tiempo hasta cerrar modal
+  - tiempo total hasta éxito/error
+- Esto confirmará si el cuello está en el RPC o en la capa fetch/red.
 
-### What I confirmed
-- `create_notification_with_direct_email` → uses `net.http_post` (async, non-blocking) — not the bottleneck
-- All notification triggers call this via `PERFORM` — lightweight, returns quickly
-- The `package_assignments` INSERT triggers are minimal (just set `expires_at`)
-- No synchronous HTTP calls (`extensions.http`) found
+4. Implementar un flujo verdaderamente desacoplado si el RPC puede ser largo
+- Si queremos un “background” real, no basta con cerrar el modal.
+- Hay dos caminos:
+  - Camino corto: dejar de llamarlo “background” y solo acotar tiempos.
+  - Camino robusto: rediseñar a “iniciar operación + consultar estado/polling”.
+- Para ese rediseño haría falta una fuente de estado confiable del match, por ejemplo:
+  - polling del paquete/assignments
+  - o una función/tabla de estado del job
+- Ese es el enfoque correcto si Supabase/PostgREST sigue cortando operaciones largas.
 
-### Proposed fix: Add timing instrumentation + increase RPC timeout
+5. Revisar el RPC para quitar trabajo innecesario dentro de la transacción
+- Aunque la función es simple, revisar y optimizar:
+  - filtro de asignaciones activas
+  - inserciones por loop
+  - update final de `packages`
+- Posible mejora:
+  - cambiar el `FOR ... LOOP` por un `INSERT ... SELECT` en bloque
+- También revisar si hay triggers sobre `packages` o `package_assignments` que sigan corriendo en esta transición.
 
-**1. Add timing logs to `handleMatchPackage`** (`src/hooks/useDashboardActions.tsx`)
-- Wrap the RPC call with `performance.now()` markers to measure exact duration
-- Log timing to console AND to `client_errors` on failure
-- This will tell us definitively whether it's a 8s PostgREST timeout, a 30s browser timeout, or something else
+Archivos a tocar
+- `src/components/AdminDashboard.tsx`
+  - corregir el texto del loading toast
+  - opcionalmente mostrar estado más preciso
+- `src/hooks/useDashboardActions.tsx`
+  - bajar timeout por intento
+  - bajar cantidad de reintentos
+  - mejorar logs de duración
+- `supabase/migrations/...`
+  - solo si decidimos optimizar el RPC SQL o cambiar a un modelo de polling/background real
 
-**2. Set an explicit fetch timeout on the RPC call**
-- Use `AbortController` with a 25s timeout so the call fails fast instead of hanging for minutes
-- This prevents the "minutes of waiting" — worst case is 25s + retry delays
-
-**3. Reduce retry delays**
-- Change from exponential backoff (2s, 4s) to fixed 1s intervals
-- Total worst-case wait drops from ~60s+ to ~30s
-
-### Files to change
-1. `src/hooks/useDashboardActions.tsx` — Add timing, AbortController timeout, reduce retry delays
-
-### Technical detail
-
-```typescript
-// In handleMatchPackage, wrap the RPC call:
-const controller = new AbortController();
-const timeout = setTimeout(() => controller.abort(), 25000);
-
-const startTime = performance.now();
-const { data, error } = await supabase.rpc('assign_package_to_travelers', {
-  _package_id: packageId,
-  _trip_ids: tripIdsToAssign,
-  _admin_tip: adminTip,
-  _products_data: updatedProductsData || null
-}, { signal: controller.signal });
-clearTimeout(timeout);
-
-const elapsed = Math.round(performance.now() - startTime);
-console.log(`[MATCH] RPC completed in ${elapsed}ms`);
+Detalles técnicos
+```text
+Flujo actual real:
+UI cierra modal
+→ muestra toast "en segundo plano"
+→ await handleMatchPackage()
+→ hasta 3 intentos
+→ cada intento puede esperar 25s
+→ total ~77s antes de fallar
 ```
 
-And reduce retry delays:
-```typescript
-// Change from: await new Promise(r => setTimeout(r, 2000 * attempt));
-// To: await new Promise(r => setTimeout(r, 1000));
+```text
+Dirección recomendada inmediata:
+- timeout por intento: 8s–12s
+- retries: 0 o 1
+- toast honesto: "Confirmando match..."
 ```
 
-This won't fix the underlying timeout issue (which may be a Supabase tier limit), but it will:
-- Give us exact timing data on the next attempt
-- Cap the maximum wait to ~28s instead of minutes
-- Provide actionable diagnostic data to determine if we need to optimize the trigger chain
-
+```text
+Dirección recomendada estructural:
+- iniciar match rápido
+- no esperar RPC largo en el cliente
+- consultar estado por polling / realtime
+- actualizar UI cuando package_assignments y package status confirmen el resultado
+```
