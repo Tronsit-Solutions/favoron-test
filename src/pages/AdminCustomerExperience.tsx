@@ -225,12 +225,18 @@ const AdminCustomerExperience = () => {
             <TabsList>
               <TabsTrigger value="shoppers">Shoppers</TabsTrigger>
               <TabsTrigger value="travelers">Viajeros</TabsTrigger>
+              <TabsTrigger value="cancelled" className="flex items-center gap-1">
+                <XCircle className="h-4 w-4" /> Cancelados
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="shoppers" className="mt-4">
               <CXTab userType="shopper" />
             </TabsContent>
             <TabsContent value="travelers" className="mt-4">
               <CXTab userType="traveler" />
+            </TabsContent>
+            <TabsContent value="cancelled" className="mt-4">
+              <CancelledTab />
             </TabsContent>
           </Tabs>
         </div>
