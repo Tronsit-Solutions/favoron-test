@@ -861,18 +861,23 @@ const AdminMatchDialog = ({
 
   const [isSubmittingMatch, setIsSubmittingMatch] = useState(false);
 
-  const handleMatch = () => {
+  const handleMatch = async () => {
     if (selectedTripIds.size === 0 || isSubmittingMatch) return;
     setIsSubmittingMatch(true);
     
     const tipAmount = getTotalAssignedTip();
     const tripIdsArray = Array.from(selectedTripIds);
     
-    // Fire-and-forget: close dialog immediately, RPC runs in background
-    if (isMultiProductOrder()) {
-      onMatch(tipAmount, assignedProductsWithTips, tripIdsArray);
-    } else {
-      onMatch(tipAmount, undefined, tripIdsArray);
+    try {
+      if (isMultiProductOrder()) {
+        await onMatch(tipAmount, assignedProductsWithTips, tripIdsArray);
+      } else {
+        await onMatch(tipAmount, undefined, tripIdsArray);
+      }
+    } catch (error) {
+      console.error('[MATCH-DIALOG] Match failed:', error);
+    } finally {
+      setIsSubmittingMatch(false);
     }
   };
 
