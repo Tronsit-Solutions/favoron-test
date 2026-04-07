@@ -1,68 +1,57 @@
 
 
-## Diagnóstico completo: Por qué los matches tardan tanto
+## Problema: El optimistic update del match se pierde
 
-### Lo que descubrí
+### Causa raíz
 
-1. **El AbortController NO funciona**: `supabase.rpc('...', params, { signal })` — el SDK de Supabase JS v2 **no soporta `signal` en `.rpc()`**. El timeout de 10s que implementamos nunca se aplica. El fetch real puede colgar hasta el timeout del navegador (~60-120s) o el statement_timeout de Postgres (configurado en **2 minutos**).
+Cuando se confirma un match, el flujo es:
 
-2. **Los triggers son inocuos**: De los 14 triggers que se ejecutan, ninguno hace trabajo bloqueante para la transición `approved → matched`. Todos son no-ops para ese cambio de estado.
+1. `setLocalPackages` actualiza el paquete a `status: 'matched'` (optimistic)
+2. El modal se cierra (`showMatchDialog = false`)
+3. El RPC se ejecuta en background (~2-12s)
 
-3. **El RPC es simple y rápido**: Solo filtra duplicados, inserta 1-2 filas en `package_assignments`, y actualiza `packages.status`. Con 266 asignaciones totales e índices correctos, debería ejecutar en <100ms.
+Pero durante ese tiempo:
+- **El sync effect (línea 130-139)** detecta que `showMatchDialog` es `false` y no hay modales abiertos, así que sobrescribe `localPackages` con la prop `packages` — que todavía tiene `status: 'approved'` porque el parent no ha refetcheado.
+- **El realtime handler** tampoco tiene protección `recentMutationsRef` (no se le pasa), así que puede también sobrescribir con datos viejos.
 
-4. **No hay errores registrados**: La tabla `client_errors` no tiene ningún registro de tipo `match_error`, lo que confirma que el código de logging post-fallo no se alcanza — el fetch se queda colgado sin resolver.
+Resultado: el paquete vuelve a aparecer como `approved` en la lista.
 
-### Causa raíz probable
+### Solución
 
-El problema está en la **capa de red/PostgREST**, no en Postgres. Las posibilidades son:
-- PostgREST connection pool saturado o cold start lento
-- El navegador mantiene el fetch abierto sin respuesta
-- Sin AbortController funcional, no hay manera de cortar la espera
+**1. Agregar un ref de "optimistic overrides" en AdminDashboard**
 
-### Plan de solución
+Crear un `optimisticOverridesRef` que almacene `{ [packageId]: { status, timestamp } }`. Cuando se hace un match optimístico, se registra el packageId con su nuevo status y un timestamp.
 
-**1. Reemplazar `supabase.rpc()` con `fetch()` directo al endpoint REST**
-- Usar `fetch()` nativo con `AbortController` real que SÍ funciona
-- Timeout de 12 segundos por intento
-- Esto garantiza que el timeout se aplique correctamente
+**2. Proteger el sync effect**
 
-**2. Agregar logging pre-RPC para confirmar que la llamada sale**
-- Log a `client_errors` ANTES de llamar al RPC (tipo `match_attempt`)
-- Si el match falla y no hay `match_error` pero sí `match_attempt`, sabemos que el fetch se colgó
+En el effect de línea 130-139, antes de aplicar `setLocalPackages(packages)`, filtrar los paquetes que tienen un override activo (menos de 15 segundos) y preservar su status optimístico.
 
-**3. Mantener 1 retry con 1s de delay**
+**3. Pasar protección al realtime handler**
 
-### Archivos a modificar
+Pasar `recentMutationsRef` (o el nuevo `optimisticOverridesRef`) a `useConsolidatedRealtimeAdmin` para que ignore updates de paquetes recientemente mutados.
 
-**`src/hooks/useDashboardActions.tsx`**:
-- Reemplazar `supabase.rpc(...)` con `fetch()` directo a `https://dfhoduirmqbarjnspbdh.supabase.co/rest/v1/rpc/assign_package_to_travelers`
-- Usar headers de autenticación del cliente Supabase
-- AbortController con timeout de 12s (real, funcional)
-- Agregar log de `match_attempt` antes de la llamada
+**4. Limpiar el override cuando el RPC termina**
+
+En el `try` exitoso y en el `catch` (rollback), limpiar el override del packageId.
+
+### Archivo a modificar
+
+**`src/components/AdminDashboard.tsx`**:
+- Agregar `optimisticOverridesRef = useRef<Record<string, number>>({})`
+- En `handleMatchConfirm`: registrar `optimisticOverridesRef.current[matchPackageId] = Date.now()`
+- En el sync effect: aplicar `packages` pero preservar status de paquetes con override activo (<15s)
+- En el catch (rollback): eliminar el override
+- En el try (success): eliminar el override
+- Pasar el ref a `useConsolidatedRealtimeAdmin` como `recentMutationsRef`
 
 ### Detalle técnico
 
 ```text
-Antes (no funciona):
-  supabase.rpc('assign_package_to_travelers', params, { signal }) 
-  → signal ignorado → fetch cuelga hasta 2min
+Antes:
+  optimistic update → modal closes → sync effect runs → packages prop (stale) overwrites → "approved" again
 
-Después (funciona):
-  const controller = new AbortController();
-  setTimeout(() => controller.abort(), 12000);
-  fetch(RPC_URL, { signal: controller.signal, ... })
-  → timeout real de 12s → fallo rápido si PostgREST no responde
-```
-
-```text
-Peor caso nuevo:
-  12s + 1s delay + 12s = 25s (vs ~120s+ actual)
-```
-
-```text
-Nuevo logging:
-  1. match_attempt → se registra ANTES del fetch
-  2. match_error → se registra si falla
-  3. Si hay attempt sin error → el fetch se colgó sin resolver
+Después:
+  optimistic update → register override → modal closes → sync effect runs 
+    → checks override → preserves "matched" for 15s → RPC completes → parent refetches → real "matched" arrives → override cleared
 ```
 
