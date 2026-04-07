@@ -1,57 +1,46 @@
 
 
-## Problema: El optimistic update del match se pierde
+## Nueva pestaña: Pedidos Cancelados / Expirados en Customer Experience
 
-### Causa raíz
+### Objetivo
+Agregar una tercera pestaña "Cancelados / Expirados" en la página de Customer Experience que muestre todos los paquetes con status `cancelled`, `quote_expired`, `quote_rejected`, y `deadline_expired`. El objetivo es entender por qué los usuarios no continuaron con su pedido.
 
-Cuando se confirma un match, el flujo es:
+### Cambios
 
-1. `setLocalPackages` actualiza el paquete a `status: 'matched'` (optimistic)
-2. El modal se cierra (`showMatchDialog = false`)
-3. El RPC se ejecuta en background (~2-12s)
+**1. `src/hooks/useCustomerExperience.ts`** — Nuevo hook o extensión
+- Crear un nuevo hook `useCancelledPackages()` que consulte paquetes con status IN (`cancelled`, `quote_expired`, `quote_rejected`, `deadline_expired`)
+- Traer: `id`, `status`, `item_description`, `products_data`, `user_id`, `estimated_price`, `created_at`, `updated_at`, `rejection_reason`, `quote_rejection`, `traveler_rejection`, `package_destination`, `purchase_origin`, `delivery_deadline`
+- Resolver perfiles de los shoppers (nombre, teléfono)
+- Resolver viajero asignado si existe (`matched_trip_id` → trips → profiles)
+- Ordenar por `updated_at` descendente
+- Incluir filtro por status específico y búsqueda por nombre
 
-Pero durante ese tiempo:
-- **El sync effect (línea 130-139)** detecta que `showMatchDialog` es `false` y no hay modales abiertos, así que sobrescribe `localPackages` con la prop `packages` — que todavía tiene `status: 'approved'` porque el parent no ha refetcheado.
-- **El realtime handler** tampoco tiene protección `recentMutationsRef` (no se le pasa), así que puede también sobrescribir con datos viejos.
+**2. `src/pages/AdminCustomerExperience.tsx`**
+- Agregar tercera pestaña "Cancelados" con icono `XCircle`
+- Usar el nuevo hook dentro de un componente `CancelledTab`
+- Mostrar stats: total, por cada sub-status (cancelled, quote_expired, etc.)
+- Filtro por sub-status y búsqueda por nombre
 
-Resultado: el paquete vuelve a aparecer como `approved` en la lista.
-
-### Solución
-
-**1. Agregar un ref de "optimistic overrides" en AdminDashboard**
-
-Crear un `optimisticOverridesRef` que almacene `{ [packageId]: { status, timestamp } }`. Cuando se hace un match optimístico, se registra el packageId con su nuevo status y un timestamp.
-
-**2. Proteger el sync effect**
-
-En el effect de línea 130-139, antes de aplicar `setLocalPackages(packages)`, filtrar los paquetes que tienen un override activo (menos de 15 segundos) y preservar su status optimístico.
-
-**3. Pasar protección al realtime handler**
-
-Pasar `recentMutationsRef` (o el nuevo `optimisticOverridesRef`) a `useConsolidatedRealtimeAdmin` para que ignore updates de paquetes recientemente mutados.
-
-**4. Limpiar el override cuando el RPC termina**
-
-En el `try` exitoso y en el `catch` (rollback), limpiar el override del packageId.
-
-### Archivo a modificar
-
-**`src/components/AdminDashboard.tsx`**:
-- Agregar `optimisticOverridesRef = useRef<Record<string, number>>({})`
-- En `handleMatchConfirm`: registrar `optimisticOverridesRef.current[matchPackageId] = Date.now()`
-- En el sync effect: aplicar `packages` pero preservar status de paquetes con override activo (<15s)
-- En el catch (rollback): eliminar el override
-- En el try (success): eliminar el override
-- Pasar el ref a `useConsolidatedRealtimeAdmin` como `recentMutationsRef`
+**3. Nuevo componente `src/components/admin/cx/CancelledPackagesTable.tsx`**
+- Tabla con columnas: Shopper, Producto, Status, Razón, Viajero asignado, Precio estimado, Fecha creación, Fecha cancelación/expiración
+- Badge de color por status (cancelled=rojo, quote_expired=naranja, etc.)
+- Mostrar `rejection_reason`, `quote_rejection.reason`, o `traveler_rejection.reason` según aplique como "Razón"
+- Botón para ver detalle del paquete
+- Sin funcionalidad de llamadas CX (es solo para análisis)
 
 ### Detalle técnico
 
 ```text
-Antes:
-  optimistic update → modal closes → sync effect runs → packages prop (stale) overwrites → "approved" again
+Statuses a incluir:
+  - cancelled: el shopper canceló manualmente
+  - quote_expired: el shopper no aceptó la cotización a tiempo
+  - quote_rejected: el shopper rechazó la cotización
+  - deadline_expired: la fecha límite pasó sin match
 
-Después:
-  optimistic update → register override → modal closes → sync effect runs 
-    → checks override → preserves "matched" for 15s → RPC completes → parent refetches → real "matched" arrives → override cleared
+Columna "Razón" se extrae de:
+  - rejection_reason (campo directo)
+  - quote_rejection->reason (JSON)
+  - traveler_rejection->reason (JSON)
+  - Si ninguno existe: "Sin razón registrada"
 ```
 
