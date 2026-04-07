@@ -1,99 +1,68 @@
 
-Problema confirmado: el sistema sí sigue pudiendo tardar “minutos” por diseño actual, aunque el toast diga que va “en segundo plano”.
 
-Qué encontré
-- En `src/components/AdminDashboard.tsx`, al confirmar el match se cierra el modal y se muestra el toast: `"Asignando paquete..." / "Procesando match en segundo plano."`
-- Pero ese flujo hace `await onMatchPackage(...)`. O sea: visualmente parece background, pero en realidad el cliente sigue esperando el RPC.
-- En `src/hooks/useDashboardActions.tsx`, `handleMatchPackage` puede durar muchísimo porque hoy hace:
-  - hasta 3 intentos totales (`MAX_RETRIES = 2`)
-  - cada intento puede esperar hasta 25s por `AbortController`
-  - entre reintentos agrega 1s + 1s
-- Peor caso actual aproximado:
-  - `25s + 1s + 25s + 1s + 25s = 77s`
-  - si además hay latencia del navegador / red / Supabase, la percepción se acerca a “minutos”
-- Las notificaciones no son el cuello de botella principal:
-  - después del RPC exitoso se disparan dentro de `setTimeout(0)`
-  - WhatsApp y email están fuera del camino crítico del match exitoso
-- El texto del toast es engañoso:
-  - dice “en segundo plano”
-  - pero el proceso crítico sigue siendo bloqueante desde el lado del cliente
+## Diagnóstico completo: Por qué los matches tardan tanto
 
-Causa más probable
-- El problema no parece ser “crear filas + cambiar status” como lógica de negocio, sino que el RPC `assign_package_to_travelers` está tardando o quedándose colgado hasta timeout.
-- Y como encima hay reintentos largos, un solo match fallido se convierte en una espera enorme.
+### Lo que descubrí
 
-Plan de solución
-1. Corregir la UX del toast
-- Cambiar el mensaje para que no diga “en segundo plano” mientras realmente se está esperando.
-- Mostrar algo como:
-  - “Confirmando match...”
-  - “Esto puede tardar unos segundos”
-- Así evitamos una expectativa falsa.
+1. **El AbortController NO funciona**: `supabase.rpc('...', params, { signal })` — el SDK de Supabase JS v2 **no soporta `signal` en `.rpc()`**. El timeout de 10s que implementamos nunca se aplica. El fetch real puede colgar hasta el timeout del navegador (~60-120s) o el statement_timeout de Postgres (configurado en **2 minutos**).
 
-2. Reducir drásticamente el tiempo máximo de espera
-- Bajar el timeout por intento de 25s a un rango más agresivo (por ejemplo 8–12s).
-- Reducir reintentos a 1 intento extra o incluso 0 mientras diagnosticamos.
-- Objetivo: que un fallo responda rápido en vez de congelar al admin por más de 1 minuto.
+2. **Los triggers son inocuos**: De los 14 triggers que se ejecutan, ninguno hace trabajo bloqueante para la transición `approved → matched`. Todos son no-ops para ese cambio de estado.
 
-3. Instrumentar mejor la latencia real
-- Mantener logs por intento y total.
-- Agregar también logging explícito del inicio y fin del flujo en `AdminDashboard.tsx`, para diferenciar:
-  - tiempo hasta cerrar modal
-  - tiempo total hasta éxito/error
-- Esto confirmará si el cuello está en el RPC o en la capa fetch/red.
+3. **El RPC es simple y rápido**: Solo filtra duplicados, inserta 1-2 filas en `package_assignments`, y actualiza `packages.status`. Con 266 asignaciones totales e índices correctos, debería ejecutar en <100ms.
 
-4. Implementar un flujo verdaderamente desacoplado si el RPC puede ser largo
-- Si queremos un “background” real, no basta con cerrar el modal.
-- Hay dos caminos:
-  - Camino corto: dejar de llamarlo “background” y solo acotar tiempos.
-  - Camino robusto: rediseñar a “iniciar operación + consultar estado/polling”.
-- Para ese rediseño haría falta una fuente de estado confiable del match, por ejemplo:
-  - polling del paquete/assignments
-  - o una función/tabla de estado del job
-- Ese es el enfoque correcto si Supabase/PostgREST sigue cortando operaciones largas.
+4. **No hay errores registrados**: La tabla `client_errors` no tiene ningún registro de tipo `match_error`, lo que confirma que el código de logging post-fallo no se alcanza — el fetch se queda colgado sin resolver.
 
-5. Revisar el RPC para quitar trabajo innecesario dentro de la transacción
-- Aunque la función es simple, revisar y optimizar:
-  - filtro de asignaciones activas
-  - inserciones por loop
-  - update final de `packages`
-- Posible mejora:
-  - cambiar el `FOR ... LOOP` por un `INSERT ... SELECT` en bloque
-- También revisar si hay triggers sobre `packages` o `package_assignments` que sigan corriendo en esta transición.
+### Causa raíz probable
 
-Archivos a tocar
-- `src/components/AdminDashboard.tsx`
-  - corregir el texto del loading toast
-  - opcionalmente mostrar estado más preciso
-- `src/hooks/useDashboardActions.tsx`
-  - bajar timeout por intento
-  - bajar cantidad de reintentos
-  - mejorar logs de duración
-- `supabase/migrations/...`
-  - solo si decidimos optimizar el RPC SQL o cambiar a un modelo de polling/background real
+El problema está en la **capa de red/PostgREST**, no en Postgres. Las posibilidades son:
+- PostgREST connection pool saturado o cold start lento
+- El navegador mantiene el fetch abierto sin respuesta
+- Sin AbortController funcional, no hay manera de cortar la espera
 
-Detalles técnicos
+### Plan de solución
+
+**1. Reemplazar `supabase.rpc()` con `fetch()` directo al endpoint REST**
+- Usar `fetch()` nativo con `AbortController` real que SÍ funciona
+- Timeout de 12 segundos por intento
+- Esto garantiza que el timeout se aplique correctamente
+
+**2. Agregar logging pre-RPC para confirmar que la llamada sale**
+- Log a `client_errors` ANTES de llamar al RPC (tipo `match_attempt`)
+- Si el match falla y no hay `match_error` pero sí `match_attempt`, sabemos que el fetch se colgó
+
+**3. Mantener 1 retry con 1s de delay**
+
+### Archivos a modificar
+
+**`src/hooks/useDashboardActions.tsx`**:
+- Reemplazar `supabase.rpc(...)` con `fetch()` directo a `https://dfhoduirmqbarjnspbdh.supabase.co/rest/v1/rpc/assign_package_to_travelers`
+- Usar headers de autenticación del cliente Supabase
+- AbortController con timeout de 12s (real, funcional)
+- Agregar log de `match_attempt` antes de la llamada
+
+### Detalle técnico
+
 ```text
-Flujo actual real:
-UI cierra modal
-→ muestra toast "en segundo plano"
-→ await handleMatchPackage()
-→ hasta 3 intentos
-→ cada intento puede esperar 25s
-→ total ~77s antes de fallar
+Antes (no funciona):
+  supabase.rpc('assign_package_to_travelers', params, { signal }) 
+  → signal ignorado → fetch cuelga hasta 2min
+
+Después (funciona):
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), 12000);
+  fetch(RPC_URL, { signal: controller.signal, ... })
+  → timeout real de 12s → fallo rápido si PostgREST no responde
 ```
 
 ```text
-Dirección recomendada inmediata:
-- timeout por intento: 8s–12s
-- retries: 0 o 1
-- toast honesto: "Confirmando match..."
+Peor caso nuevo:
+  12s + 1s delay + 12s = 25s (vs ~120s+ actual)
 ```
 
 ```text
-Dirección recomendada estructural:
-- iniciar match rápido
-- no esperar RPC largo en el cliente
-- consultar estado por polling / realtime
-- actualizar UI cuando package_assignments y package status confirmen el resultado
+Nuevo logging:
+  1. match_attempt → se registra ANTES del fetch
+  2. match_error → se registra si falla
+  3. Si hay attempt sin error → el fetch se colgó sin resolver
 ```
+
