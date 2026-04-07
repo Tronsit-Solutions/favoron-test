@@ -1373,6 +1373,7 @@ export const useDashboardActions = (
         packageId,
         tripIds: tripIdsToAssign,
         adminTip,
+        totalElapsedMs: totalElapsed,
       });
 
       // Log to client_errors for permanent visibility
@@ -1388,6 +1389,7 @@ export const useDashboardActions = (
           errorCode: lastError.code,
           errorDetails: lastError.details,
           errorHint: lastError.hint,
+          totalElapsedMs: totalElapsed,
         },
       }).then(() => {}, () => {});
 
