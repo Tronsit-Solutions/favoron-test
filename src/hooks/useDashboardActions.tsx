@@ -1337,17 +1337,43 @@ export const useDashboardActions = (
     }
 
     if (lastError) {
-      console.error('[MATCH] RPC FAILED:', lastError.message);
+      console.error('[MATCH] RPC FAILED — full error:', {
+        message: lastError.message,
+        code: lastError.code,
+        details: lastError.details,
+        hint: lastError.hint,
+        packageId,
+        tripIds: tripIdsToAssign,
+        adminTip,
+      });
+
+      // Log to client_errors for permanent visibility
+      supabase.from('client_errors').insert({
+        message: `Match RPC failed: ${lastError.message || 'unknown'}`,
+        type: 'match_error',
+        severity: 'error',
+        route: '/dashboard?tab=admin',
+        context: {
+          packageId,
+          tripIds: tripIdsToAssign,
+          adminTip,
+          errorCode: lastError.code,
+          errorDetails: lastError.details,
+          errorHint: lastError.hint,
+        },
+      }).then(() => {}, () => {});
+
       const msg = lastError.message || '';
       const errorMsg = msg.includes('NO_NEW_TRIPS')
         ? "Todos los viajeros seleccionados ya tienen asignaciones activas."
         : msg.includes('Failed to fetch') || msg.includes('Load failed')
           ? "Error de conexión. Verifica tu internet e inténtalo de nuevo."
-          : "No se pudo realizar el match. Inténtalo de nuevo.";
+          : `Error: ${msg || 'No se pudo realizar el match. Inténtalo de nuevo.'}`;
       toast({
         title: "Error al confirmar match",
         description: errorMsg,
         variant: "destructive",
+        duration: 10000,
       });
       throw lastError;
     }
