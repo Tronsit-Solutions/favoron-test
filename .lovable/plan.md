@@ -1,78 +1,51 @@
 
 
-## Root Cause: Dialog blocks its own closure
+## Investigation Results
 
-The RPC and insert-only architecture are **correct** — no UNIQUE constraint, terminal statuses pass the filter. The actual failure is a **deadlock between two state machines**:
+### What I found
+- **Database**: No UNIQUE constraint on `package_assignments`. The RPC logic correctly handles terminal statuses (`bid_cancelled`). Both trips have valid data.
+- **Current state**: Package `fb569aa9` is still `approved`. Only one old assignment exists (José Sincuir, `bid_cancelled`). No new assignments were created.
+- **Error logs**: No match-related errors in `client_errors` table. No network requests captured in the preview session.
+- **Session replay**: Shows a "Asignando paquete..." loading toast appeared, meaning the dialog closed and the RPC was attempted — but it apparently failed without any visible error feedback reaching the user.
 
-### The Bug Chain
+### Root Cause
+The RPC call either failed silently (error not displayed) or hit a network timeout. The current error handling in `useDashboardActions.tsx` catches errors and shows a toast, but:
+1. **No server-side error logging** — match failures aren't logged to `client_errors`, so we have zero visibility
+2. **The error toast may have been dismissed too quickly** or the user didn't notice it among other toasts
 
-```text
-1. User clicks "Confirmar Match"
-2. AdminMatchDialog.handleMatch():
-   → sets isSubmittingMatch = true
-   → calls onMatch() (fire-and-forget, no await)
+The RPC itself is correct — I verified the function source, the data, and the schema. There is no constraint that would block this insert.
 
-3. onMatch → AdminDashboard.handleMatch():
-   → calls setShowMatchDialog(false)    ← tries to close dialog
-   → Radix Dialog triggers onOpenChange(false)
-   → handleCloseDialog(false) runs
-   → sees isSubmittingMatch === true    ← BLOCKS THE CLOSE
-   → returns early, dialog stays open
+### Fix: Add error visibility
 
-4. Dialog is now PERMANENTLY stuck:
-   - isSubmittingMatch = true (never reset)
-   - Button shows "Confirmando..." forever
-   - Escape, outside click, Cancel all blocked
-   - No way to close the dialog
-```
+**File: `src/hooks/useDashboardActions.tsx`** — Inside `handleMatchPackage`, after the RPC fails (around line 1339):
 
-The RPC actually runs and **succeeds** in the background (AdminDashboard shows the success toast behind the stuck dialog), but the user never sees it because the dialog covers everything.
-
-### Your point about insert vs update
-
-You're 100% correct. The insert-only approach is already implemented and working. Each re-assignment creates a new `package_assignments` row, preserving the full history (tip offered, whether traveler responded, rejection reason, etc.). No changes needed to the RPC logic.
-
-### Fix
-
-**File: `src/components/admin/AdminMatchDialog.tsx`** — 2 changes:
-
-1. **Make `handleMatch` async and add try/finally** to always reset `isSubmittingMatch`:
-
+1. **Log match failures to `client_errors`** so we have a permanent record:
 ```typescript
-const handleMatch = async () => {
-  if (selectedTripIds.size === 0 || isSubmittingMatch) return;
-  setIsSubmittingMatch(true);
-  try {
-    const tipAmount = getTotalAssignedTip();
-    const tripIdsArray = Array.from(selectedTripIds);
-    if (isMultiProductOrder()) {
-      await onMatch(tipAmount, assignedProductsWithTips, tripIdsArray);
-    } else {
-      await onMatch(tipAmount, undefined, tripIdsArray);
+if (lastError) {
+  // Log to client_errors for debugging
+  supabase.from('client_errors').insert({
+    message: `Match RPC failed: ${lastError.message}`,
+    type: 'match_error',
+    route: '/dashboard?tab=admin',
+    context: {
+      packageId,
+      tripIds: tripIdsToAssign,
+      adminTip,
+      attempt: attempt,
+      errorCode: lastError.code,
+      errorDetails: lastError.details,
     }
-  } catch (error) {
-    console.error('[MATCH-DIALOG] Match failed:', error);
-  } finally {
-    setIsSubmittingMatch(false);
-  }
-};
+  }).then(() => {}).catch(() => {});
+  // ... existing toast error handling
+}
 ```
 
-2. **Add safety reset** when dialog opens:
+2. **Add `console.error` with full error details** before the toast, including `error.code`, `error.details`, `error.hint` from the Supabase response.
 
-```typescript
-useEffect(() => {
-  if (showMatchDialog) {
-    setIsSubmittingMatch(false);
-  }
-}, [showMatchDialog]);
-```
+3. **Persist the error toast longer** — change the error sonner toast to include `duration: 10000` so the admin has time to read it.
 
-3. **Allow programmatic close** in `handleCloseDialog` — only block user-initiated closes during submission, not parent-driven closes. Since `AdminDashboard.handleMatch` calls `setShowMatchDialog(false)` directly (which controls the `open` prop), and Radix Dialog's controlled mode will close regardless of `onOpenChange`, this is actually already handled. But adding the `finally` ensures the guard resets even if the dialog stays mounted.
+### What to do next
+After deploying this fix, ask the user to **retry the assignment on the preview URL**. If it fails again, we'll have the exact error in `client_errors` and console. If it succeeds (which I expect based on the data), then the previous failure was a transient network issue.
 
-### Summary
-
-- The RPC works. The insert-only architecture is correct.
-- The dialog gets stuck because `isSubmittingMatch` blocks its own closure and is never reset.
-- Fix is purely in `AdminMatchDialog.tsx` — add `async/await/try/finally` + reset on open.
-
+### Files to change
+1. `src/hooks/useDashboardActions.tsx` — Add error logging to `handleMatchPackage`
