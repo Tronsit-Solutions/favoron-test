@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast as sonnerToast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -116,6 +116,7 @@ const AdminDashboard = ({
   const isMobile = useIsMobile();
   const { openModal } = useModalState();
   const { hasOpenModals } = useModalProtection();
+  const recentMutationsRef = useRef<Record<string, number>>({});
 
   // Persist activeTab changes to sessionStorage
   useEffect(() => {
@@ -127,10 +128,30 @@ const AdminDashboard = ({
   }, [activeTab]);
 
   // Simple sync: update local state when props change and no modals are open
+  // Preserve optimistic overrides for recently mutated packages (within 15s)
   useEffect(() => {
     if (!hasOpenModals() && !showMatchDialog) {
       if (packages.length > 0 || localPackages.length === 0) {
-        setLocalPackages(packages);
+        const now = Date.now();
+        const activeOverrides = Object.entries(recentMutationsRef.current)
+          .filter(([, ts]) => now - ts < 15000);
+
+        if (activeOverrides.length > 0) {
+          // Merge: use incoming props but preserve status of recently mutated packages
+          const overrideIds = new Set(activeOverrides.map(([id]) => id));
+          setLocalPackages(prev => {
+            const prevMap = new Map(prev.map(p => [p.id, p]));
+            return packages.map(pkg => {
+              if (overrideIds.has(pkg.id) && prevMap.has(pkg.id)) {
+                // Keep local optimistic version
+                return prevMap.get(pkg.id)!;
+              }
+              return pkg;
+            });
+          });
+        } else {
+          setLocalPackages(packages);
+        }
       }
       if (trips.length > 0 || localTrips.length === 0) {
         setLocalTrips(trips);
@@ -179,6 +200,9 @@ const AdminDashboard = ({
 
     const matchPackageId = selectedPackage.id;
 
+    // Register optimistic override BEFORE closing dialog
+    recentMutationsRef.current[matchPackageId] = Date.now();
+
     // Optimistic: close dialog and update UI immediately
     const previousPackages = [...localPackages];
     setLocalPackages(prev => prev.map(pkg => 
@@ -193,9 +217,12 @@ const AdminDashboard = ({
     try {
       await onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds);
       sonnerToast.success("¡Match confirmado!", { id: loadingToastId, description: "Paquete asignado exitosamente." });
+      // Clear override on success
+      delete recentMutationsRef.current[matchPackageId];
     } catch (error: any) {
       console.error('[DASH] Match FAILED:', error?.message);
-      // Rollback optimistic update
+      // Clear override and rollback
+      delete recentMutationsRef.current[matchPackageId];
       setLocalPackages(previousPackages);
       sonnerToast.error("Error al confirmar match", { id: loadingToastId, description: error?.message || "Intenta de nuevo." });
     }
@@ -428,6 +455,7 @@ const AdminDashboard = ({
     trips: localTrips,
     userRole: 'admin',
     enabled: true,
+    recentMutationsRef,
   });
   
   // Create tabs array for mobile and desktop tabs
