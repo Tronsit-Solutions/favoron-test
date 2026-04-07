@@ -1301,7 +1301,7 @@ export const useDashboardActions = (
     const matchStartTime = performance.now();
     console.log(`[MATCH] START packageId=${packageId} trips=${tripIdsToAssign.join(',')} tip=${adminTip}`);
 
-    const MAX_RETRIES = 2;
+    const MAX_RETRIES = 1;
     let rpcResult: any = null;
     let lastError: any = null;
 
@@ -1314,7 +1314,7 @@ export const useDashboardActions = (
       const attemptStart = performance.now();
       try {
         const controller = new AbortController();
-        const abortTimeout = setTimeout(() => controller.abort(), 25000);
+        const abortTimeout = setTimeout(() => controller.abort(), 10000);
 
         const { data, error } = await supabase.rpc('assign_package_to_travelers', {
           _package_id: packageId,
@@ -1350,7 +1350,7 @@ export const useDashboardActions = (
         
         // AbortError means our 25s timeout fired
         if (fetchError?.name === 'AbortError') {
-          lastError = { message: `RPC timeout after 25s (attempt ${attempt})`, code: 'TIMEOUT', details: 'AbortController fired', hint: 'Check Supabase statement timeout or trigger chain' };
+          lastError = { message: `RPC timeout after 10s (attempt ${attempt})`, code: 'TIMEOUT', details: 'AbortController fired', hint: 'Check Supabase statement timeout or trigger chain' };
         } else {
           lastError = { message: fetchError?.message || 'Unknown fetch error', code: 'FETCH_ERROR', details: fetchError?.name };
         }

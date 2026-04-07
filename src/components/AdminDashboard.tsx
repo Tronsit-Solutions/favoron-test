@@ -188,8 +188,8 @@ const AdminDashboard = ({
     setMatchingTrip("");
     setShowMatchDialog(false);
 
-    // Show loading toast and run RPC in background
-    const loadingToastId = sonnerToast.loading("Asignando paquete...", { description: "Procesando match en segundo plano." });
+    // Show loading toast while RPC executes
+    const loadingToastId = sonnerToast.loading("Confirmando match...", { description: "Esto puede tardar unos segundos." });
     try {
       await onMatchPackage(matchPackageId, tripIds[0], adminTip, productsWithTips, tripIds);
       sonnerToast.success("¡Match confirmado!", { id: loadingToastId, description: "Paquete asignado exitosamente." });
