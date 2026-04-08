@@ -245,6 +245,12 @@ const PaymentOrderDetailModal: React.FC<PaymentOrderDetailModalProps> = ({
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h4 className="font-medium">{pkg.item_description}</h4>
+                        {pkg.item_link && (
+                          <a href={pkg.item_link} target="_blank" rel="noopener noreferrer"
+                             className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-0.5">
+                            <ExternalLink className="w-3 h-3" /> Ver producto
+                          </a>
+                        )}
                         <p className="text-sm text-muted-foreground">
                           {pkg.purchase_origin} → {pkg.package_destination}
                         </p>
