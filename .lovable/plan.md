@@ -1,30 +1,47 @@
 
 
-## Fix: Scrollbar overlapping card edges on mobile
+## Fix: Card right edge clipped by Support bubble on mobile
 
 ### Problem
-The previous fix added `scrollbar-gutter: stable` to `body` and `.mobile-container`, which reserves permanent scrollbar space and pushes content left, clipping card right edges.
+The "Soporte" tab is a fixed-position element on the right edge of the screen (`right: 8px`, `w-7`, z-40). The package cards extend the full width of the container and their right border/shadow gets hidden behind this floating tab.
+
+### Solution
+Add `pr-10` (40px right padding) to the packages `TabsContent` container on mobile only, so cards end before the Soporte tab. This keeps the left margin at `px-4` (from `.mobile-container`) and adds enough right clearance.
 
 ### Changes
 
-**1. `src/index.css` — Revert scrollbar-gutter, add overlay scrollbar**
-- Remove `overflow-y: scroll` and `scrollbar-gutter: stable` from `body`
-- Remove `scrollbar-gutter: stable` from `.mobile-container`
-- Add a thin overlay scrollbar style for the main scrollable area:
-  ```css
-  body {
-    overflow-y: auto;
-  }
-  /* Thin overlay scrollbar that doesn't consume layout space */
-  body::-webkit-scrollbar { width: 4px; }
-  body::-webkit-scrollbar-track { background: transparent; }
-  body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 2px; }
-  /* Firefox thin scrollbar */
-  html { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.15) transparent; }
+**`src/components/Dashboard.tsx` (line ~844)**
+- Change `TabsContent` for packages from:
   ```
+  className="space-y-4 sm:space-y-6 min-w-0 w-full max-w-full overflow-x-clip"
+  ```
+  to:
+  ```
+  className="space-y-4 sm:space-y-6 min-w-0 w-full max-w-full overflow-x-clip pr-6 sm:pr-0"
+  ```
+  This adds 24px right padding on mobile to clear the Soporte tab, reverting to 0 on desktop.
 
-**2. `src/components/Dashboard.tsx` — Revert pr-1 on packages TabsContent**
-- Line 844: Remove the `pr-1` that was added, keeping the original classes
+**Alternative (better):** Apply the same right padding to the main container so ALL tabs benefit, not just packages:
 
-These two changes ensure the scrollbar renders as a thin transparent overlay without taking layout space, so cards get equal left/right margins.
+**`src/index.css` (line ~569)** — Update `.mobile-container`:
+```css
+.mobile-container {
+  @apply px-4 pr-10 md:px-6 lg:px-8;
+}
+```
+
+Wait — this would shift everything. The tabs bar and button already align fine at `px-4`. The issue is only that the Soporte bubble overlaps card content.
+
+**Best approach — reduce Soporte tab intrusion:**
+
+**`src/components/SupportBubble.tsx` (line ~159)** — Make the tab narrower and more transparent, OR move it lower so it doesn't overlap card content. But that changes the design.
+
+**Simplest correct fix:** Add right padding only to the scrollable card list area on mobile:
+
+**`src/components/Dashboard.tsx` (line ~844)**
+```
+className="space-y-4 sm:space-y-6 min-w-0 w-full max-w-full overflow-x-clip pr-8 sm:pr-0"
+```
+
+This adds 32px right padding on mobile (enough to clear the 28px-wide Soporte tab + 8px gap), keeping cards visually aligned within the safe area. On desktop (`sm:pr-0`), no extra padding is applied.
 
