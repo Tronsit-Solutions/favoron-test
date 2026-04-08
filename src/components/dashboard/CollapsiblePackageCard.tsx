@@ -458,14 +458,14 @@ const CollapsiblePackageCard = ({
                 </div>
               )}
 
-              <div className="relative">
-                {/* Main content - full width */}
-                <div className="flex flex-col gap-2 min-w-0 pr-8">
-                  {/* Package name - single line truncated, left aligned */}
-                  <CardTitle className="text-base font-semibold leading-tight text-left">
-                    <span className="flex items-center gap-2 w-full">
-                      <Package className="h-4 w-4 text-primary flex-shrink-0" />
-                      <span className="truncate">{renderPackageName()}</span>
+              <div className="flex flex-row gap-2">
+                {/* Left column: main content */}
+                <div className="flex flex-col gap-2 flex-1 min-w-0 pr-8">
+                  {/* Package name (like TripCard route title) */}
+                  <CardTitle className="text-base font-semibold leading-tight break-words">
+                    <span className="flex items-start gap-2">
+                      <Package className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                      <span className="line-clamp-2">{renderPackageName()}</span>
                     </span>
                   </CardTitle>
 
@@ -714,9 +714,9 @@ const CollapsiblePackageCard = ({
 
                 </div>
 
-                {/* Floating Chat button */}
+                {/* Right column: Chat button (like TripCard Tips button) */}
                 {isChatAvailable && (
-                  <div className="absolute bottom-2 right-2 z-10">
+                  <div className="flex-shrink-0 flex items-end pb-1">
                     <Button
                       variant="ghost"
                       size="sm"
