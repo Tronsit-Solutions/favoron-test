@@ -1,54 +1,19 @@
 
 
-## Fix: Double-tap required on mobile in Package Form
+## Add Shopper Onboarding Button next to "Mis Favorones"
 
-### Root Cause
-
-The double-tap issue on mobile has two causes:
-
-1. **Missing `touch-action: manipulation`** on raw `<button>` elements (type selection cards) and Radix UI primitives (Select, Popover). The `<Button>` component already has this, but the custom type-selection buttons and Radix triggers don't. Without it, mobile browsers apply a ~300ms delay waiting to detect double-tap-to-zoom.
-
-2. **Sticky CSS `:hover` states** on touch devices. Classes like `hover:shadow-md`, `hover:border-primary/50` cause mobile browsers to treat the first tap as "hover" and the second as "click."
+### What
+Add a HelpCircle button to the right of the "Mis Favorones" heading (packages tab), identical to how the traveler onboarding button sits next to "Mis Viajes". Clicking it opens the shopper OnboardingBottomSheet with the existing shopper slides.
 
 ### Changes
 
-**1. `src/index.css` — Add global mobile fix for dialogs**
+**`src/components/Dashboard.tsx`**
 
-Add a rule inside the `@media (max-width: 768px)` block that applies `touch-action: manipulation` to all interactive elements inside Radix dialogs, and use `@media (hover: none)` to disable hover effects on touch-only devices:
+1. Add a `showShopperOnboarding` state variable (like `showTravelerOnboarding`)
+2. Define `shopperOnboardingSlides` array at the top level (same slides currently in PackageRequestForm: Search, DollarSign, ShoppingCart, Package icons)
+3. Wrap the "Mis Favorones" `<h3>` in a `flex items-center gap-2` div and add a HelpCircle button that sets `showShopperOnboarding(true)` — same pattern as line 945-949
+4. Add a second `<OnboardingBottomSheet>` instance for shoppers below the existing traveler one, with `variant="shopper"` and the primary gradient
 
-```css
-/* Fix double-tap on mobile for all dialog interactive elements */
-@media (hover: none) and (pointer: coarse) {
-  [role="dialog"] button,
-  [role="dialog"] [role="combobox"],
-  [role="dialog"] [role="option"],
-  [role="dialog"] select,
-  [role="dialog"] input,
-  [role="dialog"] a {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-}
-```
-
-**2. `src/components/PackageRequestForm.tsx` — Fix type selection buttons**
-
-- Add `touch-action: manipulation` via the `touch-manipulation` utility class to the two type-selection `<button>` elements (lines ~720 and ~754)
-- Wrap hover classes with responsive prefix: change `hover:shadow-md` to `sm:hover:shadow-md` and `hover:border-primary/50` to `sm:hover:border-primary/50` so hover effects only apply on non-touch devices
-- Same treatment for the step indicator hover styles (`hover:ring-2 hover:ring-primary/50` → `sm:hover:ring-2 sm:hover:ring-primary/50`)
-
-**3. `src/components/PackageRequestForm.tsx` — Fix date picker Popover**
-
-- Add `touch-manipulation` class to the PopoverTrigger Button (line ~856)
-- Ensure the Calendar popover content has proper touch handling
-
-**4. `src/components/ui/select.tsx` — Add touch-action to SelectTrigger**
-
-- Add `touch-manipulation` to the SelectTrigger base classes so all Select dropdowns respond to first tap on mobile
-
-### Why this fixes it
-
-- `touch-action: manipulation` tells the browser to skip the double-tap-to-zoom detection, making single taps register immediately
-- Moving `hover:` styles behind `sm:hover:` (or `@media (hover: hover)`) prevents mobile browsers from entering the "hover then click" two-tap cycle
-- These changes are surgical and don't affect desktop behavior
+### Imports needed
+- `Search, ShoppingCart` from lucide-react (already have Package, DollarSign, HelpCircle)
 
