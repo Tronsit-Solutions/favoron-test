@@ -1,0 +1,1 @@
+ALTER TABLE public.packages ADD COLUMN shopper_name_override TEXT DEFAULT NULL;
