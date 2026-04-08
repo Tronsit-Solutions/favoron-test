@@ -941,6 +941,7 @@ export type Database = {
           recurrente_payment_id: string | null
           referral_credit_applied: number | null
           rejection_reason: string | null
+          shopper_name_override: string | null
           status: string
           tracking_info: Json | null
           traveler_address: Json | null
@@ -989,6 +990,7 @@ export type Database = {
           recurrente_payment_id?: string | null
           referral_credit_applied?: number | null
           rejection_reason?: string | null
+          shopper_name_override?: string | null
           status?: string
           tracking_info?: Json | null
           traveler_address?: Json | null
@@ -1037,6 +1039,7 @@ export type Database = {
           recurrente_payment_id?: string | null
           referral_credit_applied?: number | null
           rejection_reason?: string | null
+          shopper_name_override?: string | null
           status?: string
           tracking_info?: Json | null
           traveler_address?: Json | null
