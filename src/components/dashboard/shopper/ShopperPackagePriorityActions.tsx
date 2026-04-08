@@ -136,6 +136,7 @@ const ShopperPackagePriorityActions = ({
 
   // Define advanced states where timer and re-quote options should never appear
   const advancedStates = [
+    'payment_pending_approval',
     'pending_purchase', 
     'purchase_confirmed', 
     'in_transit', 
