@@ -1,51 +1,54 @@
 
 
-## Agregar links de productos en Ordenes de Pago procesadas
+## Fix: Double-tap required on mobile in Package Form
 
-### Problema
-El snapshot de `historical_packages` que se guarda al crear una orden de pago **no incluye `item_link`** del paquete. Además, el modal de detalle (`PaymentOrderDetailModal`) no muestra enlaces a productos aunque estuvieran disponibles.
+### Root Cause
 
-### Cambios
+The double-tap issue on mobile has two causes:
 
-**1. Migración SQL — Actualizar el RPC `create_payment_order_with_snapshot`**
-- Agregar `'item_link', p.item_link` al `jsonb_build_object` que construye el snapshot
-- Esto asegura que futuras órdenes de pago capturen el link del producto
+1. **Missing `touch-action: manipulation`** on raw `<button>` elements (type selection cards) and Radix UI primitives (Select, Popover). The `<Button>` component already has this, but the custom type-selection buttons and Radix triggers don't. Without it, mobile browsers apply a ~300ms delay waiting to detect double-tap-to-zoom.
 
-**2. Migración SQL — Backfill de `item_link` en órdenes existentes**
-- UPDATE las órdenes de pago existentes para inyectar `item_link` desde la tabla `packages` usando el `package_id` que ya está en el snapshot
-- Esto cubre las órdenes ya procesadas
+2. **Sticky CSS `:hover` states** on touch devices. Classes like `hover:shadow-md`, `hover:border-primary/50` cause mobile browsers to treat the first tap as "hover" and the second as "click."
 
-**3. UI — Mostrar link en `PaymentOrderDetailModal.tsx`**
-- En la sección de "Paquetes Transportados", agregar un enlace clickeable debajo de `item_description` cuando `pkg.item_link` exista
-- También revisar `products_data` por si tiene links de productos individuales
-- Usar icono `ExternalLink` (ya importado) con estilo discreto
+### Changes
 
-### Detalle técnico
+**1. `src/index.css` — Add global mobile fix for dialogs**
 
-```sql
--- En el RPC, agregar item_link al snapshot:
-'item_link', p.item_link,
+Add a rule inside the `@media (max-width: 768px)` block that applies `touch-action: manipulation` to all interactive elements inside Radix dialogs, and use `@media (hover: none)` to disable hover effects on touch-only devices:
 
--- Backfill existentes:
-UPDATE payment_orders po
-SET historical_packages = (
-  SELECT jsonb_agg(
-    elem || jsonb_build_object('item_link', COALESCE(p.item_link, ''))
-  )
-  FROM jsonb_array_elements(po.historical_packages) AS elem
-  LEFT JOIN packages p ON p.id = (elem->>'package_id')::uuid
-)
-WHERE historical_packages IS NOT NULL
-  AND historical_packages != '[]'::jsonb;
+```css
+/* Fix double-tap on mobile for all dialog interactive elements */
+@media (hover: none) and (pointer: coarse) {
+  [role="dialog"] button,
+  [role="dialog"] [role="combobox"],
+  [role="dialog"] [role="option"],
+  [role="dialog"] select,
+  [role="dialog"] input,
+  [role="dialog"] a {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
 ```
 
-En el modal, debajo del `item_description`:
-```tsx
-{pkg.item_link && (
-  <a href={pkg.item_link} target="_blank" rel="noopener noreferrer"
-     className="text-xs text-blue-600 hover:underline flex items-center gap-1">
-    <ExternalLink className="w-3 h-3" /> Ver producto
-  </a>
-)}
-```
+**2. `src/components/PackageRequestForm.tsx` — Fix type selection buttons**
+
+- Add `touch-action: manipulation` via the `touch-manipulation` utility class to the two type-selection `<button>` elements (lines ~720 and ~754)
+- Wrap hover classes with responsive prefix: change `hover:shadow-md` to `sm:hover:shadow-md` and `hover:border-primary/50` to `sm:hover:border-primary/50` so hover effects only apply on non-touch devices
+- Same treatment for the step indicator hover styles (`hover:ring-2 hover:ring-primary/50` → `sm:hover:ring-2 sm:hover:ring-primary/50`)
+
+**3. `src/components/PackageRequestForm.tsx` — Fix date picker Popover**
+
+- Add `touch-manipulation` class to the PopoverTrigger Button (line ~856)
+- Ensure the Calendar popover content has proper touch handling
+
+**4. `src/components/ui/select.tsx` — Add touch-action to SelectTrigger**
+
+- Add `touch-manipulation` to the SelectTrigger base classes so all Select dropdowns respond to first tap on mobile
+
+### Why this fixes it
+
+- `touch-action: manipulation` tells the browser to skip the double-tap-to-zoom detection, making single taps register immediately
+- Moving `hover:` styles behind `sm:hover:` (or `@media (hover: hover)`) prevents mobile browsers from entering the "hover then click" two-tap cycle
+- These changes are surgical and don't affect desktop behavior
 
