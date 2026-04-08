@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from "react";
 
-import { Star, HelpCircle, Plane, Users, DollarSign, Package, Truck } from "lucide-react";
+import { Star, HelpCircle, Plane, Users, DollarSign, Package, Truck, Search, ShoppingCart } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -112,6 +112,7 @@ const Dashboard = ({ user }: DashboardProps) => {
   const [surveyDismissed, setSurveyDismissed] = useState(false);
   const [showReferralAnnouncement, setShowReferralAnnouncement] = useState(false);
   const [showTravelerOnboarding, setShowTravelerOnboarding] = useState(false);
+  const [showShopperOnboarding, setShowShopperOnboarding] = useState(false);
 
   const {
     currentUser,
@@ -844,7 +845,12 @@ const Dashboard = ({ user }: DashboardProps) => {
           <TabsContent value="packages" className="space-y-6 min-w-0 w-full max-w-full overflow-x-clip px-1">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
-                <h3 className="text-xl sm:text-2xl font-bold">Mis Favorones</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl sm:text-2xl font-bold">Mis Favorones</h3>
+                  <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => setShowShopperOnboarding(true)}>
+                    <HelpCircle className="h-4 w-4" />
+                  </Button>
+                </div>
                 <p className="text-muted-foreground text-sm sm:text-base hidden sm:block">
                   Gestiona tus pedidos como <strong>shopper</strong> - aquí recibes cotizaciones de viajeros
                 </p>
