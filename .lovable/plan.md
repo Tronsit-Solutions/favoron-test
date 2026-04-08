@@ -1,24 +1,43 @@
 
 
-## Bloquear acciones cuando el pago está siendo verificado
+## Ajustes al Preview Card de Mis Pedidos (Mobile)
 
-### Problema
-Cuando el paquete está en estado `payment_pending_approval` (pago subido, esperando verificación), los botones "Solicitar re-cotización" y "Eliminar pedido" siguen apareciendo porque ese estado no está incluido en la lista `advancedStates`.
+### Cambios
 
-### Cambio
+**`src/components/dashboard/CollapsiblePackageCard.tsx`**
 
-**`src/components/dashboard/shopper/ShopperPackagePriorityActions.tsx` (línea 139)**
+1. **Título en 1 línea con truncado** (línea 465-470): Cambiar `line-clamp-2` a `truncate` y agregar `text-left` para alinear a la izquierda. El título se cortará con "..." si es largo.
 
-Agregar `'payment_pending_approval'` al array `advancedStates`:
+2. **Botones a ancho completo** (líneas 630-712): Los botones ya tienen `w-full`, pero el contenedor padre tiene `pr-8` que limita el ancho. Se eliminará el `pr-8` del contenedor principal (línea 463) para que los botones ocupen todo el ancho de la card.
 
-```tsx
-const advancedStates = [
-  'payment_pending_approval',
-  'pending_purchase', 
-  'purchase_confirmed', 
-  // ...rest
-];
+3. **Chat flotante** (líneas 718-730): Mover el botón de chat fuera del flex-row y posicionarlo como `absolute` en la esquina inferior derecha de la card, similar al menú de tres puntos que ya flota en la esquina superior derecha.
+
+### Detalle técnico
+
+```
+Estructura actual:
+┌─────────────────────────────┐
+│ [...]  (absolute top-right) │
+│ [Título largo del pedi...]  │
+│ ID: abc12345                │
+│ [Botones-----] [Chat]      │
+└─────────────────────────────┘
+
+Estructura nueva:
+┌─────────────────────────────┐
+│ [...]  (absolute top-right) │
+│ Título largo del ped...     │
+│ ID: abc12345                │
+│ [Botones ancho completo---] │
+│              [Chat] floating│
+└─────────────────────────────┘
 ```
 
-Con esto, la condición en línea 485 (`!advancedStates.includes(pkg.status)`) bloqueará los botones de re-cotización y eliminación cuando el pago está siendo verificado.
+**Cambios específicos:**
+
+- **Línea 463**: Quitar `pr-8` → solo `flex flex-col gap-2 flex-1 min-w-0`
+- **Línea 461**: Cambiar `flex flex-row gap-2` → quitar el gap ya que chat será absolute
+- **Línea 465-470**: Título con `truncate` en vez de `line-clamp-2`, agregar `text-left`
+- **Líneas 718-730**: Mover el botón de chat a posición `absolute bottom-2 right-2` con un `z-10`, fuera del flex-row
+- Agregar `relative` al contenedor padre para que el absolute del chat funcione correctamente
 
