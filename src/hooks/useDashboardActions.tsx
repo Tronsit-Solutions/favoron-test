@@ -82,7 +82,8 @@ export const useDashboardActions = (
         internal_notes: (packageData.internal_notes ?? packageData.internalNotes)?.trim() || null,
         delivery_method: packageData.deliveryMethod || 'pickup',
         confirmed_delivery_address: packageData.deliveryAddress || null,
-        status: 'pending_approval'
+        status: 'pending_approval',
+        shopper_name_override: packageData.shopperNameOverride || null
       };
       
       console.log('💾 Database Package Data:', dbPackageData);

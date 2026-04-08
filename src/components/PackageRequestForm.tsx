@@ -37,7 +37,7 @@ interface PackageRequestFormProps {
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
   const { openModal, closeModal } = useModalState();
-  const { profile, updateProfile } = useAuth();
+  const { profile, updateProfile, userRole } = useAuth();
   const { getDeliveryPointByCity } = useDeliveryPoints();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
   

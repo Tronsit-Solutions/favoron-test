@@ -2288,6 +2288,7 @@ export type Database = {
           purchase_origin: string
           shopper_first_name: string
           shopper_last_name: string
+          shopper_name_override: string
           status: string
           traveler_country_code: string
           traveler_first_name: string
