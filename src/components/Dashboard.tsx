@@ -48,7 +48,7 @@ import ReferralAnnouncementModal from "./dashboard/ReferralAnnouncementModal";
 
 const travelerOnboardingSlides: OnboardingSlide[] = [
   { icon: Plane, title: "¡Conviértete en Viajero!", description: "Registra tu viaje: de dónde vienes, cuándo llegas y cuánto espacio tienes." },
-  { icon: Users, title: "Recibe solicitudes", description: "Los shoppers te enviarán solicitudes con una propina asignada. Tú decides cuáles aceptar." },
+  { icon: Users, title: "Recibe solicitudes", description: "Recibirás solicitudes con la propina asignada. Tú decides cuáles aceptar y cuáles rechazar." },
   { icon: DollarSign, title: "Cotización y pago", description: "Envía tu cotización al shopper. Si no realiza el pago, el pedido no se completa." },
   { icon: Package, title: "Recibe el paquete", description: "El shopper hará la compra y la enviará a tu dirección con comprobante y tracking. Si te cobran impuestos en aduana, se te reembolsarán con factura." },
   { icon: Truck, title: "Entrega y cobra", description: "Entrega en nuestra oficina o programa recolección. Recibirás tu pago al completar la entrega." },
