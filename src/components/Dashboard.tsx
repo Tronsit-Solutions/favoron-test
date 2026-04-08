@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from "react";
 
-import { Star, HelpCircle, Plane, Users, DollarSign, Package, Truck } from "lucide-react";
+import { Star, HelpCircle, Plane, Users, DollarSign, Package, Truck, Search, ShoppingCart } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -54,6 +54,13 @@ const travelerOnboardingSlides: OnboardingSlide[] = [
   { icon: Truck, title: "Entrega y cobra", description: "Entrega en nuestra oficina o programa recolección. Recibirás tu pago al completar la entrega." },
 ];
 
+
+const shopperOnboardingSlides: OnboardingSlide[] = [
+  { icon: Search, title: "¡Estás a punto de pedir tu primer Favorón!", description: "Describe el producto que necesitas y de dónde quieres que lo traigan. Un viajero lo llevará por ti." },
+  { icon: DollarSign, title: "Recibe una cotización", description: "Un viajero te enviará el costo de traer tu paquete, que incluye su propina y la tarifa de servicio. Adicionalmente, si el viajero pagó algún impuesto o tasa, deberás cubrir ese costo para recibir tu paquete." },
+  { icon: ShoppingCart, title: "Compra tu producto", description: "Una vez aceptada la cotización, compra el producto y envíalo a la dirección del viajero." },
+  { icon: Package, title: "¡Recibe tu paquete!", description: "Retíralo en nuestra oficina o solicita envío a domicilio. ¡Así de fácil!" },
+];
 
 const UserManagement = lazy(() => import("./admin/UserManagement"));
 
@@ -112,6 +119,7 @@ const Dashboard = ({ user }: DashboardProps) => {
   const [surveyDismissed, setSurveyDismissed] = useState(false);
   const [showReferralAnnouncement, setShowReferralAnnouncement] = useState(false);
   const [showTravelerOnboarding, setShowTravelerOnboarding] = useState(false);
+  const [showShopperOnboarding, setShowShopperOnboarding] = useState(false);
 
   const {
     currentUser,
@@ -844,7 +852,12 @@ const Dashboard = ({ user }: DashboardProps) => {
           <TabsContent value="packages" className="space-y-6 min-w-0 w-full max-w-full overflow-x-clip px-1">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
-                <h3 className="text-xl sm:text-2xl font-bold">Mis Favorones</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl sm:text-2xl font-bold">Mis Favorones</h3>
+                  <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => setShowShopperOnboarding(true)}>
+                    <HelpCircle className="h-4 w-4" />
+                  </Button>
+                </div>
                 <p className="text-muted-foreground text-sm sm:text-base hidden sm:block">
                   Gestiona tus pedidos como <strong>shopper</strong> - aquí recibes cotizaciones de viajeros
                 </p>
@@ -1100,6 +1113,15 @@ const Dashboard = ({ user }: DashboardProps) => {
               slides={travelerOnboardingSlides}
               gradientClassName="from-traveler via-traveler/80 to-traveler/60"
               variant="traveler"
+            />
+
+            <OnboardingBottomSheet
+              isOpen={showShopperOnboarding}
+              onContinue={() => setShowShopperOnboarding(false)}
+              onClose={() => setShowShopperOnboarding(false)}
+              slides={shopperOnboardingSlides}
+              gradientClassName="from-primary via-primary/80 to-primary/60"
+              variant="shopper"
             />
           </TabsContent>
 
