@@ -547,6 +547,7 @@ body {
   /* Global mobile container utility for consistent margins */
   .mobile-container {
     @apply px-4 md:px-6 lg:px-8;
+    scrollbar-gutter: stable;
   }
 
   .mobile-content {
