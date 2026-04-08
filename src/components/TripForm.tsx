@@ -530,7 +530,7 @@ const TripForm = ({
           onClick={() => goToStep(1)}
           className="flex items-center cursor-pointer group"
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50 ${
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${
             currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           }`}>
             1
@@ -553,7 +553,7 @@ const TripForm = ({
           onClick={() => goToStep(2)}
           className="flex items-center cursor-pointer group"
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50 ${
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${
             currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           }`}>
             2
@@ -576,7 +576,7 @@ const TripForm = ({
           onClick={() => goToStep(3)}
           className="flex items-center cursor-pointer group"
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50 ${
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${
             currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           }`}>
             3
@@ -599,7 +599,7 @@ const TripForm = ({
           onClick={() => goToStep(4)}
           className="flex items-center cursor-pointer group"
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50 ${
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${
             currentStep >= 4 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           }`}>
             4
@@ -1136,10 +1136,10 @@ const TripForm = ({
               {hasOfficialDeliveryOptions && (
                 <>
                   <div 
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${
                       formData.deliveryMethod === 'oficina' 
                         ? 'border-primary bg-primary/5 shadow-md' 
-                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                        : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
                     }`}
                     onClick={() => handleInputChange('deliveryMethod', 'oficina')}
                   >
@@ -1165,10 +1165,10 @@ const TripForm = ({
                   {/* Opción 2: Mensajero - SOLO para Guatemala */}
                   {isDestinationGuatemala && (
                     <div 
-                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${
                         formData.deliveryMethod === 'mensajero' 
                           ? 'border-primary bg-primary/5 shadow-md' 
-                          : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                          : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
                       }`}
                       onClick={() => handleInputChange('deliveryMethod', 'mensajero')}
                     >
@@ -1191,10 +1191,10 @@ const TripForm = ({
                   {/* Opción 2 alternativa: Coordinación - para destinos internacionales con delivery point */}
                   {!isDestinationGuatemala && (
                     <div 
-                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${
                         formData.deliveryMethod === 'coordinacion' 
                           ? 'border-primary bg-primary/5 shadow-md' 
-                          : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                          : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
                       }`}
                       onClick={() => handleInputChange('deliveryMethod', 'coordinacion')}
                     >
@@ -1219,10 +1219,10 @@ const TripForm = ({
               {!hasOfficialDeliveryOptions && (
                 <>
                   <div 
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${
                       formData.deliveryMethod === 'correo' 
                         ? 'border-primary bg-primary/5 shadow-md' 
-                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                        : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
                     }`}
                     onClick={() => handleInputChange('deliveryMethod', 'correo')}
                   >
@@ -1242,10 +1242,10 @@ const TripForm = ({
                   </div>
                   
                   <div 
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${
                       formData.deliveryMethod === 'coordinacion_shopper' 
                         ? 'border-primary bg-primary/5 shadow-md' 
-                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                        : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
                     }`}
                     onClick={() => handleInputChange('deliveryMethod', 'coordinacion_shopper')}
                   >
@@ -1481,7 +1481,7 @@ const TripForm = ({
         </div>
 
         {/* Terms and Conditions Checkbox */}
-        <div className="bg-gradient-to-r from-primary/5 to-primary/10 border-2 border-primary/20 rounded-lg p-3 hover:border-primary/40 transition-all duration-200 group">
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 border-2 border-primary/20 rounded-lg p-3 sm:hover:border-primary/40 transition-all duration-200 group">
           <div className="flex items-start space-x-3">
             <Checkbox 
               id="acceptTerms" 

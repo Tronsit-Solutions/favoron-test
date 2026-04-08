@@ -11,7 +11,7 @@ interface QuickActionsProps {
 const QuickActions = ({ onShowPackageForm, onShowTripForm }: QuickActionsProps) => {
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-6 mobile-content">
-      <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onShowPackageForm}>
+      <Card className="sm:hover:shadow-lg transition-shadow cursor-pointer touch-manipulation" onClick={onShowPackageForm}>
         <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-3">
           <div className="flex items-center space-x-1.5 sm:space-x-2">
             <Package className="h-4 w-4 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
@@ -32,7 +32,7 @@ const QuickActions = ({ onShowPackageForm, onShowTripForm }: QuickActionsProps) 
         </CardContent>
       </Card>
 
-      <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onShowTripForm}>
+      <Card className="sm:hover:shadow-lg transition-shadow cursor-pointer touch-manipulation" onClick={onShowTripForm}>
         <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-3">
           <div className="flex items-center space-x-1.5 sm:space-x-2">
             <Plane className="h-4 w-4 sm:h-6 sm:w-6 text-traveler flex-shrink-0" />
