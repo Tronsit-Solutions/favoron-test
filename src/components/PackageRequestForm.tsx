@@ -590,7 +590,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           className="flex items-center cursor-pointer group"
         >
           <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50",
             currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           )}>
             1
@@ -613,7 +613,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           className="flex items-center cursor-pointer group"
         >
           <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50",
             currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           )}>
             2
@@ -636,7 +636,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           className="flex items-center cursor-pointer group"
         >
           <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50",
             currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           )}>
             3
@@ -659,7 +659,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           className="flex items-center cursor-pointer group"
         >
           <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50",
             currentStep >= 4 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           )}>
             4
