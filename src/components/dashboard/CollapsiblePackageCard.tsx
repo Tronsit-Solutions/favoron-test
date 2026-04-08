@@ -418,50 +418,91 @@ const CollapsiblePackageCard = ({
               </DropdownMenu>}
             
             {/* Mobile optimized layout */}
-            {isMobile ? <div className="flex w-full max-w-full overflow-hidden">
-              {/* Left: all content */}
-              <div className="min-w-0 overflow-hidden space-y-3" style={{ width: 'calc(100% - 44px)' }}>
-                {/* Product name and status in single row */}
-                <div className="flex items-start gap-2 w-full">
-                  <Package className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="font-semibold leading-tight text-base sm:text-lg break-words line-clamp-2 text-left">
-                      {renderPackageName()}
-                    </CardTitle>
-                  </div>
+            {isMobile ? <>
+              {/* Three dots menu - absolute top right (like TripCard) */}
+              {viewMode === 'user' && (
+                <div className="absolute top-2 right-2 z-10">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted/50" onClick={e => e.stopPropagation()}>
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Opciones del paquete</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg z-50" onClick={e => e.stopPropagation()}>
+                      {onEditPackage && ['pending_approval', 'approved', 'matched', 'quote_sent', 'quote_rejected', 'quote_expired', 'rejected'].includes(pkg.status) && <DropdownMenuItem onClick={() => setShowEditModal(true)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Editar pedido
+                        </DropdownMenuItem>}
+                      {onDeletePackage && canDeleteSimple && !needsRefund && <DropdownMenuItem onClick={e => {
+                        e.stopPropagation();
+                        setShowDeleteDialog(true);
+                      }} className="text-destructive focus:text-destructive">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Cancelar pedido
+                      </DropdownMenuItem>}
+                      {onDeletePackage && needsRefund && canDeleteWithRefund && <DropdownMenuItem onClick={e => {
+                        e.stopPropagation();
+                        setShowCancellationModal(true);
+                      }} className="text-destructive focus:text-destructive">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Cancelar con reembolso
+                      </DropdownMenuItem>}
+                      {onDeletePackage && !canDelete && <DropdownMenuItem disabled className="opacity-50">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Cancelar pedido
+                        <span className="ml-2 text-xs">(No disponible)</span>
+                      </DropdownMenuItem>}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-                
-                {/* Timer positioned below title for better mobile layout */}
-                {pkg.quote_expires_at && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status) && new Date(pkg.quote_expires_at) > new Date() && (
-                  <div className="-mt-1">
-                    <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
-                  </div>
-                )}
+              )}
 
-                {/* Package ID + Status Badge */}
-                <div className="pl-5 flex items-center gap-2 justify-start flex-wrap">
-                  <span className="text-xs text-muted-foreground">ID: {pkg.id.substring(0, 8)}</span>
-                  {isCompeting && (
-                    <Badge variant="warning" className="text-xs">
-                      ⚡ Compitiendo ({multiAssignments!.length})
-                    </Badge>
+              <div className="flex flex-row gap-2">
+                {/* Left column: main content */}
+                <div className="flex flex-col gap-2 flex-1 min-w-0 pr-8">
+                  {/* Package name (like TripCard route title) */}
+                  <CardTitle className="text-base font-semibold leading-tight break-words">
+                    <span className="flex items-start gap-2">
+                      <Package className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                      <span className="line-clamp-2">{renderPackageName()}</span>
+                    </span>
+                  </CardTitle>
+
+                  {/* Timer positioned below title */}
+                  {pkg.quote_expires_at && ['quote_sent', 'quote_accepted', 'payment_pending'].includes(pkg.status) && new Date(pkg.quote_expires_at) > new Date() && (
+                    <QuoteCountdown expiresAt={pkg.quote_expires_at} micro={true} />
                   )}
-                  <Button
-                    variant="outline"
-                    size="sm"
+
+                  {/* Package ID - Clickable row (like TripCard) */}
+                  <div 
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowStatusModal(true);
                     }}
-                    className="text-xs h-7 px-2 gap-1 border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
+                    className="flex items-center gap-3 text-xs text-muted-foreground cursor-pointer hover:bg-muted/30 rounded-lg p-2 transition-colors"
                   >
-                    <span>Ver detalle</span>
-                  </Button>
-                </div>
+                    <span className="font-mono text-muted-foreground/70">ID: {pkg.id.substring(0, 8)}</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-6 px-2 gap-1 border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowStatusModal(true);
+                      }}
+                    >
+                      Ver detalle
+                    </Button>
+                    {isCompeting && (
+                      <Badge variant="warning" className="text-xs">
+                        ⚡ Compitiendo ({multiAssignments!.length})
+                      </Badge>
+                    )}
+                  </div>
 
-                {/* Quick Edit Button for actionable states - Mobile */}
-                {viewMode === 'user' && onEditPackage && ['rejected', 'quote_rejected', 'quote_expired', 'deadline_expired'].includes(pkg.status) && (
-                  <div className="pl-5">
+                  {/* Quick Edit Button for actionable states */}
+                  {viewMode === 'user' && onEditPackage && ['rejected', 'quote_rejected', 'quote_expired', 'deadline_expired'].includes(pkg.status) && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -474,19 +515,15 @@ const CollapsiblePackageCard = ({
                       <Edit className="h-3 w-3 mr-1.5" />
                       Editar y reenviar
                     </Button>
-                  </div>
-                )}
+                  )}
 
-                {/* Trip Change Alert Badge - Mobile (compact) */}
-                {viewMode === 'user' && pkg.matched_trip_id && ACTIVE_PACKAGE_STATUSES_FOR_ALERTS.includes(pkg.status) && (
-                  <div className="pl-5">
+                  {/* Trip Change Alert Badge */}
+                  {viewMode === 'user' && pkg.matched_trip_id && ACTIVE_PACKAGE_STATUSES_FOR_ALERTS.includes(pkg.status) && (
                     <TripChangeAlertBadge packageId={pkg.id} compact />
-                  </div>
-                )}
+                  )}
 
-                {/* Product Status Button - Mobile */}
-                {shouldShowProductStatusButton && (
-                  <div className="pl-5">
+                  {/* Product Status Button */}
+                  {shouldShowProductStatusButton && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -504,12 +541,10 @@ const CollapsiblePackageCard = ({
                         {confirmedProductsCount}/{totalProductsCount}
                       </Badge>
                     </Button>
-                  </div>
-                )}
+                  )}
 
-                {/* Cancelled Package Banner - Mobile */}
-                {isCancelledPackage && viewMode === 'user' && (
-                  <div className="pl-5">
+                  {/* Cancelled Package Banner */}
+                  {isCancelledPackage && viewMode === 'user' && (
                     <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3">
                       <div className="flex items-center gap-2 text-destructive font-medium mb-2">
                         <Ban className="h-4 w-4" />
@@ -531,12 +566,10 @@ const CollapsiblePackageCard = ({
                         })()}
                       </p>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Rejected Package Banner - Mobile */}
-                {pkg.status === 'rejected' && viewMode === 'user' && (
-                  <div className="pl-5">
+                  {/* Rejected Package Banner */}
+                  {pkg.status === 'rejected' && viewMode === 'user' && (
                     <div className="bg-orange-50 border border-orange-300 rounded-lg p-3">
                       <div className="flex items-center gap-2 text-orange-700 font-medium mb-2">
                         <XCircle className="h-4 w-4" />
@@ -592,12 +625,10 @@ const CollapsiblePackageCard = ({
                         </Button>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Office Pickup Address Section - Mobile */}
-                {shouldShowOfficeAddress && companyInfo && (
-                  <div className="pl-5">
+                  {/* Office Pickup Address Section */}
+                  {shouldShowOfficeAddress && companyInfo && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -610,139 +641,116 @@ const CollapsiblePackageCard = ({
                       <MapPin className="h-3.5 w-3.5 mr-1.5" />
                       Ver dirección y horarios de recolección
                     </Button>
+                  )}
+
+                  {/* Action buttons */}
+                  {!isCancelledPackage && (
+                  <div className="space-y-2 w-full max-w-full overflow-hidden box-border">
+                    {/* Re-quote button for expired quotes */}
+                    {(pkg.status === 'quote_expired' || 
+                      ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending' || pkg.status === 'quote_accepted') && 
+                       pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date())) && 
+                     onRequestRequote && (
+                      <Button size="sm" variant="shopper" onClick={e => {
+                          e.stopPropagation();
+                          onRequestRequote(pkg);
+                        }} className="text-xs w-full flex items-center gap-2">
+                          <RefreshCw className="h-3 w-3" />
+                          Solicitar Nueva Cotización
+                        </Button>
+                    )}
+                    
+                    {/* Shopper Action Button */}
+                    {pkg.status === 'quote_sent' && (!pkg.quote_expires_at || pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date()) ? <Button size="sm" variant="success" onClick={e => {
+                  e.stopPropagation();
+                  onQuote(pkg, 'user');
+                }} className="text-xs font-medium w-full">
+                        Ver y Aceptar Cotización
+                      </Button> : pkg.status === 'payment_pending' && (!pkg.quote_expires_at || new Date(pkg.quote_expires_at) > new Date()) ? <Button size="sm" variant="default" onClick={e => {
+                  e.stopPropagation();
+                  setShowPaymentModal(true);
+                }} className="text-xs font-medium w-full">
+                        <CreditCard className="h-3 w-3 mr-1" />
+                        Pagar
+                      </Button> : pkg.status === 'pending_purchase' || pkg.status === 'in_transit' && (!pkg.purchase_confirmation || !pkg.tracking_info) ? <Button size="sm" variant="success" onClick={e => {
+                  e.stopPropagation();
+                  setShowShippingInfoModal(true);
+                }} className="text-xs font-medium w-full">
+                        📦 Subir comprobante compra
+                       </Button> : pkg.status === 'delivered_to_office' ? (
+                        pkg.delivery_method === 'delivery' ? (
+                          <div className="text-xs font-medium w-full p-3 bg-success/10 border border-success/20 rounded-md">
+                            <div className="flex items-center gap-2">
+                              <Truck className="h-4 w-4 text-success flex-shrink-0" />
+                              <span className="text-foreground">Tu paquete será entregado a domicilio</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <Button size="sm" variant="success" onClick={e => {
+                            e.stopPropagation();
+                            setShowOfficeModal(true);
+                          }} className="text-xs font-medium w-full">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            Recolectar paquete
+                          </Button>
+                        )
+                      ) : null}
+                    
+                    {/* Multi-quote button */}
+                    {isCompeting && hasMultiQuotes && (
+                      <Button size="sm" variant="success" onClick={e => {
+                        e.stopPropagation();
+                        setShowMultiQuoteModal(true);
+                      }} className="text-xs font-medium w-full">
+                        ⚡ Ver Cotizaciones ({multiAssignments!.filter(a => a.status === 'bid_submitted').length})
+                      </Button>
+                    )}
+                    {isCompeting && !hasMultiQuotes && (
+                      <Button size="sm" variant="outline" disabled className="text-xs font-medium w-full">
+                        <Clock className="h-3 w-3 mr-1" />
+                        Esperando cotizaciones...
+                      </Button>
+                    )}
+
+                    {/* Feedback button */}
+                    {needsFeedback && (
+                      <Button size="sm" variant="outline" onClick={e => {
+                        e.stopPropagation();
+                        if (feedbackStep === 'traveler') {
+                          setShowTravelerRatingFromPreview(true);
+                        } else {
+                          setShowPlatformReviewFromPreview(true);
+                        }
+                      }} className="text-xs font-medium w-full bg-yellow-400 text-yellow-900 hover:bg-yellow-500 border-yellow-400">
+                        <Star className="h-3 w-3 mr-1" />
+                        {feedbackStep === 'traveler' ? 'Calificar viajero' : 'Calificar Favorón'}
+                      </Button>
+                    )}
+                  </div>
+                  )}
+
+                  {/* Status Badge - aligned right (like TripCard) */}
+                  <div className="flex items-center justify-end gap-2">
+                    {getStatusBadge(pkg.status)}
+                  </div>
+                </div>
+
+                {/* Right column: Chat button (like TripCard Tips button) */}
+                {isChatAvailable && (
+                  <div className="flex-shrink-0 flex items-end pb-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto px-2.5 py-3 bg-primary/10 hover:bg-primary/20 rounded-full flex flex-col gap-1.5 items-center"
+                      onClick={handleChatClick}
+                    >
+                      <MessageCircle className="h-4 w-4 text-primary" />
+                      <span className="text-[10px] leading-tight text-primary">Chat</span>
+                    </Button>
                   </div>
                 )}
-
-                {/* Action buttons - stacked vertically on mobile */}
-                {!isCancelledPackage && (
-                <div className="space-y-2 w-full max-w-full pl-5 overflow-hidden box-border">
-                  {/* Botón re-cotización para cotizaciones expiradas (status quote_expired O cotización expirada en quote_sent/payment_pending/quote_accepted) */}
-                  {(pkg.status === 'quote_expired' || 
-                    ((pkg.status === 'quote_sent' || pkg.status === 'payment_pending' || pkg.status === 'quote_accepted') && 
-                     pkg.quote_expires_at && new Date(pkg.quote_expires_at) <= new Date())) && 
-                   onRequestRequote && (
-                    <Button size="sm" variant="shopper" onClick={e => {
-                        e.stopPropagation();
-                        onRequestRequote(pkg);
-                      }} className="text-xs w-full flex items-center gap-2">
-                        <RefreshCw className="h-3 w-3" />
-                        Solicitar Nueva Cotización
-                      </Button>
-                  )}
-                  
-                  {/* Shopper Action Button - mobile optimized */}
-                  {pkg.status === 'quote_sent' && (!pkg.quote_expires_at || pkg.quote_expires_at && new Date(pkg.quote_expires_at) > new Date()) ? <Button size="sm" variant="success" onClick={e => {
-                e.stopPropagation();
-                onQuote(pkg, 'user');
-              }} className="text-xs font-medium w-full">
-                      Ver y Aceptar Cotización
-                    </Button> : pkg.status === 'payment_pending' && (!pkg.quote_expires_at || new Date(pkg.quote_expires_at) > new Date()) ? <Button size="sm" variant="default" onClick={e => {
-                e.stopPropagation();
-                setShowPaymentModal(true);
-              }} className="text-xs font-medium w-full">
-                      <CreditCard className="h-3 w-3 mr-1" />
-                      Pagar
-                    </Button> : pkg.status === 'pending_purchase' || pkg.status === 'in_transit' && (!pkg.purchase_confirmation || !pkg.tracking_info) ? <Button size="sm" variant="success" onClick={e => {
-                e.stopPropagation();
-                setShowShippingInfoModal(true);
-              }} className="text-xs font-medium w-full">
-                      📦 Subir comprobante compra
-                     </Button> : pkg.status === 'delivered_to_office' ? (
-                      pkg.delivery_method === 'delivery' ? (
-                        <div className="text-xs font-medium w-full p-3 bg-success/10 border border-success/20 rounded-md">
-                          <div className="flex items-center gap-2">
-                            <Truck className="h-4 w-4 text-success flex-shrink-0" />
-                            <span className="text-foreground">Tu paquete será entregado a domicilio</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <Button size="sm" variant="success" onClick={e => {
-                          e.stopPropagation();
-                          setShowOfficeModal(true);
-                        }} className="text-xs font-medium w-full">
-                          <MapPin className="h-3 w-3 mr-1" />
-                          Recolectar paquete
-                        </Button>
-                      )
-                    ) : null}
-                  
-                  {/* Multi-quote button - mobile */}
-                  {isCompeting && hasMultiQuotes && (
-                    <Button size="sm" variant="success" onClick={e => {
-                      e.stopPropagation();
-                      setShowMultiQuoteModal(true);
-                    }} className="text-xs font-medium w-full">
-                      ⚡ Ver Cotizaciones ({multiAssignments!.filter(a => a.status === 'bid_submitted').length})
-                    </Button>
-                  )}
-                  {isCompeting && !hasMultiQuotes && (
-                    <Button size="sm" variant="outline" disabled className="text-xs font-medium w-full">
-                      <Clock className="h-3 w-3 mr-1" />
-                      Esperando cotizaciones...
-                    </Button>
-                  )}
-
-                  {/* Calificar button - mobile */}
-                  {needsFeedback && (
-                    <Button size="sm" variant="outline" onClick={e => {
-                      e.stopPropagation();
-                      if (feedbackStep === 'traveler') {
-                        setShowTravelerRatingFromPreview(true);
-                      } else {
-                        setShowPlatformReviewFromPreview(true);
-                      }
-                    }} className="text-xs font-medium w-full bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500">
-                      <Star className="h-3 w-3 mr-1" />
-                      {feedbackStep === 'traveler' ? 'Calificar viajero' : 'Calificar Favorón'}
-                    </Button>
-                  )}
-                </div>
-                )}
               </div>
-              {/* Right column: menu + chat */}
-              <div className="flex flex-col items-center flex-shrink-0 w-10 ml-1 gap-3">
-                {/* Three dots at top */}
-                {viewMode === 'user' && <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 z-20 hover:bg-muted rounded-full" onClick={e => e.stopPropagation()}>
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Opciones del paquete</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg z-50" onClick={e => e.stopPropagation()}>
-                    {onEditPackage && ['pending_approval', 'approved', 'matched', 'quote_sent', 'quote_rejected', 'quote_expired', 'rejected'].includes(pkg.status) && <DropdownMenuItem onClick={() => setShowEditModal(true)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Editar pedido
-                      </DropdownMenuItem>}
-                    {onDeletePackage && canDeleteSimple && !needsRefund && <DropdownMenuItem onClick={e => {
-                      e.stopPropagation();
-                      setShowDeleteDialog(true);
-                    }} className="text-destructive focus:text-destructive">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Cancelar pedido
-                    </DropdownMenuItem>}
-                    {onDeletePackage && needsRefund && canDeleteWithRefund && <DropdownMenuItem onClick={e => {
-                      e.stopPropagation();
-                      setShowCancellationModal(true);
-                    }} className="text-destructive focus:text-destructive">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Cancelar con reembolso
-                    </DropdownMenuItem>}
-                    {onDeletePackage && !canDelete && <DropdownMenuItem disabled className="opacity-50">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Cancelar pedido
-                      <span className="ml-2 text-xs">(No disponible)</span>
-                    </DropdownMenuItem>}
-                  </DropdownMenuContent>
-                </DropdownMenu>}
-                {/* Chat button */}
-                {isChatAvailable && (
-                  <Button variant="ghost" size="sm" className="h-10 w-10 p-0 bg-primary/10 hover:bg-primary/20 rounded-full" onClick={handleChatClick}>
-                    <MessageCircle className="h-6 w-6 text-primary" />
-                  </Button>
-                )}
-              </div>
-              </div> :
+            </> :
           // Desktop layout (original)
           <div className="flex flex-col gap-2 w-full min-w-0 overflow-hidden">
                 {/* Title row */}
