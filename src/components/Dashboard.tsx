@@ -55,6 +55,13 @@ const travelerOnboardingSlides: OnboardingSlide[] = [
 ];
 
 
+const shopperOnboardingSlides: OnboardingSlide[] = [
+  { icon: Search, title: "¡Estás a punto de pedir tu primer Favorón!", description: "Describe el producto que necesitas y de dónde quieres que lo traigan. Un viajero lo llevará por ti." },
+  { icon: DollarSign, title: "Recibe una cotización", description: "Un viajero te enviará el costo de traer tu paquete, que incluye su propina y la tarifa de servicio. Adicionalmente, si el viajero pagó algún impuesto o tasa, deberás cubrir ese costo para recibir tu paquete." },
+  { icon: ShoppingCart, title: "Compra tu producto", description: "Una vez aceptada la cotización, compra el producto y envíalo a la dirección del viajero." },
+  { icon: Package, title: "¡Recibe tu paquete!", description: "Retíralo en nuestra oficina o solicita envío a domicilio. ¡Así de fácil!" },
+];
+
 const UserManagement = lazy(() => import("./admin/UserManagement"));
 
 import { NotificationBadge } from "@/components/ui/notification-badge";
@@ -1106,6 +1113,15 @@ const Dashboard = ({ user }: DashboardProps) => {
               slides={travelerOnboardingSlides}
               gradientClassName="from-traveler via-traveler/80 to-traveler/60"
               variant="traveler"
+            />
+
+            <OnboardingBottomSheet
+              isOpen={showShopperOnboarding}
+              onContinue={() => setShowShopperOnboarding(false)}
+              onClose={() => setShowShopperOnboarding(false)}
+              slides={shopperOnboardingSlides}
+              gradientClassName="from-primary via-primary/80 to-primary/60"
+              variant="shopper"
             />
           </TabsContent>
 
