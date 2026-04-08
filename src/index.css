@@ -13,6 +13,8 @@
 
 body {
   padding-bottom: env(safe-area-inset-bottom);
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
 /* Favorón Design System - Guatemala inspired colors */
