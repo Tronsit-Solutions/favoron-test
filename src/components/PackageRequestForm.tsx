@@ -590,7 +590,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           className="flex items-center cursor-pointer group"
         >
           <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50",
             currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           )}>
             1
@@ -613,7 +613,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           className="flex items-center cursor-pointer group"
         >
           <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50",
             currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           )}>
             2
@@ -636,7 +636,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           className="flex items-center cursor-pointer group"
         >
           <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50",
             currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           )}>
             3
@@ -659,7 +659,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           className="flex items-center cursor-pointer group"
         >
           <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50",
             currentStep >= 4 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           )}>
             4
@@ -717,10 +717,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             type="button"
             onClick={() => handleTypeSelect('online')}
             className={cn(
-              "p-4 rounded-xl border-2 text-left transition-all hover:shadow-md group",
+              "p-4 rounded-xl border-2 text-left transition-all sm:hover:shadow-md group touch-manipulation",
               formRequestType === 'online' 
                 ? 'border-primary bg-primary/5 shadow-md' 
-                : 'border-border hover:border-primary/50'
+                : 'border-border sm:hover:border-primary/50'
             )}
           >
             <div className="flex flex-col items-center text-center space-y-2">
@@ -751,10 +751,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             type="button"
             onClick={() => handleTypeSelect('personal')}
             className={cn(
-              "p-4 rounded-xl border-2 text-left transition-all hover:shadow-md group",
+              "p-4 rounded-xl border-2 text-left transition-all sm:hover:shadow-md group touch-manipulation",
               formRequestType === 'personal' 
                 ? 'border-primary bg-primary/5 shadow-md' 
-                : 'border-border hover:border-primary/50'
+                : 'border-border sm:hover:border-primary/50'
             )}
           >
             <div className="flex flex-col items-center text-center space-y-2">
@@ -855,7 +855,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full justify-start text-left font-normal"
+                className="w-full justify-start text-left font-normal touch-manipulation"
                 type="button"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
