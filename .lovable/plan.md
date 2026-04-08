@@ -1,24 +1,30 @@
 
 
-## Corregir número de WhatsApp de Luisa Torres
+## Fix: Scrollbar overlapping card edges on mobile
 
-### Problema
-El perfil de Luisa Torres (id: `df6ee4fc-5a96-4d27-8531-fce7bf6fcfb7`) tiene el número `50240043886` en el campo `phone_number`, que ya incluye el código de país `502`. Combinado con `country_code: +502`, el sistema genera `+50250240043886` — un número inválido para Twilio/WhatsApp.
+### Problem
+The previous fix added `scrollbar-gutter: stable` to `body` and `.mobile-container`, which reserves permanent scrollbar space and pushes content left, clipping card right edges.
 
-### Solución
-Ejecutar una migración SQL para corregir el número:
+### Changes
 
-```sql
-UPDATE profiles
-SET phone_number = '40043886'
-WHERE id = 'df6ee4fc-5a96-4d27-8531-fce7bf6fcfb7';
-```
+**1. `src/index.css` — Revert scrollbar-gutter, add overlay scrollbar**
+- Remove `overflow-y: scroll` and `scrollbar-gutter: stable` from `body`
+- Remove `scrollbar-gutter: stable` from `.mobile-container`
+- Add a thin overlay scrollbar style for the main scrollable area:
+  ```css
+  body {
+    overflow-y: auto;
+  }
+  /* Thin overlay scrollbar that doesn't consume layout space */
+  body::-webkit-scrollbar { width: 4px; }
+  body::-webkit-scrollbar-track { background: transparent; }
+  body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 2px; }
+  /* Firefox thin scrollbar */
+  html { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.15) transparent; }
+  ```
 
-Esto deja el perfil como:
-- `country_code`: `+502`
-- `phone_number`: `40043886`
-- Resultado al enviar WhatsApp: `+50240043886` (formato correcto)
+**2. `src/components/Dashboard.tsx` — Revert pr-1 on packages TabsContent**
+- Line 844: Remove the `pr-1` that was added, keeping the original classes
 
-### Archivo a modificar
-- Nueva migración SQL (solo un UPDATE de datos)
+These two changes ensure the scrollbar renders as a thin transparent overlay without taking layout space, so cards get equal left/right margins.
 
