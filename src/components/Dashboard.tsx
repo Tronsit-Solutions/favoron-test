@@ -942,7 +942,12 @@ const Dashboard = ({ user }: DashboardProps) => {
           <TabsContent value="trips" className="space-y-6 min-w-0 w-full max-w-full overflow-x-clip px-1">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
-                <h3 className="text-xl sm:text-2xl font-bold">Mis Viajes</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl sm:text-2xl font-bold">Mis Viajes</h3>
+                  <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => setShowTravelerOnboarding(true)}>
+                    <HelpCircle className="h-4 w-4" />
+                  </Button>
+                </div>
                 <p className="text-muted-foreground text-sm sm:text-base hidden sm:block">
                   Gestiona tus viajes - envía cotizaciones y gestiona paquetes asignados a tu viaje.
                 </p>
@@ -951,9 +956,6 @@ const Dashboard = ({ user }: DashboardProps) => {
                 <Button variant="traveler" className="w-full sm:w-auto" onClick={() => navigateToForm('trip')}>
                   <Plus className="h-4 w-4 mr-2" />
                   Nuevo Viaje
-                </Button>
-                <Button variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={() => setShowTravelerOnboarding(true)}>
-                  <HelpCircle className="h-4 w-4" />
                 </Button>
               </div>
             </div>
