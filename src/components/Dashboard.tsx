@@ -845,7 +845,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
                 <h3 className="text-xl sm:text-2xl font-bold">Mis Favorones</h3>
-                <p className="text-muted-foreground text-sm sm:text-base">
+                <p className="text-muted-foreground text-sm sm:text-base hidden sm:block">
                   Gestiona tus pedidos como <strong>shopper</strong> - aquí recibes cotizaciones de viajeros
                 </p>
               </div>
