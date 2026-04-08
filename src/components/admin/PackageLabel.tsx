@@ -10,7 +10,11 @@ interface PackageLabelProps {
 
 export const PackageLabel = ({ pkg, trip, className = '', customDescriptions, labelNumber }: PackageLabelProps) => {
   const getShopperName = () => {
-    // First try shopper_name (from useOperationsData)
+    // First try shopper_name_override (admin override)
+    if (pkg.shopper_name_override) {
+      return pkg.shopper_name_override;
+    }
+    // Then try shopper_name (from useOperationsData)
     if (pkg.shopper_name && pkg.shopper_name !== 'Shopper desconocido') {
       return pkg.shopper_name;
     }

@@ -29,6 +29,9 @@ async function loadLogo(): Promise<string | null> {
 }
 
 function getShopperName(pkg: any): string {
+  if (pkg.shopper_name_override) {
+    return pkg.shopper_name_override;
+  }
   if (pkg.shopper_name && pkg.shopper_name !== 'Shopper desconocido') {
     return pkg.shopper_name;
   }

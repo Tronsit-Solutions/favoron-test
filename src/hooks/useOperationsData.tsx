@@ -223,7 +223,7 @@ export const useOperationsData = () => {
         incident_flag: row.incident_flag || false,
         incident_status: row.incident_status || (row.incident_flag ? 'active' : null),
         incident_history: row.incident_history || [],
-        shopper_name: `${row.shopper_first_name || ''} ${row.shopper_last_name || ''}`.trim() || 'Shopper desconocido',
+        shopper_name: row.shopper_name_override || `${row.shopper_first_name || ''} ${row.shopper_last_name || ''}`.trim() || 'Shopper desconocido',
         traveler_name: `${row.traveler_first_name || ''} ${row.traveler_last_name || ''}`.trim() || 'Viajero desconocido',
         traveler_phone: row.traveler_phone 
           ? `${row.traveler_country_code || ''}${row.traveler_phone}` 

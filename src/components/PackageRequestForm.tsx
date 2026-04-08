@@ -37,7 +37,7 @@ interface PackageRequestFormProps {
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
   const { openModal, closeModal } = useModalState();
-  const { profile, updateProfile } = useAuth();
+  const { profile, updateProfile, userRole } = useAuth();
   const { getDeliveryPointByCity } = useDeliveryPoints();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
   
@@ -128,7 +128,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       ? initialData.package_destination_country 
       : '' as string,
     showAddressForm: false,
-    isReturn: false
+    isReturn: false,
+    shopperNameOverride: (editMode && initialData?.shopper_name_override) ? initialData.shopper_name_override : ''
   });
 
   // Auto-guardado del formulario completo (solo en modo create)
@@ -451,7 +452,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       purchaseOrigin: finalOrigin,
       deliveryAddress: formData.deliveryMethod === 'delivery' ? addressData : null,
       deliveryMethod: formData.deliveryMethod,
-      internal_notes: formData.internalNotes
+      internal_notes: formData.internalNotes,
+      shopperNameOverride: formState.shopperNameOverride?.trim() || null
     };
 
     if (editMode && initialData?.id) {
@@ -704,6 +706,25 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
     return (
       <div className="space-y-6 animate-fade-in">
+        {/* Admin-only: Shopper name override */}
+        {userRole?.role === 'admin' && (
+          <div className="p-3 rounded-lg border-2 border-amber-300 bg-amber-50/50">
+            <Label htmlFor="shopperNameOverride" className="text-sm font-semibold text-amber-800">
+              📋 Nombre del Shopper (pedido a nombre de)
+            </Label>
+            <Input
+              id="shopperNameOverride"
+              value={formState.shopperNameOverride || ''}
+              onChange={(e) => updateField('shopperNameOverride', e.target.value)}
+              placeholder="Ej: Juan Pérez"
+              className="mt-1 border-amber-300 focus:border-amber-500"
+            />
+            <p className="text-xs text-amber-600 mt-1">
+              Este nombre aparecerá en la etiqueta del paquete en lugar del tuyo.
+            </p>
+          </div>
+        )}
+
         <div className="text-center mb-4">
           <h3 className="text-lg font-semibold">¿Qué tipo de pedido necesitas?</h3>
           <p className="text-sm text-muted-foreground mt-1">
