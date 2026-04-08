@@ -376,7 +376,7 @@ const CollapsiblePackageCard = ({
   
   // Card content wrapper
   const cardContent = (
-    <div className="relative pt-2 overflow-hidden max-w-full w-full box-border">
+    <div className="relative pt-2 max-w-full w-full box-border">
       {needsAction && <NotificationBadge count={1} className="absolute top-0 left-0 z-20" />}
     <Card className={`relative transition-all duration-200 w-full max-w-full min-w-0 box-border overflow-hidden hover:shadow-md ${pkg.status === 'delivered_to_office' ? 'bg-green-50 border-2 border-green-500 ring-2 ring-inset ring-green-200 shadow-lg' : ''} ${isCancelledPackage ? 'bg-muted/50 border-destructive/30 opacity-80' : ''}`}>
       <CollapsibleTrigger asChild={!(isMobile && viewMode === 'user')}>
