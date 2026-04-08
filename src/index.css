@@ -13,8 +13,26 @@
 
 body {
   padding-bottom: env(safe-area-inset-bottom);
-  overflow-y: scroll;
-  scrollbar-gutter: stable;
+  overflow-y: auto;
+}
+
+/* Thin overlay scrollbar — does not consume layout space */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.15) transparent;
+}
+
+body::-webkit-scrollbar {
+  width: 4px;
+}
+
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.15);
+  border-radius: 2px;
 }
 
 /* Favorón Design System - Guatemala inspired colors */
@@ -549,7 +567,6 @@ body {
   /* Global mobile container utility for consistent margins */
   .mobile-container {
     @apply px-4 md:px-6 lg:px-8;
-    scrollbar-gutter: stable;
   }
 
   .mobile-content {
