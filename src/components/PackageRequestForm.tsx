@@ -717,10 +717,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             type="button"
             onClick={() => handleTypeSelect('online')}
             className={cn(
-              "p-4 rounded-xl border-2 text-left transition-all hover:shadow-md group",
+              "p-4 rounded-xl border-2 text-left transition-all sm:hover:shadow-md group touch-manipulation",
               formRequestType === 'online' 
                 ? 'border-primary bg-primary/5 shadow-md' 
-                : 'border-border hover:border-primary/50'
+                : 'border-border sm:hover:border-primary/50'
             )}
           >
             <div className="flex flex-col items-center text-center space-y-2">
@@ -751,10 +751,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             type="button"
             onClick={() => handleTypeSelect('personal')}
             className={cn(
-              "p-4 rounded-xl border-2 text-left transition-all hover:shadow-md group",
+              "p-4 rounded-xl border-2 text-left transition-all sm:hover:shadow-md group touch-manipulation",
               formRequestType === 'personal' 
                 ? 'border-primary bg-primary/5 shadow-md' 
-                : 'border-border hover:border-primary/50'
+                : 'border-border sm:hover:border-primary/50'
             )}
           >
             <div className="flex flex-col items-center text-center space-y-2">
@@ -855,7 +855,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full justify-start text-left font-normal"
+                className="w-full justify-start text-left font-normal touch-manipulation"
                 type="button"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />

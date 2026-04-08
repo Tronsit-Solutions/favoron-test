@@ -724,3 +724,16 @@ body::-webkit-scrollbar-thumb {
 .pac-icon {
   display: none !important;
 }
+
+/* Fix double-tap on mobile for all dialog interactive elements */
+@media (hover: none) and (pointer: coarse) {
+  [role="dialog"] button,
+  [role="dialog"] [role="combobox"],
+  [role="dialog"] [role="option"],
+  [role="dialog"] select,
+  [role="dialog"] input,
+  [role="dialog"] a {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
