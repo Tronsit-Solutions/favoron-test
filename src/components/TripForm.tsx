@@ -116,7 +116,7 @@ const TripForm = ({
     {
       icon: Users,
       title: "Recibe solicitudes",
-      description: "Los shoppers te enviarán solicitudes con una propina asignada. Tú decides cuáles aceptar.",
+      description: "Recibirás solicitudes con la propina asignada. Tú decides cuáles aceptar y cuáles rechazar.",
     },
     {
       icon: DollarSign,
