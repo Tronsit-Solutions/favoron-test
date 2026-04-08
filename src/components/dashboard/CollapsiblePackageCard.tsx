@@ -475,25 +475,8 @@ const CollapsiblePackageCard = ({
                   )}
 
                   {/* Package ID - Clickable row (like TripCard) */}
-                  <div 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowStatusModal(true);
-                    }}
-                    className="flex items-center gap-3 text-xs text-muted-foreground cursor-pointer hover:bg-muted/30 rounded-lg p-2 transition-colors"
-                  >
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground p-2">
                     <span className="font-mono text-muted-foreground/70">ID: {pkg.id.substring(0, 8)}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-6 px-2 gap-1 border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowStatusModal(true);
-                      }}
-                    >
-                      Ver detalle
-                    </Button>
                     {isCompeting && (
                       <Badge variant="warning" className="text-xs">
                         ⚡ Compitiendo ({multiAssignments!.length})
@@ -729,10 +712,6 @@ const CollapsiblePackageCard = ({
                   </div>
                   )}
 
-                  {/* Status Badge - aligned right (like TripCard) */}
-                  <div className="flex items-center justify-end gap-2">
-                    {getStatusBadge(pkg.status)}
-                  </div>
                 </div>
 
                 {/* Right column: Chat button (like TripCard Tips button) */}
