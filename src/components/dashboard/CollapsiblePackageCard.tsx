@@ -455,7 +455,6 @@ const CollapsiblePackageCard = ({
                     }}
                     className="text-xs h-7 px-2 gap-1 border-muted-foreground/30 text-muted-foreground hover:bg-muted/50"
                   >
-                    {getStatusBadge(pkg.status, { pkg, isQuoteExpired: !!expirationInfo })}
                     <span>Ver detalle</span>
                   </Button>
                 </div>
