@@ -727,7 +727,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           onViewModeChange={handleViewModeChange}
         />
 
-      <div className="w-full mobile-container py-2 sm:py-6 lg:py-8 max-w-full overflow-x-hidden box-border">
+      <div className="w-full mobile-container py-2 sm:py-6 lg:py-8 max-w-full box-border">
         <PhoneNumberBannerSection />
         
         
@@ -748,7 +748,7 @@ const Dashboard = ({ user }: DashboardProps) => {
           </div>
         )}
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 sm:space-y-6 min-w-0 w-full max-w-full overflow-hidden">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 sm:space-y-6 min-w-0 w-full max-w-full">
           {activeTab !== 'profile' && (
             <TabsList className={cn(
               "w-full h-auto min-h-10 grid",
