@@ -1,35 +1,28 @@
 
 
-## Agregar campo "Nombre del Shopper" para admins
+## Add Address from Profile Tab
 
-### Resumen
-Agregar una columna `shopper_name_override` a la tabla `packages` y un campo de texto en el formulario de paquetes visible solo para administradores. Cuando tiene valor, las etiquetas usarán este nombre en lugar del perfil del admin.
+Currently, the **Saved Addresses** section in the profile tab only shows, deletes, and sets default addresses. Users can only add addresses when accepting a delivery quote. This plan adds the ability to create new addresses directly from the profile.
 
-### Cambios
+### What will change
 
-**1. Migración SQL**
-```sql
-ALTER TABLE packages ADD COLUMN shopper_name_override TEXT DEFAULT NULL;
-```
+**File: `src/components/profile/SavedAddressesSection.tsx`**
 
-**2. `src/components/PackageRequestForm.tsx`**
-- Extraer `userRole` de `useAuth()` (línea 40)
-- Agregar estado `shopperNameOverride` (string)
-- En `renderStep1()` (~línea 706), agregar al inicio un campo Input con label "Nombre del Shopper (pedido a nombre de)" — solo visible si `userRole?.role === 'admin'`
-- Estilo con borde amber para distinguir como campo admin
-- Incluir `shopperNameOverride` en `submitData` (~línea 441)
+1. Add an "Agregar dirección" button at the top of the section (next to the card header or as a CTA when no addresses exist).
+2. Add an inline form (toggled by state) with the same fields used in `DeliveryAddressSheet`:
+   - Dirección completa (streetAddress) - required
+   - Ciudad/Municipio (cityArea) - required, free text input
+   - Referencia / Condominio / Edificio (hotelAirbnbName) - optional
+   - Número de contacto (contactNumber) - required
+   - Etiqueta (label): Casa / Oficina / Otro selector
+3. On save, generate a UUID, append to the existing addresses array, and persist via `updateAddresses()`. If it's the first address, auto-set as default.
+4. Add an edit capability: clicking an address opens the same form pre-filled, allowing users to modify and save changes.
 
-**3. `src/hooks/useDashboardActions.tsx`**
-- Línea ~82: agregar `shopper_name_override: packageData.shopperNameOverride || null` en `dbPackageData`
+### Technical details
 
-**4. `src/hooks/useOperationsData.tsx`**
-- Línea ~226: cambiar lógica de `shopper_name` para priorizar `row.shopper_name_override` si existe
-
-**5. `src/components/admin/PackageLabel.tsx` y `src/lib/pdfLabelDrawer.ts`**
-- En `getShopperName()`: priorizar `pkg.shopper_name_override` antes de las demás fuentes
-
-### Impacto
-- Cambio aditivo, no rompe nada existente
-- Columna nullable con default null = registros existentes intactos
-- Sin cambios en RLS (usa INSERT existente del usuario)
+- Reuse the existing `updateAddresses` helper and `SavedAddress` interface already in the file.
+- The form toggles via a `showForm` state; an `editingId` state tracks if editing vs. creating.
+- No database schema changes needed -- addresses are stored as JSON in `profiles.saved_addresses`.
+- Input validation: require streetAddress, cityArea, and contactNumber before enabling save.
+- Label selector uses the same `["Casa", "Oficina", "Otro"]` pattern from `DeliveryAddressSheet`.
 
