@@ -1,28 +1,40 @@
 
 
-## Add Address from Profile Tab
+## Crear viaje de Madrid a Guatemala para Rodrigo Zibara
 
-Currently, the **Saved Addresses** section in the profile tab only shows, deletes, and sets default addresses. Users can only add addresses when accepting a delivery quote. This plan adds the ability to create new addresses directly from the profile.
+### Datos del viaje
 
-### What will change
+| Campo | Valor |
+|-------|-------|
+| **Viajero** | Rodrigo Zibara (`73c1d68d-2afd-4e5f-b9fa-c812939c5dc2`) |
+| **Ruta** | Madrid, España → Guatemala City, Guatemala |
+| **Recepción de paquetes** | 10 de abril – 1 de mayo 2026 |
+| **Llegada** | 3 de mayo 2026 |
+| **Entrega** | 4 de mayo 2026 |
+| **Espacio disponible** | 10 kg |
+| **Dirección en Madrid** | Calle del General Pardiñas 108, 3D, 28006 Madrid, contacto +34 610614976 |
+| **Status** | `pending_approval` |
 
-**File: `src/components/profile/SavedAddressesSection.tsx`**
+### Acción
 
-1. Add an "Agregar dirección" button at the top of the section (next to the card header or as a CTA when no addresses exist).
-2. Add an inline form (toggled by state) with the same fields used in `DeliveryAddressSheet`:
-   - Dirección completa (streetAddress) - required
-   - Ciudad/Municipio (cityArea) - required, free text input
-   - Referencia / Condominio / Edificio (hotelAirbnbName) - optional
-   - Número de contacto (contactNumber) - required
-   - Etiqueta (label): Casa / Oficina / Otro selector
-3. On save, generate a UUID, append to the existing addresses array, and persist via `updateAddresses()`. If it's the first address, auto-set as default.
-4. Add an edit capability: clicking an address opens the same form pre-filled, allowing users to modify and save changes.
+Insertar un registro en `trips` usando la herramienta de inserción de datos con este SQL:
 
-### Technical details
+```sql
+INSERT INTO trips (
+  user_id, from_city, from_country, to_city, to_country,
+  first_day_packages, last_day_packages, arrival_date, delivery_date,
+  package_receiving_address, available_space, status
+) VALUES (
+  '73c1d68d-2afd-4e5f-b9fa-c812939c5dc2',
+  'Madrid', 'España',
+  'Guatemala City', 'Guatemala',
+  '2026-04-10 12:00:00+00', '2026-05-01 12:00:00+00',
+  '2026-05-03 12:00:00+00', '2026-05-04 12:00:00+00',
+  '{"accommodationType":"casa","cityArea":"Madrid","contactNumber":"+34610614976","hotelAirbnbName":"","postalCode":"28006","recipientName":"Rodrigo Zibara","streetAddress":"Calle del General Pardiñas 108","streetAddress2":"3D"}',
+  10,
+  'pending_approval'
+);
+```
 
-- Reuse the existing `updateAddresses` helper and `SavedAddress` interface already in the file.
-- The form toggles via a `showForm` state; an `editingId` state tracks if editing vs. creating.
-- No database schema changes needed -- addresses are stored as JSON in `profiles.saved_addresses`.
-- Input validation: require streetAddress, cityArea, and contactNumber before enabling save.
-- Label selector uses the same `["Casa", "Oficina", "Otro"]` pattern from `DeliveryAddressSheet`.
+No se requieren cambios de código ni de esquema.
 
