@@ -1,0 +1,1 @@
+UPDATE profiles SET phone_number = '41865897' WHERE id = '3f7d9abc-b61c-4651-9aa6-96a636a330a8';
