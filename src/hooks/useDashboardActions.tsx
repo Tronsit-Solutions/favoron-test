@@ -1304,7 +1304,7 @@ export const useDashboardActions = (
 
     const SUPABASE_URL = "https://dfhoduirmqbarjnspbdh.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmaG9kdWlybXFiYXJqbnNwYmRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNTE4NjYsImV4cCI6MjA2NzYyNzg2Nn0.w1PWz_sugNUIlOfVb1dqKFulcDVPiKb_0SdkhUho8wY";
-    const RPC_TIMEOUT_MS = 12000;
+    const RPC_TIMEOUT_MS = 25000;
     const MAX_RETRIES = 1;
     let rpcResult: any = null;
     let lastError: any = null;
