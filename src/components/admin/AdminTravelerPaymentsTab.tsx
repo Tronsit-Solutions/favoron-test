@@ -509,6 +509,7 @@ const AdminTravelerPaymentsTab = () => {
     office_delivery?: any;
   }>>([]);
   const [packageBreakdownLoading, setPackageBreakdownLoading] = useState(false);
+  const [dialogBoostAmount, setDialogBoostAmount] = useState(0);
   const [celebrationData, setCelebrationData] = useState<{
     isOpen: boolean;
     amount: number;
@@ -553,12 +554,13 @@ const AdminTravelerPaymentsTab = () => {
 
   // Fetch packages when dialog opens
   useEffect(() => {
-    const fetchPackages = async () => {
+    const fetchPackagesAndBoost = async () => {
       if (!confirmDialog.isOpen || !confirmDialog.order?.trip_id) {
         return;
       }
 
       setPackageBreakdownLoading(true);
+      setDialogBoostAmount(0);
       
       try {
         console.log('📡 Fetching packages from database for trip:', confirmDialog.order.trip_id);
@@ -571,22 +573,32 @@ const AdminTravelerPaymentsTab = () => {
           'completed'
         ];
         
-        const { data, error } = await supabase
-          .from('packages')
-          .select('id, item_description, status, quote, admin_assigned_tip, products_data, office_delivery')
-          .eq('matched_trip_id', confirmDialog.order.trip_id)
-          .in('status', eligibleStatuses)
-          .order('created_at', { ascending: true });
+        const [packagesResult, boostResult] = await Promise.all([
+          supabase
+            .from('packages')
+            .select('id, item_description, status, quote, admin_assigned_tip, products_data, office_delivery')
+            .eq('matched_trip_id', confirmDialog.order.trip_id)
+            .in('status', eligibleStatuses)
+            .order('created_at', { ascending: true }),
+          supabase
+            .from('trip_payment_accumulator')
+            .select('boost_amount')
+            .eq('trip_id', confirmDialog.order.trip_id)
+            .maybeSingle()
+        ]);
 
-        if (error) {
-          console.error('❌ Error fetching packages:', error);
+        if (packagesResult.error) {
+          console.error('❌ Error fetching packages:', packagesResult.error);
           setPackageBreakdown([]);
           return;
         }
 
-        console.log('📦 Packages fetched:', (data || []).length, 'packages');
-        console.log('📋 Package statuses:', (data || []).map(p => ({ id: p.id.slice(0, 8), status: p.status })));
-        setPackageBreakdown((data || []) as any);
+        console.log('📦 Packages fetched:', (packagesResult.data || []).length, 'packages');
+        setPackageBreakdown((packagesResult.data || []) as any);
+        
+        if (boostResult.data?.boost_amount) {
+          setDialogBoostAmount(Number(boostResult.data.boost_amount));
+        }
       } catch (err) {
         console.error('❌ Exception fetching packages:', err);
         setPackageBreakdown([]);
@@ -595,7 +607,7 @@ const AdminTravelerPaymentsTab = () => {
       }
     };
 
-    fetchPackages();
+    fetchPackagesAndBoost();
   }, [confirmDialog.isOpen, confirmDialog.order?.trip_id]);
 
   const handlePaymentAction = async () => {
@@ -824,6 +836,7 @@ const AdminTravelerPaymentsTab = () => {
         if (!open) {
           setPackageBreakdown([]);
           setPackageBreakdownLoading(false);
+          setDialogBoostAmount(0);
         }
       }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -961,6 +974,17 @@ const AdminTravelerPaymentsTab = () => {
                   </div>
                 )}
               </div>
+              
+              {/* Boost line item */}
+              {dialogBoostAmount > 0 && (
+                <div className="flex justify-between items-center text-xs py-1 px-2 bg-purple-50 rounded border border-purple-200">
+                  <div className="flex items-center gap-1.5">
+                    <Rocket className="h-3.5 w-3.5 text-purple-500" />
+                    <span className="font-medium text-purple-700">🚀 Tip Booster</span>
+                  </div>
+                  <span className="font-semibold text-purple-600">+{formatCurrency(dialogBoostAmount)}</span>
+                </div>
+              )}
               
               {/* Total */}
               <div className="border-t border-muted/40 pt-2">
