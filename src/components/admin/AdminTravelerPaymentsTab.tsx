@@ -509,6 +509,7 @@ const AdminTravelerPaymentsTab = () => {
     office_delivery?: any;
   }>>([]);
   const [packageBreakdownLoading, setPackageBreakdownLoading] = useState(false);
+  const [dialogBoostAmount, setDialogBoostAmount] = useState(0);
   const [celebrationData, setCelebrationData] = useState<{
     isOpen: boolean;
     amount: number;
