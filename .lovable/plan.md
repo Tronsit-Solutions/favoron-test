@@ -1,24 +1,38 @@
 
 
-## Aplicar BOOST_01 (6%) a las 2 órdenes de pago de Cecilia Prahl
+## Aplicar BOOST_01 (6%) a las 2 órdenes de pago pendientes de Anika Erichsen
 
-### Datos actuales
+### Datos
 
-| Orden | Trip | Monto actual | Boost | Nuevo monto |
-|-------|------|-------------|-------|-------------|
-| `cdde845e` | `0dff3d19` | Q400.00 | Q24.00 (6%) | Q424.00 |
-| `76b2f50a` | `bcd58f84` | Q240.00 | Q14.40 (6%) | Q254.40 |
+| Orden | Trip | Monto actual | Boost (6%) | Nuevo monto |
+|-------|------|-------------|------------|-------------|
+| `e4f90468` | `f93c75c9` | Q380.00 | Q22.80 | Q402.80 |
+| `b85e2167` | `278dbf7f` | Q485.00 | Q29.10 | Q514.10 |
+
+- **Traveler ID**: `42ff1de3-2156-4636-99b5-ef9bc197e81f`
+- **Boost Code ID**: `35582cad-c6fe-412d-9778-66839baf9a3e`
 
 ### Acciones (datos, no esquema)
 
-1. **Crear registros en `boost_code_usage`** para ambos viajes con BOOST_01
-2. **Actualizar `trip_payment_accumulator`** → `boost_amount` a Q24 y Q14.40
-3. **Actualizar `payment_orders`** → `amount` a Q424 y Q254.40
+1. **INSERT en `boost_code_usage`** -- 2 registros vinculando BOOST_01 a ambos viajes
+2. **UPDATE en `trip_payment_accumulator`** -- `boost_amount` a Q22.80 y Q29.10
+3. **UPDATE en `payment_orders`** -- `amount` a Q402.80 y Q514.10
 
-### Detalle técnico
+### SQL a ejecutar (insert tool, no migración)
 
-Se usará la herramienta de inserción/actualización de datos (no migración) para ejecutar 3 operaciones:
-- INSERT en `boost_code_usage` (2 registros)
-- UPDATE en `trip_payment_accumulator` (2 filas)
-- UPDATE en `payment_orders` (2 filas)
+```sql
+-- 1. Registrar uso del boost
+INSERT INTO boost_code_usage (boost_code_id, traveler_id, trip_id, boost_amount)
+VALUES
+  ('35582cad-c6fe-412d-9778-66839baf9a3e', '42ff1de3-2156-4636-99b5-ef9bc197e81f', 'f93c75c9-d4ed-4107-b199-f4c18738597d', 22.80),
+  ('35582cad-c6fe-412d-9778-66839baf9a3e', '42ff1de3-2156-4636-99b5-ef9bc197e81f', '278dbf7f-1df8-43e6-b446-00ec9b6c1a3e', 29.10);
+
+-- 2. Actualizar acumuladores
+UPDATE trip_payment_accumulator SET boost_amount = 22.80 WHERE trip_id = 'f93c75c9-d4ed-4107-b199-f4c18738597d';
+UPDATE trip_payment_accumulator SET boost_amount = 29.10 WHERE trip_id = '278dbf7f-1df8-43e6-b446-00ec9b6c1a3e';
+
+-- 3. Actualizar órdenes de pago
+UPDATE payment_orders SET amount = 402.80, updated_at = now() WHERE id = 'e4f90468-8b70-4b5d-b7ee-cb990394c1d7';
+UPDATE payment_orders SET amount = 514.10, updated_at = now() WHERE id = 'b85e2167-7816-492a-9ae3-c46c20673cca';
+```
 
