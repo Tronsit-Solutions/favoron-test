@@ -975,6 +975,17 @@ const AdminTravelerPaymentsTab = () => {
                 )}
               </div>
               
+              {/* Boost line item */}
+              {dialogBoostAmount > 0 && (
+                <div className="flex justify-between items-center text-xs py-1 px-2 bg-purple-50 rounded border border-purple-200">
+                  <div className="flex items-center gap-1.5">
+                    <Rocket className="h-3.5 w-3.5 text-purple-500" />
+                    <span className="font-medium text-purple-700">🚀 Tip Booster</span>
+                  </div>
+                  <span className="font-semibold text-purple-600">+{formatCurrency(dialogBoostAmount)}</span>
+                </div>
+              )}
+              
               {/* Total */}
               <div className="border-t border-muted/40 pt-2">
                 <div className="flex justify-between items-center">
