@@ -145,6 +145,7 @@ export default function CancelledPackagesTable({ rows, loading, onUpdateNotes }:
               <TableHead>Destino</TableHead>
               <TableHead>Creado</TableHead>
               <TableHead>Actualizado</TableHead>
+              <TableHead className="min-w-[150px]">Notas</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -177,6 +178,9 @@ export default function CancelledPackagesTable({ rows, loading, onUpdateNotes }:
                   <TableCell className="text-sm">{row.package_destination}</TableCell>
                   <TableCell className="text-sm whitespace-nowrap">{formatDate(row.created_at)}</TableCell>
                   <TableCell className="text-sm whitespace-nowrap">{formatDate(row.updated_at)}</TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <NotesCell row={row} onUpdateNotes={onUpdateNotes} />
+                  </TableCell>
                 </TableRow>
               );
             })}
