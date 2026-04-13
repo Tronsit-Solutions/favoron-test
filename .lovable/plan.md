@@ -1,27 +1,29 @@
 
 
-## Plan: Corregir almacenamiento de razón de rechazo de viajero
+## Plan: Notas CX específicas para paquetes cancelados
 
 ### Problema
-La función legacy `traveler_reject_assignment` (linea 66) escribe la razón del viajero en el campo `rejection_reason`, que debería ser exclusivo para rechazos de shoppers/admin. La función v2 no tiene este bug. El resultado es que en la tabla de cancelados aparecen razones como "El tip ofrecido es muy bajo" como si fueran del shopper.
+Las notas en la pestaña de cancelados se guardan en `packages.internal_notes`, que es un campo genérico. Las notas de CX deberían ser independientes y específicas del seguimiento de Customer Experience.
 
-### Cambios
+### Opción A: Reutilizar `customer_experience_calls` (recomendado)
+La tabla ya existe con campos `notes`, `call_status`, `rating`, etc. Se puede reutilizar para cancelados agregando registros con un `user_type` como `"cancelled"` o similar. No requiere migración de esquema.
 
-**1. Migración SQL** — Corregir la función `traveler_reject_assignment`:
-- Quitar `rejection_reason = _rejection_reason` de la linea 66 del UPDATE. La razón ya se guarda correctamente en `traveler_rejection` JSONB.
+**Cambios:**
+1. **`src/hooks/useCancelledPackages.ts`**: 
+   - Fetch CX calls para los paquetes cancelados (filtrando por `user_type = 'cancelled'`)
+   - Cambiar `updateNotes` para hacer upsert en `customer_experience_calls` en vez de `packages.internal_notes`
+   - Agregar `cx_notes` al `CancelledPackageRow` interface
 
-**2. Migración SQL** — Limpiar datos existentes:
-- Para paquetes donde `rejection_reason` coincide con `traveler_rejection->>'rejection_reason'`, limpiar `rejection_reason` a NULL (ya que fue escrito incorrectamente por el traveler RPC).
+2. **`src/components/admin/cx/CancelledPackagesTable.tsx`**: 
+   - Actualizar `NotesCell` para usar `cx_notes` en vez de `internal_notes`
 
-**3. `src/hooks/useCancelledPackages.ts`** — Mejorar la lógica de `computed_reason`:
-- Cambiar la prioridad para distinguir entre razones de shopper vs viajero:
-  - Si `rejection_reason` existe → mostrar como "Shopper: {razón}"
-  - Si `traveler_rejection.reason` existe → mostrar como "Viajero: {razón}"  
-  - Si `quote_rejection.reason` existe → mostrar como "Cotización: {razón}"
-- Esto da contexto claro de quién rechazó.
+### Opción B: Crear tabla nueva `cx_cancelled_notes`
+Tabla dedicada solo para notas de cancelados. Más limpio conceptualmente pero agrega complejidad innecesaria cuando `customer_experience_calls` ya tiene la estructura perfecta.
+
+### Recomendación
+**Opción A** — reutilizar `customer_experience_calls`. Ya tiene RLS configurado, campo `notes`, y la lógica de upsert ya existe en el hook de CX de completados. Solo hay que replicar el patrón para cancelados.
 
 ### Resultado
-- Las razones de rechazo de viajeros ya no contaminarán el campo `rejection_reason`
-- Los datos históricos incorrectos se limpiarán
-- La tabla de cancelados mostrará claramente quién rechazó y por qué
-
+- Las notas de CX para cancelados se guardan separadas de `packages.internal_notes`
+- Se mantiene un registro centralizado de todas las interacciones CX en una sola tabla
+- No requiere migración de base de datos
