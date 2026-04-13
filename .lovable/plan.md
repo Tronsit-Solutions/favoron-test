@@ -1,22 +1,27 @@
 
 
-## Plan: Agregar columna de WhatsApp al lado del nombre del shopper en tabla de Cancelados
+## Plan: Corregir almacenamiento de razón de rechazo de viajero
+
+### Problema
+La función legacy `traveler_reject_assignment` (linea 66) escribe la razón del viajero en el campo `rejection_reason`, que debería ser exclusivo para rechazos de shoppers/admin. La función v2 no tiene este bug. El resultado es que en la tabla de cancelados aparecen razones como "El tip ofrecido es muy bajo" como si fueran del shopper.
 
 ### Cambios
 
-**1. `src/hooks/useCancelledPackages.ts`**
-- Agregar `country_code` al select de profiles (linea 88): `"id, first_name, last_name, phone_number, country_code"`
-- Agregar `country_code` al profileMap (linea 80): `{ name: string; phone: string | null; country_code: string | null }`
-- Mapear `country_code` en el forEach (linea 93)
-- Pasar `country_code` al construir cada row como `user_country_code`
-- Agregar `user_country_code` a la interfaz `CancelledPackageRow`
+**1. Migración SQL** — Corregir la función `traveler_reject_assignment`:
+- Quitar `rejection_reason = _rejection_reason` de la linea 66 del UPDATE. La razón ya se guarda correctamente en `traveler_rejection` JSONB.
 
-**2. `src/components/admin/cx/CancelledPackagesTable.tsx`**
-- Agregar `<TableHead>WhatsApp</TableHead>` despues de la columna Shopper (linea 73)
-- Agregar `<TableCell>` que muestre el numero formateado como `{country_code} {phone}`, con un link `href="https://wa.me/..."` para abrir WhatsApp directamente
-- Quitar el telefono que actualmente se muestra debajo del nombre del shopper (lineas 96-98)
+**2. Migración SQL** — Limpiar datos existentes:
+- Para paquetes donde `rejection_reason` coincide con `traveler_rejection->>'rejection_reason'`, limpiar `rejection_reason` a NULL (ya que fue escrito incorrectamente por el traveler RPC).
+
+**3. `src/hooks/useCancelledPackages.ts`** — Mejorar la lógica de `computed_reason`:
+- Cambiar la prioridad para distinguir entre razones de shopper vs viajero:
+  - Si `rejection_reason` existe → mostrar como "Shopper: {razón}"
+  - Si `traveler_rejection.reason` existe → mostrar como "Viajero: {razón}"  
+  - Si `quote_rejection.reason` existe → mostrar como "Cotización: {razón}"
+- Esto da contexto claro de quién rechazó.
 
 ### Resultado
-- Nueva columna "WhatsApp" con el numero completo y clickeable para abrir chat de WhatsApp
-- El nombre del shopper queda limpio sin el telefono debajo
+- Las razones de rechazo de viajeros ya no contaminarán el campo `rejection_reason`
+- Los datos históricos incorrectos se limpiarán
+- La tabla de cancelados mostrará claramente quién rechazó y por qué
 
