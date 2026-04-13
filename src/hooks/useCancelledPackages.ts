@@ -171,5 +171,17 @@ export function useCancelledPackages() {
     .filter(r => statusFilter === "all" || r.status === statusFilter)
     .filter(r => !searchTerm || r.user_name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  return { rows: filteredRows, allRows: rows, loading, stats, statusFilter, setStatusFilter, searchTerm, setSearchTerm };
+  const updateNotes = useCallback(async (packageId: string, notes: string) => {
+    const { error } = await supabase
+      .from("packages")
+      .update({ internal_notes: notes || null })
+      .eq("id", packageId);
+    if (error) {
+      toast.error("Error guardando nota");
+      throw error;
+    }
+    setRows(prev => prev.map(r => r.package_id === packageId ? { ...r, internal_notes: notes || null } : r));
+  }, []);
+
+  return { rows: filteredRows, allRows: rows, loading, stats, statusFilter, setStatusFilter, searchTerm, setSearchTerm, updateNotes };
 }
