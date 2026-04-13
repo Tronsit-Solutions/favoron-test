@@ -1,53 +1,19 @@
 
 
-## Plan: Cambiar formularios de modal a pagina completa en movil
+## Plan: Simplificar Step 1 del PackageRequestForm para movil
 
-### Problema
-En movil, PackageRequestForm y TripForm se abren como Dialog (modal centrado con overlay), lo cual se siente pesado y poco nativo en pantallas pequenas.
+### Cambios en `src/components/PackageRequestForm.tsx`
 
-### Solucion
-En movil (< 768px), reemplazar el Dialog por un Sheet que sube desde abajo ocupando el 100% de la pantalla, creando una experiencia tipo "nueva pagina". En desktop, mantener el Dialog actual sin cambios.
+**1. Limpiar texto del campo admin (lineas 715-727)**
+- Linea 716: Cambiar `📋 Nombre del Shopper (pedido a nombre de)` → `📋 Nombre del Shopper`
+- Eliminar lineas 725-727: el parrafo con "Este nombre aparecerá en la etiqueta..."
 
-### Cambios concretos
+**2. Reducir altura de las cards de tipo de pedido (lineas 740-805)**
+- Cambiar `p-4` → `p-3` en ambos botones (lineas 744 y 778)
+- Cambiar `w-12 h-12` → `w-10 h-10` en los circulos de icono (lineas 752 y 785)
+- Cambiar `h-6 w-6` → `h-5 w-5` en los iconos (lineas 757 y 792)  
+- Cambiar `space-y-2` → `space-y-1` en los contenedores flex (lineas 750 y 784)
+- Cambiar layout de vertical a horizontal en movil: usar `flex-row items-center` en vez de `flex-col items-center text-center` y alinear texto a la izquierda
 
-**1. `src/components/PackageRequestForm.tsx`**
-- Importar `useIsMobile` y `Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription` 
-- En `renderPackageForm()`, condicionar por `isMobile`:
-  - **Movil**: Usar `<Sheet open={isOpen} onOpenChange={...}>` con `<SheetContent side="bottom" className="h-full max-h-full rounded-t-xl">` para que ocupe toda la pantalla deslizando desde abajo
-  - **Desktop**: Mantener el `<Dialog>` actual tal cual
-- Extraer el contenido interno (header, steps, navigation buttons) a una variable compartida para evitar duplicacion
-
-**2. `src/components/TripForm.tsx`**
-- Mismo patron: importar `useIsMobile`, Sheet components
-- En `renderTripForm()`, condicionar por `isMobile`:
-  - **Movil**: Sheet full-screen desde abajo
-  - **Desktop**: Dialog actual
-
-**3. `src/components/ui/sheet.tsx`**
-- Agregar variante `bottom` al `sheetVariants` con: `inset-x-0 bottom-0 border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom` (ya existe en el cva pero verificar que soporte height completo)
-
-### Estructura del Sheet movil (ambos forms)
-
-```text
-<Sheet open={isOpen} onOpenChange={...}>
-  <SheetContent side="bottom" className="h-[100dvh] max-h-[100dvh] p-0 rounded-t-2xl flex flex-col">
-    <SheetHeader className="px-6 pt-6 pb-2 flex-shrink-0">
-      <SheetTitle>...</SheetTitle>
-      <SheetDescription>...</SheetDescription>
-    </SheetHeader>
-    <StepIndicator />
-    <div className="flex-1 overflow-y-auto px-6">
-      {step content}
-    </div>
-    <div className="flex-shrink-0 p-4 border-t">
-      {navigation buttons}
-    </div>
-  </SheetContent>
-</Sheet>
-```
-
-### Impacto
-- Experiencia movil tipo app nativa (slide-up full page)
-- Desktop sin cambios
-- No afecta logica de submit, autosave, ni modal state
+Esto reduce scroll significativamente en el Step 1 movil.
 
