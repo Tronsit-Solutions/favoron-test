@@ -101,7 +101,7 @@ function CXTab({ userType }: { userType: "shopper" | "traveler" }) {
 }
 
 function CancelledTab() {
-  const { rows, loading, stats, statusFilter, setStatusFilter, searchTerm, setSearchTerm } = useCancelledPackages();
+  const { rows, loading, stats, statusFilter, setStatusFilter, searchTerm, setSearchTerm, updateNotes } = useCancelledPackages();
 
   return (
     <div className="space-y-4">
