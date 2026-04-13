@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useTabVisibilityProtection } from "@/hooks/useTabVisibilityProtection";
