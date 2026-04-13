@@ -4,11 +4,15 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Package, Calendar, MapPin, User, AlertCircle, Globe, MessageCircle } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Package, Calendar, MapPin, User, AlertCircle, Globe, StickyNote, MessageSquarePlus } from "lucide-react";
 import PackageProductDisplay from "@/components/dashboard/PackageProductDisplay";
 import { CancelledPackageRow } from "@/hooks/useCancelledPackages";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { toast } from "sonner";
 
 const statusConfig: Record<string, { label: string; variant: "destructive" | "secondary" | "outline" | "default" }> = {
   cancelled: { label: "Cancelado", variant: "destructive" },
@@ -38,9 +42,71 @@ function getProductName(row: CancelledPackageRow): string {
 interface Props {
   rows: CancelledPackageRow[];
   loading: boolean;
+  onUpdateNotes?: (packageId: string, notes: string) => Promise<void>;
 }
 
-export default function CancelledPackagesTable({ rows, loading }: Props) {
+function NotesCell({ row, onUpdateNotes }: { row: CancelledPackageRow; onUpdateNotes?: (id: string, notes: string) => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(row.internal_notes || "");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!onUpdateNotes) return;
+    setSaving(true);
+    try {
+      await onUpdateNotes(row.package_id, value);
+      toast.success("Nota guardada");
+      setOpen(false);
+    } catch {
+      // error already toasted in hook
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (o) setValue(row.internal_notes || ""); }}>
+      <PopoverTrigger asChild>
+        <button
+          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors max-w-[180px]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {row.internal_notes ? (
+            <span className="flex items-center gap-1 truncate">
+              <StickyNote className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+              <span className="truncate">{row.internal_notes}</span>
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-muted-foreground/50">
+              <MessageSquarePlus className="h-3.5 w-3.5" />
+              Agregar
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72" onClick={(e) => e.stopPropagation()}>
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Notas internas</p>
+          <Textarea
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Escribe una nota..."
+            rows={3}
+            className="text-sm"
+          />
+          <div className="flex justify-end gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button size="sm" onClick={handleSave} disabled={saving}>
+              {saving ? "Guardando..." : "Guardar"}
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export default function CancelledPackagesTable({ rows, loading, onUpdateNotes }: Props) {
   const [selectedRow, setSelectedRow] = useState<CancelledPackageRow | null>(null);
 
   if (loading) {
@@ -79,6 +145,7 @@ export default function CancelledPackagesTable({ rows, loading }: Props) {
               <TableHead>Destino</TableHead>
               <TableHead>Creado</TableHead>
               <TableHead>Actualizado</TableHead>
+              <TableHead className="min-w-[150px]">Notas</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -111,6 +178,9 @@ export default function CancelledPackagesTable({ rows, loading }: Props) {
                   <TableCell className="text-sm">{row.package_destination}</TableCell>
                   <TableCell className="text-sm whitespace-nowrap">{formatDate(row.created_at)}</TableCell>
                   <TableCell className="text-sm whitespace-nowrap">{formatDate(row.updated_at)}</TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <NotesCell row={row} onUpdateNotes={onUpdateNotes} />
+                  </TableCell>
                 </TableRow>
               );
             })}

@@ -101,7 +101,7 @@ function CXTab({ userType }: { userType: "shopper" | "traveler" }) {
 }
 
 function CancelledTab() {
-  const { rows, loading, stats, statusFilter, setStatusFilter, searchTerm, setSearchTerm } = useCancelledPackages();
+  const { rows, loading, stats, statusFilter, setStatusFilter, searchTerm, setSearchTerm, updateNotes } = useCancelledPackages();
 
   return (
     <div className="space-y-4">
@@ -175,7 +175,7 @@ function CancelledTab() {
         </Select>
       </div>
 
-      <CancelledPackagesTable rows={rows} loading={loading} />
+      <CancelledPackagesTable rows={rows} loading={loading} onUpdateNotes={updateNotes} />
     </div>
   );
 }
