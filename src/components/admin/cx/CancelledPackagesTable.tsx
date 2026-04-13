@@ -75,7 +75,7 @@ export default function CancelledPackagesTable({ rows, loading }: Props) {
               <TableHead>Status</TableHead>
               <TableHead className="min-w-[200px]">Razón</TableHead>
               <TableHead>Viajero</TableHead>
-              <TableHead>Precio Est.</TableHead>
+              
               <TableHead>Destino</TableHead>
               <TableHead>Creado</TableHead>
               <TableHead>Actualizado</TableHead>
@@ -109,9 +109,6 @@ export default function CancelledPackagesTable({ rows, loading }: Props) {
                   </TableCell>
                   <TableCell className="text-sm">
                     {row.traveler_name || <span className="text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {row.estimated_price != null ? `Q${row.estimated_price.toFixed(2)}` : "—"}
                   </TableCell>
                   <TableCell className="text-sm">{row.package_destination}</TableCell>
                   <TableCell className="text-sm whitespace-nowrap">{formatDate(row.created_at)}</TableCell>
