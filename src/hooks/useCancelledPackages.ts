@@ -19,6 +19,7 @@ export interface CancelledPackageRow {
   rejection_reason: string | null;
   quote_rejection: any;
   traveler_rejection: any;
+  quote: any;
   package_destination: string;
   purchase_origin: string;
   delivery_deadline: string;
@@ -47,7 +48,7 @@ export function useCancelledPackages() {
     try {
       const { data: packages, error: pkgErr } = await supabase
         .from("packages")
-        .select("id, status, item_description, products_data, user_id, estimated_price, created_at, updated_at, rejection_reason, quote_rejection, traveler_rejection, package_destination, purchase_origin, delivery_deadline, matched_trip_id, internal_notes")
+        .select("id, status, item_description, products_data, user_id, estimated_price, created_at, updated_at, rejection_reason, quote_rejection, traveler_rejection, package_destination, purchase_origin, delivery_deadline, matched_trip_id, internal_notes, quote")
         .in("status", CANCELLED_STATUSES)
         .order("updated_at", { ascending: false });
 
@@ -136,6 +137,7 @@ export function useCancelledPackages() {
           rejection_reason: p.rejection_reason,
           quote_rejection: p.quote_rejection,
           traveler_rejection: p.traveler_rejection,
+          quote: p.quote,
           package_destination: p.package_destination,
           purchase_origin: p.purchase_origin,
           delivery_deadline: p.delivery_deadline,
