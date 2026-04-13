@@ -7,9 +7,10 @@ import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Package, Calendar, MapPin, User, AlertCircle, Globe, StickyNote, MessageSquarePlus } from "lucide-react";
+import { Package, Calendar, MapPin, User, AlertCircle, Globe, StickyNote, MessageSquarePlus, Receipt } from "lucide-react";
 import PackageProductDisplay from "@/components/dashboard/PackageProductDisplay";
 import { CancelledPackageRow } from "@/hooks/useCancelledPackages";
+import { getQuoteValues } from "@/lib/quoteHelpers";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -281,6 +282,48 @@ export default function CancelledPackagesTable({ rows, loading, onUpdateNotes }:
                   </div>
                 </>
               )}
+
+              {/* Quote */}
+              {selectedRow.quote && (() => {
+                const qv = getQuoteValues(selectedRow.quote);
+                if (!qv.price && !qv.serviceFee && !qv.deliveryFee) return null;
+                return (
+                  <>
+                    <Separator />
+                    <div>
+                      <h4 className="text-sm font-medium mb-2 flex items-center gap-1">
+                        <Receipt className="h-4 w-4" />
+                        Cotización
+                      </h4>
+                      <div className="rounded-md border p-3 space-y-1 text-sm">
+                        {qv.price > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Propina viajero</span>
+                            <span>Q{qv.price.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {qv.serviceFee > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Service fee</span>
+                            <span>Q{qv.serviceFee.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {qv.deliveryFee > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Delivery fee</span>
+                            <span>Q{qv.deliveryFee.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <Separator />
+                        <div className="flex justify-between font-semibold">
+                          <span>Total</span>
+                          <span>Q{qv.totalPrice.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
 
               <Separator />
 
