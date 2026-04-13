@@ -586,7 +586,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // ============= STEP INDICATOR COMPONENT =============
   const StepIndicator = () => (
-    <div className="flex items-center justify-center mb-6 overflow-hidden">
+    <div className="flex items-center justify-center mb-2 overflow-hidden">
       <div className="flex items-center space-x-1 sm:space-x-2">
         {/* Step 1 - Tipo */}
         <button
