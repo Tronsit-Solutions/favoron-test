@@ -2597,7 +2597,7 @@ export type Database = {
         Args: {
           _additional_comments?: string
           _package_id: string
-          _rejection_reason?: string
+          _rejection_reason: string
         }
         Returns: undefined
       }
