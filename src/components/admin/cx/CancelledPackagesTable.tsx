@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Package, Calendar, MapPin, User, AlertCircle, Globe } from "lucide-react";
+import { Package, Calendar, MapPin, User, AlertCircle, Globe, MessageCircle } from "lucide-react";
 import PackageProductDisplay from "@/components/dashboard/PackageProductDisplay";
 import { CancelledPackageRow } from "@/hooks/useCancelledPackages";
 import { format } from "date-fns";
@@ -71,11 +71,11 @@ export default function CancelledPackagesTable({ rows, loading }: Props) {
           <TableHeader>
             <TableRow>
               <TableHead>Shopper</TableHead>
+              <TableHead>WhatsApp</TableHead>
               <TableHead>Producto</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="min-w-[200px]">Razón</TableHead>
               <TableHead>Viajero</TableHead>
-              
               <TableHead>Destino</TableHead>
               <TableHead>Creado</TableHead>
               <TableHead>Actualizado</TableHead>
@@ -91,12 +91,26 @@ export default function CancelledPackagesTable({ rows, loading }: Props) {
                   onClick={() => setSelectedRow(row)}
                 >
                   <TableCell>
-                    <div>
-                      <p className="font-medium text-sm">{row.user_name}</p>
-                      {row.user_phone && (
-                        <p className="text-xs text-muted-foreground">{row.user_phone}</p>
-                      )}
-                    </div>
+                    <p className="font-medium text-sm">{row.user_name}</p>
+                  </TableCell>
+                  <TableCell>
+                    {row.user_phone ? (() => {
+                      const code = (row.user_country_code || '+502').replace('+', '');
+                      const phone = row.user_phone.replace(/[\s\-\(\)]/g, '');
+                      const waNumber = phone.startsWith(code) ? phone : `${code}${phone}`;
+                      return (
+                        <a
+                          href={`https://wa.me/${waNumber}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-sm text-green-600 hover:text-green-700 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" />
+                          {row.user_country_code || '+502'} {phone}
+                        </a>
+                      );
+                    })() : <span className="text-muted-foreground text-sm">—</span>}
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate text-sm">
                     {getProductName(row)}
