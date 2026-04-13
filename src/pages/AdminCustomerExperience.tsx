@@ -175,7 +175,7 @@ function CancelledTab() {
         </Select>
       </div>
 
-      <CancelledPackagesTable rows={rows} loading={loading} />
+      <CancelledPackagesTable rows={rows} loading={loading} onUpdateNotes={updateNotes} />
     </div>
   );
 }
