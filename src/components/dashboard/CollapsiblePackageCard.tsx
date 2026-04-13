@@ -458,9 +458,9 @@ const CollapsiblePackageCard = ({
                 </div>
               )}
 
-              <div className="flex flex-row gap-2">
+              <div className="flex flex-row gap-2 w-full">
                 {/* Left column: main content */}
-                <div className="flex flex-col gap-2 flex-1 min-w-0 pr-8">
+                <div className="flex flex-col gap-2 flex-1 min-w-0 pr-2">
                   {/* Package name (like TripCard route title) */}
                   <CardTitle className="text-base font-semibold leading-tight break-words">
                     <span className="flex items-start gap-2">
