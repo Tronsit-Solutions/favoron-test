@@ -48,7 +48,7 @@ interface Props {
 
 function NotesCell({ row, onUpdateNotes }: { row: CancelledPackageRow; onUpdateNotes?: (id: string, notes: string) => Promise<void> }) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(row.internal_notes || "");
+  const [value, setValue] = useState(row.cx_notes || "");
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -66,16 +66,16 @@ function NotesCell({ row, onUpdateNotes }: { row: CancelledPackageRow; onUpdateN
   };
 
   return (
-    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (o) setValue(row.internal_notes || ""); }}>
+    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (o) setValue(row.cx_notes || ""); }}>
       <PopoverTrigger asChild>
         <button
           className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors max-w-[180px]"
           onClick={(e) => e.stopPropagation()}
         >
-          {row.internal_notes ? (
+          {row.cx_notes ? (
             <span className="flex items-center gap-1 truncate">
               <StickyNote className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-              <span className="truncate">{row.internal_notes}</span>
+              <span className="truncate">{row.cx_notes}</span>
             </span>
           ) : (
             <span className="flex items-center gap-1 text-muted-foreground/50">
@@ -87,7 +87,7 @@ function NotesCell({ row, onUpdateNotes }: { row: CancelledPackageRow; onUpdateN
       </PopoverTrigger>
       <PopoverContent className="w-72" onClick={(e) => e.stopPropagation()}>
         <div className="space-y-2">
-          <p className="text-sm font-medium">Notas internas</p>
+          <p className="text-sm font-medium">Notas CX</p>
           <Textarea
             value={value}
             onChange={(e) => setValue(e.target.value)}

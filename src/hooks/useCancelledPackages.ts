@@ -25,7 +25,8 @@ export interface CancelledPackageRow {
   delivery_deadline: string;
   traveler_name: string | null;
   computed_reason: string;
-  internal_notes: string | null;
+  cx_notes: string | null;
+  cx_call_id: string | null;
 }
 
 export interface CancelledStats {
@@ -48,7 +49,7 @@ export function useCancelledPackages() {
     try {
       const { data: packages, error: pkgErr } = await supabase
         .from("packages")
-        .select("id, status, item_description, products_data, user_id, estimated_price, created_at, updated_at, rejection_reason, quote_rejection, traveler_rejection, package_destination, purchase_origin, delivery_deadline, matched_trip_id, internal_notes, quote")
+        .select("id, status, item_description, products_data, user_id, estimated_price, created_at, updated_at, rejection_reason, quote_rejection, traveler_rejection, package_destination, purchase_origin, delivery_deadline, matched_trip_id, quote")
         .in("status", CANCELLED_STATUSES)
         .order("updated_at", { ascending: false });
 
@@ -106,6 +107,26 @@ export function useCancelledPackages() {
         }
       }
 
+      // Fetch CX notes from customer_experience_calls
+      const packageIds = packages.map(p => p.id);
+      const cxNotesMap: Record<string, { notes: string | null; id: string }> = {};
+      if (packageIds.length > 0) {
+        const BATCH_SIZE = 200;
+        for (let i = 0; i < packageIds.length; i += BATCH_SIZE) {
+          const batch = packageIds.slice(i, i + BATCH_SIZE);
+          const { data: cxCalls } = await supabase
+            .from("customer_experience_calls")
+            .select("id, package_id, notes")
+            .in("package_id", batch)
+            .eq("user_type", "cancelled");
+          if (cxCalls) {
+            cxCalls.forEach(c => {
+              cxNotesMap[c.package_id] = { notes: c.notes, id: c.id };
+            });
+          }
+        }
+      }
+
       // Build rows
       const result: CancelledPackageRow[] = packages.map(p => {
         const shopperProfile = profileMap[p.user_id] || { name: "Sin nombre", phone: null, country_code: null };
@@ -121,6 +142,8 @@ export function useCancelledPackages() {
         } else if (p.quote_rejection && typeof p.quote_rejection === "object" && (p.quote_rejection as any).reason) {
           reason = `Cotización: ${(p.quote_rejection as any).reason}`;
         }
+
+        const cxEntry = cxNotesMap[p.id];
 
         return {
           package_id: p.id,
@@ -143,7 +166,8 @@ export function useCancelledPackages() {
           delivery_deadline: p.delivery_deadline,
           traveler_name: travelerProfile?.name || null,
           computed_reason: reason,
-          internal_notes: p.internal_notes as string | null,
+          cx_notes: cxEntry?.notes || null,
+          cx_call_id: cxEntry?.id || null,
         };
       });
 
@@ -179,16 +203,43 @@ export function useCancelledPackages() {
     });
 
   const updateNotes = useCallback(async (packageId: string, notes: string) => {
-    const { error } = await supabase
-      .from("packages")
-      .update({ internal_notes: notes || null })
-      .eq("id", packageId);
-    if (error) {
-      toast.error("Error guardando nota");
-      throw error;
+    // Find existing cx_call_id for this package
+    const existing = rows.find(r => r.package_id === packageId);
+    const existingCallId = existing?.cx_call_id;
+
+    if (existingCallId) {
+      // Update existing record
+      const { error } = await supabase
+        .from("customer_experience_calls")
+        .update({ notes: notes || null, updated_at: new Date().toISOString() })
+        .eq("id", existingCallId);
+      if (error) {
+        toast.error("Error guardando nota");
+        throw error;
+      }
+    } else {
+      // Insert new record
+      const { data, error } = await supabase
+        .from("customer_experience_calls")
+        .insert({
+          package_id: packageId,
+          target_user_id: existing?.user_id || "",
+          user_type: "cancelled",
+          call_status: "completed",
+          notes: notes || null,
+        })
+        .select("id")
+        .single();
+      if (error) {
+        toast.error("Error guardando nota");
+        throw error;
+      }
+      // Update cx_call_id in local state
+      setRows(prev => prev.map(r => r.package_id === packageId ? { ...r, cx_notes: notes || null, cx_call_id: data.id } : r));
+      return;
     }
-    setRows(prev => prev.map(r => r.package_id === packageId ? { ...r, internal_notes: notes || null } : r));
-  }, []);
+    setRows(prev => prev.map(r => r.package_id === packageId ? { ...r, cx_notes: notes || null } : r));
+  }, [rows]);
 
   return { rows: filteredRows, allRows: rows, loading, stats, statusFilter, setStatusFilter, searchTerm, setSearchTerm, updateNotes };
 }
