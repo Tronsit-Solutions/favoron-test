@@ -93,24 +93,8 @@ export default function CancelledPackagesTable({ rows, loading }: Props) {
                   <TableCell>
                     <p className="font-medium text-sm">{row.user_name}</p>
                   </TableCell>
-                  <TableCell>
-                    {row.user_phone ? (() => {
-                      const code = (row.user_country_code || '+502').replace('+', '');
-                      const phone = row.user_phone.replace(/[\s\-\(\)]/g, '');
-                      const waNumber = phone.startsWith(code) ? phone : `${code}${phone}`;
-                      return (
-                        <a
-                          href={`https://wa.me/${waNumber}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-sm text-green-600 hover:text-green-700 hover:underline"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MessageCircle className="h-3.5 w-3.5" />
-                          {row.user_country_code || '+502'} {phone}
-                        </a>
-                      );
-                    })() : <span className="text-muted-foreground text-sm">—</span>}
+                  <TableCell className="text-sm">
+                    {row.user_phone ? `${row.user_country_code || '+502'} ${row.user_phone}` : <span className="text-muted-foreground">—</span>}
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate text-sm">
                     {getProductName(row)}
