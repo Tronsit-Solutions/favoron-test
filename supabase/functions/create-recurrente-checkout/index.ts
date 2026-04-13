@@ -96,10 +96,30 @@ serve(async (req) => {
     // 5. Service role client for package updates (bypasses RLS)
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Clear any previous checkout to avoid webhook conflicts
+    // Save previous checkout ID in payment_receipt for audit trail before clearing
+    const { data: currentPkg } = await serviceClient
+      .from('packages')
+      .select('recurrente_checkout_id, payment_receipt')
+      .eq('id', package_id)
+      .single();
+
+    const previousCheckoutIds: string[] = [];
+    if (currentPkg?.payment_receipt && typeof currentPkg.payment_receipt === 'object') {
+      const existing = (currentPkg.payment_receipt as Record<string, unknown>).previous_checkout_ids;
+      if (Array.isArray(existing)) previousCheckoutIds.push(...existing);
+    }
+    if (currentPkg?.recurrente_checkout_id) {
+      previousCheckoutIds.push(currentPkg.recurrente_checkout_id);
+    }
+
     const { error: clearError } = await serviceClient
       .from('packages')
-      .update({ recurrente_checkout_id: null })
+      .update({
+        recurrente_checkout_id: null,
+        payment_receipt: previousCheckoutIds.length > 0
+          ? { previous_checkout_ids: previousCheckoutIds }
+          : null
+      })
       .eq('id', package_id);
 
     if (clearError) {

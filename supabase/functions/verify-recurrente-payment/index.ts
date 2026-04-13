@@ -78,10 +78,21 @@ serve(async (req) => {
       );
     }
 
-    const checkoutId = pkg.recurrente_checkout_id;
+    let checkoutId = pkg.recurrente_checkout_id;
+    
+    // Fallback: try to recover checkout ID from payment_receipt history
+    if (!checkoutId && pkg.payment_receipt && typeof pkg.payment_receipt === 'object') {
+      const receipt = pkg.payment_receipt as Record<string, unknown>;
+      const previousIds = receipt.previous_checkout_ids;
+      if (Array.isArray(previousIds) && previousIds.length > 0) {
+        checkoutId = previousIds[previousIds.length - 1] as string;
+        console.log('Recovered checkout ID from payment_receipt history:', checkoutId);
+      }
+    }
+    
     if (!checkoutId) {
       return new Response(
-        JSON.stringify({ error: 'No checkout ID found for this package' }),
+        JSON.stringify({ error: 'No checkout ID found for this package (checked current and history)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

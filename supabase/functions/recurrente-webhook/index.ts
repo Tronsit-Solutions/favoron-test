@@ -216,14 +216,14 @@ serve(async (req) => {
       }
 
     } else if (eventType === 'payment.failed' || eventType === 'checkout.failed' || eventType === 'payment_intent.failed') {
-      // Payment failed - log but don't change status
+      // Payment failed - log but keep recurrente_checkout_id for fallback verification
       console.log('Payment failed for package:', packageData.id);
       
       const { error: updateError } = await supabase
         .from('packages')
         .update({
           payment_method: 'bank_transfer', // Reset to bank transfer
-          recurrente_checkout_id: null, // Clear the failed checkout
+          // NOTE: Do NOT clear recurrente_checkout_id — it's needed for fallback verification
           updated_at: new Date().toISOString()
         })
         .eq('id', packageData.id);
