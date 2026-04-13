@@ -12,6 +12,7 @@ export interface CancelledPackageRow {
   user_id: string;
   user_name: string;
   user_phone: string | null;
+  user_country_code: string | null;
   estimated_price: number | null;
   created_at: string;
   updated_at: string;
@@ -77,7 +78,7 @@ export function useCancelledPackages() {
       });
 
       // Fetch profiles
-      const profileMap: Record<string, { name: string; phone: string | null }> = {};
+      const profileMap: Record<string, { name: string; phone: string | null; country_code: string | null }> = {};
       if (allUserIds.size > 0) {
         const userIdArray = [...allUserIds];
         const BATCH_SIZE = 200;
@@ -85,7 +86,7 @@ export function useCancelledPackages() {
           const batch = userIdArray.slice(i, i + BATCH_SIZE);
           const { data: profiles, error } = await supabase
             .from("profiles")
-            .select("id, first_name, last_name, phone_number")
+            .select("id, first_name, last_name, phone_number, country_code")
             .in("id", batch);
           if (error) console.warn("Profile fetch error (cancelled pkgs):", error);
           if (profiles) {
@@ -93,6 +94,7 @@ export function useCancelledPackages() {
               profileMap[pr.id] = {
                 name: `${pr.first_name || ""} ${pr.last_name || ""}`.trim() || "Sin nombre",
                 phone: pr.phone_number,
+                country_code: pr.country_code,
               };
             });
           }
@@ -104,7 +106,7 @@ export function useCancelledPackages() {
 
       // Build rows
       const result: CancelledPackageRow[] = packages.map(p => {
-        const shopperProfile = profileMap[p.user_id] || { name: "Sin nombre", phone: null };
+        const shopperProfile = profileMap[p.user_id] || { name: "Sin nombre", phone: null, country_code: null };
         const travelerId = p.matched_trip_id ? travelerMap[p.matched_trip_id] : null;
         const travelerProfile = travelerId ? profileMap[travelerId] : null;
 
@@ -126,6 +128,7 @@ export function useCancelledPackages() {
           user_id: p.user_id,
           user_name: shopperProfile.name,
           user_phone: shopperProfile.phone,
+          user_country_code: shopperProfile.country_code,
           estimated_price: p.estimated_price,
           created_at: p.created_at,
           updated_at: p.updated_at,
