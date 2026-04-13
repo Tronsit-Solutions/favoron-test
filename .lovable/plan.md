@@ -1,79 +1,81 @@
 
 
-## Plan: Acelerar el proceso de matching
+## Plan: Revertir el flujo de match a `supabase.rpc()` directo
 
-### Problema real
+### Problema encontrado
 
-Cuando se ejecuta el RPC `assign_package_to_travelers`, el UPDATE a la tabla `packages` dispara **22 triggers**. Aunque varios tienen early returns para el status `matched`, hay 3 triggers que ejecutan trabajo pesado e innecesario durante el matching:
+La version desplegada (publicada) usa un flujo simple y directo:
 
-1. **`preserve_product_links_trigger`** (BEFORE, sin filtro de columna) -- Ejecuta `jsonb_agg` con subqueries sobre `products_data` en CADA update, incluso cuando `products_data` no cambió realmente
-2. **`update_trip_status_on_package_update`** (AFTER) -- Llama a `are_all_trip_packages_delivered()` que **NO EXISTE**, cae en bloque `EXCEPTION` que crea y destruye un savepoint (muy costoso)
-3. **`sync_legacy_product_fields`** y **`ensure_admin_tip_in_products`** -- Se activan porque el RPC siempre escribe `products_data` aunque no haya cambiado
-
-Además, el RPC actualiza `products_data = COALESCE(_products_data, products_data)` **siempre**, lo que dispara triggers de columna innecesariamente.
-
-### Solución (3 cambios)
-
-#### 1. Migración SQL: Optimizar el RPC para evitar escribir columnas innecesarias
-
-Modificar `assign_package_to_travelers` para que solo actualice `products_data` y `admin_assigned_tip` cuando realmente sean distintos del valor actual:
-
-```sql
-UPDATE packages SET
-  status = 'matched',
-  admin_assigned_tip = CASE 
-    WHEN _admin_tip IS DISTINCT FROM admin_assigned_tip THEN _admin_tip 
-    ELSE admin_assigned_tip END,
-  traveler_dismissal = NULL,
-  traveler_dismissed_at = NULL,
-  products_data = CASE 
-    WHEN _products_data IS NOT NULL AND _products_data IS DISTINCT FROM products_data 
-    THEN _products_data 
-    ELSE products_data END,
-  updated_at = now()
-WHERE id = _package_id;
+```text
+supabase.rpc('assign_package_to_travelers', params)  →  done
 ```
 
-Esto evita disparar los triggers de columna `products_data` y `admin_assigned_tip` cuando no hay cambios reales.
+La version actual (preview) agrega 3 pasos extra antes del RPC:
 
-#### 2. Migración SQL: Agregar early return a `preserve_product_item_links`
-
-```sql
--- Skip when products_data hasn't changed
-IF TG_OP = 'UPDATE' AND NEW.products_data IS NOT DISTINCT FROM OLD.products_data THEN
-  RETURN NEW;
-END IF;
+```text
+await supabase.auth.getSession()          ← round-trip de red (1-3s si hay token refresh)
+supabase.from('client_errors').insert()   ← escritura a DB
+fetch() + AbortController + retry loop   ← overhead adicional
 ```
 
-#### 3. Migración SQL: Reemplazar `update_trip_status_on_package_update` 
+El `getSession()` es el cuello de botella principal: puede disparar un refresh de token JWT que toma 1-3 segundos adicionales. Todo esto fue introducido entre commits `31787bf5` (simple) y `44b3cd24` (fetch con timeout).
 
-Eliminar la llamada a la función inexistente y el bloque EXCEPTION costoso:
+### Solucion
 
-```sql
-CREATE OR REPLACE FUNCTION update_trip_status_on_package_update()
-RETURNS trigger AS $$
-BEGIN
-  -- No-op: trip status is managed elsewhere
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+Revertir `handleMatchPackage` al flujo directo de `supabase.rpc()`, conservando solo las mejoras utiles:
+
+1. **Eliminar `await supabase.auth.getSession()`** -- `supabase.rpc()` ya maneja auth internamente
+2. **Eliminar el `fetch()` manual** con AbortController y retry loop -- era para manejar timeouts, pero con los triggers optimizados ya no es necesario
+3. **Conservar el logging a `client_errors`** pero hacerlo fire-and-forget (ya lo es) y moverlo despues del RPC como registro de exito/fallo
+4. **Mantener `RPC_TIMEOUT_MS`** como safety net pero usar el AbortSignal nativo de supabase-js si es necesario, o simplemente confiar en el timeout default de PostgREST
+
+### Cambio concreto
+
+En `src/hooks/useDashboardActions.tsx`, reemplazar lineas ~1301-1441 (todo el bloque de fetch/retry) con:
+
+```typescript
+const matchStartTime = performance.now();
+console.log(`[MATCH] START packageId=${packageId} trips=${tripIdsToAssign.join(',')} tip=${adminTip}`);
+
+const { data: rpcResult, error: rpcError } = await supabase.rpc('assign_package_to_travelers', {
+  _package_id: packageId,
+  _trip_ids: tripIdsToAssign,
+  _admin_tip: adminTip,
+  _products_data: updatedProductsData || null
+});
+
+const totalElapsed = Math.round(performance.now() - matchStartTime);
+console.log(`[MATCH] Elapsed: ${totalElapsed}ms, success=${!rpcError}`);
+
+if (rpcError) {
+  // Log error (fire-and-forget)
+  supabase.from('client_errors').insert({
+    message: `Match RPC failed: ${rpcError.message}`,
+    type: 'match_error', severity: 'error',
+    route: '/dashboard?tab=admin',
+    context: { packageId, tripIds: tripIdsToAssign, adminTip, totalElapsedMs: totalElapsed }
+  }).then(() => {}, () => {});
+
+  const errorMsg = rpcError.message?.includes('NO_NEW_TRIPS')
+    ? "Todos los viajeros seleccionados ya tienen asignaciones activas."
+    : rpcError.message?.includes('Failed to fetch') || rpcError.message?.includes('Load failed')
+      ? "Error de conexion. Verifica tu internet e intentalo de nuevo."
+      : `Error: ${rpcError.message || 'No se pudo realizar el match.'}`;
+  toast({ title: "Error al confirmar match", description: errorMsg, variant: "destructive", duration: 10000 });
+  throw rpcError;
+}
+
+console.log('[MATCH] RPC OK, result:', rpcResult);
 ```
 
-#### 4. Cliente: Aumentar timeout de 12s a 25s
+### Archivo a modificar
 
-En `useDashboardActions.tsx`, cambiar `RPC_TIMEOUT_MS` de 12000 a 25000 para evitar cancelaciones prematuras que causan reintentos y posible lock contention.
+- `src/hooks/useDashboardActions.tsx` -- lineas ~1301-1498: reemplazar bloque fetch/retry con `supabase.rpc()` directo
 
-### Impacto esperado
+### Impacto
 
-| Fuente | Antes | Después |
-|--------|-------|---------|
-| `preserve_product_links_trigger` jsonb_agg | ~100-500ms | 0ms (early return) |
-| `update_trip_status` exception handler | ~50-200ms | 0ms (no-op) |
-| `sync_legacy_fields` + `ensure_admin_tip` disparados sin cambio real | ~50-100ms | 0ms (no se disparan) |
-| Timeouts prematuros → reintentos + lock contention | Potencialmente minutos | Eliminado |
-
-### Archivos a modificar
-
-- **Nueva migración SQL** -- 3 funciones: `assign_package_to_travelers`, `preserve_product_item_links`, `update_trip_status_on_package_update`
-- **`src/hooks/useDashboardActions.tsx`** -- Línea 1307: `RPC_TIMEOUT_MS = 25000`
+- Elimina 1-3 segundos de latencia por `getSession()`
+- Elimina overhead de AbortController, retry loop, y parsing manual de JSON
+- Conserva observabilidad (logging de errores, timing en console)
+- Mismo comportamiento funcional que la version desplegada que el usuario confirma que es rapida
 
