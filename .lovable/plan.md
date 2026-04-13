@@ -1,81 +1,29 @@
 
 
-## Plan: Revertir el flujo de match a `supabase.rpc()` directo
+## Plan: Corregir alineacion inconsistente del preview card en movil
 
-### Problema encontrado
+### Problema
 
-La version desplegada (publicada) usa un flujo simple y directo:
+En el layout movil del `CollapsiblePackageCard`, la columna izquierda del contenido tiene `pr-8` (padding-right de 2rem) fijo en la linea 463. Este padding fue disenado para dejar espacio al menu de tres puntos (posicionado absolutamente con `right-2`).
 
-```text
-supabase.rpc('assign_package_to_travelers', params)  →  done
-```
+Sin embargo, cuando el boton de Chat esta presente (columna derecha del flex), el `pr-8` se suma al espacio que ya ocupa el boton de Chat, causando que el contenido se vea mas comprimido de lo necesario. Esto no deberia causar diferencia entre cards con el mismo estado... 
 
-La version actual (preview) agrega 3 pasos extra antes del RPC:
+Revisando mas a fondo: el `pr-8` reserva espacio para los tres puntos que estan en `absolute top-2 right-2` **relativo al CardHeader**. Cuando hay Chat button, los tres puntos se posicionan sobre el Chat button area, no sobre el contenido. Pero el `pr-8` sigue empujando el texto a la izquierda innecesariamente cuando ya hay un Chat button.
 
-```text
-await supabase.auth.getSession()          ← round-trip de red (1-3s si hay token refresh)
-supabase.from('client_errors').insert()   ← escritura a DB
-fetch() + AbortController + retry loop   ← overhead adicional
-```
-
-El `getSession()` es el cuello de botella principal: puede disparar un refresh de token JWT que toma 1-3 segundos adicionales. Todo esto fue introducido entre commits `31787bf5` (simple) y `44b3cd24` (fetch con timeout).
+La inconsistencia visual entre cards identicos (como "vinito" vs "Ron Botran") probablemente viene de que el Chat button tiene altura variable segun el contenido del left column (usa `items-end pb-1`), y la combinacion de `flex-1 min-w-0 pr-8` con el flex-shrink-0 del Chat puede producir anchos ligeramente diferentes segun como el browser resuelve el layout.
 
 ### Solucion
 
-Revertir `handleMatchPackage` al flujo directo de `supabase.rpc()`, conservando solo las mejoras utiles:
-
-1. **Eliminar `await supabase.auth.getSession()`** -- `supabase.rpc()` ya maneja auth internamente
-2. **Eliminar el `fetch()` manual** con AbortController y retry loop -- era para manejar timeouts, pero con los triggers optimizados ya no es necesario
-3. **Conservar el logging a `client_errors`** pero hacerlo fire-and-forget (ya lo es) y moverlo despues del RPC como registro de exito/fallo
-4. **Mantener `RPC_TIMEOUT_MS`** como safety net pero usar el AbortSignal nativo de supabase-js si es necesario, o simplemente confiar en el timeout default de PostgREST
+1. **Eliminar `pr-8` de la columna izquierda** (linea 463) y reemplazarlo con `pr-2` (padding minimo)
+2. **Hacer que el three-dots menu se posicione relativo al wrapper del card (`relative` en linea 379)** en vez de relativo al CardHeader, para que no dependa del ancho del contenido interno
+3. Asegurar que el flex container (linea 461) use `w-full` explicitamente para que todos los cards tengan el mismo ancho de contenido
 
 ### Cambio concreto
 
-En `src/hooks/useDashboardActions.tsx`, reemplazar lineas ~1301-1441 (todo el bloque de fetch/retry) con:
+**Archivo**: `src/components/dashboard/CollapsiblePackageCard.tsx`
 
-```typescript
-const matchStartTime = performance.now();
-console.log(`[MATCH] START packageId=${packageId} trips=${tripIdsToAssign.join(',')} tip=${adminTip}`);
+- **Linea 463**: Cambiar `pr-8` a `pr-2` — el three-dots menu ya esta absolutamente posicionado respecto al CardHeader, y el Chat button ya ocupa su propia columna flex
+- **Linea 461**: Agregar `w-full` al flex container para forzar ancho consistente: `flex flex-row gap-2 w-full`
 
-const { data: rpcResult, error: rpcError } = await supabase.rpc('assign_package_to_travelers', {
-  _package_id: packageId,
-  _trip_ids: tripIdsToAssign,
-  _admin_tip: adminTip,
-  _products_data: updatedProductsData || null
-});
-
-const totalElapsed = Math.round(performance.now() - matchStartTime);
-console.log(`[MATCH] Elapsed: ${totalElapsed}ms, success=${!rpcError}`);
-
-if (rpcError) {
-  // Log error (fire-and-forget)
-  supabase.from('client_errors').insert({
-    message: `Match RPC failed: ${rpcError.message}`,
-    type: 'match_error', severity: 'error',
-    route: '/dashboard?tab=admin',
-    context: { packageId, tripIds: tripIdsToAssign, adminTip, totalElapsedMs: totalElapsed }
-  }).then(() => {}, () => {});
-
-  const errorMsg = rpcError.message?.includes('NO_NEW_TRIPS')
-    ? "Todos los viajeros seleccionados ya tienen asignaciones activas."
-    : rpcError.message?.includes('Failed to fetch') || rpcError.message?.includes('Load failed')
-      ? "Error de conexion. Verifica tu internet e intentalo de nuevo."
-      : `Error: ${rpcError.message || 'No se pudo realizar el match.'}`;
-  toast({ title: "Error al confirmar match", description: errorMsg, variant: "destructive", duration: 10000 });
-  throw rpcError;
-}
-
-console.log('[MATCH] RPC OK, result:', rpcResult);
-```
-
-### Archivo a modificar
-
-- `src/hooks/useDashboardActions.tsx` -- lineas ~1301-1498: reemplazar bloque fetch/retry con `supabase.rpc()` directo
-
-### Impacto
-
-- Elimina 1-3 segundos de latencia por `getSession()`
-- Elimina overhead de AbortController, retry loop, y parsing manual de JSON
-- Conserva observabilidad (logging de errores, timing en console)
-- Mismo comportamiento funcional que la version desplegada que el usuario confirma que es rapida
+Esto asegura que todos los cards con el mismo layout (Chat + three-dots + action button) tengan exactamente el mismo ancho de contenido.
 
