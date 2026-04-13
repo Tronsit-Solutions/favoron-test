@@ -687,66 +687,73 @@ const AdminMatchDialog = ({
       );
       const filtered = (directResult.data || []).filter((pkg) => isTimerActive(pkg) || PAID_OR_POST_PAYMENT.includes(pkg.status));
 
-      // STEP 2: Collect ALL missing package IDs from both bidding and assignments, fetch in ONE query
+      // Process RPC assignments data — all joins done server-side
+      const rpcAssignments = assignmentsRpcResult.data || [];
+      
+      // Build bidding packages from RPC data (filter by bidding statuses)
       const directIds = new Set(filtered.map((p: any) => p.id));
-      const biddingPkgIds = (biddingAssignmentsResult.data || [])
-        .map(a => a.package_id)
-        .filter(id => !directIds.has(id));
-      const allAssignmentPkgIds = [...new Set((allAssignmentsResult.data || []).map(a => a.package_id))];
-
-      // Combine all IDs that need fetching, deduplicate, filter out ones already in memory
-      const allNeededIds = [...new Set([...biddingPkgIds, ...allAssignmentPkgIds])];
-      const allMissingIds = allNeededIds.filter(id => !packagesById[id]);
-
-      // Single fetch for all missing packages
-      let fetchedPkgsMap = new Map<string, any>();
-      if (allMissingIds.length > 0) {
-        const { data } = await supabase
-          .from('packages')
-          .select(`*, profiles!packages_user_id_fkey (id, first_name, last_name, email, username)`)
-          .in('id', allMissingIds);
-        (data || []).forEach(p => fetchedPkgsMap.set(p.id, p));
-      }
-
-      // Helper to resolve a package by ID from memory or fetched
-      const resolvePackage = (id: string) => packagesById[id] || fetchedPkgsMap.get(id);
-
-      // Build bidding packages
-      const assignmentStatusMap = new Map(
-        (biddingAssignmentsResult.data || []).map(a => [a.package_id, a.status])
+      const biddingFromRpc = rpcAssignments.filter(
+        (a: any) => ['bid_pending', 'bid_submitted'].includes(a.status) && !directIds.has(a.package_id)
       );
-      const biddingPkgs = biddingPkgIds
-        .map(id => resolvePackage(id))
-        .filter(Boolean)
-        .map(p => ({
-          ...p,
-          _isBidding: true,
-          _assignmentStatus: assignmentStatusMap.get(p.id) || 'bid_pending'
-        }));
+      // Deduplicate by package_id (keep first = most recent)
+      const seenBiddingPkgs = new Set<string>();
+      const biddingPkgs = biddingFromRpc
+        .filter((a: any) => {
+          if (seenBiddingPkgs.has(a.package_id)) return false;
+          seenBiddingPkgs.add(a.package_id);
+          return true;
+        })
+        .map((a: any) => {
+          // Reconstruct package shape from RPC fields
+          const pkg = packagesById[a.package_id] || {
+            id: a.package_id,
+            item_description: a.pkg_item_description,
+            estimated_price: a.pkg_estimated_price,
+            purchase_origin: a.pkg_purchase_origin,
+            package_destination: a.pkg_package_destination,
+            user_id: a.pkg_user_id,
+            profiles: a.shopper_first_name ? {
+              id: a.pkg_user_id,
+              first_name: a.shopper_first_name,
+              last_name: a.shopper_last_name,
+              email: a.shopper_email,
+              username: a.shopper_username
+            } : null
+          };
+          return {
+            ...pkg,
+            _isBidding: true,
+            _assignmentStatus: a.status || 'bid_pending'
+          };
+        });
 
       const finalPackages = [...filtered, ...biddingPkgs];
       setTravelerPackages(finalPackages);
       setLoadingTravelerPkgs(false);
 
-      // Build trip assignments — reuse resolved packages
-      const pkgLookup = new Map(
-        allAssignmentPkgIds.map(id => {
-          const p = resolvePackage(id);
-          if (!p) return [id, null] as const;
-          return [id, {
-            id: p.id,
-            item_description: p.item_description,
-            estimated_price: p.estimated_price,
-            purchase_origin: p.purchase_origin,
-            package_destination: p.package_destination,
-            user_id: p.user_id,
-            profiles: p.profiles || null
-          }] as const;
-        })
-      );
-      const finalAssignments = (allAssignmentsResult.data || []).map(a => ({
-        ...a,
-        packages: pkgLookup.get(a.package_id) || null
+      // Build trip assignments directly from RPC (no second fetch needed)
+      const finalAssignments = rpcAssignments.map((a: any) => ({
+        id: a.id,
+        package_id: a.package_id,
+        status: a.status,
+        admin_assigned_tip: a.admin_assigned_tip,
+        quote: a.quote,
+        created_at: a.created_at,
+        packages: a.pkg_item_description ? {
+          id: a.package_id,
+          item_description: a.pkg_item_description,
+          estimated_price: a.pkg_estimated_price,
+          purchase_origin: a.pkg_purchase_origin,
+          package_destination: a.pkg_package_destination,
+          user_id: a.pkg_user_id,
+          profiles: a.shopper_first_name ? {
+            id: a.pkg_user_id,
+            first_name: a.shopper_first_name,
+            last_name: a.shopper_last_name,
+            email: a.shopper_email,
+            username: a.shopper_username
+          } : null
+        } : null
       }));
 
       setTripAssignments(finalAssignments);
