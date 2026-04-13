@@ -1298,135 +1298,33 @@ export const useDashboardActions = (
       }
     }
 
-    // === RPC call with native fetch() + real AbortController timeout ===
+    // === Direct supabase.rpc() call — no getSession() overhead ===
     const matchStartTime = performance.now();
     console.log(`[MATCH] START packageId=${packageId} trips=${tripIdsToAssign.join(',')} tip=${adminTip}`);
 
-    const SUPABASE_URL = "https://dfhoduirmqbarjnspbdh.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmaG9kdWlybXFiYXJqbnNwYmRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNTE4NjYsImV4cCI6MjA2NzYyNzg2Nn0.w1PWz_sugNUIlOfVb1dqKFulcDVPiKb_0SdkhUho8wY";
-    const RPC_TIMEOUT_MS = 25000;
-    const MAX_RETRIES = 1;
-    let rpcResult: any = null;
-    let lastError: any = null;
-
-    // Get current session token for authenticated RPC call
-    let accessToken: string | null = null;
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      accessToken = sessionData?.session?.access_token || null;
-    } catch { /* use anon key only */ }
-
-    // Log match_attempt BEFORE the fetch so we can detect silent hangs
-    supabase.from('client_errors').insert({
-      message: `Match attempt: pkg=${packageId} trips=${tripIdsToAssign.join(',')}`,
-      type: 'match_attempt',
-      severity: 'info',
-      route: '/dashboard?tab=admin',
-      context: {
-        packageId,
-        tripIds: tripIdsToAssign,
-        adminTip,
-        timeoutMs: RPC_TIMEOUT_MS,
-        maxRetries: MAX_RETRIES,
-      },
-    }).then(() => {}, () => {});
-
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-      if (attempt > 0) {
-        console.warn(`[MATCH] Retry attempt ${attempt}/${MAX_RETRIES} after 1s`);
-        await new Promise(r => setTimeout(r, 1000));
-      }
-
-      const attemptStart = performance.now();
-      const controller = new AbortController();
-      const abortTimeout = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
-
-      try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/assign_package_to_travelers`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${accessToken || SUPABASE_ANON_KEY}`,
-            'X-Client-Info': 'favoron-web-app',
-          },
-          body: JSON.stringify({
-            _package_id: packageId,
-            _trip_ids: tripIdsToAssign,
-            _admin_tip: adminTip,
-            _products_data: updatedProductsData || null,
-          }),
-          signal: controller.signal,
-        });
-
-        clearTimeout(abortTimeout);
-        const attemptElapsed = Math.round(performance.now() - attemptStart);
-
-        if (!response.ok) {
-          const errorBody = await response.json().catch(() => ({}));
-          const msg = errorBody?.message || errorBody?.error || `HTTP ${response.status}`;
-          console.error(`[MATCH] Attempt ${attempt} HTTP error ${response.status} in ${attemptElapsed}ms:`, msg);
-          lastError = { message: msg, code: errorBody?.code || `HTTP_${response.status}`, details: errorBody?.details, hint: errorBody?.hint };
-
-          // Retry on 5xx server errors
-          if (response.status >= 500 && attempt < MAX_RETRIES) continue;
-          break;
-        }
-
-        const data = await response.json().catch(() => null);
-        console.log(`[MATCH] Attempt ${attempt} completed in ${attemptElapsed}ms, success`);
-        rpcResult = data;
-        lastError = null;
-        break;
-      } catch (fetchError: any) {
-        clearTimeout(abortTimeout);
-        const attemptElapsed = Math.round(performance.now() - attemptStart);
-        console.error(`[MATCH] Fetch exception on attempt ${attempt} (${attemptElapsed}ms):`, fetchError?.name, fetchError?.message);
-
-        if (fetchError?.name === 'AbortError') {
-          lastError = { message: `RPC timeout after ${RPC_TIMEOUT_MS / 1000}s (attempt ${attempt})`, code: 'TIMEOUT', details: 'AbortController fired', hint: 'PostgREST or network not responding in time' };
-        } else {
-          lastError = { message: fetchError?.message || 'Unknown fetch error', code: 'FETCH_ERROR', details: fetchError?.name };
-        }
-
-        if (attempt < MAX_RETRIES) continue;
-        break;
-      }
-    }
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('assign_package_to_travelers', {
+      _package_id: packageId,
+      _trip_ids: tripIdsToAssign,
+      _admin_tip: adminTip,
+      _products_data: updatedProductsData || null,
+    });
 
     const totalElapsed = Math.round(performance.now() - matchStartTime);
-    console.log(`[MATCH] Total elapsed: ${totalElapsed}ms, success=${!lastError}`);
+    console.log(`[MATCH] Elapsed: ${totalElapsed}ms, success=${!rpcError}`);
 
-    if (lastError) {
-      console.error('[MATCH] RPC FAILED — full error:', {
-        message: lastError.message,
-        code: lastError.code,
-        details: lastError.details,
-        hint: lastError.hint,
-        packageId,
-        tripIds: tripIdsToAssign,
-        adminTip,
-        totalElapsedMs: totalElapsed,
-      });
+    if (rpcError) {
+      console.error('[MATCH] RPC FAILED:', { message: rpcError.message, code: rpcError.code, details: rpcError.details, hint: rpcError.hint, packageId, tripIds: tripIdsToAssign, adminTip, totalElapsedMs: totalElapsed });
 
-      // Log to client_errors for permanent visibility
+      // Log error (fire-and-forget)
       supabase.from('client_errors').insert({
-        message: `Match RPC failed: ${lastError.message || 'unknown'}`,
+        message: `Match RPC failed: ${rpcError.message || 'unknown'}`,
         type: 'match_error',
         severity: 'error',
         route: '/dashboard?tab=admin',
-        context: {
-          packageId,
-          tripIds: tripIdsToAssign,
-          adminTip,
-          errorCode: lastError.code,
-          errorDetails: lastError.details,
-          errorHint: lastError.hint,
-          totalElapsedMs: totalElapsed,
-        },
+        context: { packageId, tripIds: tripIdsToAssign, adminTip, errorCode: rpcError.code, errorDetails: rpcError.details, totalElapsedMs: totalElapsed },
       }).then(() => {}, () => {});
 
-      const msg = lastError.message || '';
+      const msg = rpcError.message || '';
       const errorMsg = msg.includes('NO_NEW_TRIPS')
         ? "Todos los viajeros seleccionados ya tienen asignaciones activas."
         : msg.includes('Failed to fetch') || msg.includes('Load failed')
@@ -1438,7 +1336,7 @@ export const useDashboardActions = (
         variant: "destructive",
         duration: 10000,
       });
-      throw lastError;
+      throw rpcError;
     }
 
     console.log('[MATCH] RPC OK, result:', rpcResult);
