@@ -169,7 +169,12 @@ export function useCancelledPackages() {
 
   const filteredRows = rows
     .filter(r => statusFilter === "all" || r.status === statusFilter)
-    .filter(r => !searchTerm || r.user_name.toLowerCase().includes(searchTerm.toLowerCase()));
+    .filter(r => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      const phoneStr = `${r.user_country_code || ''} ${r.user_phone || ''}`.toLowerCase();
+      return r.user_name.toLowerCase().includes(term) || phoneStr.includes(term);
+    });
 
   const updateNotes = useCallback(async (packageId: string, notes: string) => {
     const { error } = await supabase
