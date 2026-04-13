@@ -45,7 +45,8 @@ const TripForm = ({
   isOpen,
   onClose,
   onSubmit
-const isMobile = useIsMobile();
+}: TripFormProps) => {
+  const isMobile = useIsMobile();
   const { openModal, closeModal } = useModalState();
   const { profile, updateProfile } = useAuth();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
