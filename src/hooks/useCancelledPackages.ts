@@ -24,6 +24,7 @@ export interface CancelledPackageRow {
   delivery_deadline: string;
   traveler_name: string | null;
   computed_reason: string;
+  internal_notes: string | null;
 }
 
 export interface CancelledStats {
@@ -46,7 +47,7 @@ export function useCancelledPackages() {
     try {
       const { data: packages, error: pkgErr } = await supabase
         .from("packages")
-        .select("id, status, item_description, products_data, user_id, estimated_price, created_at, updated_at, rejection_reason, quote_rejection, traveler_rejection, package_destination, purchase_origin, delivery_deadline, matched_trip_id")
+        .select("id, status, item_description, products_data, user_id, estimated_price, created_at, updated_at, rejection_reason, quote_rejection, traveler_rejection, package_destination, purchase_origin, delivery_deadline, matched_trip_id, internal_notes")
         .in("status", CANCELLED_STATUSES)
         .order("updated_at", { ascending: false });
 
@@ -140,6 +141,7 @@ export function useCancelledPackages() {
           delivery_deadline: p.delivery_deadline,
           traveler_name: travelerProfile?.name || null,
           computed_reason: reason,
+          internal_notes: p.internal_notes as string | null,
         };
       });
 
