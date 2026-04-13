@@ -113,11 +113,11 @@ export function useCancelledPackages() {
         // Compute reason
         let reason = "Sin razón registrada";
         if (p.rejection_reason) {
-          reason = p.rejection_reason;
+          reason = `Shopper: ${p.rejection_reason}`;
+        } else if (p.traveler_rejection && typeof p.traveler_rejection === "object" && ((p.traveler_rejection as any).rejection_reason || (p.traveler_rejection as any).reason)) {
+          reason = `Viajero: ${(p.traveler_rejection as any).rejection_reason || (p.traveler_rejection as any).reason}`;
         } else if (p.quote_rejection && typeof p.quote_rejection === "object" && (p.quote_rejection as any).reason) {
-          reason = (p.quote_rejection as any).reason;
-        } else if (p.traveler_rejection && typeof p.traveler_rejection === "object" && (p.traveler_rejection as any).reason) {
-          reason = (p.traveler_rejection as any).reason;
+          reason = `Cotización: ${(p.quote_rejection as any).reason}`;
         }
 
         return {
