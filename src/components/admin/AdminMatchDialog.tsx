@@ -643,7 +643,7 @@ const AdminMatchDialog = ({
     const dataPromise = (async () => {
       // STEP 1: All independent queries in parallel (no waterfall)
       // Referral now includes a join to profiles to avoid a sequential round
-      const [referralResult, directResult, biddingAssignmentsResult, allAssignmentsResult] = await Promise.all([
+      const [referralResult, directResult, assignmentsRpcResult] = await Promise.all([
         // Referral + referrer profile in one query
         supabase
           .from('referrals')
