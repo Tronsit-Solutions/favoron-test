@@ -713,7 +713,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         {userRole?.role === 'admin' && (
           <div className="p-3 rounded-lg border-2 border-amber-300 bg-amber-50/50">
             <Label htmlFor="shopperNameOverride" className="text-sm font-semibold text-amber-800">
-              📋 Nombre del Shopper (pedido a nombre de)
+              📋 Nombre del Shopper
             </Label>
             <Input
               id="shopperNameOverride"
@@ -722,9 +722,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               placeholder="Ej: Juan Pérez"
               className="mt-1 border-amber-300 focus:border-amber-500"
             />
-            <p className="text-xs text-amber-600 mt-1">
-              Este nombre aparecerá en la etiqueta del paquete en lugar del tuyo.
-            </p>
           </div>
         )}
 
@@ -741,29 +738,29 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             type="button"
             onClick={() => handleTypeSelect('online')}
             className={cn(
-              "p-4 rounded-xl border-2 text-left transition-all sm:hover:shadow-md group touch-manipulation",
+              "p-3 rounded-xl border-2 text-left transition-all sm:hover:shadow-md group touch-manipulation",
               formRequestType === 'online' 
                 ? 'border-primary bg-primary/5 shadow-md' 
                 : 'border-border sm:hover:border-primary/50'
             )}
           >
-            <div className="flex flex-col items-center text-center space-y-2">
+            <div className="flex flex-row items-center gap-3 space-y-0">
               <div className={cn(
-                "w-12 h-12 rounded-full flex items-center justify-center transition-colors",
+                "w-10 h-10 rounded-full flex items-center justify-center transition-colors flex-shrink-0",
                 formRequestType === 'online' 
                   ? 'bg-primary text-primary-foreground' 
                   : 'bg-muted group-hover:bg-primary/20'
               )}>
-                <ShoppingCart className="h-6 w-6" />
+                <ShoppingCart className="h-5 w-5" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="font-semibold text-base">Compra en Línea</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Compraré en línea y enviaré el paquete al viajero
                 </p>
               </div>
               {formRequestType === 'online' && (
-                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                   <Check className="h-3 w-3 text-primary-foreground" />
                 </div>
               )}
@@ -775,29 +772,29 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             type="button"
             onClick={() => handleTypeSelect('personal')}
             className={cn(
-              "p-4 rounded-xl border-2 text-left transition-all sm:hover:shadow-md group touch-manipulation",
+              "p-3 rounded-xl border-2 text-left transition-all sm:hover:shadow-md group touch-manipulation",
               formRequestType === 'personal' 
                 ? 'border-primary bg-primary/5 shadow-md' 
                 : 'border-border sm:hover:border-primary/50'
             )}
           >
-            <div className="flex flex-col items-center text-center space-y-2">
+            <div className="flex flex-row items-center gap-3 space-y-0">
               <div className={cn(
-                "w-12 h-12 rounded-full flex items-center justify-center transition-colors",
+                "w-10 h-10 rounded-full flex items-center justify-center transition-colors flex-shrink-0",
                 formRequestType === 'personal' 
                   ? 'bg-primary text-primary-foreground' 
                   : 'bg-muted group-hover:bg-primary/20'
               )}>
-                <Package className="h-6 w-6" />
+                <Package className="h-5 w-5" />
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="font-semibold text-base">Ya Tengo el Paquete</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Ya tengo el artículo y necesito que un viajero lo lleve
                 </p>
               </div>
               {formRequestType === 'personal' && (
-                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                   <Check className="h-3 w-3 text-primary-foreground" />
                 </div>
               )}
