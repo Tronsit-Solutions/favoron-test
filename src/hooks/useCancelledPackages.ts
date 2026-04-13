@@ -49,7 +49,7 @@ export function useCancelledPackages() {
     try {
       const { data: packages, error: pkgErr } = await supabase
         .from("packages")
-        .select("id, status, item_description, products_data, user_id, estimated_price, created_at, updated_at, rejection_reason, quote_rejection, traveler_rejection, package_destination, purchase_origin, delivery_deadline, matched_trip_id, internal_notes, quote")
+        .select("id, status, item_description, products_data, user_id, estimated_price, created_at, updated_at, rejection_reason, quote_rejection, traveler_rejection, package_destination, purchase_origin, delivery_deadline, matched_trip_id, quote")
         .in("status", CANCELLED_STATUSES)
         .order("updated_at", { ascending: false });
 
