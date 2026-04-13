@@ -1,65 +1,89 @@
 
 
-## Plan: Optimizar carga de Asignaciones del Viaje
+## Plan: Optimizar velocidad de asignacion de paquetes
 
-### Problema
-Al hacer click en un viajero en el AdminMatchDialog, se disparan 4 queries paralelas + 1 query secuencial para paquetes faltantes. La query de `allAssignmentsResult` (linea 671-675) trae TODAS las asignaciones del viaje sin filtro de estado ni limite, y luego resuelve cada paquete individualmente. Esto causa latencia notable, especialmente para viajes con historial largo de asignaciones.
+### Problema raiz
 
-### Solucion: RPC server-side con join
+El RPC `assign_package_to_travelers` ejecuta un `UPDATE packages SET status = 'matched'...` que dispara **14 triggers UPDATE** en la tabla `packages`. Aunque muchos tienen early returns, varios ejecutan queries innecesarias:
 
-Crear una funcion RPC en Supabase que haga el join de `package_assignments` con `packages` y `profiles` en una sola query server-side, eliminando la ronda extra de fetch de paquetes faltantes.
+- `apply_quote_pricing`: lee `favoron_company_information` + `profiles` en cada UPDATE, aunque el quote no cambie
+- `sync_legacy_product_fields`: recalcula `estimated_price`, `item_description` procesando todo el array JSONB de `products_data`, aunque no haya cambiado
+- `ensure_admin_tip_in_products`: procesa `products_data` aunque no haya cambiado
+- `auto_approve_prime_payments` / `auto_approve_prime_payments_after`: leen `profiles` y procesan `payment_receipt` aunque no aplique
 
-### Cambios
+### Solucion: Agregar condiciones WHEN a los triggers
 
-**1. Nueva migracion SQL** — crear RPC `get_trip_assignments_with_packages`
+PostgreSQL soporta `CREATE TRIGGER ... WHEN (condition)` que evalua la condicion ANTES de llamar a la funcion, evitando la sobrecarga completa de invocar el trigger.
 
+### Cambios (una sola migracion SQL)
+
+**1. `apply_quote_pricing`** — solo disparar cuando quote o delivery_method cambian:
 ```sql
-CREATE OR REPLACE FUNCTION get_trip_assignments_with_packages(p_trip_id UUID)
-RETURNS TABLE (
-  id UUID,
-  package_id UUID,
-  status TEXT,
-  admin_assigned_tip NUMERIC,
-  quote JSONB,
-  created_at TIMESTAMPTZ,
-  pkg_item_description TEXT,
-  pkg_estimated_price NUMERIC,
-  pkg_purchase_origin TEXT,
-  pkg_package_destination TEXT,
-  pkg_user_id UUID,
-  shopper_first_name TEXT,
-  shopper_last_name TEXT,
-  shopper_email TEXT,
-  shopper_username TEXT
-)
-LANGUAGE sql STABLE SECURITY DEFINER
-AS $$
-  SELECT
-    pa.id, pa.package_id, pa.status,
-    pa.admin_assigned_tip, pa.quote, pa.created_at,
-    p.item_description, p.estimated_price,
-    p.purchase_origin, p.package_destination, p.user_id,
-    pr.first_name, pr.last_name, pr.email, pr.username
-  FROM package_assignments pa
-  LEFT JOIN packages p ON p.id = pa.package_id
-  LEFT JOIN profiles pr ON pr.id = p.user_id
-  WHERE pa.trip_id = p_trip_id
-  ORDER BY pa.created_at DESC;
-$$;
+DROP TRIGGER IF EXISTS packages_apply_quote_pricing ON packages;
+CREATE TRIGGER packages_apply_quote_pricing
+  BEFORE INSERT OR UPDATE OF quote, delivery_method, confirmed_delivery_address, user_id
+  ON packages FOR EACH ROW EXECUTE FUNCTION apply_quote_pricing();
 ```
 
-**2. Modificar `AdminMatchDialog.tsx`** — reemplazar la query `allAssignmentsResult` + fetch de paquetes faltantes
+**2. `sync_legacy_product_fields`** — solo cuando products_data cambia:
+```sql
+DROP TRIGGER IF EXISTS trg_sync_legacy_fields_from_products_data ON packages;
+CREATE TRIGGER trg_sync_legacy_fields_from_products_data
+  BEFORE INSERT OR UPDATE OF products_data
+  ON packages FOR EACH ROW EXECUTE FUNCTION sync_legacy_product_fields();
+```
 
-- Reemplazar la query de linea 671-675 por `supabase.rpc('get_trip_assignments_with_packages', { p_trip_id: trip.id })`
-- Eliminar la logica de `allAssignmentPkgIds`, `allMissingIds`, y el fetch secundario de paquetes (lineas 700-719) para las asignaciones — ya viene todo del RPC
-- Mapear el resultado del RPC directamente al formato esperado por `tripAssignments`
+**3. `ensure_admin_tip_in_products`** — solo cuando admin_assigned_tip o products_data cambian:
+```sql
+DROP TRIGGER IF EXISTS trg_ensure_admin_tip_in_products ON packages;
+CREATE TRIGGER trg_ensure_admin_tip_in_products
+  BEFORE INSERT OR UPDATE OF admin_assigned_tip, products_data
+  ON packages FOR EACH ROW EXECUTE FUNCTION ensure_admin_tip_in_products();
+```
 
-Esto reduce de 2 roundtrips (assignments + missing packages) a 1 sola llamada server-side con joins.
+**4. `preserve_product_item_links`** — solo cuando products_data o item_link cambian:
+```sql
+DROP TRIGGER IF EXISTS preserve_product_links_trigger ON packages;
+CREATE TRIGGER preserve_product_links_trigger
+  BEFORE INSERT OR UPDATE OF products_data, item_link
+  ON packages FOR EACH ROW EXECUTE FUNCTION preserve_product_item_links();
+```
 
-**3. Tambien usado para `biddingAssignments`** — la query de bidding (linea 665-669) se puede eliminar porque el RPC ya trae todas las asignaciones con su status, y se puede filtrar client-side.
+**5. `auto_approve_prime_payments`** — solo cuando payment_receipt cambia:
+```sql
+DROP TRIGGER IF EXISTS zzzz_auto_approve_prime_payments_trigger ON packages;
+CREATE TRIGGER zzzz_auto_approve_prime_payments_trigger
+  BEFORE UPDATE OF payment_receipt
+  ON packages FOR EACH ROW EXECUTE FUNCTION auto_approve_prime_payments();
+```
+
+**6. `auto_approve_prime_payments_after`** — solo cuando payment_receipt cambia:
+```sql
+DROP TRIGGER IF EXISTS zzzz_auto_approve_prime_payments_after_trigger ON packages;
+CREATE TRIGGER zzzz_auto_approve_prime_payments_after_trigger
+  AFTER UPDATE OF payment_receipt
+  ON packages FOR EACH ROW EXECUTE FUNCTION auto_approve_prime_payments_after();
+```
+
+**7. `notify_admins_payment_receipt`** — solo cuando payment_receipt cambia:
+```sql
+DROP TRIGGER IF EXISTS trigger_notify_admins_payment_receipt ON packages;
+CREATE TRIGGER trigger_notify_admins_payment_receipt
+  AFTER UPDATE OF payment_receipt
+  ON packages FOR EACH ROW EXECUTE FUNCTION notify_admins_payment_receipt();
+```
+
+**8. `auto_transition_to_in_transit`** — solo cuando purchase_confirmation cambia:
+```sql
+DROP TRIGGER IF EXISTS packages_auto_in_transit ON packages;
+CREATE TRIGGER packages_auto_in_transit
+  BEFORE UPDATE OF purchase_confirmation
+  ON packages FOR EACH ROW EXECUTE FUNCTION auto_transition_to_in_transit();
+```
 
 ### Resultado
-- De 5 queries (4 paralelas + 1 secuencial) a 3 queries (referral, direct packages, RPC assignments) todas en paralelo
-- Eliminacion completa del segundo roundtrip de fetch de paquetes
-- El join se ejecuta en el servidor, mucho mas rapido que N fetches desde el cliente
+- De 14 triggers ejecutandose en cada UPDATE, a solo ~5-6 que realmente aplican para el cambio a 'matched'
+- Los triggers de pagos, quote pricing, y sync de productos se saltan completamente durante la asignacion
+- Sin cambios en el frontend — solo optimizacion server-side
+- Cero riesgo funcional: los triggers siguen disparandose cuando sus columnas relevantes cambian
 
