@@ -2459,6 +2459,26 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_trip_assignments_with_packages: {
+        Args: { p_trip_id: string }
+        Returns: {
+          admin_assigned_tip: number
+          created_at: string
+          id: string
+          package_id: string
+          pkg_estimated_price: number
+          pkg_item_description: string
+          pkg_package_destination: string
+          pkg_purchase_origin: string
+          pkg_user_id: string
+          quote: Json
+          shopper_email: string
+          shopper_first_name: string
+          shopper_last_name: string
+          shopper_username: string
+          status: string
+        }[]
+      }
       get_trip_with_traveler_info: {
         Args: { trip_id: string }
         Returns: {
