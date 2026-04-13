@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useTabVisibilityProtection } from "@/hooks/useTabVisibilityProtection";
@@ -36,6 +38,7 @@ interface PackageRequestFormProps {
 }
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
+  const isMobile = useIsMobile();
   const { openModal, closeModal } = useModalState();
   const { profile, updateProfile, userRole } = useAuth();
   const { getDeliveryPointByCity } = useDeliveryPoints();
@@ -1619,40 +1622,84 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     );
   };
 
-  const renderPackageForm = () => (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-xl md:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden px-6 md:px-8">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center space-x-2">
-            <Package className="h-5 w-5 text-primary" />
-            <span>{editMode ? `Editar Solicitud ${initialData?.id ? `#${initialData.id}` : ''}` : 'Nueva Solicitud de Paquete'}</span>
-          </DialogTitle>
-          <DialogDescription className="text-left">
-            {editMode 
-              ? 'Modifica la información de tu solicitud. Puedes agregar más productos.'
-              : 'Completa la información del producto que necesitas. Nuestro equipo revisará tu solicitud.'
-            }
-          </DialogDescription>
-        </DialogHeader>
+  const formInnerContent = (
+    <>
+      {/* Step Indicator */}
+      {currentStep >= 1 && <div className="flex-shrink-0"><StepIndicator /></div>}
 
-        {/* Step Indicator - only show for actual form steps (1-4) */}
-        {currentStep >= 1 && <div className="flex-shrink-0"><StepIndicator /></div>}
-
-        {/* Scrollable content area */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 min-h-0">
-          {currentStep === 1 && renderStep1()}
-          {currentStep === 2 && renderStep2()}
-          {currentStep === 3 && renderStep3()}
-          {currentStep === 4 && renderStep4()}
-        </div>
-        
-        {/* Sticky navigation buttons - always visible at bottom */}
-        <div className="flex-shrink-0 pt-4 border-t border-border bg-background">
-          {renderNavigationButtons()}
-        </div>
-      </DialogContent>
-    </Dialog>
+      {/* Scrollable content area */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 min-h-0 px-6">
+        {currentStep === 1 && renderStep1()}
+        {currentStep === 2 && renderStep2()}
+        {currentStep === 3 && renderStep3()}
+        {currentStep === 4 && renderStep4()}
+      </div>
+      
+      {/* Sticky navigation buttons */}
+      <div className="flex-shrink-0 pt-4 border-t border-border bg-background px-6 pb-6">
+        {renderNavigationButtons()}
+      </div>
+    </>
   );
+
+  const renderPackageForm = () => {
+    if (isMobile) {
+      return (
+        <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+          <SheetContent side="bottom" className="h-[100dvh] max-h-[100dvh] p-0 flex flex-col rounded-t-2xl">
+            <SheetHeader className="px-6 pt-6 pb-2 flex-shrink-0">
+              <SheetTitle className="flex items-center space-x-2">
+                <Package className="h-5 w-5 text-primary" />
+                <span>{editMode ? `Editar Solicitud` : 'Nueva Solicitud de Paquete'}</span>
+              </SheetTitle>
+              <SheetDescription className="text-left">
+                {editMode 
+                  ? 'Modifica la información de tu solicitud.'
+                  : 'Completa la información del producto que necesitas.'
+                }
+              </SheetDescription>
+            </SheetHeader>
+            {formInnerContent}
+          </SheetContent>
+        </Sheet>
+      );
+    }
+
+    return (
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+        <DialogContent className="sm:max-w-xl md:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden px-6 md:px-8">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="flex items-center space-x-2">
+              <Package className="h-5 w-5 text-primary" />
+              <span>{editMode ? `Editar Solicitud ${initialData?.id ? `#${initialData.id}` : ''}` : 'Nueva Solicitud de Paquete'}</span>
+            </DialogTitle>
+            <DialogDescription className="text-left">
+              {editMode 
+                ? 'Modifica la información de tu solicitud. Puedes agregar más productos.'
+                : 'Completa la información del producto que necesitas. Nuestro equipo revisará tu solicitud.'
+              }
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Step Indicator */}
+          {currentStep >= 1 && <div className="flex-shrink-0"><StepIndicator /></div>}
+
+          {/* Scrollable content area */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 min-h-0">
+            {currentStep === 1 && renderStep1()}
+            {currentStep === 2 && renderStep2()}
+            {currentStep === 3 && renderStep3()}
+            {currentStep === 4 && renderStep4()}
+          </div>
+          
+          {/* Sticky navigation buttons */}
+          <div className="flex-shrink-0 pt-4 border-t border-border bg-background">
+            {renderNavigationButtons()}
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   return (
     <>

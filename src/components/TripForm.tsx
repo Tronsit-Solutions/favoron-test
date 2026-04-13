@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useTabVisibilityProtection } from "@/hooks/useTabVisibilityProtection";
@@ -44,6 +46,7 @@ const TripForm = ({
   onClose,
   onSubmit
 }: TripFormProps) => {
+  const isMobile = useIsMobile();
   const { openModal, closeModal } = useModalState();
   const { profile, updateProfile } = useAuth();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
@@ -1523,32 +1526,56 @@ const TripForm = ({
     );
   };
   
-  const renderTripForm = () => (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto px-6 md:px-8">
-        <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <Plane className="h-5 w-5 text-traveler" />
-            <span>Registrar Nuevo Viaje</span>
-          </DialogTitle>
-          <DialogDescription>
-            Llévate paquetes en tu próximo viaje y ayuda a otros mientras ganas dinero extra.
-          </DialogDescription>
-        </DialogHeader>
-
+  const renderTripForm = () => {
+    const formContent = (
+      <>
         <StepIndicator />
-
-        <form onSubmit={handleSubmit} className="mobile-safe-form">
+        <form onSubmit={handleSubmit} className="mobile-safe-form flex-1 overflow-y-auto overflow-x-hidden px-6">
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
           {currentStep === 4 && renderStep4()}
         </form>
-        
         <TermsAndConditionsModal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} />
-      </DialogContent>
-    </Dialog>
-  );
+      </>
+    );
+
+    if (isMobile) {
+      return (
+        <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+          <SheetContent side="bottom" className="h-[100dvh] max-h-[100dvh] p-0 flex flex-col rounded-t-2xl">
+            <SheetHeader className="px-6 pt-6 pb-2 flex-shrink-0">
+              <SheetTitle className="flex items-center space-x-2">
+                <Plane className="h-5 w-5 text-traveler" />
+                <span>Registrar Nuevo Viaje</span>
+              </SheetTitle>
+              <SheetDescription>
+                Llévate paquetes en tu próximo viaje y gana dinero extra.
+              </SheetDescription>
+            </SheetHeader>
+            {formContent}
+          </SheetContent>
+        </Sheet>
+      );
+    }
+
+    return (
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+        <DialogContent className="sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto px-6 md:px-8">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Plane className="h-5 w-5 text-traveler" />
+              <span>Registrar Nuevo Viaje</span>
+            </DialogTitle>
+            <DialogDescription>
+              Llévate paquetes en tu próximo viaje y ayuda a otros mientras ganas dinero extra.
+            </DialogDescription>
+          </DialogHeader>
+          {formContent}
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   return (
     <>
