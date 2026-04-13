@@ -661,18 +661,8 @@ const AdminMatchDialog = ({
           `)
           .eq('matched_trip_id', trip.id)
           .in('status', [...TIMER_STATUSES, ...PAID_OR_POST_PAYMENT]),
-        // Bidding assignments (for packages tab)
-        supabase
-          .from('package_assignments')
-          .select('package_id, status')
-          .eq('trip_id', trip.id)
-          .in('status', ['bid_pending', 'bid_submitted']),
-        // All assignments flat (for assignments tab) — NO nested join
-        supabase
-          .from('package_assignments')
-          .select('id, package_id, status, admin_assigned_tip, quote, created_at')
-          .eq('trip_id', trip.id)
-          .order('created_at', { ascending: false })
+        // All assignments with packages+profiles joined server-side (single RPC)
+        supabase.rpc('get_trip_assignments_with_packages', { p_trip_id: trip.id })
       ]);
 
       // Process referral — no extra query needed, profile came from join
