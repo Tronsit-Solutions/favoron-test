@@ -24,7 +24,7 @@ const QuickActions = ({ onShowPackageForm, onShowTripForm }: QuickActionsProps) 
           </CardDescription>
         </CardHeader>
         <CardContent className="p-3 sm:p-6 pt-0">
-          <Button variant="shopper" className="w-full text-xs sm:text-sm" size="sm">
+          <Button variant="shopper" className="w-full text-xs sm:text-sm pointer-events-none" size="sm" tabIndex={-1}>
             <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Nueva Solicitud</span>
             <span className="sm:hidden">Nuevo Pedido</span>
@@ -45,7 +45,7 @@ const QuickActions = ({ onShowPackageForm, onShowTripForm }: QuickActionsProps) 
           </CardDescription>
         </CardHeader>
         <CardContent className="p-3 sm:p-6 pt-0">
-          <Button variant="traveler" className="w-full text-xs sm:text-sm" size="sm">
+          <Button variant="traveler" className="w-full text-xs sm:text-sm pointer-events-none" size="sm" tabIndex={-1}>
             <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             Nuevo Viaje
           </Button>
