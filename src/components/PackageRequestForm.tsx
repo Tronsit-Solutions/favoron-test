@@ -1261,13 +1261,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           </Label>
           <div className="space-y-3">
             {/* Opción 1: Punto de devolución */}
-            <div 
+            <button type="button"
               onClick={() => handleInputChange('deliveryMethod', 'return_dropoff')}
               className={cn(
-                "border-2 rounded-lg p-4 cursor-pointer transition-all",
+                "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
                 formData.deliveryMethod === 'return_dropoff' 
                   ? 'border-primary bg-primary/5' 
-                  : 'border-border hover:border-muted-foreground'
+                  : 'border-border sm:hover:border-muted-foreground'
               )}
             >
               <div className="flex items-start gap-3">
@@ -1284,16 +1284,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                   <div className="w-2 h-2 rounded-full bg-primary-foreground"></div>
                 </div>
               )}
-            </div>
+            </button>
             
             {/* Opción 2: Pickup programado */}
-            <div 
+            <button type="button"
               onClick={() => handleInputChange('deliveryMethod', 'return_pickup')}
               className={cn(
-                "border-2 rounded-lg p-4 cursor-pointer transition-all",
+                "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
                 formData.deliveryMethod === 'return_pickup' 
                   ? 'border-primary bg-primary/5' 
-                  : 'border-border hover:border-muted-foreground'
+                  : 'border-border sm:hover:border-muted-foreground'
               )}
             >
               <div className="flex items-start gap-3">
@@ -1310,7 +1310,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                   <div className="w-2 h-2 rounded-full bg-primary-foreground"></div>
                 </div>
               )}
-            </div>
+            </button>
           </div>
         </div>
       ) : isGuatemalaDestination ? (
@@ -1335,13 +1335,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 : 'Gratis - Recoge en nuestra oficina';
 
               return (
-                <div 
+                <button type="button"
                   onClick={() => handleInputChange('deliveryMethod', 'pickup')}
                   className={cn(
-                    "border-2 rounded-lg p-4 cursor-pointer transition-all",
+                    "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
                     formData.deliveryMethod === 'pickup' 
                       ? 'border-primary bg-primary/5' 
-                      : 'border-border hover:border-muted-foreground'
+                      : 'border-border sm:hover:border-muted-foreground'
                   )}
                 >
                   <div className="flex items-center justify-between">
@@ -1355,18 +1355,18 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       </div>
                     )}
                   </div>
-                </div>
+                </button>
               );
             })()}
             
             {/* Opción de delivery siempre disponible */}
-            <div 
+            <button type="button"
               onClick={() => handleInputChange('deliveryMethod', 'delivery')}
               className={cn(
-                "border-2 rounded-lg p-4 cursor-pointer transition-all",
+                "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
                 formData.deliveryMethod === 'delivery' 
                   ? 'border-primary bg-primary/5' 
-                  : 'border-border hover:border-muted-foreground'
+                  : 'border-border sm:hover:border-muted-foreground'
               )}
             >
               <div className="flex items-center justify-between">
@@ -1382,7 +1382,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                   </div>
                 )}
               </div>
-            </div>
+            </button>
           </div>
           
           {/* Mostrar formulario de dirección si seleccionó delivery */}
@@ -1468,7 +1468,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                         href={product.itemLink} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-xs text-primary hover:underline"
+                        className="text-xs text-primary sm:hover:underline"
                       >
                         link
                       </a>
@@ -1708,6 +1708,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         slides={shopperOnboardingSlides}
         gradientClassName="from-primary via-primary/80 to-primary/60"
         variant="shopper"
+        modal={false}
       />
     </>
   );

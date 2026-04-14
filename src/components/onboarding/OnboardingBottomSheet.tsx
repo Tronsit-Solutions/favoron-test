@@ -24,6 +24,8 @@ interface OnboardingBottomSheetProps {
   gradientClassName?: string;
   /** Badge color variant */
   variant?: "shopper" | "traveler";
+  /** Set to false when rendering inside another modal (Sheet) to avoid stacked focus traps */
+  modal?: boolean;
 }
 
 const OnboardingBottomSheet = ({
@@ -33,6 +35,7 @@ const OnboardingBottomSheet = ({
   slides,
   gradientClassName = "from-primary via-primary/80 to-primary/60",
   variant = "shopper",
+  modal = true,
 }: OnboardingBottomSheetProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [dontShowAgain, setDontShowAgain] = useState(false);
@@ -75,7 +78,7 @@ const OnboardingBottomSheet = ({
   if (!slide) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()} modal={modal}>
       <DialogContent
         className={cn(
           "p-0 gap-0 overflow-hidden border-0 [&>button]:hidden",
