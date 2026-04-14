@@ -538,7 +538,7 @@ const TripForm = ({
           }`}>
             1
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary ${
+          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${
             currentStep === 1 ? 'text-primary' : 'text-muted-foreground'
           }`}>
             Viaje
@@ -561,7 +561,7 @@ const TripForm = ({
           }`}>
             2
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary ${
+          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${
             currentStep === 2 ? 'text-primary' : 'text-muted-foreground'
           }`}>
             Dirección
@@ -584,7 +584,7 @@ const TripForm = ({
           }`}>
             3
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary ${
+          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${
             currentStep === 3 ? 'text-primary' : 'text-muted-foreground'
           }`}>
             Entrega
@@ -607,7 +607,7 @@ const TripForm = ({
           }`}>
             4
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary ${
+          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${
             currentStep === 4 ? 'text-primary' : 'text-muted-foreground'
           }`}>
             Confirmar

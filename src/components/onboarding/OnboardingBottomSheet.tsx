@@ -115,7 +115,7 @@ const OnboardingBottomSheet = ({
             {/* Close button */}
             <button
               onClick={handleClose}
-              className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 backdrop-blur-sm flex items-center justify-center transition-colors cursor-pointer"
+              className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-black/20 sm:hover:bg-black/30 active:bg-black/30 backdrop-blur-sm flex items-center justify-center transition-colors cursor-pointer touch-manipulation"
               aria-label="Cerrar"
             >
               <X className="h-4 w-4 text-white" />
@@ -190,7 +190,7 @@ const OnboardingBottomSheet = ({
                     setCurrentSlide(0);
                     setDontShowAgain(false);
                   }}
-                  className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-1 cursor-pointer"
+                  className="w-full text-center text-sm text-muted-foreground sm:hover:text-foreground active:text-foreground transition-colors py-1 cursor-pointer touch-manipulation"
                 >
                   Saltar
                 </button>

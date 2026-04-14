@@ -742,10 +742,4 @@ body::-webkit-scrollbar-thumb {
     user-select: none;
   }
 
-  /* Neutralize sticky hover states on ALL buttons/links on touch devices */
-  button:hover,
-  a:hover,
-  [role="button"]:hover {
-    background-color: inherit !important;
-  }
 }
