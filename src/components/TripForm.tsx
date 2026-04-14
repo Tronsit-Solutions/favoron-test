@@ -1543,7 +1543,7 @@ const TripForm = ({
     if (isMobile) {
       return (
         <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-          <SheetContent side="bottom" className="h-[100dvh] max-h-[100dvh] p-0 flex flex-col rounded-t-2xl touch-manipulation [-webkit-tap-highlight-color:transparent]">
+          <SheetContent side="bottom" className="mobile-safe-form h-[100dvh] max-h-[100dvh] p-0 flex flex-col rounded-t-2xl touch-manipulation [-webkit-tap-highlight-color:transparent]">
             <SheetHeader className="px-6 pt-6 pb-2 flex-shrink-0">
               <SheetTitle className="flex items-center space-x-2">
                 <Plane className="h-5 w-5 text-traveler" />
@@ -1561,7 +1561,7 @@ const TripForm = ({
 
     return (
       <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DialogContent className="sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto px-6 md:px-8">
+        <DialogContent className="mobile-safe-form sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto px-6 md:px-8">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <Plane className="h-5 w-5 text-traveler" />

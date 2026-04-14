@@ -19,7 +19,7 @@ const SheetOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={cn(
-      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-40 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}
@@ -59,7 +59,11 @@ const SheetContent = React.forwardRef<
     <SheetOverlay />
     <SheetPrimitive.Content
       ref={ref}
-      className={cn(sheetVariants({ side }), "touch-manipulation", className)}
+      className={cn(
+        sheetVariants({ side }),
+        "z-50 pointer-events-auto touch-manipulation [-webkit-tap-highlight-color:transparent]",
+        className
+      )}
       onOpenAutoFocus={(e) => {
         // Prevent autofocus on mobile to avoid first-tap being swallowed
         if (window.innerWidth < 768) e.preventDefault();
