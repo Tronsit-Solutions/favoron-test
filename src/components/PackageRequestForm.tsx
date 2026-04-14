@@ -930,7 +930,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       variant="outline"
                       size="sm"
                       onClick={() => removeProduct(index)}
-                      className="flex items-center space-x-1 text-destructive hover:text-destructive h-7 px-2"
+                      className="flex items-center space-x-1 text-destructive sm:hover:text-destructive h-7 px-2"
                     >
                       <Trash2 className="h-3 w-3" />
                       <span className="text-xs">Eliminar</span>
@@ -1022,11 +1022,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                           onValueChange={(value) => updateProduct(index, 'needsOriginalPackaging', value === 'yes')}
                           className="grid grid-cols-2 gap-2"
                         >
-                          <label htmlFor={`packaging-yes-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors min-h-[44px]">
+                          <label htmlFor={`packaging-yes-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer sm:hover:bg-muted/50 transition-colors min-h-[44px]">
                             <RadioGroupItem value="yes" id={`packaging-yes-${index}`} />
                             <span className="text-sm">Sí, lo necesito</span>
                           </label>
-                          <label htmlFor={`packaging-no-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors min-h-[44px]">
+                          <label htmlFor={`packaging-no-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer sm:hover:bg-muted/50 transition-colors min-h-[44px]">
                             <RadioGroupItem value="no" id={`packaging-no-${index}`} />
                             <span className="text-sm">No lo necesito</span>
                           </label>
@@ -1141,11 +1141,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                           onValueChange={(value) => updateProduct(index, 'needsOriginalPackaging', value === 'yes')}
                           className="grid grid-cols-2 gap-2"
                         >
-                          <label htmlFor={`packaging-personal-yes-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors min-h-[44px]">
+                          <label htmlFor={`packaging-personal-yes-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer sm:hover:bg-muted/50 transition-colors min-h-[44px]">
                             <RadioGroupItem value="yes" id={`packaging-personal-yes-${index}`} />
                             <span className="text-sm">Sí, lo necesito</span>
                           </label>
-                          <label htmlFor={`packaging-personal-no-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors min-h-[44px]">
+                          <label htmlFor={`packaging-personal-no-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer sm:hover:bg-muted/50 transition-colors min-h-[44px]">
                             <RadioGroupItem value="no" id={`packaging-personal-no-${index}`} />
                             <span className="text-sm">No lo necesito</span>
                           </label>

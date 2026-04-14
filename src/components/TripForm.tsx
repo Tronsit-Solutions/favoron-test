@@ -1042,7 +1042,7 @@ const TripForm = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <button type="button">
-                  <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
+                  <Info className="h-3.5 w-3.5 text-muted-foreground sm:hover:text-foreground cursor-help" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-xs">
