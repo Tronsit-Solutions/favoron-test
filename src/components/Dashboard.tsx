@@ -1174,6 +1174,24 @@ const Dashboard = ({ user }: DashboardProps) => {
             />
           </TabsContent>
         </Tabs>
+
+        <OnboardingBottomSheet
+          isOpen={showTravelerOnboarding}
+          onContinue={() => setShowTravelerOnboarding(false)}
+          onClose={() => setShowTravelerOnboarding(false)}
+          slides={travelerOnboardingSlides}
+          gradientClassName="from-traveler via-traveler/80 to-traveler/60"
+          variant="traveler"
+        />
+
+        <OnboardingBottomSheet
+          isOpen={showShopperOnboarding}
+          onContinue={() => setShowShopperOnboarding(false)}
+          onClose={() => setShowShopperOnboarding(false)}
+          slides={shopperOnboardingSlides}
+          gradientClassName="from-primary via-primary/80 to-primary/60"
+          variant="shopper"
+        />
       </div>
 
       {/* URL-based routing for forms */}
