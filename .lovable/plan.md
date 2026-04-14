@@ -1,64 +1,62 @@
+<final-text>
+Objetivo: quitar definitivamente el doble tap en móvil dentro del Package Form, especialmente en botones, selects, radios y tarjetas de selección.
 
-Objetivo: corregir el problema restante donde `PackageRequestForm` y `TripForm` siguen pidiendo doble tap en móvil, mientras los modales de edición sí funcionan con un solo toque.
-
-Hallazgo clave:
-- La diferencia importante no parece ser el contenido del formulario, sino el contenedor móvil:
-  - `PackageRequestForm` y `TripForm` usan `Sheet` fullscreen desde abajo.
-  - Los modales que sí funcionan usan `Dialog`.
-- Además, en ambos forms todavía hay algunos elementos interactivos dentro del sheet que pueden seguir activando estados visuales antes del click real, especialmente en cards seleccionables y CTAs secundarios.
+Hallazgo principal
+- `PackageRequestForm` está abriendo dos capas modales al mismo tiempo:
+  - el `Sheet` del formulario
+  - el `OnboardingBottomSheet` interno
+- Ese patrón de modales Radix apilados es el candidato más fuerte al bug: en la sesión se ve bloqueo global de pointer events/scroll lock, consistente con una capa modal interfiriendo con la otra.
+- Además, dentro del Package Form todavía hay selecciones hechas con `div onClick` y algunos `hover:` sin `sm:` en tarjetas de entrega, lo que empeora el comportamiento táctil en iPhone/Android.
 
 Plan de corrección
 
-1. Endurecer el wrapper móvil del `Sheet`
-- Editar `src/components/ui/sheet.tsx` para aplicar las mismas protecciones táctiles que ya funcionan en `Dialog`:
-  - `touch-manipulation`
-  - `-webkit-tap-highlight-color: transparent`
-  - `cursor-pointer` en el close
-  - soporte para `onPointerDownOutside` como en `Dialog`
-  - prevenir autofocus inicial en móvil si está robando el primer tap (`onOpenAutoFocus`)
-- Esto ataca la diferencia estructural entre “edit modal funciona” vs “package/trip form falla”.
+1. Eliminar la colisión entre onboarding y form
+- Dejar de montar el onboarding encima del `Sheet` del formulario.
+- Cambiar el flujo para que el onboarding no conviva como segundo modal activo dentro de `PackageRequestForm`.
+- La solución más segura es mover ese onboarding fuera del form (o mostrarlo antes de abrir el form), para que el `Sheet` sea la única capa modal activa.
 
-2. Hacer touch-safe el contenido raíz de ambos forms
-- `src/components/PackageRequestForm.tsx`
-- `src/components/TripForm.tsx`
-- Agregar clases touch-safe al contenedor principal del sheet y a la zona scrollable:
-  - `touch-manipulation`
-  - `select-none` solo donde aplique a CTAs/cards
-- Mantener inputs editables normales, pero asegurar que los botones de navegación y selección no queden atrapados por comportamiento táctil del contenedor.
+2. Volver touch-safe las selecciones del Package Form
+- En `src/components/PackageRequestForm.tsx`, convertir las cards de método de entrega y devolución de `div onClick` a `button type="button"`.
+- Agregar `touch-manipulation`, feedback `active:` y hover solo desktop (`sm:hover:`).
+- Mantener un único target clickeable por opción.
 
-3. Revisar interacciones que siguen siendo más frágiles dentro de estos 2 forms
-- En `PackageRequestForm`:
-  - cards de tipo de pedido
-  - radios/labels clickeables
-  - botones `Siguiente`, `Atrás`, `Enviar`
-- En `TripForm`:
-  - cards de método de entrega
-  - bloque de términos
-  - link/botón “Leer términos”
-  - submit final
-- Donde haga falta, convertir wrappers clickeables en targets más semánticos (`button` / `label`) o reforzar el handler sobre el elemento visible real.
+3. Endurecer los controles usados dentro del sheet
+- Revisar y ajustar los primitives que usa el form para móvil:
+  - `src/components/ui/select.tsx`
+  - `src/components/ui/popover.tsx`
+  - `src/components/ui/radio-group.tsx`
+  - `src/components/ui/checkbox.tsx`
+- Añadir clases y comportamiento táctil consistentes para que no haya primer tap consumido por foco/hover.
 
-4. Alinear hover/focus mobile en los puntos que aún pueden interferir
-- En `TripForm` todavía quedan clases como:
-  - `group-hover:text-black/80`
-  - `hover:text-black/80`
-- Cambiarlas a versión desktop-only:
-  - `sm:group-hover:*`
-  - `sm:hover:*`
-- Revisar lo mismo en cualquier CTA residual de `PackageRequestForm`.
+4. Corregir remanentes de hover mobile en el Package Form
+- Reemplazar los `hover:` restantes por `sm:hover:` dentro del form, especialmente en tarjetas de entrega y enlaces secundarios.
 
-5. Verificación específica
-- Probar solo los flujos críticos que hoy fallan:
-  - abrir `PackageRequestForm` en móvil y avanzar step por step con un solo tap
-  - abrir `TripForm` en móvil y seleccionar delivery method con un solo tap
-  - CTA final de ambos forms
-  - link de términos en `TripForm`
-- Comparar contra un modal de edición que ya funciona para confirmar que el comportamiento quedó consistente.
+5. Evitar regresión en Trip Form
+- El mismo patrón de onboarding anidado existe en `TripForm`, así que aplicaría la misma corrección estructural allí para no dejar el mismo bug vivo en el otro flujo crítico.
 
 Archivos a tocar
-- `src/components/ui/sheet.tsx`
 - `src/components/PackageRequestForm.tsx`
 - `src/components/TripForm.tsx`
+- `src/components/Dashboard.tsx` si muevo el onboarding fuera del form
+- `src/components/ui/select.tsx`
+- `src/components/ui/popover.tsx`
+- `src/components/ui/radio-group.tsx`
+- `src/components/ui/checkbox.tsx`
 
 Resultado esperado
-- Los dos forms más importantes (`package` y `trip`) deben responder al primer toque en móvil, igual que el modal de editar pedido y el resto de modales.
+- En móvil, el Package Form debe responder al primer tap en:
+  - tipo de pedido
+  - radios
+  - selects de país/ciudad
+  - date picker
+  - método de entrega
+  - botones Atrás / Siguiente / Enviar
+
+Verificación
+- Probar el flujo completo en viewport móvil realista:
+  1. abrir Package Form
+  2. cerrar o completar onboarding
+  3. seleccionar opciones en cada step con un solo tap
+  4. abrir dropdowns/calendario con un solo tap
+  5. avanzar hasta submit sin dobles taps
+</final-text>
