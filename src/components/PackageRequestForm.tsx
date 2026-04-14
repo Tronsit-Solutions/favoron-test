@@ -783,7 +783,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 "w-10 h-10 rounded-full flex items-center justify-center transition-colors flex-shrink-0",
                 formRequestType === 'personal' 
                   ? 'bg-primary text-primary-foreground' 
-                  : 'bg-muted group-hover:bg-primary/20'
+                  : 'bg-muted sm:group-hover:bg-primary/20'
               )}>
                 <Package className="h-5 w-5" />
               </div>
