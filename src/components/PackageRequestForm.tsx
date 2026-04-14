@@ -1620,7 +1620,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   };
 
   const formInnerContent = (
-    <>
+    <div className="mobile-safe-form flex flex-1 flex-col min-h-0 touch-manipulation">
       {/* Step Indicator */}
       {currentStep >= 1 && <div className="flex-shrink-0"><StepIndicator /></div>}
 
@@ -1636,14 +1636,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       <div className="flex-shrink-0 pt-4 border-t border-border bg-background px-6 pb-6">
         {renderNavigationButtons()}
       </div>
-    </>
+    </div>
   );
 
   const renderPackageForm = () => {
     if (isMobile) {
       return (
         <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-          <SheetContent side="bottom" className="h-[100dvh] max-h-[100dvh] p-0 flex flex-col rounded-t-2xl touch-manipulation [-webkit-tap-highlight-color:transparent]">
+          <SheetContent side="bottom" className="mobile-safe-form h-[100dvh] max-h-[100dvh] p-0 flex flex-col rounded-t-2xl touch-manipulation [-webkit-tap-highlight-color:transparent]">
             <SheetHeader className="px-6 pt-6 pb-2 flex-shrink-0">
               <SheetTitle className="flex items-center space-x-2">
                 <Package className="h-5 w-5 text-primary" />
@@ -1664,7 +1664,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
     return (
       <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DialogContent className="sm:max-w-xl md:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden px-6 md:px-8">
+        <DialogContent className="mobile-safe-form sm:max-w-xl md:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden px-6 md:px-8">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center space-x-2">
               <Package className="h-5 w-5 text-primary" />

@@ -18,6 +18,29 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+.mobile-safe-form {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-safe-form :is(
+  input,
+  button,
+  select,
+  textarea,
+  label,
+  a,
+  [role="button"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="combobox"],
+  [role="option"],
+  [data-radix-collection-item]
+) {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Calendar interaction fixes for mobile Safari */
 .pointer-events-auto {
   pointer-events: auto !important;
@@ -46,7 +69,8 @@
 
 /* Popover z-index fixes for mobile */
 [data-radix-popper-content-wrapper] {
-  z-index: 50 !important;
+  z-index: 70 !important;
+  pointer-events: auto !important;
 }
 
 /* Command palette mobile fixes */
