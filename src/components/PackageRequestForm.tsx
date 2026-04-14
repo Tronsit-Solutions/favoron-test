@@ -1284,7 +1284,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                   <div className="w-2 h-2 rounded-full bg-primary-foreground"></div>
                 </div>
               )}
-            </div>
+            </button>
             
             {/* Opción 2: Pickup programado */}
             <button type="button"
@@ -1310,7 +1310,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                   <div className="w-2 h-2 rounded-full bg-primary-foreground"></div>
                 </div>
               )}
-            </div>
+            </button>
           </div>
         </div>
       ) : isGuatemalaDestination ? (
@@ -1355,7 +1355,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       </div>
                     )}
                   </div>
-                </div>
+                </button>
               );
             })()}
             
@@ -1382,7 +1382,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                   </div>
                 )}
               </div>
-            </div>
+            </button>
           </div>
           
           {/* Mostrar formulario de dirección si seleccionó delivery */}
