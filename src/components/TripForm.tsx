@@ -103,6 +103,8 @@ const TripForm = ({
     }
   };
   const [boostStatus, setBoostStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
+  const boostDebounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const totalSteps = 4;
 
   // Desestructurar estado para facilitar acceso
   const formData = formState.formData;
