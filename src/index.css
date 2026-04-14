@@ -725,8 +725,9 @@ body::-webkit-scrollbar-thumb {
   display: none !important;
 }
 
-/* Fix double-tap on mobile for all dialog/sheet interactive elements */
+/* Fix double-tap on mobile: neutralize sticky hover states on touch devices */
 @media (hover: none) and (pointer: coarse) {
+  /* Dialog/sheet interactive elements */
   [role="dialog"] button,
   [role="dialog"] [role="combobox"],
   [role="dialog"] [role="option"],
@@ -741,9 +742,10 @@ body::-webkit-scrollbar-thumb {
     user-select: none;
   }
 
-  /* Neutralize sticky hover states on touch devices inside dialogs */
-  [role="dialog"] button:hover,
-  [role="dialog"] a:hover {
-    background-color: inherit;
+  /* Neutralize sticky hover states on ALL buttons/links on touch devices */
+  button:hover,
+  a:hover,
+  [role="button"]:hover {
+    background-color: inherit !important;
   }
 }
