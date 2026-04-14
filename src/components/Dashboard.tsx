@@ -232,11 +232,44 @@ const Dashboard = ({ user }: DashboardProps) => {
   const navigate = useNavigate();
   const pendingActions = usePendingActions(packages, trips, currentUser);
   
-  // Profile completion is now enforced at route level via RequireAuth → /complete-profile
+  // Auto-show onboarding when forms open (moved from inside forms to avoid nested modals)
+  const currentPath = window.location.pathname;
+  const isPackageFormOpen = showPackageForm || currentPath.endsWith('/package');
+  const isTripFormOpen = showTripForm || currentPath.endsWith('/trip');
 
-  // Inactive trips are now auto-hidden based on status + feedback
+  useEffect(() => {
+    if (isPackageFormOpen && profile?.ui_preferences?.skip_package_intro !== true) {
+      setShowShopperOnboarding(true);
+    }
+  }, [isPackageFormOpen]);
 
-  // Real-time updates are now active, no manual refresh needed
+  useEffect(() => {
+    if (isTripFormOpen && profile?.ui_preferences?.skip_trip_intro !== true) {
+      setShowTravelerOnboarding(true);
+    }
+  }, [isTripFormOpen]);
+
+  const handleShopperOnboardingContinue = async (dontShowAgain: boolean) => {
+    if (dontShowAgain) {
+      try {
+        await updateProfile({
+          ui_preferences: { ...profile?.ui_preferences, skip_package_intro: true },
+        });
+      } catch (e) { console.error('Error saving intro pref:', e); }
+    }
+    setShowShopperOnboarding(false);
+  };
+
+  const handleTravelerOnboardingContinue = async (dontShowAgain: boolean) => {
+    if (dontShowAgain) {
+      try {
+        await updateProfile({
+          ui_preferences: { ...profile?.ui_preferences, skip_trip_intro: true },
+        });
+      } catch (e) { console.error('Error saving intro pref:', e); }
+    }
+    setShowTravelerOnboarding(false);
+  };
 
   const isAdmin = currentUser.role === 'admin';
 
