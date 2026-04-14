@@ -1261,10 +1261,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           </Label>
           <div className="space-y-3">
             {/* Opción 1: Punto de devolución */}
-            <div 
+            <button type="button"
               onClick={() => handleInputChange('deliveryMethod', 'return_dropoff')}
               className={cn(
-                "border-2 rounded-lg p-4 cursor-pointer transition-all",
+                "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
                 formData.deliveryMethod === 'return_dropoff' 
                   ? 'border-primary bg-primary/5' 
                   : 'border-border sm:hover:border-muted-foreground'
@@ -1287,10 +1287,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             </div>
             
             {/* Opción 2: Pickup programado */}
-            <div 
+            <button type="button"
               onClick={() => handleInputChange('deliveryMethod', 'return_pickup')}
               className={cn(
-                "border-2 rounded-lg p-4 cursor-pointer transition-all",
+                "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
                 formData.deliveryMethod === 'return_pickup' 
                   ? 'border-primary bg-primary/5' 
                   : 'border-border sm:hover:border-muted-foreground'
@@ -1335,10 +1335,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 : 'Gratis - Recoge en nuestra oficina';
 
               return (
-                <div 
+                <button type="button"
                   onClick={() => handleInputChange('deliveryMethod', 'pickup')}
                   className={cn(
-                    "border-2 rounded-lg p-4 cursor-pointer transition-all",
+                    "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
                     formData.deliveryMethod === 'pickup' 
                       ? 'border-primary bg-primary/5' 
                       : 'border-border sm:hover:border-muted-foreground'
@@ -1360,10 +1360,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             })()}
             
             {/* Opción de delivery siempre disponible */}
-            <div 
+            <button type="button"
               onClick={() => handleInputChange('deliveryMethod', 'delivery')}
               className={cn(
-                "border-2 rounded-lg p-4 cursor-pointer transition-all",
+                "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
                 formData.deliveryMethod === 'delivery' 
                   ? 'border-primary bg-primary/5' 
                   : 'border-border sm:hover:border-muted-foreground'
