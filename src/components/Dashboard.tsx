@@ -80,7 +80,7 @@ interface DashboardProps {
 
 
 const Dashboard = ({ user }: DashboardProps) => {
-  const { signOut, profile, userRole } = useAuth();
+  const { signOut, profile, userRole, updateProfile } = useAuth();
   const { isPhoneNumberMissing } = usePhoneNumberValidation();
   
   // Use protected navigation that checks profile completion
