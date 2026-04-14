@@ -18,8 +18,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/ui/combobox";
 import { CalendarIcon, Plane, MapPin, Package, AlertCircle, Phone, Building2, FileText, Target, ChevronLeft, ChevronRight, Home, Info, Users, User, DollarSign, Truck, Rocket, Check, Loader2, X } from "lucide-react";
-import OnboardingBottomSheet from "@/components/onboarding/OnboardingBottomSheet";
-import type { OnboardingSlide } from "@/components/onboarding/OnboardingBottomSheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -104,50 +102,7 @@ const TripForm = ({
       updateField('currentStep', step);
     }
   };
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [boostStatus, setBoostStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
-  const boostDebounceRef = useRef<ReturnType<typeof setTimeout>>();
-  const totalSteps = 4;
-
-  // Traveler onboarding slides
-  const travelerOnboardingSlides: OnboardingSlide[] = [
-    {
-      icon: Plane,
-      title: "¡Conviértete en Viajero!",
-      description: "Registra tu viaje: de dónde vienes, cuándo llegas y cuánto espacio tienes.",
-    },
-    {
-      icon: Users,
-      title: "Recibe solicitudes",
-      description: "Recibirás solicitudes con la propina asignada. Tú decides cuáles aceptar y cuáles rechazar.",
-    },
-    {
-      icon: DollarSign,
-      title: "Cotización y pago",
-      description: "Envía tu cotización al shopper. Si no realiza el pago, el pedido no se completa.",
-    },
-    {
-      icon: Package,
-      title: "Recibe el paquete",
-      description: "El shopper hará la compra y la enviará a tu dirección con comprobante y tracking. Si te cobran impuestos en aduana, se te reembolsarán con factura.",
-    },
-    {
-      icon: Truck,
-      title: "Entrega y cobra",
-      description: "Entrega en nuestra oficina o programa recolección. Recibirás tu pago al completar la entrega.",
-    },
-  ];
-
-  // Show onboarding when modal opens if not skipped
-  useEffect(() => {
-    if (isOpen) {
-      const hasSavedStep = formState.currentStep !== undefined && formState.currentStep > 1;
-      if (!hasSavedStep) {
-        const shouldShowOnboarding = profile?.ui_preferences?.skip_trip_intro !== true;
-        setShowOnboarding(shouldShowOnboarding);
-      }
-    }
-  }, [isOpen]);
 
   // Desestructurar estado para facilitar acceso
   const formData = formState.formData;
@@ -507,21 +462,6 @@ const TripForm = ({
   const displayToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
 
   // Handle onboarding continue
-  const handleOnboardingContinue = async (dontShowAgain: boolean) => {
-    if (dontShowAgain) {
-      try {
-        await updateProfile({
-          ui_preferences: {
-            ...profile?.ui_preferences,
-            skip_trip_intro: true,
-          },
-        });
-      } catch (error) {
-        console.error('Error saving preference:', error);
-      }
-    }
-    setShowOnboarding(false);
-  };
 
   // Progress indicator component - now clickable for free navigation
   const StepIndicator = () => (
@@ -1577,20 +1517,7 @@ const TripForm = ({
     );
   };
 
-  return (
-    <>
-      {renderTripForm()}
-      <OnboardingBottomSheet
-        isOpen={showOnboarding}
-        onContinue={handleOnboardingContinue}
-        onClose={() => setShowOnboarding(false)}
-        slides={travelerOnboardingSlides}
-        gradientClassName="from-traveler via-traveler/80 to-traveler/60"
-        variant="traveler"
-        modal={false}
-      />
-    </>
-  );
+  return renderTripForm();
 };
 
 export default TripForm;
