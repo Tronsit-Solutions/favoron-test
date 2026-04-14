@@ -1643,7 +1643,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     if (isMobile) {
       return (
         <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-          <SheetContent side="bottom" className="h-[100dvh] max-h-[100dvh] p-0 flex flex-col rounded-t-2xl">
+          <SheetContent side="bottom" className="h-[100dvh] max-h-[100dvh] p-0 flex flex-col rounded-t-2xl touch-manipulation [-webkit-tap-highlight-color:transparent]">
             <SheetHeader className="px-6 pt-6 pb-2 flex-shrink-0">
               <SheetTitle className="flex items-center space-x-2">
                 <Package className="h-5 w-5 text-primary" />
