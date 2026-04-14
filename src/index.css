@@ -725,15 +725,25 @@ body::-webkit-scrollbar-thumb {
   display: none !important;
 }
 
-/* Fix double-tap on mobile for all dialog interactive elements */
+/* Fix double-tap on mobile for all dialog/sheet interactive elements */
 @media (hover: none) and (pointer: coarse) {
   [role="dialog"] button,
   [role="dialog"] [role="combobox"],
   [role="dialog"] [role="option"],
   [role="dialog"] select,
   [role="dialog"] input,
-  [role="dialog"] a {
+  [role="dialog"] a,
+  [role="dialog"] label,
+  [role="dialog"] [data-state] {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Neutralize sticky hover states on touch devices inside dialogs */
+  [role="dialog"] button:hover,
+  [role="dialog"] a:hover {
+    background-color: inherit;
   }
 }

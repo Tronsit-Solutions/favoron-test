@@ -95,8 +95,10 @@ const ReferralAnnouncementModal = ({ isOpen, onClose }: ReferralAnnouncementModa
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => setCurrentSlide(1),
     onSwipedRight: () => setCurrentSlide(0),
+    delta: 20,
     trackMouse: false,
     preventScrollOnSwipe: true,
+    touchEventOptions: { passive: true },
   });
 
   return (
