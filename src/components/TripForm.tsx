@@ -1493,13 +1493,13 @@ const TripForm = ({
               className="mt-1" 
             />
             <div className="flex-1">
-              <Label htmlFor="acceptTerms" className="text-sm font-medium text-black cursor-pointer group-hover:text-black/80 transition-colors">
+              <Label htmlFor="acceptTerms" className="text-sm font-medium text-black cursor-pointer sm:group-hover:text-black/80 transition-colors">
                 Entiendo y acepto los términos y condiciones de Favorón
               </Label>
               <p className="text-xs text-black/70 mt-1">
                 Al registrar este viaje, confirmas que has leído y aceptas nuestros términos de servicio.
               </p>
-              <Button type="button" variant="link" className="h-auto p-0 text-xs text-black hover:text-black/80" onClick={() => setShowTermsModal(true)}>
+              <Button type="button" variant="link" className="h-auto p-0 text-xs text-black sm:hover:text-black/80" onClick={() => setShowTermsModal(true)}>
                 <FileText className="h-3 w-3 mr-1" />
                 Leer términos y condiciones
               </Button>
