@@ -1267,7 +1267,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 "border-2 rounded-lg p-4 cursor-pointer transition-all",
                 formData.deliveryMethod === 'return_dropoff' 
                   ? 'border-primary bg-primary/5' 
-                  : 'border-border hover:border-muted-foreground'
+                  : 'border-border sm:hover:border-muted-foreground'
               )}
             >
               <div className="flex items-start gap-3">
@@ -1293,7 +1293,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 "border-2 rounded-lg p-4 cursor-pointer transition-all",
                 formData.deliveryMethod === 'return_pickup' 
                   ? 'border-primary bg-primary/5' 
-                  : 'border-border hover:border-muted-foreground'
+                  : 'border-border sm:hover:border-muted-foreground'
               )}
             >
               <div className="flex items-start gap-3">
@@ -1341,7 +1341,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                     "border-2 rounded-lg p-4 cursor-pointer transition-all",
                     formData.deliveryMethod === 'pickup' 
                       ? 'border-primary bg-primary/5' 
-                      : 'border-border hover:border-muted-foreground'
+                      : 'border-border sm:hover:border-muted-foreground'
                   )}
                 >
                   <div className="flex items-center justify-between">
@@ -1366,7 +1366,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 "border-2 rounded-lg p-4 cursor-pointer transition-all",
                 formData.deliveryMethod === 'delivery' 
                   ? 'border-primary bg-primary/5' 
-                  : 'border-border hover:border-muted-foreground'
+                  : 'border-border sm:hover:border-muted-foreground'
               )}
             >
               <div className="flex items-center justify-between">
@@ -1468,7 +1468,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                         href={product.itemLink} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-xs text-primary hover:underline"
+                        className="text-xs text-primary sm:hover:underline"
                       >
                         link
                       </a>
