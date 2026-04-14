@@ -1493,13 +1493,13 @@ const TripForm = ({
               className="mt-1" 
             />
             <div className="flex-1">
-              <Label htmlFor="acceptTerms" className="text-sm font-medium text-black cursor-pointer group-hover:text-black/80 transition-colors">
+              <Label htmlFor="acceptTerms" className="text-sm font-medium text-black cursor-pointer sm:group-hover:text-black/80 transition-colors">
                 Entiendo y acepto los términos y condiciones de Favorón
               </Label>
               <p className="text-xs text-black/70 mt-1">
                 Al registrar este viaje, confirmas que has leído y aceptas nuestros términos de servicio.
               </p>
-              <Button type="button" variant="link" className="h-auto p-0 text-xs text-black hover:text-black/80" onClick={() => setShowTermsModal(true)}>
+              <Button type="button" variant="link" className="h-auto p-0 text-xs text-black sm:hover:text-black/80" onClick={() => setShowTermsModal(true)}>
                 <FileText className="h-3 w-3 mr-1" />
                 Leer términos y condiciones
               </Button>
@@ -1530,7 +1530,7 @@ const TripForm = ({
     const formContent = (
       <>
         <StepIndicator />
-        <form onSubmit={handleSubmit} className="mobile-safe-form flex-1 overflow-y-auto overflow-x-hidden px-6">
+        <form onSubmit={handleSubmit} className="mobile-safe-form flex-1 overflow-y-auto overflow-x-hidden px-6 touch-manipulation">
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
@@ -1543,7 +1543,7 @@ const TripForm = ({
     if (isMobile) {
       return (
         <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-          <SheetContent side="bottom" className="h-[100dvh] max-h-[100dvh] p-0 flex flex-col rounded-t-2xl">
+          <SheetContent side="bottom" className="h-[100dvh] max-h-[100dvh] p-0 flex flex-col rounded-t-2xl touch-manipulation [-webkit-tap-highlight-color:transparent]">
             <SheetHeader className="px-6 pt-6 pb-2 flex-shrink-0">
               <SheetTitle className="flex items-center space-x-2">
                 <Plane className="h-5 w-5 text-traveler" />
