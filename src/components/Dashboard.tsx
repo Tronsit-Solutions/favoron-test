@@ -1210,7 +1210,7 @@ const Dashboard = ({ user }: DashboardProps) => {
 
         <OnboardingBottomSheet
           isOpen={showTravelerOnboarding}
-          onContinue={() => setShowTravelerOnboarding(false)}
+          onContinue={handleTravelerOnboardingContinue}
           onClose={() => setShowTravelerOnboarding(false)}
           slides={travelerOnboardingSlides}
           gradientClassName="from-traveler via-traveler/80 to-traveler/60"
@@ -1219,7 +1219,7 @@ const Dashboard = ({ user }: DashboardProps) => {
 
         <OnboardingBottomSheet
           isOpen={showShopperOnboarding}
-          onContinue={() => setShowShopperOnboarding(false)}
+          onContinue={handleShopperOnboardingContinue}
           onClose={() => setShowShopperOnboarding(false)}
           slides={shopperOnboardingSlides}
           gradientClassName="from-primary via-primary/80 to-primary/60"
