@@ -1708,6 +1708,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         slides={shopperOnboardingSlides}
         gradientClassName="from-primary via-primary/80 to-primary/60"
         variant="shopper"
+        modal={false}
       />
     </>
   );

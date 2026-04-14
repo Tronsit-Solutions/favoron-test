@@ -1587,6 +1587,7 @@ const TripForm = ({
         slides={travelerOnboardingSlides}
         gradientClassName="from-traveler via-traveler/80 to-traveler/60"
         variant="traveler"
+        modal={false}
       />
     </>
   );
