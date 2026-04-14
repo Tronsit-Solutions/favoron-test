@@ -1,63 +1,69 @@
 
+Objetivo: eliminar de verdad el “doble tap” en móvil en dashboard, onboardings y formularios.
 
-## Plan: Corregir doble-click en botones en mobile
+Hallazgo principal:
+- El fix anterior se quedó corto porque el problema no es solo CSS global. Todavía hay varios elementos interactivos con `hover:` y `group-hover:` sin `sm:` en componentes clave, así que en iPhone/Android el primer toque puede quedarse en estado hover.
+- Además, en `QuickActions.tsx` el usuario toca un botón visual dentro de una card clickeable, pero ese botón interno no ejecuta la acción. En móvil eso suele causar exactamente este síntoma: primer toque “activa” el botón visual y el segundo finalmente navega.
 
-### Problema
-En dispositivos moviles, los botones dentro de los formularios (PackageRequestForm, TripForm) y onboardings requieren doble toque para funcionar. El primer toque solo activa el estado `:hover` de CSS sin ejecutar el click.
+Plan de corrección
 
-### Causa raiz
-Dos factores:
+1. Corregir el patrón base de botones en `src/components/ui/button.tsx`
+- Cambiar todos los variants de `hover:*` a `sm:hover:*`.
+- Mantener `touch-manipulation`, `select-none` y demás utilidades de touch.
+- Esto arregla el onboarding button de shoppers, los CTA principales y cualquier botón que use el componente shared.
 
-1. **OnboardingBottomSheet**: Usa `react-swipeable` con `preventScrollOnSwipe: true` que intercepta eventos touch y puede bloquear el primer click en botones internos.
+2. Arreglar los disparadores reales en dashboard
+- `src/components/dashboard/QuickActions.tsx`
+  - Hacer que el botón visible también tenga `onClick`, o convertir toda la card en un trigger semántico consistente.
+  - Evitar el patrón “card clickeable + botón interno sin acción”.
+- `src/components/Dashboard.tsx`
+  - Revisar los botones de abrir onboarding shopper/traveler y de abrir forms para que dependan de un solo target interactivo claro.
 
-2. **Hover states CSS sticky en iOS**: Los botones usan `hover:bg-primary/90`, `hover:bg-logo/90`, etc. sin prefijo `sm:hover:`. En dispositivos tactiles, iOS Safari interpreta el primer toque como hover y requiere un segundo toque para el click real.
+3. Auditar y corregir hover mobile en flujos críticos
+- `src/components/PackageRequestForm.tsx`
+  - Reemplazar `hover:`/`group-hover:` por `sm:hover:`/`sm:group-hover:` en:
+    - step indicator
+    - cards de tipo de pedido
+    - cualquier selector tipo card
+- `src/components/TripForm.tsx`
+  - Hacer el mismo cambio en:
+    - step indicator
+    - delivery method cards
+    - ayudas/íconos con hover
+    - otros bloques interactivos del wizard
+- `src/components/onboarding/OnboardingBottomSheet.tsx`
+  - Cambiar hover de close/skip/etc. a desktop-only.
+  - Si hace falta, limitar el swipe handler para que no capture toques sobre CTA/buttons.
+- `src/components/dashboard/ReferralAnnouncementModal.tsx`
+  - Mismo ajuste para sus CTA y close button.
 
-### Solucion
+4. Limpiar el workaround global en `src/index.css`
+- El override actual tipo `button:hover { background-color: inherit !important; }` no resuelve todo y además puede dejar estilos inconsistentes.
+- Lo reemplazaría por una solución más precisa:
+  - mantener solo utilidades de touch (`touch-action`, tap highlight)
+  - confiar en `sm:hover:` en componentes interactivos, que es el patrón correcto para móvil.
 
-**1. `src/index.css`** -- Neutralizar hover states dentro de dialogs/sheets en dispositivos tactiles:
-```css
-@media (hover: none) and (pointer: coarse) {
-  [role="dialog"] button,
-  [role="dialog"] [role="combobox"],
-  [role="dialog"] [role="option"],
-  [role="dialog"] select,
-  [role="dialog"] input,
-  [role="dialog"] a,
-  [role="dialog"] label,
-  [role="dialog"] [data-state] {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-  
-  /* Force disable hover states on touch devices inside dialogs */
-  [role="dialog"] button:hover {
-    background-color: inherit;
-  }
-}
-```
+5. Verificación funcional
+- Probar en viewport móvil, mínimo:
+  - botón de onboarding shopper en `/dashboard?tab=packages`
+  - Quick Actions: abrir package form y trip form al primer tap
+  - botones `Siguiente`, `Continuar`, `Saltar`, `Cerrar` en onboardings
+  - cards/selectores dentro de `PackageRequestForm` y `TripForm`
+  - navegación entre steps y submit
+- Objetivo de QA: ningún flujo debe requerir segundo toque para ejecutar la acción.
 
-**2. `src/components/onboarding/OnboardingBottomSheet.tsx`** -- Evitar que el swipe handler intercepte clicks en botones:
-- Agregar `delta: 20` al `useSwipeable` para que solo interprete como swipe movimientos de 20px+, no simples toques
-- Agregar `touchEventOptions: { passive: true }` para no bloquear eventos nativos
-- Envolver botones con `onTouchEnd` + `e.stopPropagation()` para evitar que el swipe handler consuma el evento
+Detalles técnicos
+- Archivos previstos:
+  - `src/components/ui/button.tsx`
+  - `src/components/dashboard/QuickActions.tsx`
+  - `src/components/Dashboard.tsx`
+  - `src/components/PackageRequestForm.tsx`
+  - `src/components/TripForm.tsx`
+  - `src/components/onboarding/OnboardingBottomSheet.tsx`
+  - `src/components/dashboard/ReferralAnnouncementModal.tsx`
+  - `src/index.css`
+- No hace falta tocar base de datos.
+- El warning de `React.Fragment` en `CollapsiblePackageCard` es otro tema distinto y no explica el doble tap.
 
-**3. `src/components/dashboard/ReferralAnnouncementModal.tsx`** -- Mismo fix de `useSwipeable` con `delta` y `touchEventOptions`
-
-**4. `src/components/ui/button.tsx`** -- Agregar handler `onTouchEnd` nativo para forzar click en dispositivos tactiles cuando el primer toque se consume:
-```tsx
-const handleTouchEnd = React.useCallback((e: React.TouchEvent) => {
-  // Ensure click fires on first tap in mobile
-  props.onTouchEnd?.(e);
-}, [props.onTouchEnd]);
-```
-
-Alternativa mas simple para el boton: agregar clase CSS `cursor-pointer` y asegurar que no hay `user-select: text` en los contenedores padre.
-
-### Archivos a modificar
-1. `src/index.css` -- CSS global para neutralizar hover en touch
-2. `src/components/onboarding/OnboardingBottomSheet.tsx` -- Fix swipeable config
-3. `src/components/dashboard/ReferralAnnouncementModal.tsx` -- Fix swipeable config
-4. `src/components/ui/button.tsx` -- Agregar `cursor-pointer` explicitamente
-
+Resultado esperado:
+- En móvil, todos los CTA relevantes responden al primer toque, sin hover sticky y sin targets internos “muertos”.
