@@ -601,7 +601,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             1
           </div>
           <span className={cn(
-            "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
+            "ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary",
             currentStep === 1 ? 'text-primary' : 'text-muted-foreground'
           )}>
             Tipo
@@ -624,7 +624,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             2
           </div>
           <span className={cn(
-            "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
+            "ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary",
             currentStep === 2 ? 'text-primary' : 'text-muted-foreground'
           )}>
             Productos
@@ -647,7 +647,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             3
           </div>
           <span className={cn(
-            "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
+            "ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary",
             currentStep === 3 ? 'text-primary' : 'text-muted-foreground'
           )}>
             Ruta
@@ -670,7 +670,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             4
           </div>
           <span className={cn(
-            "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
+            "ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary",
             currentStep === 4 ? 'text-primary' : 'text-muted-foreground'
           )}>
             Confirmar
