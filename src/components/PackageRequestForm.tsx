@@ -17,8 +17,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, Plus, Trash2, Weight, ChevronLeft, ChevronRight, Check, ShoppingCart, Truck, Search } from "lucide-react";
-import OnboardingBottomSheet from "@/components/onboarding/OnboardingBottomSheet";
-import type { OnboardingSlide } from "@/components/onboarding/OnboardingBottomSheet";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import AddressForm from "@/components/AddressForm";
@@ -44,8 +42,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const { getDeliveryPointByCity } = useDeliveryPoints();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
   
-  // Onboarding bottom sheet state
-  const [showOnboarding, setShowOnboarding] = useState(false);
   // Initialize data based on mode - helper functions
   const getInitialProducts = (): Product[] => {
     if (editMode && initialData?.products_data) {
@@ -147,38 +143,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
 
-  // Shopper onboarding slides
-  const shopperOnboardingSlides: OnboardingSlide[] = [
-    {
-      icon: Search,
-      title: "¡Estás a punto de pedir tu primer Favorón!",
-      description: "Describe el producto que necesitas y de dónde quieres que lo traigan. Un viajero lo llevará por ti.",
-    },
-    {
-      icon: DollarSign,
-      title: "Recibe una cotización",
-      description: "Un viajero te enviará el costo de traer tu paquete, que incluye su propina y la tarifa de servicio. Adicionalmente, si el viajero pagó algún impuesto o tasa, deberás cubrir ese costo para recibir tu paquete.",
-    },
-    {
-      icon: ShoppingCart,
-      title: "Compra tu producto",
-      description: "Una vez aceptada la cotización, compra el producto y envíalo a la dirección del viajero.",
-    },
-    {
-      icon: Package,
-      title: "¡Recibe tu paquete!",
-      description: "Retíralo en nuestra oficina o solicita envío a domicilio. ¡Así de fácil!",
-    },
-  ];
-
-  // Reset step when modal opens - show onboarding if needed
+  // Reset step when modal opens
   useEffect(() => {
     if (isOpen) {
       setCurrentStep(1);
-      const shouldShowOnboarding = !editMode && profile?.ui_preferences?.skip_package_intro !== true;
-      setShowOnboarding(shouldShowOnboarding);
     }
-  }, [isOpen, editMode, profile?.ui_preferences?.skip_package_intro]);
+  }, [isOpen]);
 
   // Desestructurar estado para facilitar acceso
   const products = formState.products;
@@ -680,22 +650,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     </div>
   );
 
-  // Handle onboarding continue
-  const handleOnboardingContinue = async (dontShowAgain: boolean) => {
-    if (dontShowAgain) {
-      try {
-        await updateProfile({
-          ui_preferences: {
-            ...profile?.ui_preferences,
-            skip_package_intro: true,
-          },
-        });
-      } catch (error) {
-        console.error('Error saving intro preference:', error);
-      }
-    }
-    setShowOnboarding(false);
-  };
 
   // ============= STEP 1: TIPO DE SOLICITUD =============
   const renderStep1 = () => {
@@ -1698,20 +1652,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     );
   };
 
-  return (
-    <>
-      {renderPackageForm()}
-      <OnboardingBottomSheet
-        isOpen={showOnboarding}
-        onContinue={handleOnboardingContinue}
-        onClose={() => setShowOnboarding(false)}
-        slides={shopperOnboardingSlides}
-        gradientClassName="from-primary via-primary/80 to-primary/60"
-        variant="shopper"
-        modal={false}
-      />
-    </>
-  );
+  return renderPackageForm();
 };
 
 export default PackageRequestForm;
