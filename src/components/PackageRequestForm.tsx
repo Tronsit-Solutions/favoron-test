@@ -1625,7 +1625,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       {currentStep >= 1 && <div className="flex-shrink-0"><StepIndicator /></div>}
 
       {/* Scrollable content area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 min-h-0 px-6">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 min-h-0 px-6 touch-manipulation">
         {currentStep === 1 && renderStep1()}
         {currentStep === 2 && renderStep2()}
         {currentStep === 3 && renderStep3()}

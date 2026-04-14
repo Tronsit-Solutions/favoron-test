@@ -1530,7 +1530,7 @@ const TripForm = ({
     const formContent = (
       <>
         <StepIndicator />
-        <form onSubmit={handleSubmit} className="mobile-safe-form flex-1 overflow-y-auto overflow-x-hidden px-6">
+        <form onSubmit={handleSubmit} className="mobile-safe-form flex-1 overflow-y-auto overflow-x-hidden px-6 touch-manipulation">
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
