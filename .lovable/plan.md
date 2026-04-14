@@ -1,29 +1,21 @@
 
 
-## Plan: Make `package-chat-files` bucket private
+## Plan: Agregar 'cancelled' al CHECK constraint de user_type
 
-### Problem
-The bucket is set to `public = true`, which means anyone with a direct file URL can access chat files without authentication, bypassing all RLS policies.
+### Problema
+La columna `user_type` en `customer_experience_calls` tiene un CHECK constraint que solo permite `'shopper'` y `'traveler'`. El hook `useCancelledPackages.ts` inserta `user_type: 'cancelled'`, lo cual PostgreSQL rechaza sin importar quién lo haga.
 
-### Why this is safe to fix
-The codebase already handles private buckets correctly:
-- **Upload flow** (`usePackageChat.tsx`): Creates signed URLs via `createSignedUrl()` after upload and stores them in `file_url`
-- **Display flow** (`FileAttachment.tsx`): Uses `resolveSignedUrl()` which parses storage URLs and generates fresh signed URLs via the Supabase SDK
-- **Download flow** (`usePackageChat.tsx`): `downloadFile()` creates signed URLs for storage paths, or opens full URLs directly
+### Fix
+Una migración SQL para actualizar el constraint:
 
-### Existing RLS policies (already correct)
-- **SELECT**: Shopper, matched traveler, or admin can view files
-- **INSERT**: Shopper, matched traveler, or admin can upload
-- **UPDATE/DELETE**: Same scoping with admin access
-
-### Changes required
-
-**1. SQL Migration** -- Set bucket to private:
 ```sql
-UPDATE storage.buckets 
-SET public = false 
-WHERE id = 'package-chat-files';
+ALTER TABLE customer_experience_calls 
+DROP CONSTRAINT customer_experience_calls_user_type_check;
+
+ALTER TABLE customer_experience_calls 
+ADD CONSTRAINT customer_experience_calls_user_type_check 
+CHECK (user_type = ANY (ARRAY['shopper','traveler','cancelled']));
 ```
 
-That's it. One line. No code changes needed since the frontend already uses signed URLs everywhere.
+Sin cambios de código — el hook ya envía el valor correcto, solo falta que la base de datos lo acepte.
 
