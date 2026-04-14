@@ -64,8 +64,10 @@ const OnboardingBottomSheet = ({
     onSwipedRight: () => {
       if (currentSlide > 0) setCurrentSlide(currentSlide - 1);
     },
+    delta: 20,
     trackMouse: false,
     preventScrollOnSwipe: true,
+    touchEventOptions: { passive: true },
   });
 
   const SlideIcon = slide?.icon;
