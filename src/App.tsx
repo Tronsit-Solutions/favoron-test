@@ -15,6 +15,8 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import SupportBubble from "./components/SupportBubble";
+// TEMP: direct form test page (remove after testing)
+import PackageRequestForm from "./components/PackageRequestForm";
 
 // Lazy-loaded pages with retry logic for chunk failures
 const CustomsRegulation = lazyWithRetry(() => import("./pages/CustomsRegulation"), "CustomsRegulation");
@@ -52,112 +54,114 @@ const App = () => {
   }, []);
 
   return (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <PlatformFeesProvider>
-          <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/complete-profile" element={
-              <RequireAuth allowIncompleteProfile>
-                <CompleteProfile />
-              </RequireAuth>
-            } />
-            <Route path="/dashboard/*" element={
-              <RequireAuth>
-                <Dashboard />
-              </RequireAuth>
-            } />
-            <Route path="/admin/reports/month/:month" element={
-              <RequireAuth>
-                <MonthlyPackageDetails />
-              </RequireAuth>
-            } />
-            <Route path="/admin/control" element={
-              <RequireAuth>
-                <AdminControl />
-              </RequireAuth>
-            } />
-            <Route path="/admin/surveys" element={
-              <RequireAuth>
-                <AdminSurveys />
-              </RequireAuth>
-            } />
-            <Route path="/admin/favoron-banking" element={
-              <RequireAuth>
-                <AdminFavoronBanking />
-              </RequireAuth>
-            } />
-            <Route path="/admin/discounts" element={
-              <RequireAuth>
-                <AdminDiscounts />
-              </RequireAuth>
-            } />
-            <Route path="/admin/platform-fees" element={
-              <RequireAuth>
-                <AdminPlatformFees />
-              </RequireAuth>
-            } />
-            <Route path="/admin/reports" element={
-              <RequireAuth>
-                <AdminReports />
-              </RequireAuth>
-            } />
-            <Route path="/admin/delivery-points" element={
-              <RequireAuth>
-                <AdminDeliveryPoints />
-              </RequireAuth>
-            } />
-            <Route path="/admin/whatsapp" element={
-              <RequireAuth>
-                <AdminWhatsApp />
-              </RequireAuth>
-            } />
-            <Route path="/admin/referrals" element={
-              <RequireAuth>
-                <AdminReferrals />
-              </RequireAuth>
-            } />
-            <Route path="/admin/applications" element={
-              <RequireAuth>
-                <AdminApplications />
-              </RequireAuth>
-            } />
-            <Route path="/admin/customer-experience" element={
-              <RequireAuth>
-                <AdminCustomerExperience />
-              </RequireAuth>
-            } />
-            <Route path="/admin/roles" element={
-              <RequireAuth>
-                <AdminRoles />
-              </RequireAuth>
-            } />
-            <Route path="/operations" element={
-              <RequireOperations>
-                <Operations />
-              </RequireOperations>
-            } />
-            <Route path="/regulacion-aduanera" element={<CustomsRegulation />} />
-            <Route path="/terminos-y-condiciones" element={<TermsAndConditions />} />
-            <Route path="/aviso-legal" element={<AvisoLegal />} />
-            <Route path="/trabaja-con-nosotros" element={<WorkWithUs />} />
-            <Route path="/payment-callback" element={<PaymentCallback />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          </Suspense>
-          <SupportBubble />
-          </PlatformFeesProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <PlatformFeesProvider>
+              <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/complete-profile" element={
+                    <RequireAuth allowIncompleteProfile>
+                      <CompleteProfile />
+                    </RequireAuth>
+                  } />
+                  <Route path="/dashboard/*" element={
+                    <RequireAuth>
+                      <Dashboard />
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/reports/month/:month" element={
+                    <RequireAuth>
+                      <MonthlyPackageDetails />
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/control" element={
+                    <RequireAuth>
+                      <AdminControl />
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/surveys" element={
+                    <RequireAuth>
+                      <AdminSurveys />
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/favoron-banking" element={
+                    <RequireAuth>
+                      <AdminFavoronBanking />
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/discounts" element={
+                    <RequireAuth>
+                      <AdminDiscounts />
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/platform-fees" element={
+                    <RequireAuth>
+                      <AdminPlatformFees />
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/reports" element={
+                    <RequireAuth>
+                      <AdminReports />
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/delivery-points" element={
+                    <RequireAuth>
+                      <AdminDeliveryPoints />
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/whatsapp" element={
+                    <RequireAuth>
+                      <AdminWhatsApp />
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/referrals" element={
+                    <RequireAuth>
+                      <AdminReferrals />
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/applications" element={
+                    <RequireAuth>
+                      <AdminApplications />
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/customer-experience" element={
+                    <RequireAuth>
+                      <AdminCustomerExperience />
+                    </RequireAuth>
+                  } />
+                  <Route path="/admin/roles" element={
+                    <RequireAuth>
+                      <AdminRoles />
+                    </RequireAuth>
+                  } />
+                  <Route path="/operations" element={
+                    <RequireOperations>
+                      <Operations />
+                    </RequireOperations>
+                  } />
+                  {/* TEMP: test PackageRequestForm without auth — remove after testing */}
+                  <Route path="/test-form" element={<PackageRequestForm isOpen={true} onClose={() => { }} onSubmit={(d) => { console.log('submit', d); }} />} />
+                  <Route path="/regulacion-aduanera" element={<CustomsRegulation />} />
+                  <Route path="/terminos-y-condiciones" element={<TermsAndConditions />} />
+                  <Route path="/aviso-legal" element={<AvisoLegal />} />
+                  <Route path="/trabaja-con-nosotros" element={<WorkWithUs />} />
+                  <Route path="/payment-callback" element={<PaymentCallback />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+              <SupportBubble />
+            </PlatformFeesProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
 
