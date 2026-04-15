@@ -3,6 +3,22 @@ body[data-scroll-locked] {
   pointer-events: auto !important;
 }
 
+/* Disable hover styles on touch devices to prevent double-tap */
+@media (hover: none) and (pointer: coarse) {
+  .mobile-safe-form button:hover,
+  .mobile-safe-form a:hover,
+  .mobile-safe-form [role="button"]:hover,
+  .mobile-safe-form [role="radio"]:hover,
+  .mobile-safe-form [role="option"]:hover,
+  .mobile-safe-form label:hover {
+    /* Reset hover states on touch devices */
+    background-color: inherit;
+    color: inherit;
+    opacity: inherit;
+    border-color: inherit;
+  }
+}
+
 /* Mobile-safe form styles for traveler form */
 .mobile-safe-combobox {
   /* Ensure touch targets are large enough for mobile */
