@@ -1,30 +1,43 @@
 
+Objetivo: atacar la causa real del doble tap en los formularios de shopper y traveler sin seguir cambiando wrappers dentro de cada formulario.
 
-## Plan: Replace mobile div-drawer with Dialog in both forms
+Diagnóstico
+- `PackageRequestForm.tsx` y `TripForm.tsx` ya no usan `Sheet`; ambos usan el `Dialog` compartido.
+- La causa más probable sigue en `src/components/ui/dialog.tsx`, donde `DialogPrimitive.Content` tiene este handler global:
+  ```tsx
+  onOpenAutoFocus={(e) => {
+    if (window.innerWidth < 768) e.preventDefault();
+    props.onOpenAutoFocus?.(e);
+  }}
+  ```
+- Ese `preventDefault()` corre en mobile para todos los dialogs y puede desordenar el flujo de foco/touch de iOS Safari, que encaja con el síntoma de “primer tap no entra”.
 
-### What changes
+Plan de implementación
+1. Editar `src/components/ui/dialog.tsx`
+   - Eliminar el `onOpenAutoFocus` custom del `DialogPrimitive.Content`.
+   - No tocar `onPointerDownOutside` ni el resto de estilos/comportamiento.
 
-**Both `PackageRequestForm.tsx` and `TripForm.tsx`:**
+2. Dejar `PackageRequestForm.tsx` y `TripForm.tsx` sin cambios estructurales
+   - Ya están montando el `Dialog` compartido.
+   - No hace falta volver a cambiar wrappers si el problema está en la capa base.
 
-1. Remove the `isMobile` conditional branch — use a single `Dialog` for both mobile and desktop.
-2. Remove `useIsMobile` import and variable (if not used elsewhere in the file).
-3. Remove `Sheet`/`SheetContent`/`SheetHeader`/`SheetTitle`/`SheetDescription` imports.
-4. Replace the entire `if (isMobile) { ... }` block and the desktop `Dialog` block with a single unified `Dialog`:
+3. Validar impacto
+   - Probar ambos flujos:
+     - abrir “Nueva Solicitud de Paquete”
+     - abrir “Registrar Nuevo Viaje”
+   - Verificar en mobile que el primer tap funcione en:
+     - inputs de texto
+     - selects/combobox
+     - checkbox/radio
+     - calendario/popover
+     - botones de siguiente/atrás/cerrar
+   - Confirmar que el teclado no se abra de forma indeseada al abrir el modal.
 
-```tsx
-<Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-  <DialogContent className="h-[100dvh] max-h-[100dvh] w-full max-w-full m-0 p-0 flex flex-col rounded-t-2xl fixed bottom-0 translate-y-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom">
-    <DialogHeader>...</DialogHeader>
-    {formContent}
-  </DialogContent>
-</Dialog>
-```
+Archivos
+- `src/components/ui/dialog.tsx` — cambio real
+- `src/components/PackageRequestForm.tsx` — solo revisión
+- `src/components/TripForm.tsx` — solo revisión
 
-### Files modified
-- `src/components/PackageRequestForm.tsx` — lines ~1596-1670 replaced; imports cleaned
-- `src/components/TripForm.tsx` — lines ~1485-1537 replaced; imports cleaned
-
-### What stays the same
-- All form content, steps, validation, submission logic — untouched
-- `isMobile` references elsewhere in the files (e.g., logging) will be checked; if no other usage, the hook import is removed
-
+Nota técnica
+- Los intentos anteriores atacaron `Sheet`, overlays y CSS local, pero hoy esos formularios dependen del `Dialog` compartido. Mientras ese handler global siga haciendo `e.preventDefault()` en mobile, el problema puede persistir aunque el formulario interno cambie.
+- Si después de quitarlo todavía queda algún doble tap residual, el siguiente sospechoso sería CSS global de interacción táctil, no el wrapper de los forms.
