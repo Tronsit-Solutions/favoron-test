@@ -42,7 +42,7 @@ const TripForm = ({
   onClose,
   onSubmit
 }: TripFormProps) => {
-  
+
   const { openModal, closeModal } = useModalState();
   const { profile, updateProfile } = useAuth();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
@@ -148,7 +148,7 @@ const TripForm = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestId, setRequestId] = useState<string>('');
-  
+
   // Estado para mostrar lista completa de países
   const [showFullCountryListOrigin, setShowFullCountryListOrigin] = useState(false);
   const [showFullCountryListDestination, setShowFullCountryListDestination] = useState(false);
@@ -164,6 +164,14 @@ const TripForm = ({
     }
   }, [isOpen]);
 
+  // CSS-only body scroll lock (replaces react-remove-scroll which causes
+  // double-tap on iOS Safari due to non-passive touchmove listeners)
+  useEffect(() => {
+    if (!isOpen) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
+
   // Confirmar salida si hay cambios sin guardar
   useEffect(() => {
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -176,16 +184,16 @@ const TripForm = ({
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, [isDirty]);
-  
+
   // Use centralized city data
   const originCities = getCitiesByCountry(formData.fromCountry);
   const destinationCities = getCitiesByCountry(formData.toCountry);
-  
+
   // Check if destination has a delivery point configured
-  const destinationDeliveryPoint = formData.toCity && formData.toCountry 
+  const destinationDeliveryPoint = formData.toCity && formData.toCountry
     ? getDeliveryPointByCity(formData.toCity, formData.toCountry)
     : null;
-  
+
   // Determine if we should show the Guatemala delivery section
   const isDestinationGuatemala = formData.toCountry === 'guatemala';
   const hasInternationalDeliveryPoint = !!destinationDeliveryPoint;
@@ -206,7 +214,7 @@ const TripForm = ({
   // Step 1 validation (Viaje)
   const validateStep1 = (): { valid: boolean; missingFields: string[] } => {
     const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
-    
+
     const requiredFields = [
       { field: formData.fromCountry, name: 'país de origen' },
       { field: formData.fromCity, name: 'ciudad de origen' },
@@ -281,7 +289,7 @@ const TripForm = ({
     }
 
     setIsSubmitting(true);
-    
+
     try {
       console.log('📱 Traveler form submission started (mobile compatible)', {
         userAgent: navigator.userAgent,
@@ -291,19 +299,19 @@ const TripForm = ({
 
       const finalFromCity = formData.fromCity;
       const finalToCity = formData.toCity === 'Otra ciudad' ? formData.toCityOther : formData.toCity;
-      
+
       // Validate ALL steps before submitting
       const { valid: step1Valid, missingFields: step1Missing } = validateStep1();
       const { valid: step2Valid, missingFields: step2Missing } = validateStep2();
       const { valid: step3Valid, missingFields: step3Missing } = validateStep3();
-      
+
       const allMissingFields = [...step1Missing, ...step2Missing, ...step3Missing];
-      
+
       if (allMissingFields.length > 0) {
         console.error('❌ Form validation failed:', allMissingFields);
         logFormValidationError(allMissingFields, 'traveler-form-complete');
         toast.error(`Campos faltantes: ${allMissingFields.join(', ')}`);
-        
+
         // Navigate to the first step with errors
         if (!step1Valid) {
           setCurrentStep(1);
@@ -314,7 +322,7 @@ const TripForm = ({
         } else {
           setCurrentStep(4);
         }
-        
+
         setIsSubmitting(false);
         return;
       }
@@ -337,16 +345,16 @@ const TripForm = ({
       };
 
       console.log('✅ Form validation passed, submitting data');
-      
+
       await Promise.resolve(onSubmit(submitData));
-      
+
       console.log('✅ Form submitted successfully');
-      
+
       MetaPixel.trackTripLead({
         from: `${finalFromCity}, ${formData.fromCountry}`,
         to: `${finalToCity}, ${formData.toCountry}`
       });
-      
+
       onClose();
 
       const initialFormData = {
@@ -376,7 +384,7 @@ const TripForm = ({
         messengerPickupLocation: '',
         boostCode: ''
       };
-      
+
       setFormData(initialFormData);
       setShowMessengerForm(false);
       setMessengerData(null);
@@ -385,12 +393,12 @@ const TripForm = ({
       setShowFullCountryListOrigin(false);
       setShowFullCountryListDestination(false);
       setCurrentStep(1);
-      
+
       resetFormDraft();
-      
+
     } catch (error) {
       console.error('💥 Error submitting traveler form:', error);
-      
+
       const contextualFormData = {
         ...formData,
         packageReceivingAddress: '[REDACTED]',
@@ -399,14 +407,14 @@ const TripForm = ({
         hasMessengerData: !!messengerData,
         acceptedTerms
       };
-      
+
       logFormError(error, 'traveler-form', contextualFormData);
-      
+
       const isSafariIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent);
-      const errorMessage = isSafariIOS 
+      const errorMessage = isSafariIOS
         ? 'Error al enviar el formulario. Si usas Safari en iPhone, intenta: 1) Refrescar la página, 2) Usar Chrome/Firefox, o 3) Contactar soporte.'
         : 'Hubo un error al enviar el formulario. Por favor intenta nuevamente o contacta soporte si el problema persiste.';
-      
+
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -473,22 +481,19 @@ const TripForm = ({
           onClick={() => goToStep(1)}
           className="flex items-center cursor-pointer group"
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${
-            currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-          }`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+            }`}>
             1
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${
-            currentStep === 1 ? 'text-primary' : 'text-muted-foreground'
-          }`}>
+          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${currentStep === 1 ? 'text-primary' : 'text-muted-foreground'
+            }`}>
             Viaje
           </span>
         </button>
 
         {/* Connector 1-2 */}
-        <div className={`w-6 sm:w-10 h-0.5 transition-colors ${
-          currentStep >= 2 ? 'bg-primary' : 'bg-muted'
-        }`} />
+        <div className={`w-6 sm:w-10 h-0.5 transition-colors ${currentStep >= 2 ? 'bg-primary' : 'bg-muted'
+          }`} />
 
         {/* Step 2 */}
         <button
@@ -496,22 +501,19 @@ const TripForm = ({
           onClick={() => goToStep(2)}
           className="flex items-center cursor-pointer group"
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${
-            currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-          }`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+            }`}>
             2
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${
-            currentStep === 2 ? 'text-primary' : 'text-muted-foreground'
-          }`}>
+          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${currentStep === 2 ? 'text-primary' : 'text-muted-foreground'
+            }`}>
             Dirección
           </span>
         </button>
 
         {/* Connector 2-3 */}
-        <div className={`w-6 sm:w-8 h-0.5 transition-colors ${
-          currentStep >= 3 ? 'bg-primary' : 'bg-muted'
-        }`} />
+        <div className={`w-6 sm:w-8 h-0.5 transition-colors ${currentStep >= 3 ? 'bg-primary' : 'bg-muted'
+          }`} />
 
         {/* Step 3 */}
         <button
@@ -519,22 +521,19 @@ const TripForm = ({
           onClick={() => goToStep(3)}
           className="flex items-center cursor-pointer group"
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${
-            currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-          }`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+            }`}>
             3
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${
-            currentStep === 3 ? 'text-primary' : 'text-muted-foreground'
-          }`}>
+          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${currentStep === 3 ? 'text-primary' : 'text-muted-foreground'
+            }`}>
             Entrega
           </span>
         </button>
 
         {/* Connector 3-4 */}
-        <div className={`w-6 sm:w-8 h-0.5 transition-colors ${
-          currentStep >= 4 ? 'bg-primary' : 'bg-muted'
-        }`} />
+        <div className={`w-6 sm:w-8 h-0.5 transition-colors ${currentStep >= 4 ? 'bg-primary' : 'bg-muted'
+          }`} />
 
         {/* Step 4 */}
         <button
@@ -542,14 +541,12 @@ const TripForm = ({
           onClick={() => goToStep(4)}
           className="flex items-center cursor-pointer group"
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${
-            currentStep >= 4 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-          }`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${currentStep >= 4 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+            }`}>
             4
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${
-            currentStep === 4 ? 'text-primary' : 'text-muted-foreground'
-          }`}>
+          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${currentStep === 4 ? 'text-primary' : 'text-muted-foreground'
+            }`}>
             Confirmar
           </span>
         </button>
@@ -572,12 +569,12 @@ const TripForm = ({
         {/* Sección ORIGEN */}
         <div className="space-y-3">
           <Label className="text-sm font-medium">Origen</Label>
-          
+
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
             <div className="space-y-1">
               <Label htmlFor="fromCountry" className="text-xs text-muted-foreground">País *</Label>
               {!showFullCountryListOrigin ? (
-                <Select 
+                <Select
                   value={MAIN_COUNTRIES.some(c => c.value === formData.fromCountry) ? formData.fromCountry : ''}
                   onValueChange={(value) => {
                     if (value === '__otro__') {
@@ -638,13 +635,13 @@ const TripForm = ({
                   />
                 </div>
               ) : (
-                <Input 
+                <Input
                   id="fromCity"
-                  type="text" 
-                  placeholder="Ciudad" 
-                  value={formData.fromCity} 
-                  onChange={e => handleInputChange('fromCity', e.target.value)} 
-                  required 
+                  type="text"
+                  placeholder="Ciudad"
+                  value={formData.fromCity}
+                  onChange={e => handleInputChange('fromCity', e.target.value)}
+                  required
                   className="w-full text-sm"
                 />
               )}
@@ -655,12 +652,12 @@ const TripForm = ({
         {/* Sección DESTINO */}
         <div className="space-y-3">
           <Label className="text-sm font-medium">Destino</Label>
-          
+
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
             <div className="space-y-1">
               <Label htmlFor="toCountry" className="text-xs text-muted-foreground">País *</Label>
               {!showFullCountryListDestination ? (
-                <Select 
+                <Select
                   value={MAIN_COUNTRIES.some(c => c.value === formData.toCountry) ? formData.toCountry : ''}
                   onValueChange={(value) => {
                     if (value === '__otro__') {
@@ -727,25 +724,25 @@ const TripForm = ({
                   />
                 </div>
               ) : (
-                <Input 
+                <Input
                   id="toCity"
-                  type="text" 
-                  placeholder="Ciudad" 
-                  value={formData.toCity} 
-                  onChange={e => handleInputChange('toCity', e.target.value)} 
-                  required 
+                  type="text"
+                  placeholder="Ciudad"
+                  value={formData.toCity}
+                  onChange={e => handleInputChange('toCity', e.target.value)}
+                  required
                   className="w-full text-sm"
                 />
               )}
             </div>
           </div>
           {formData.toCity === 'Otra ciudad' && (
-            <Input 
-              placeholder="Escribe tu ciudad de destino" 
-              value={formData.toCityOther} 
-              onChange={e => handleInputChange('toCityOther', e.target.value)} 
-              className="mt-2" 
-              required 
+            <Input
+              placeholder="Escribe tu ciudad de destino"
+              value={formData.toCityOther}
+              onChange={e => handleInputChange('toCityOther', e.target.value)}
+              className="mt-2"
+              required
             />
           )}
         </div>
@@ -760,12 +757,12 @@ const TripForm = ({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 z-50" align="start">
-              <Calendar 
-                mode="single" 
-                selected={formData.arrivalDate || undefined} 
-                onSelect={date => handleInputChange('arrivalDate', date)} 
-                disabled={date => date < new Date()} 
-                initialFocus 
+              <Calendar
+                mode="single"
+                selected={formData.arrivalDate || undefined}
+                onSelect={date => handleInputChange('arrivalDate', date)}
+                disabled={date => date < new Date()}
+                initialFocus
                 className="pointer-events-auto"
               />
             </PopoverContent>
@@ -774,14 +771,14 @@ const TripForm = ({
 
         <div className="space-y-1">
           <Label htmlFor="availableSpace" className="text-xs text-muted-foreground">Espacio disponible (kg) *</Label>
-          <Input 
-            id="availableSpace" 
-            type="number" 
-            step="0.5" 
-            placeholder="5.0" 
-            value={formData.availableSpace} 
-            onChange={e => handleInputChange('availableSpace', e.target.value)} 
-            required 
+          <Input
+            id="availableSpace"
+            type="number"
+            step="0.5"
+            placeholder="5.0"
+            value={formData.availableSpace}
+            onChange={e => handleInputChange('availableSpace', e.target.value)}
+            required
           />
         </div>
       </div>
@@ -820,13 +817,13 @@ const TripForm = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="recipientName" className="text-xs text-muted-foreground">Nombre del receptor *</Label>
-            <Input 
-              id="recipientName" 
-              type="text" 
-              placeholder="Ej: Juan Pérez" 
-              value={formData.packageReceivingAddress.recipientName} 
-              onChange={e => handleAddressChange('recipientName', e.target.value)} 
-              required 
+            <Input
+              id="recipientName"
+              type="text"
+              placeholder="Ej: Juan Pérez"
+              value={formData.packageReceivingAddress.recipientName}
+              onChange={e => handleAddressChange('recipientName', e.target.value)}
+              required
             />
           </div>
 
@@ -854,14 +851,14 @@ const TripForm = ({
           <Label htmlFor="contactNumber" className="text-xs text-muted-foreground">Número de contacto *</Label>
           <div className="relative">
             <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input 
-              id="contactNumber" 
-              type="tel" 
-              placeholder="+1 (305) 123-4567" 
-              value={formData.packageReceivingAddress.contactNumber} 
-              onChange={e => handleAddressChange('contactNumber', e.target.value)} 
-              className="pl-10" 
-              required 
+            <Input
+              id="contactNumber"
+              type="tel"
+              placeholder="+1 (305) 123-4567"
+              value={formData.packageReceivingAddress.contactNumber}
+              onChange={e => handleAddressChange('contactNumber', e.target.value)}
+              className="pl-10"
+              required
             />
           </div>
           <p className="text-xs text-muted-foreground">
@@ -896,62 +893,62 @@ const TripForm = ({
 
         <div className="space-y-2">
           <Label htmlFor="streetAddress2" className="text-xs text-muted-foreground">Dirección línea 2 (opcional)</Label>
-          <Input 
-            id="streetAddress2" 
-            type="text" 
-            placeholder="Ej: Apt 4B, Suite 100" 
-            value={formData.packageReceivingAddress.streetAddress2} 
-            onChange={e => handleAddressChange('streetAddress2', e.target.value)} 
+          <Input
+            id="streetAddress2"
+            type="text"
+            placeholder="Ej: Apt 4B, Suite 100"
+            value={formData.packageReceivingAddress.streetAddress2}
+            onChange={e => handleAddressChange('streetAddress2', e.target.value)}
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label htmlFor="cityArea" className="text-xs text-muted-foreground">Ciudad / Estado *</Label>
-            <Input 
-              id="cityArea" 
-              type="text" 
-              placeholder="Ej: Miami, FL" 
-              value={formData.packageReceivingAddress.cityArea} 
-              onChange={e => handleAddressChange('cityArea', e.target.value)} 
-              required 
+            <Input
+              id="cityArea"
+              type="text"
+              placeholder="Ej: Miami, FL"
+              value={formData.packageReceivingAddress.cityArea}
+              onChange={e => handleAddressChange('cityArea', e.target.value)}
+              required
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="postalCode" className="text-xs text-muted-foreground">Código postal *</Label>
-            <Input 
-              id="postalCode" 
-              type="text" 
-              placeholder="Ej: 33101" 
-              value={formData.packageReceivingAddress.postalCode} 
-              onChange={e => handleAddressChange('postalCode', e.target.value)} 
-              required 
+            <Input
+              id="postalCode"
+              type="text"
+              placeholder="Ej: 33101"
+              value={formData.packageReceivingAddress.postalCode}
+              onChange={e => handleAddressChange('postalCode', e.target.value)}
+              required
               className={cn(
-                !formData.packageReceivingAddress.postalCode && 
-                formData.packageReceivingAddress.streetAddress 
-                  ? "border-amber-500 focus:ring-amber-500" 
+                !formData.packageReceivingAddress.postalCode &&
+                  formData.packageReceivingAddress.streetAddress
+                  ? "border-amber-500 focus:ring-amber-500"
                   : ""
               )}
             />
-            {!formData.packageReceivingAddress.postalCode && 
-             formData.packageReceivingAddress.streetAddress && (
-              <p className="text-xs text-amber-600 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                Ingresa código postal
-              </p>
-            )}
+            {!formData.packageReceivingAddress.postalCode &&
+              formData.packageReceivingAddress.streetAddress && (
+                <p className="text-xs text-amber-600 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  Ingresa código postal
+                </p>
+              )}
           </div>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="hotelAirbnbName" className="text-xs text-muted-foreground">Nombre del lugar (opcional)</Label>
-          <Input 
-            id="hotelAirbnbName" 
-            type="text" 
-            placeholder="Ej: Hotel InterContinental Miami" 
-            value={formData.packageReceivingAddress.hotelAirbnbName} 
-            onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)} 
+          <Input
+            id="hotelAirbnbName"
+            type="text"
+            placeholder="Ej: Hotel InterContinental Miami"
+            value={formData.packageReceivingAddress.hotelAirbnbName}
+            onChange={e => handleAddressChange('hotelAirbnbName', e.target.value)}
           />
         </div>
 
@@ -959,11 +956,11 @@ const TripForm = ({
           <Label htmlFor="additionalInstructions" className="text-xs text-muted-foreground">
             Instrucciones adicionales para envío (opcional)
           </Label>
-          <Textarea 
-            id="additionalInstructions" 
+          <Textarea
+            id="additionalInstructions"
             placeholder="Ej: Dejar paquete en recepción, llamar al llegar, horarios específicos de entrega..."
-            value={formData.packageReceivingAddress.additionalInstructions || ''} 
-            onChange={e => handleAddressChange('additionalInstructions', e.target.value)} 
+            value={formData.packageReceivingAddress.additionalInstructions || ''}
+            onChange={e => handleAddressChange('additionalInstructions', e.target.value)}
             className="min-h-[60px]"
             maxLength={300}
           />
@@ -1003,12 +1000,12 @@ const TripForm = ({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-50" align="start">
-                <Calendar 
-                  mode="single" 
-                  selected={formData.firstDayPackages || undefined} 
-                  onSelect={date => handleInputChange('firstDayPackages', date)} 
-                  disabled={date => date < new Date()} 
-                  initialFocus 
+                <Calendar
+                  mode="single"
+                  selected={formData.firstDayPackages || undefined}
+                  onSelect={date => handleInputChange('firstDayPackages', date)}
+                  disabled={date => date < new Date()}
+                  initialFocus
                   className="pointer-events-auto"
                 />
               </PopoverContent>
@@ -1025,12 +1022,12 @@ const TripForm = ({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-50" align="start">
-                <Calendar 
-                  mode="single" 
-                  selected={formData.lastDayPackages || undefined} 
-                  onSelect={date => handleInputChange('lastDayPackages', date)} 
-                  disabled={date => date < new Date() || (formData.firstDayPackages ? date < formData.firstDayPackages : false)} 
-                  initialFocus 
+                <Calendar
+                  mode="single"
+                  selected={formData.lastDayPackages || undefined}
+                  onSelect={date => handleInputChange('lastDayPackages', date)}
+                  disabled={date => date < new Date() || (formData.firstDayPackages ? date < formData.firstDayPackages : false)}
+                  initialFocus
                   className="pointer-events-auto"
                 />
               </PopoverContent>
@@ -1061,16 +1058,16 @@ const TripForm = ({
         <div className="space-y-4">
           <div>
             <h3 className="text-base font-medium">
-              {hasOfficialDeliveryOptions 
+              {hasOfficialDeliveryOptions
                 ? `Entrega de paquetes en ${isDestinationGuatemala ? 'Guatemala' : destinationDeliveryPoint?.name || 'destino'}`
                 : `¿Cómo entregarás los paquetes en ${formData.toCity || 'destino'}?`
               }
             </h3>
           </div>
-          
+
           <div className="space-y-3">
             <Label className="text-base font-medium">
-              {hasOfficialDeliveryOptions 
+              {hasOfficialDeliveryOptions
                 ? '¿Cómo vas a entregar los paquetes a Favorón? *'
                 : 'Selecciona cómo planeas entregar los paquetes *'
               }
@@ -1078,18 +1075,16 @@ const TripForm = ({
             <div className="grid grid-cols-1 gap-3">
               {hasOfficialDeliveryOptions && (
                 <>
-                  <div 
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${
-                      formData.deliveryMethod === 'oficina' 
-                        ? 'border-primary bg-primary/5 shadow-md' 
-                        : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
-                    }`}
+                  <div
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${formData.deliveryMethod === 'oficina'
+                      ? 'border-primary bg-primary/5 shadow-md'
+                      : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
+                      }`}
                     onClick={() => handleInputChange('deliveryMethod', 'oficina')}
                   >
                     <div className="flex items-center space-x-3">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        formData.deliveryMethod === 'oficina' ? 'border-primary bg-primary' : 'border-border'
-                      }`}>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.deliveryMethod === 'oficina' ? 'border-primary bg-primary' : 'border-border'
+                        }`}>
                         {formData.deliveryMethod === 'oficina' && (
                           <div className="w-2 h-2 rounded-full bg-primary-foreground" />
                         )}
@@ -1097,28 +1092,26 @@ const TripForm = ({
                       <div>
                         <p className="font-medium text-foreground">Entrego en oficina de Favorón</p>
                         <p className="text-sm text-muted-foreground">
-                          {isDestinationGuatemala 
+                          {isDestinationGuatemala
                             ? 'Zona 14, Ciudad de Guatemala'
                             : destinationDeliveryPoint?.instructions || destinationDeliveryPoint?.city || 'Punto de entrega'}
                         </p>
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Opción 2: Mensajero - SOLO para Guatemala */}
                   {isDestinationGuatemala && (
-                    <div 
-                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${
-                        formData.deliveryMethod === 'mensajero' 
-                          ? 'border-primary bg-primary/5 shadow-md' 
-                          : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
-                      }`}
+                    <div
+                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${formData.deliveryMethod === 'mensajero'
+                        ? 'border-primary bg-primary/5 shadow-md'
+                        : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
+                        }`}
                       onClick={() => handleInputChange('deliveryMethod', 'mensajero')}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          formData.deliveryMethod === 'mensajero' ? 'border-primary bg-primary' : 'border-border'
-                        }`}>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.deliveryMethod === 'mensajero' ? 'border-primary bg-primary' : 'border-border'
+                          }`}>
                           {formData.deliveryMethod === 'mensajero' && (
                             <div className="w-2 h-2 rounded-full bg-primary-foreground" />
                           )}
@@ -1130,21 +1123,19 @@ const TripForm = ({
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Opción 2 alternativa: Coordinación - para destinos internacionales con delivery point */}
                   {!isDestinationGuatemala && (
-                    <div 
-                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${
-                        formData.deliveryMethod === 'coordinacion' 
-                          ? 'border-primary bg-primary/5 shadow-md' 
-                          : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
-                      }`}
+                    <div
+                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${formData.deliveryMethod === 'coordinacion'
+                        ? 'border-primary bg-primary/5 shadow-md'
+                        : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
+                        }`}
                       onClick={() => handleInputChange('deliveryMethod', 'coordinacion')}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          formData.deliveryMethod === 'coordinacion' ? 'border-primary bg-primary' : 'border-border'
-                        }`}>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.deliveryMethod === 'coordinacion' ? 'border-primary bg-primary' : 'border-border'
+                          }`}>
                           {formData.deliveryMethod === 'coordinacion' && (
                             <div className="w-2 h-2 rounded-full bg-primary-foreground" />
                           )}
@@ -1158,21 +1149,19 @@ const TripForm = ({
                   )}
                 </>
               )}
-              
+
               {!hasOfficialDeliveryOptions && (
                 <>
-                  <div 
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${
-                      formData.deliveryMethod === 'correo' 
-                        ? 'border-primary bg-primary/5 shadow-md' 
-                        : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
-                    }`}
+                  <div
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${formData.deliveryMethod === 'correo'
+                      ? 'border-primary bg-primary/5 shadow-md'
+                      : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
+                      }`}
                     onClick={() => handleInputChange('deliveryMethod', 'correo')}
                   >
                     <div className="flex items-center space-x-3">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        formData.deliveryMethod === 'correo' ? 'border-primary bg-primary' : 'border-border'
-                      }`}>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.deliveryMethod === 'correo' ? 'border-primary bg-primary' : 'border-border'
+                        }`}>
                         {formData.deliveryMethod === 'correo' && (
                           <div className="w-2 h-2 rounded-full bg-primary-foreground" />
                         )}
@@ -1183,19 +1172,17 @@ const TripForm = ({
                       </div>
                     </div>
                   </div>
-                  
-                  <div 
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${
-                      formData.deliveryMethod === 'coordinacion_shopper' 
-                        ? 'border-primary bg-primary/5 shadow-md' 
-                        : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
-                    }`}
+
+                  <div
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${formData.deliveryMethod === 'coordinacion_shopper'
+                      ? 'border-primary bg-primary/5 shadow-md'
+                      : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
+                      }`}
                     onClick={() => handleInputChange('deliveryMethod', 'coordinacion_shopper')}
                   >
                     <div className="flex items-center space-x-3">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        formData.deliveryMethod === 'coordinacion_shopper' ? 'border-primary bg-primary' : 'border-border'
-                      }`}>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.deliveryMethod === 'coordinacion_shopper' ? 'border-primary bg-primary' : 'border-border'
+                        }`}>
                         {formData.deliveryMethod === 'coordinacion_shopper' && (
                           <div className="w-2 h-2 rounded-full bg-primary-foreground" />
                         )}
@@ -1209,15 +1196,15 @@ const TripForm = ({
                 </>
               )}
             </div>
-            
+
             {showMessengerForm && (
-              <MessengerPickupForm 
-                onSubmit={handleMessengerSubmit} 
-                onCancel={handleMessengerCancel} 
-                initialData={messengerData} 
+              <MessengerPickupForm
+                onSubmit={handleMessengerSubmit}
+                onCancel={handleMessengerCancel}
+                initialData={messengerData}
               />
             )}
-            
+
             {formData.deliveryMethod === 'mensajero' && messengerData && !showMessengerForm && (
               <div className="bg-green-50 border border-green-200 rounded p-3">
                 <p className="text-sm font-medium text-green-800 mb-1">✓ Información de recolección confirmada</p>
@@ -1231,7 +1218,7 @@ const TripForm = ({
 
           <div className="space-y-2">
             <Label>
-              {hasOfficialDeliveryOptions 
+              {hasOfficialDeliveryOptions
                 ? 'Fecha en la que entregarás los paquetes *'
                 : 'Fecha estimada de entrega *'
               }
@@ -1244,12 +1231,12 @@ const TripForm = ({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-50" align="start">
-                <Calendar 
-                  mode="single" 
-                  selected={formData.deliveryDate || undefined} 
-                  onSelect={date => handleInputChange('deliveryDate', date)} 
-                  disabled={date => date < new Date()} 
-                  initialFocus 
+                <Calendar
+                  mode="single"
+                  selected={formData.deliveryDate || undefined}
+                  onSelect={date => handleInputChange('deliveryDate', date)}
+                  disabled={date => date < new Date()}
+                  initialFocus
                   className="pointer-events-auto"
                 />
               </PopoverContent>
@@ -1291,7 +1278,7 @@ const TripForm = ({
           <div>
             <h3 className="text-base font-medium">Resumen del viaje</h3>
           </div>
-          
+
           <div className="bg-muted/50 rounded-lg p-4 space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Ruta:</span>
@@ -1327,7 +1314,7 @@ const TripForm = ({
           <div>
             <h3 className="text-base font-medium">Dirección de recepción</h3>
           </div>
-          
+
           <div className="bg-muted/50 rounded-lg p-4 space-y-3">
             <div className="flex justify-between items-start">
               <span className="text-sm text-muted-foreground">Recipiente:</span>
@@ -1357,7 +1344,7 @@ const TripForm = ({
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Ventana de recepción:</span>
               <span className="text-sm font-medium">
-                {formData.firstDayPackages ? format(formData.firstDayPackages, "dd/MM", { locale: es }) : '-'} 
+                {formData.firstDayPackages ? format(formData.firstDayPackages, "dd/MM", { locale: es }) : '-'}
                 {' - '}
                 {formData.lastDayPackages ? format(formData.lastDayPackages, "dd/MM", { locale: es }) : '-'}
               </span>
@@ -1426,11 +1413,11 @@ const TripForm = ({
         {/* Terms and Conditions Checkbox */}
         <div className="bg-gradient-to-r from-primary/5 to-primary/10 border-2 border-primary/20 rounded-lg p-3 sm:hover:border-primary/40 transition-all duration-200 group">
           <div className="flex items-start space-x-3">
-            <Checkbox 
-              id="acceptTerms" 
-              checked={acceptedTerms} 
-              onCheckedChange={checked => setAcceptedTerms(!!checked)} 
-              className="mt-1" 
+            <Checkbox
+              id="acceptTerms"
+              checked={acceptedTerms}
+              onCheckedChange={checked => setAcceptedTerms(!!checked)}
+              className="mt-1"
             />
             <div className="flex-1">
               <Label htmlFor="acceptTerms" className="text-sm font-medium text-black cursor-pointer sm:group-hover:text-black/80 transition-colors">
@@ -1453,10 +1440,10 @@ const TripForm = ({
             <ChevronLeft className="mr-2 h-4 w-4" />
             Atrás
           </Button>
-          <Button 
-            type="submit" 
-            variant="traveler" 
-            className="flex-1" 
+          <Button
+            type="submit"
+            variant="traveler"
+            className="flex-1"
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Enviando...' : 'Registrar Viaje'}
@@ -1465,7 +1452,7 @@ const TripForm = ({
       </div>
     );
   };
-  
+
   const renderTripForm = () => {
     const formContent = (
       <>
@@ -1481,8 +1468,8 @@ const TripForm = ({
     );
 
     return (
-      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DialogContent className="h-[100dvh] max-h-[100dvh] w-full max-w-full m-0 p-0 flex flex-col rounded-t-2xl fixed bottom-0 translate-y-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:max-w-xl md:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-[--radius] sm:p-6 sm:bottom-auto sm:translate-y-[-50%] sm:px-6 md:sm:px-8">
+      <Dialog modal={false} open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+        <DialogContent className="h-[100dvh] max-h-[100dvh] w-full max-w-full m-0 p-0 flex flex-col rounded-t-2xl inset-0 translate-x-0 translate-y-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:inset-auto sm:left-[50%] sm:top-[50%] sm:max-w-xl md:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-[--radius] sm:p-6 sm:px-6 md:px-8 sm:translate-x-[-50%] sm:translate-y-[-50%]">
           <DialogHeader className="px-6 pt-6 pb-2 sm:px-0 sm:pt-0 sm:pb-0">
             <DialogTitle className="flex items-center space-x-2">
               <Plane className="h-5 w-5 text-traveler" />
