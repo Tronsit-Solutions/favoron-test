@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useTabVisibilityProtection } from "@/hooks/useTabVisibilityProtection";
@@ -44,7 +42,7 @@ const TripForm = ({
   onClose,
   onSubmit
 }: TripFormProps) => {
-  const isMobile = useIsMobile();
+  
   const { openModal, closeModal } = useModalState();
   const { profile, updateProfile } = useAuth();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
@@ -1482,47 +1480,10 @@ const TripForm = ({
       </>
     );
 
-    if (isMobile) {
-      return (
-        isOpen ? (
-          <div
-            className="fixed inset-0 z-50 flex flex-col justify-end"
-            style={{ touchAction: 'manipulation' }}
-          >
-            <div
-              className="bg-background rounded-t-2xl flex flex-col h-[100dvh] max-h-[100dvh] overflow-hidden p-0"
-              style={{ touchAction: 'manipulation', WebkitOverflowScrolling: 'touch' }}
-            >
-              <div className="px-6 pt-6 pb-2 flex-shrink-0 flex flex-col space-y-2 text-left">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground flex items-center space-x-2">
-                    <Plane className="h-5 w-5 text-traveler" />
-                    <span>Registrar Nuevo Viaje</span>
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="rounded-sm opacity-70 ring-offset-background transition-opacity active:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer touch-manipulation"
-                  >
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                  </button>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Llévate paquetes en tu próximo viaje y gana dinero extra.
-                </p>
-              </div>
-              {formContent}
-            </div>
-          </div>
-        ) : null
-      );
-    }
-
     return (
       <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DialogContent className="mobile-safe-form sm:max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto px-6 md:px-8">
-          <DialogHeader>
+        <DialogContent className="h-[100dvh] max-h-[100dvh] w-full max-w-full m-0 p-0 flex flex-col rounded-t-2xl fixed bottom-0 translate-y-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:max-w-xl md:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-[--radius] sm:p-6 sm:bottom-auto sm:translate-y-[-50%] sm:px-6 md:sm:px-8">
+          <DialogHeader className="px-6 pt-6 pb-2 sm:px-0 sm:pt-0 sm:pb-0">
             <DialogTitle className="flex items-center space-x-2">
               <Plane className="h-5 w-5 text-traveler" />
               <span>Registrar Nuevo Viaje</span>
