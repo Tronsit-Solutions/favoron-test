@@ -53,10 +53,10 @@ interface SheetContentProps
 
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
-  SheetContentProps
->(({ side = "right", className, children, ...props }, ref) => (
+  SheetContentProps & { hideOverlay?: boolean }
+>(({ side = "right", className, children, hideOverlay, ...props }, ref) => (
   <SheetPortal>
-    <SheetOverlay />
+    {!hideOverlay && <SheetOverlay />}
     <SheetPrimitive.Content
       ref={ref}
       className={cn(
@@ -68,6 +68,13 @@ const SheetContent = React.forwardRef<
         // Prevent autofocus on mobile to avoid first-tap being swallowed
         if (window.innerWidth < 768) e.preventDefault();
         props.onOpenAutoFocus?.(e);
+      }}
+      onPointerDownOutside={(e) => {
+        // When used as non-modal, prevent default so taps outside don't cause issues
+        props.onPointerDownOutside?.(e);
+      }}
+      onInteractOutside={(e) => {
+        props.onInteractOutside?.(e);
       }}
       {...props}
     >
