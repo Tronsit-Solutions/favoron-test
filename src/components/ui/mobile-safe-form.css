@@ -1,7 +1,3 @@
-/* Prevent Radix scroll-lock from blocking first tap on mobile */
-body[data-scroll-locked] {
-  pointer-events: auto !important;
-}
 
 /* Disable hover-driven interactions on touch devices to prevent double-tap */
 @media (hover: none) and (pointer: coarse) {
