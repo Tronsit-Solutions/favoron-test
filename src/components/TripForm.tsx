@@ -1484,20 +1484,38 @@ const TripForm = ({
 
     if (isMobile) {
       return (
-        <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }} modal={false}>
-          <SheetContent side="bottom" hideOverlay className="mobile-safe-form h-[100dvh] max-h-[100dvh] p-0 flex flex-col rounded-t-2xl touch-manipulation [-webkit-tap-highlight-color:transparent]">
-            <SheetHeader className="px-6 pt-6 pb-2 flex-shrink-0">
-              <SheetTitle className="flex items-center space-x-2">
-                <Plane className="h-5 w-5 text-traveler" />
-                <span>Registrar Nuevo Viaje</span>
-              </SheetTitle>
-              <SheetDescription>
-                Llévate paquetes en tu próximo viaje y gana dinero extra.
-              </SheetDescription>
-            </SheetHeader>
-            {formContent}
-          </SheetContent>
-        </Sheet>
+        isOpen ? (
+          <div
+            className="fixed inset-0 z-50 flex flex-col justify-end"
+            style={{ touchAction: 'manipulation' }}
+          >
+            <div
+              className="bg-background rounded-t-2xl flex flex-col h-[100dvh] max-h-[100dvh] overflow-hidden p-0"
+              style={{ touchAction: 'manipulation', WebkitOverflowScrolling: 'touch' }}
+            >
+              <div className="px-6 pt-6 pb-2 flex-shrink-0 flex flex-col space-y-2 text-left">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-foreground flex items-center space-x-2">
+                    <Plane className="h-5 w-5 text-traveler" />
+                    <span>Registrar Nuevo Viaje</span>
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="rounded-sm opacity-70 ring-offset-background transition-opacity active:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer touch-manipulation"
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                  </button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Llévate paquetes en tu próximo viaje y gana dinero extra.
+                </p>
+              </div>
+              {formContent}
+            </div>
+          </div>
+        ) : null
       );
     }
 

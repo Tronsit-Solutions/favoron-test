@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, Plus, Trash2, Weight, ChevronLeft, ChevronRight, Check, ShoppingCart, Truck, Search } from "lucide-react";
+import { CalendarIcon, Package, Link2, DollarSign, AlertCircle, MapPin, Globe, Plus, Trash2, Weight, ChevronLeft, ChevronRight, Check, ShoppingCart, Truck, Search, X } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import AddressForm from "@/components/AddressForm";
@@ -1596,23 +1596,41 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const renderPackageForm = () => {
     if (isMobile) {
       return (
-        <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-          <SheetContent side="bottom" hideOverlay className="mobile-safe-form h-[100dvh] max-h-[100dvh] p-0 flex flex-col rounded-t-2xl touch-manipulation [-webkit-tap-highlight-color:transparent]">
-            <SheetHeader className="px-6 pt-6 pb-2 flex-shrink-0">
-              <SheetTitle className="flex items-center space-x-2">
-                <Package className="h-5 w-5 text-primary" />
-                <span>{editMode ? `Editar Solicitud` : 'Nueva Solicitud de Paquete'}</span>
-              </SheetTitle>
-              <SheetDescription className="text-left">
-                {editMode 
-                  ? 'Modifica la información de tu solicitud.'
-                  : 'Completa la información del producto que necesitas.'
-                }
-              </SheetDescription>
-            </SheetHeader>
-            {formInnerContent}
-          </SheetContent>
-        </Sheet>
+        isOpen ? (
+          <div
+            className="fixed inset-0 z-50 flex flex-col justify-end"
+            style={{ touchAction: 'manipulation' }}
+          >
+            <div
+              className="bg-background rounded-t-2xl flex flex-col h-[100dvh] max-h-[100dvh] overflow-hidden p-0"
+              style={{ touchAction: 'manipulation', WebkitOverflowScrolling: 'touch' }}
+            >
+              <div className="px-6 pt-6 pb-2 flex-shrink-0 flex flex-col space-y-2 text-left">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-foreground flex items-center space-x-2">
+                    <Package className="h-5 w-5 text-primary" />
+                    <span>{editMode ? `Editar Solicitud` : 'Nueva Solicitud de Paquete'}</span>
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="rounded-sm opacity-70 ring-offset-background transition-opacity active:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer touch-manipulation"
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                  </button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {editMode 
+                    ? 'Modifica la información de tu solicitud.'
+                    : 'Completa la información del producto que necesitas.'
+                  }
+                </p>
+              </div>
+              {formInnerContent}
+            </div>
+          </div>
+        ) : null
       );
     }
 
