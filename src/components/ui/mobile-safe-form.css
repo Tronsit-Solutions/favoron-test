@@ -3,19 +3,33 @@ body[data-scroll-locked] {
   pointer-events: auto !important;
 }
 
-/* Disable hover styles on touch devices to prevent double-tap */
+/* Disable hover-driven interactions on touch devices to prevent double-tap */
 @media (hover: none) and (pointer: coarse) {
-  .mobile-safe-form button:hover,
-  .mobile-safe-form a:hover,
-  .mobile-safe-form [role="button"]:hover,
-  .mobile-safe-form [role="radio"]:hover,
-  .mobile-safe-form [role="option"]:hover,
-  .mobile-safe-form label:hover {
-    /* Reset hover states on touch devices */
-    background-color: inherit;
-    color: inherit;
-    opacity: inherit;
-    border-color: inherit;
+  .mobile-safe-form :is(
+    button,
+    a,
+    label,
+    [role="button"],
+    [role="radio"],
+    [role="option"],
+    [data-radix-collection-item]
+  ) {
+    cursor: pointer;
+    -webkit-touch-callout: none;
+  }
+
+  .mobile-safe-form :is(
+    button,
+    a,
+    label,
+    [role="button"],
+    [role="radio"],
+    [role="option"],
+    [data-radix-collection-item]
+  ):hover {
+    cursor: pointer;
+    transform: none;
+    filter: none;
   }
 }
 
@@ -31,6 +45,7 @@ body[data-scroll-locked] {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   min-height: 44px;
+  cursor: pointer;
 }
 
 /* Enhanced date picker styles for mobile */
@@ -60,6 +75,20 @@ body[data-scroll-locked] {
 ) {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-safe-form :is(
+  button,
+  a,
+  label,
+  [role="button"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="combobox"],
+  [role="option"],
+  [data-radix-collection-item]
+) {
+  cursor: pointer;
 }
 
 /* Calendar interaction fixes for mobile Safari */
