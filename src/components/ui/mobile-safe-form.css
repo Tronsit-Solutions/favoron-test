@@ -1,3 +1,8 @@
+/* Prevent Radix scroll-lock from blocking first tap on mobile */
+body[data-scroll-locked] {
+  pointer-events: auto !important;
+}
+
 /* Mobile-safe form styles for traveler form */
 .mobile-safe-combobox {
   /* Ensure touch targets are large enough for mobile */
