@@ -237,14 +237,18 @@ const Dashboard = ({ user }: DashboardProps) => {
   const isPackageFormOpen = showPackageForm || currentPath.endsWith('/package');
   const isTripFormOpen = showTripForm || currentPath.endsWith('/trip');
 
+  // Only auto-show onboarding on desktop; on mobile, the Sheet form is already open
+  // and stacking a modal Dialog on top causes the "double-tap" issue.
+  const isMobileViewport = window.innerWidth < 768;
+
   useEffect(() => {
-    if (isPackageFormOpen && profile?.ui_preferences?.skip_package_intro !== true) {
+    if (isPackageFormOpen && !isMobileViewport && profile?.ui_preferences?.skip_package_intro !== true) {
       setShowShopperOnboarding(true);
     }
   }, [isPackageFormOpen]);
 
   useEffect(() => {
-    if (isTripFormOpen && profile?.ui_preferences?.skip_trip_intro !== true) {
+    if (isTripFormOpen && !isMobileViewport && profile?.ui_preferences?.skip_trip_intro !== true) {
       setShowTravelerOnboarding(true);
     }
   }, [isTripFormOpen]);
