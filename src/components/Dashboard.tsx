@@ -1212,23 +1212,27 @@ const Dashboard = ({ user }: DashboardProps) => {
           </TabsContent>
         </Tabs>
 
-        <OnboardingBottomSheet
-          isOpen={showTravelerOnboarding}
-          onContinue={handleTravelerOnboardingContinue}
-          onClose={() => setShowTravelerOnboarding(false)}
-          slides={travelerOnboardingSlides}
-          gradientClassName="from-traveler via-traveler/80 to-traveler/60"
-          variant="traveler"
-        />
+        {showTravelerOnboarding && (
+          <OnboardingBottomSheet
+            isOpen={showTravelerOnboarding}
+            onContinue={handleTravelerOnboardingContinue}
+            onClose={() => setShowTravelerOnboarding(false)}
+            slides={travelerOnboardingSlides}
+            gradientClassName="from-traveler via-traveler/80 to-traveler/60"
+            variant="traveler"
+          />
+        )}
 
-        <OnboardingBottomSheet
-          isOpen={showShopperOnboarding}
-          onContinue={handleShopperOnboardingContinue}
-          onClose={() => setShowShopperOnboarding(false)}
-          slides={shopperOnboardingSlides}
-          gradientClassName="from-primary via-primary/80 to-primary/60"
-          variant="shopper"
-        />
+        {showShopperOnboarding && (
+          <OnboardingBottomSheet
+            isOpen={showShopperOnboarding}
+            onContinue={handleShopperOnboardingContinue}
+            onClose={() => setShowShopperOnboarding(false)}
+            slides={shopperOnboardingSlides}
+            gradientClassName="from-primary via-primary/80 to-primary/60"
+            variant="shopper"
+          />
+        )}
       </div>
 
       {/* URL-based routing for forms */}
@@ -1260,23 +1264,27 @@ const Dashboard = ({ user }: DashboardProps) => {
       </Routes>
 
       {/* Legacy modals for backward compatibility */}
-      <Suspense fallback={null}>
-        <PackageRequestForm
-          isOpen={showPackageForm}
-          onClose={() => setShowPackageForm(false)}
-          onSubmit={handlePackageSubmit}
-        />
-      </Suspense>
+      {showPackageForm && (
+        <Suspense fallback={null}>
+          <PackageRequestForm
+            isOpen={showPackageForm}
+            onClose={() => setShowPackageForm(false)}
+            onSubmit={handlePackageSubmit}
+          />
+        </Suspense>
+      )}
 
-      <Suspense fallback={null}>
-        <TripForm
-          isOpen={showTripForm}
-          onClose={() => setShowTripForm(false)}
-          onSubmit={handleTripSubmit}
-        />
-      </Suspense>
+      {showTripForm && (
+        <Suspense fallback={null}>
+          <TripForm
+            isOpen={showTripForm}
+            onClose={() => setShowTripForm(false)}
+            onSubmit={handleTripSubmit}
+          />
+        </Suspense>
+      )}
 
-      {selectedPackageForAddress && (
+      {selectedPackageForAddress && showAddressConfirmation && (
         <AddressConfirmationModal
           isOpen={showAddressConfirmation}
           onClose={() => {
@@ -1296,7 +1304,7 @@ const Dashboard = ({ user }: DashboardProps) => {
         />
       )}
 
-      {selectedPackageForQuote && (
+      {selectedPackageForQuote && showQuoteDialog && (
         <Suspense fallback={null}>
         <QuoteDialog
           isOpen={showQuoteDialog}
@@ -1361,58 +1369,70 @@ const Dashboard = ({ user }: DashboardProps) => {
         </Suspense>
       )}
 
-      <AvailableTripsModal
-        isOpen={showAvailableTripsModal}
-        onClose={() => setShowAvailableTripsModal(false)}
-      />
+      {showAvailableTripsModal && (
+        <AvailableTripsModal
+          isOpen={showAvailableTripsModal}
+          onClose={() => setShowAvailableTripsModal(false)}
+        />
+      )}
 
       {/* Keep EditProfileModal for legacy access from within profile components */}
-      <Suspense fallback={null}>
-        <EditProfileModal
-          user={currentUser}
-          isOpen={showProfile && activeTab !== 'profile'}
-          onClose={() => setShowProfile(false)}
-          onUpdateUser={handleUpdateUser}
-        />
-      </Suspense>
+      {showProfile && activeTab !== 'profile' && (
+        <Suspense fallback={null}>
+          <EditProfileModal
+            user={currentUser}
+            isOpen={showProfile && activeTab !== 'profile'}
+            onClose={() => setShowProfile(false)}
+            onUpdateUser={handleUpdateUser}
+          />
+        </Suspense>
+      )}
 
       {/* Prime Modal */}
-      <Suspense fallback={null}>
-        <PrimeModal
-          isOpen={showPrimeModal}
-          onClose={() => setShowPrimeModal(false)}
-          user={currentUser}
-        />
-      </Suspense>
+      {showPrimeModal && (
+        <Suspense fallback={null}>
+          <PrimeModal
+            isOpen={showPrimeModal}
+            onClose={() => setShowPrimeModal(false)}
+            user={currentUser}
+          />
+        </Suspense>
+      )}
 
       {/* Acquisition Survey Modal */}
-      <Suspense fallback={null}>
-        <AcquisitionSurveyModal
-          isOpen={showAcquisitionSurvey}
-          onComplete={handleSurveyComplete}
-        />
-      </Suspense>
+      {showAcquisitionSurvey && (
+        <Suspense fallback={null}>
+          <AcquisitionSurveyModal
+            isOpen={showAcquisitionSurvey}
+            onComplete={handleSurveyComplete}
+          />
+        </Suspense>
+      )}
 
       {/* Profile Completion Modal - Auto-shows for incomplete profiles */}
-      <ProfileCompletionModal
-        isOpen={showProfileCompletionModal}
-        onClose={() => setShowProfileCompletionModal(false)}
-        onComplete={() => {
-          setShowProfileCompletionModal(false);
-          toast({
-            title: "¡Perfil completado!",
-            description: "Ahora puedes solicitar paquetes y registrar viajes.",
-          });
-        }}
-        title="Completa tu perfil"
-        description="Necesitamos tu información de contacto para que puedas usar la plataforma."
-      />
+      {showProfileCompletionModal && (
+        <ProfileCompletionModal
+          isOpen={showProfileCompletionModal}
+          onClose={() => setShowProfileCompletionModal(false)}
+          onComplete={() => {
+            setShowProfileCompletionModal(false);
+            toast({
+              title: "¡Perfil completado!",
+              description: "Ahora puedes solicitar paquetes y registrar viajes.",
+            });
+          }}
+          title="Completa tu perfil"
+          description="Necesitamos tu información de contacto para que puedas usar la plataforma."
+        />
+      )}
 
       {/* Referral Announcement Slideshow - shown once */}
-      <ReferralAnnouncementModal
-        isOpen={showReferralAnnouncement}
-        onClose={handleReferralAnnouncementClose}
-      />
+      {showReferralAnnouncement && (
+        <ReferralAnnouncementModal
+          isOpen={showReferralAnnouncement}
+          onClose={handleReferralAnnouncementClose}
+        />
+      )}
 
     </div>
   );
