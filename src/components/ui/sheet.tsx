@@ -64,11 +64,6 @@ const SheetContent = React.forwardRef<
         "z-50 pointer-events-auto touch-manipulation [-webkit-tap-highlight-color:transparent]",
         className
       )}
-      onOpenAutoFocus={(e) => {
-        // Prevent autofocus on mobile to avoid first-tap being swallowed
-        if (window.innerWidth < 768) e.preventDefault();
-        props.onOpenAutoFocus?.(e);
-      }}
       onPointerDownOutside={(e) => {
         // When used as non-modal, prevent default so taps outside don't cause issues
         props.onPointerDownOutside?.(e);
