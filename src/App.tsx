@@ -15,8 +15,9 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import SupportBubble from "./components/SupportBubble";
-// TEMP: direct form test page (remove after testing)
+// TEMP: direct form test pages (remove after testing)
 import PackageRequestForm from "./components/PackageRequestForm";
+import TripForm from "./components/TripForm";
 
 // Lazy-loaded pages with retry logic for chunk failures
 const CustomsRegulation = lazyWithRetry(() => import("./pages/CustomsRegulation"), "CustomsRegulation");
@@ -145,8 +146,9 @@ const App = () => {
                       <Operations />
                     </RequireOperations>
                   } />
-                  {/* TEMP: test PackageRequestForm without auth — remove after testing */}
+                  {/* TEMP: test forms without auth — remove after testing */}
                   <Route path="/test-form" element={<PackageRequestForm isOpen={true} onClose={() => { }} onSubmit={(d) => { console.log('submit', d); }} />} />
+                  <Route path="/test-trip" element={<TripForm isOpen={true} onClose={() => { }} onSubmit={(d) => { console.log('submit', d); }} />} />
                   <Route path="/regulacion-aduanera" element={<CustomsRegulation />} />
                   <Route path="/terminos-y-condiciones" element={<TermsAndConditions />} />
                   <Route path="/aviso-legal" element={<AvisoLegal />} />
