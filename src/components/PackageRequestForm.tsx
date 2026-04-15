@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useFormAutosave } from "@/hooks/useFormAutosave";
 import { useModalState } from "@/contexts/ModalStateContext";
 import { useTabVisibilityProtection } from "@/hooks/useTabVisibilityProtection";
@@ -36,7 +34,7 @@ interface PackageRequestFormProps {
 }
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
-  const isMobile = useIsMobile();
+  
   const { openModal, closeModal } = useModalState();
   const { profile, updateProfile, userRole } = useAuth();
   const { getDeliveryPointByCity } = useDeliveryPoints();
@@ -1573,71 +1571,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     );
   };
 
-  const formInnerContent = (
-    <div className="mobile-safe-form flex flex-1 flex-col min-h-0 touch-manipulation">
-      {/* Step Indicator */}
-      {currentStep >= 1 && <div className="flex-shrink-0"><StepIndicator /></div>}
-
-      {/* Scrollable content area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 min-h-0 px-6 touch-manipulation">
-        {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderStep3()}
-        {currentStep === 4 && renderStep4()}
-      </div>
-      
-      {/* Sticky navigation buttons */}
-      <div className="flex-shrink-0 pt-4 border-t border-border bg-background px-6 pb-6">
-        {renderNavigationButtons()}
-      </div>
-    </div>
-  );
 
   const renderPackageForm = () => {
-    if (isMobile) {
-      return (
-        isOpen ? (
-          <div
-            className="fixed inset-0 z-50 flex flex-col justify-end"
-            style={{ touchAction: 'manipulation' }}
-          >
-            <div
-              className="bg-background rounded-t-2xl flex flex-col h-[100dvh] max-h-[100dvh] overflow-hidden p-0"
-              style={{ touchAction: 'manipulation', WebkitOverflowScrolling: 'touch' }}
-            >
-              <div className="px-6 pt-6 pb-2 flex-shrink-0 flex flex-col space-y-2 text-left">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground flex items-center space-x-2">
-                    <Package className="h-5 w-5 text-primary" />
-                    <span>{editMode ? `Editar Solicitud` : 'Nueva Solicitud de Paquete'}</span>
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="rounded-sm opacity-70 ring-offset-background transition-opacity active:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer touch-manipulation"
-                  >
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Close</span>
-                  </button>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {editMode 
-                    ? 'Modifica la información de tu solicitud.'
-                    : 'Completa la información del producto que necesitas.'
-                  }
-                </p>
-              </div>
-              {formInnerContent}
-            </div>
-          </div>
-        ) : null
-      );
-    }
-
     return (
       <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DialogContent className="mobile-safe-form sm:max-w-xl md:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden px-6 md:px-8">
-          <DialogHeader className="flex-shrink-0">
+        <DialogContent className="h-[100dvh] max-h-[100dvh] w-full max-w-full m-0 p-0 flex flex-col rounded-t-2xl fixed bottom-0 translate-y-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:max-w-xl md:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-[--radius] sm:p-6 sm:bottom-auto sm:translate-y-[-50%]">
+          <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-2 sm:px-0 sm:pt-0 sm:pb-0">
             <DialogTitle className="flex items-center space-x-2">
               <Package className="h-5 w-5 text-primary" />
               <span>{editMode ? `Editar Solicitud ${initialData?.id ? `#${initialData.id}` : ''}` : 'Nueva Solicitud de Paquete'}</span>
@@ -1651,10 +1590,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           </DialogHeader>
 
           {/* Step Indicator */}
-          {currentStep >= 1 && <div className="flex-shrink-0"><StepIndicator /></div>}
+          {currentStep >= 1 && <div className="flex-shrink-0 px-6 sm:px-0"><StepIndicator /></div>}
 
           {/* Scrollable content area */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 min-h-0">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 min-h-0 px-6 sm:px-0">
             {currentStep === 1 && renderStep1()}
             {currentStep === 2 && renderStep2()}
             {currentStep === 3 && renderStep3()}
@@ -1662,7 +1601,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           </div>
           
           {/* Sticky navigation buttons */}
-          <div className="flex-shrink-0 pt-4 border-t border-border bg-background">
+          <div className="flex-shrink-0 pt-4 border-t border-border bg-background px-6 pb-6 sm:px-0 sm:pb-0">
             {renderNavigationButtons()}
           </div>
         </DialogContent>
