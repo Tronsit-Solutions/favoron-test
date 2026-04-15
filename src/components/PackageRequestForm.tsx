@@ -34,12 +34,12 @@ interface PackageRequestFormProps {
 }
 
 const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initialData }: PackageRequestFormProps) => {
-  
+
   const { openModal, closeModal } = useModalState();
   const { profile, updateProfile, userRole } = useAuth();
   const { getDeliveryPointByCity } = useDeliveryPoints();
   useTabVisibilityProtection({ preventNavigationWithModals: true });
-  
+
   // Initialize data based on mode - helper functions
   const getInitialProducts = (): Product[] => {
     if (editMode && initialData?.products_data) {
@@ -121,8 +121,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     },
     addressData: (editMode && initialData?.delivery_address) ? initialData.delivery_address : null,
     formRequestType: editMode ? getInitialRequestType() : 'online' as 'online' | 'personal',
-    selectedCountry: (editMode && initialData?.package_destination_country) 
-      ? initialData.package_destination_country 
+    selectedCountry: (editMode && initialData?.package_destination_country)
+      ? initialData.package_destination_country
       : '' as string,
     showAddressForm: false,
     isReturn: false,
@@ -148,6 +148,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }
   }, [isOpen]);
 
+  // CSS-only body scroll lock (replaces react-remove-scroll which causes
+  // double-tap on iOS Safari due to non-passive touchmove listeners)
+  useEffect(() => {
+    if (!isOpen) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
+
   // Desestructurar estado para facilitar acceso
   const products = formState.products;
   const formData = formState.formData;
@@ -164,7 +172,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       updateField('products', newProducts);
     }
   };
-  
+
   const setFormData = (newFormData: typeof formData | ((prev: typeof formData) => typeof formData)) => {
     if (typeof newFormData === 'function') {
       setFormState(prev => ({ ...prev, formData: newFormData(prev.formData) }));
@@ -172,12 +180,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       updateField('formData', newFormData);
     }
   };
-  
+
   const setAddressData = (newAddress: typeof addressData) => updateField('addressData', newAddress);
   const setFormRequestType = (newType: typeof formRequestType) => updateField('formRequestType', newType);
   const setSelectedCountry = (country: string) => updateField('selectedCountry', country);
   const setShowAddressForm = (show: boolean) => updateField('showAddressForm', show);
-  
+
   // Helper para estado de devolución
   const isReturn = formState.isReturn || false;
   const setIsReturn = (value: boolean) => updateField('isReturn', value);
@@ -221,7 +229,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const destinationCountries = [
     { value: 'Guatemala', label: 'Guatemala' },
-  { value: 'Estados Unidos', label: 'Estados Unidos' },
+    { value: 'Estados Unidos', label: 'Estados Unidos' },
     { value: 'España', label: 'España' },
     { value: 'México', label: 'México' },
     { value: 'Otro', label: 'Otro país' }
@@ -283,11 +291,11 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   // Get the actual destination value
   const actualDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
   const isGuatemalaDestination = !!actualDestination;
-  const isGuatemalaCityDestination = actualDestination?.toLowerCase().includes('guatemala city') || 
+  const isGuatemalaCityDestination = actualDestination?.toLowerCase().includes('guatemala city') ||
     actualDestination?.toLowerCase().includes('ciudad de guatemala');
 
   // ============= STEP VALIDATION =============
-  
+
   // Step 1 validation (Tipo de solicitud + Origen)
   const validateStep1 = (): { valid: boolean; missingFields: string[] } => {
     const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
@@ -300,7 +308,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   // Step 2 validation (Productos)
   const validateStep2 = (): { valid: boolean; missingFields: string[] } => {
     const missingFields: string[] = [];
-    
+
     const isValidProduct = (p: Product) => {
       if (formRequestType === 'personal') {
         return p.itemDescription && p.instructions && p.weight && p.estimatedPrice && p.productPhotos && p.productPhotos.length > 0;
@@ -308,7 +316,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         return p.itemLink && p.itemDescription && p.estimatedPrice;
       }
     };
-    
+
     if (!products.every(isValidProduct)) {
       if (formRequestType === 'personal') {
         missingFields.push('descripción, instrucciones, peso, valor y fotos del producto');
@@ -316,16 +324,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         missingFields.push('link, descripción y precio de productos');
       }
     }
-    
+
     return { valid: missingFields.length === 0, missingFields };
   };
 
   // Step 3 validation (Destino + Entrega combinados)
   const validateStep3 = (): { valid: boolean; missingFields: string[] } => {
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
-    
+
     const missingFields: string[] = [];
-    
+
     if (!selectedCountry) missingFields.push('país de destino');
     if (!finalDestination) missingFields.push('ciudad de destino');
     if (!formData.deliveryMethod) missingFields.push('método de entrega');
@@ -345,7 +353,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         }
       }
     }
-    
+
     return { valid: missingFields.length === 0, missingFields };
   };
 
@@ -371,32 +379,32 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   // Manual submit handler - no event, no form element
   const handleManualSubmit = async () => {
     console.log('🚨 MANUAL SUBMIT TRIGGERED', { currentStep, totalSteps });
-    
+
     // Double-check we're on step 4
     if (currentStep !== 4) {
       console.log('❌ BLOCKED - Not on final step (step 4)');
       return;
     }
-    
+
     if (isSubmitting) return;
-    
+
     console.log('📝 FORM SUBMIT DEBUG - Starting form submission...');
     setIsSubmitting(true);
-    
+
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
     const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
-    
+
     // Validate ALL steps before submitting
     const { valid: step1Valid, missingFields: step1Missing } = validateStep1();
     const { valid: step2Valid, missingFields: step2Missing } = validateStep2();
     const { valid: step3Valid, missingFields: step3Missing } = validateStep3();
-    
+
     const allMissingFields = [...step1Missing, ...step2Missing, ...step3Missing];
-    
+
     if (allMissingFields.length > 0) {
       console.error('❌ Form validation failed:', allMissingFields);
       alert(`Campos faltantes: ${allMissingFields.join(', ')}`);
-      
+
       // Navigate to the first step with errors
       if (!step1Valid) {
         setCurrentStep(1);
@@ -405,17 +413,17 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
       } else if (!step3Valid) {
         setCurrentStep(3);
       }
-      
+
       setIsSubmitting(false);
       return;
     }
 
     const submitData: any = {
       ...formData,
-      deliveryDeadline: formData.deliveryDeadline 
-        ? (formData.deliveryDeadline instanceof Date 
-            ? formData.deliveryDeadline 
-            : new Date(formData.deliveryDeadline))
+      deliveryDeadline: formData.deliveryDeadline
+        ? (formData.deliveryDeadline instanceof Date
+          ? formData.deliveryDeadline
+          : new Date(formData.deliveryDeadline))
         : null,
       products: products,
       packageDestination: finalDestination,
@@ -432,16 +440,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     }
 
     console.log('📝 FORM SUBMIT DEBUG - Final submit data:', submitData);
-    
+
     try {
       await onSubmit(submitData);
       console.log('✅ FORM SUBMIT DEBUG - onSubmit completed successfully');
-      
+
       MetaPixel.trackPackageLead({
         destination: submitData.packageDestination,
         origin: submitData.purchaseOrigin
       });
-      
+
       if (!editMode) {
         const initialProducts: Product[] = [{
           itemLink: '',
@@ -461,21 +469,21 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           deliveryMethod: '',
           requestType: 'online' as 'online' | 'personal'
         };
-        
+
         setProducts(initialProducts);
         setFormData(initialFormData);
         setFormRequestType('online');
         setShowAddressForm(false);
         setAddressData(null);
         setCurrentStep(1);
-        
+
         resetFormDraft();
       }
-      
+
       onClose();
     } catch (error) {
       console.error('❌ FORM SUBMIT ERROR:', error);
-      
+
       const { logFormError } = await import('@/lib/formErrorLogger');
       logFormError(error, 'package-request-form', {
         productsCount: products.length,
@@ -485,12 +493,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         formMode: editMode ? 'edit' : 'create',
         isSafariIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent)
       });
-      
+
       const isSafariIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent);
-      const errorMessage = isSafariIOS 
+      const errorMessage = isSafariIOS
         ? 'Error en Safari iPhone. Intenta: 1) Refrescar, 2) Usar Chrome, o 3) Contactar soporte.'
         : 'Error al enviar la solicitud. Por favor intenta de nuevo.';
-      
+
       alert(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -498,7 +506,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   };
 
   const updateProduct = (index: number, field: keyof Product, value: any) => {
-    setProducts(prev => prev.map((product, i) => 
+    setProducts(prev => prev.map((product, i) =>
       i === index ? { ...product, [field]: value } : product
     ));
   };
@@ -531,7 +539,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     if (field === 'deliveryMethod') {
       if (value === 'delivery') {
         setShowAddressForm(true);
@@ -651,13 +659,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   // ============= STEP 1: TIPO DE SOLICITUD =============
   const renderStep1 = () => {
-  const handleTypeSelect = (type: 'online' | 'personal') => {
-    setFormRequestType(type);
-    // Reset isReturn when switching away from personal
-    if (type === 'online') {
-      setIsReturn(false);
-    }
-  };
+    const handleTypeSelect = (type: 'online' | 'personal') => {
+      setFormRequestType(type);
+      // Reset isReturn when switching away from personal
+      if (type === 'online') {
+        setIsReturn(false);
+      }
+    };
 
     return (
       <div className="space-y-6 animate-fade-in">
@@ -683,7 +691,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             Selecciona el tipo de solicitud y el país de origen
           </p>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Compra Online Card */}
           <button
@@ -691,16 +699,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             onClick={() => handleTypeSelect('online')}
             className={cn(
               "p-3 rounded-xl border-2 text-left transition-all sm:hover:shadow-md group touch-manipulation",
-              formRequestType === 'online' 
-                ? 'border-primary bg-primary/5 shadow-md' 
+              formRequestType === 'online'
+                ? 'border-primary bg-primary/5 shadow-md'
                 : 'border-border sm:hover:border-primary/50'
             )}
           >
             <div className="flex flex-row items-center gap-3 space-y-0">
               <div className={cn(
                 "w-10 h-10 rounded-full flex items-center justify-center transition-colors flex-shrink-0",
-                formRequestType === 'online' 
-                  ? 'bg-primary text-primary-foreground' 
+                formRequestType === 'online'
+                  ? 'bg-primary text-primary-foreground'
                   : 'bg-muted sm:group-hover:bg-primary/20'
               )}>
                 <ShoppingCart className="h-5 w-5" />
@@ -725,16 +733,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             onClick={() => handleTypeSelect('personal')}
             className={cn(
               "p-3 rounded-xl border-2 text-left transition-all sm:hover:shadow-md group touch-manipulation",
-              formRequestType === 'personal' 
-                ? 'border-primary bg-primary/5 shadow-md' 
+              formRequestType === 'personal'
+                ? 'border-primary bg-primary/5 shadow-md'
                 : 'border-border sm:hover:border-primary/50'
             )}
           >
             <div className="flex flex-row items-center gap-3 space-y-0">
               <div className={cn(
                 "w-10 h-10 rounded-full flex items-center justify-center transition-colors flex-shrink-0",
-                formRequestType === 'personal' 
-                  ? 'bg-primary text-primary-foreground' 
+                formRequestType === 'personal'
+                  ? 'bg-primary text-primary-foreground'
                   : 'bg-muted sm:group-hover:bg-primary/20'
               )}>
                 <Package className="h-5 w-5" />
@@ -788,8 +796,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         <div className="space-y-2 pt-2">
           <Label htmlFor="purchaseOrigin">¿En qué país está {formRequestType === 'personal' ? 'tu PAQUETE' : 'la TIENDA'}? *</Label>
           <p className="text-xs text-muted-foreground">
-            {formRequestType === 'personal' 
-              ? "El país desde donde enviarás tu paquete personal" 
+            {formRequestType === 'personal'
+              ? "El país desde donde enviarás tu paquete personal"
               : "Donde comprarás tu producto (ej: Amazon USA, eBay)"}
           </p>
           <Select value={formData.purchaseOrigin} onValueChange={(value) => handleInputChange('purchaseOrigin', value)}>
@@ -864,12 +872,12 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             {formRequestType === 'online' ? `¿Qué vas a comprar? * (${products.length}/5)` : '¿Qué vas a comprar? *'}
           </Label>
           <p className="text-xs text-muted-foreground mt-1">
-            {formRequestType === 'online' 
+            {formRequestType === 'online'
               ? 'Agrega los productos que deseas comprar online'
               : 'Describe el producto que necesitas que un viajero recoja'}
           </p>
         </div>
-        
+
         <div className="space-y-3">
           {products.map((product, index) => (
             <div key={index} className={formRequestType === 'online' ? "border border-border rounded-lg p-3 space-y-3" : "space-y-3"}>
@@ -1149,7 +1157,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           El país y ciudad donde deseas recibir tu paquete
         </p>
         <Select
-          value={selectedCountry} 
+          value={selectedCountry}
           onValueChange={(value) => {
             setSelectedCountry(value);
             handleInputChange('packageDestination', '');
@@ -1164,13 +1172,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             {destinationCountries
               .filter(country => !isReturn || country.value !== 'Guatemala')
               .map((country) => (
-              <SelectItem key={country.value} value={country.value}>
-                <div className="flex items-center space-x-2">
-                  <Globe className="h-4 w-4" />
-                  <span>{country.label}</span>
-                </div>
-              </SelectItem>
-            ))}
+                <SelectItem key={country.value} value={country.value}>
+                  <div className="flex items-center space-x-2">
+                    <Globe className="h-4 w-4" />
+                    <span>{country.label}</span>
+                  </div>
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
 
@@ -1217,8 +1225,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               onClick={() => handleInputChange('deliveryMethod', 'return_dropoff')}
               className={cn(
                 "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
-                formData.deliveryMethod === 'return_dropoff' 
-                  ? 'border-primary bg-primary/5' 
+                formData.deliveryMethod === 'return_dropoff'
+                  ? 'border-primary bg-primary/5'
                   : 'border-border sm:hover:border-muted-foreground'
               )}
             >
@@ -1237,14 +1245,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 </div>
               )}
             </button>
-            
+
             {/* Opción 2: Pickup programado */}
             <button type="button"
               onClick={() => handleInputChange('deliveryMethod', 'return_pickup')}
               className={cn(
                 "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
-                formData.deliveryMethod === 'return_pickup' 
-                  ? 'border-primary bg-primary/5' 
+                formData.deliveryMethod === 'return_pickup'
+                  ? 'border-primary bg-primary/5'
                   : 'border-border sm:hover:border-muted-foreground'
               )}
             >
@@ -1275,10 +1283,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             {(() => {
               const destinationDeliveryPoint = getDeliveryPointByCity(actualDestination, selectedCountry);
               const showPickup = isGuatemalaCityDestination || !!destinationDeliveryPoint;
-              
+
               if (!showPickup) return null;
-              
-              const pickupLabel = destinationDeliveryPoint 
+
+              const pickupLabel = destinationDeliveryPoint
                 ? `Recoger en ${destinationDeliveryPoint.name}`
                 : 'Pickup en Oficina (zona 14)';
               const pickupAddress = destinationDeliveryPoint?.address_line_1;
@@ -1291,8 +1299,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                   onClick={() => handleInputChange('deliveryMethod', 'pickup')}
                   className={cn(
                     "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
-                    formData.deliveryMethod === 'pickup' 
-                      ? 'border-primary bg-primary/5' 
+                    formData.deliveryMethod === 'pickup'
+                      ? 'border-primary bg-primary/5'
                       : 'border-border sm:hover:border-muted-foreground'
                   )}
                 >
@@ -1310,14 +1318,14 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 </button>
               );
             })()}
-            
+
             {/* Opción de delivery siempre disponible */}
             <button type="button"
               onClick={() => handleInputChange('deliveryMethod', 'delivery')}
               className={cn(
                 "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
-                formData.deliveryMethod === 'delivery' 
-                  ? 'border-primary bg-primary/5' 
+                formData.deliveryMethod === 'delivery'
+                  ? 'border-primary bg-primary/5'
                   : 'border-border sm:hover:border-muted-foreground'
               )}
             >
@@ -1336,7 +1344,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               </div>
             </button>
           </div>
-          
+
           {/* Mostrar formulario de dirección si seleccionó delivery */}
           {showAddressForm && (
             <AddressForm
@@ -1347,7 +1355,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               destinationCity={formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination}
             />
           )}
-          
+
           {/* Mostrar resumen de dirección si ya la completó */}
           {formData.deliveryMethod === 'delivery' && addressData && !showAddressForm && (
             <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded p-3">
@@ -1364,7 +1372,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               </Button>
             </div>
           )}
-          
+
           {/* Notas de costos - solo para Guatemala */}
           {selectedCountry === 'Guatemala' && (
             isGuatemalaCityDestination ? (
@@ -1397,7 +1405,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
   const renderStep4 = () => {
     const finalOrigin = formData.purchaseOrigin === 'Otro' ? formData.purchaseOriginOther : formData.purchaseOrigin;
     const finalDestination = formData.packageDestination === 'Otra ciudad' ? formData.packageDestinationOther : formData.packageDestination;
-    
+
     return (
       <div className="space-y-6 animate-fade-in">
         {/* Resumen visual */}
@@ -1406,7 +1414,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             <Package className="h-5 w-5 text-primary" />
             Resumen de tu solicitud
           </h3>
-          
+
           {/* Productos */}
           <div className="space-y-2">
             <p className="text-sm font-medium text-muted-foreground">Productos ({products.length})</p>
@@ -1416,9 +1424,9 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                   <div className="flex-1 min-w-0 mr-4">
                     <span className="truncate block">{product.itemDescription || 'Sin descripción'}</span>
                     {product.itemLink && (
-                      <a 
-                        href={product.itemLink} 
-                        target="_blank" 
+                      <a
+                        href={product.itemLink}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-primary sm:hover:underline"
                       >
@@ -1440,7 +1448,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               </div>
             )}
           </div>
-          
+
           {/* Ruta */}
           <div className="space-y-2">
             <p className="text-sm font-medium text-muted-foreground">Ruta</p>
@@ -1450,22 +1458,22 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               <span className="text-muted-foreground">→</span>
               <MapPin className="h-4 w-4 text-primary" />
               <span>
-                {selectedCountry 
+                {selectedCountry
                   ? `${selectedCountry}${finalDestination ? `, ${finalDestination}` : ''}`
                   : (finalDestination || 'No seleccionado')
                 }
               </span>
             </div>
           </div>
-          
+
           {/* Entrega */}
           <div className="space-y-2">
             <p className="text-sm font-medium text-muted-foreground">Entrega</p>
             <div className="flex items-center gap-2 text-sm">
               <Truck className="h-4 w-4 text-primary" />
               <span>
-                {formData.deliveryMethod === 'pickup' 
-                  ? 'Recoger en oficina (zona 14)' 
+                {formData.deliveryMethod === 'pickup'
+                  ? 'Recoger en oficina (zona 14)'
                   : formData.deliveryMethod === 'delivery'
                     ? `Domicilio: ${addressData?.streetAddress || 'Sin dirección'}`
                     : formData.deliveryMethod === 'return_dropoff'
@@ -1477,7 +1485,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               </span>
             </div>
           </div>
-          
+
           {/* Fecha límite */}
           {formData.deliveryDeadline && (
             <div className="space-y-2">
@@ -1547,22 +1555,22 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             Atrás
           </Button>
         )}
-        
+
         {currentStep !== 4 ? (
           <Button type="button" variant="shopper" onClick={handleNextStep} className="flex-1">
             Siguiente
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         ) : (
-          <Button 
-            type="button" 
-            variant="shopper" 
-            className="flex-1" 
+          <Button
+            type="button"
+            variant="shopper"
+            className="flex-1"
             disabled={isSubmitting}
             onClick={handleManualSubmit}
           >
-            {isSubmitting 
-              ? (editMode ? 'Guardando...' : 'Enviando...') 
+            {isSubmitting
+              ? (editMode ? 'Guardando...' : 'Enviando...')
               : (editMode ? 'Guardar Cambios' : 'Enviar Solicitud')
             }
           </Button>
@@ -1574,15 +1582,15 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const renderPackageForm = () => {
     return (
-      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DialogContent className="h-[100dvh] max-h-[100dvh] w-full max-w-full m-0 p-0 flex flex-col rounded-t-2xl fixed bottom-0 translate-y-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:max-w-xl md:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-[--radius] sm:p-6 sm:bottom-auto sm:translate-y-[-50%]">
+      <Dialog modal={false} open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+        <DialogContent className="h-[100dvh] max-h-[100dvh] w-full max-w-full m-0 p-0 flex flex-col rounded-t-2xl inset-0 translate-x-0 translate-y-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:inset-auto sm:left-[50%] sm:top-[50%] sm:max-w-xl md:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-[--radius] sm:p-6 sm:translate-x-[-50%] sm:translate-y-[-50%]">
           <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-2 sm:px-0 sm:pt-0 sm:pb-0">
             <DialogTitle className="flex items-center space-x-2">
               <Package className="h-5 w-5 text-primary" />
               <span>{editMode ? `Editar Solicitud ${initialData?.id ? `#${initialData.id}` : ''}` : 'Nueva Solicitud de Paquete'}</span>
             </DialogTitle>
             <DialogDescription className="text-left">
-              {editMode 
+              {editMode
                 ? 'Modifica la información de tu solicitud. Puedes agregar más productos.'
                 : 'Completa la información del producto que necesitas. Nuestro equipo revisará tu solicitud.'
               }
@@ -1599,13 +1607,13 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             {currentStep === 3 && renderStep3()}
             {currentStep === 4 && renderStep4()}
           </div>
-          
+
           {/* Sticky navigation buttons */}
           <div className="flex-shrink-0 pt-4 border-t border-border bg-background px-6 pb-6 sm:px-0 sm:pb-0">
             {renderNavigationButtons()}
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog >
     );
   };
 
