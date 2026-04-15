@@ -1571,25 +1571,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     );
   };
 
-  const formInnerContent = (
-    <div className="mobile-safe-form flex flex-1 flex-col min-h-0 touch-manipulation">
-      {/* Step Indicator */}
-      {currentStep >= 1 && <div className="flex-shrink-0"><StepIndicator /></div>}
-
-      {/* Scrollable content area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 min-h-0 px-6 touch-manipulation">
-        {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderStep3()}
-        {currentStep === 4 && renderStep4()}
-      </div>
-      
-      {/* Sticky navigation buttons */}
-      <div className="flex-shrink-0 pt-4 border-t border-border bg-background px-6 pb-6">
-        {renderNavigationButtons()}
-      </div>
-    </div>
-  );
 
   const renderPackageForm = () => {
     return (
