@@ -1,42 +1,119 @@
+/* ================================================================
+   mobile-safe-form.css
+   Safari iOS double-tap fixes for Radix UI + touch devices
+   ================================================================ */
+
+.mobile-safe-form {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* All interactive elements inside the form */
+.mobile-safe-form :is(input,
+  button,
+  select,
+  textarea,
+  label,
+  a,
+  div[role="button"],
+  [role="button"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="combobox"],
+  [role="option"],
+  [data-radix-collection-item]) {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-safe-form :is(button,
+  a,
+  label,
+  [role="button"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="combobox"],
+  [role="option"],
+  [data-radix-collection-item]) {
+  cursor: pointer;
+}
 
 /* Disable hover-driven interactions on touch devices to prevent double-tap */
 @media (hover: none) and (pointer: coarse) {
-  .mobile-safe-form :is(
-    button,
+
+  .mobile-safe-form :is(button,
     a,
     label,
     [role="button"],
     [role="radio"],
     [role="option"],
-    [data-radix-collection-item]
-  ) {
+    [data-radix-collection-item]) {
     cursor: pointer;
     -webkit-touch-callout: none;
   }
 
-  .mobile-safe-form :is(
-    button,
+  .mobile-safe-form :is(button,
     a,
     label,
     [role="button"],
     [role="radio"],
     [role="option"],
-    [data-radix-collection-item]
-  ):hover {
+    [data-radix-collection-item]):hover {
     cursor: pointer;
     transform: none;
     filter: none;
   }
 }
 
-/* Mobile-safe form styles for traveler form */
+[data-radix-popper-content-wrapper] {
+  z-index: 70 !important;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
+[data-radix-select-content],
+[data-radix-select-viewport],
+[data-radix-popover-content],
+[data-radix-dialog-content] {
+  pointer-events: auto !important;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 2. Fix interactive elements INSIDE Radix portals */
+[data-radix-select-content] [role="option"],
+[data-radix-select-content] [data-radix-collection-item] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+[data-radix-popover-content] button,
+[data-radix-popover-content] [role="gridcell"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 3. Dialog overlay — prevent it from eating taps */
+[data-radix-dialog-overlay] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure all children inside dialog content are tappable */
+[data-radix-dialog-content] * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== MOBILE-SAFE COMBOBOX ===== */
+
 .mobile-safe-combobox {
-  /* Ensure touch targets are large enough for mobile */
   min-height: 44px;
 }
 
 .mobile-safe-combobox button {
-  /* iOS Safari specific fixes */
   -webkit-appearance: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
@@ -44,50 +121,15 @@
   cursor: pointer;
 }
 
-/* Enhanced date picker styles for mobile */
+/* ===== UTILITY CLASS ===== */
+
 .touch-manipulation {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 
-.mobile-safe-form {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
+/* ===== CALENDAR FIXES ===== */
 
-.mobile-safe-form :is(
-  input,
-  button,
-  select,
-  textarea,
-  label,
-  a,
-  [role="button"],
-  [role="checkbox"],
-  [role="radio"],
-  [role="combobox"],
-  [role="option"],
-  [data-radix-collection-item]
-) {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.mobile-safe-form :is(
-  button,
-  a,
-  label,
-  [role="button"],
-  [role="checkbox"],
-  [role="radio"],
-  [role="combobox"],
-  [role="option"],
-  [data-radix-collection-item]
-) {
-  cursor: pointer;
-}
-
-/* Calendar interaction fixes for mobile Safari */
 .pointer-events-auto {
   pointer-events: auto !important;
   touch-action: manipulation;
@@ -98,28 +140,8 @@
   touch-action: manipulation;
 }
 
-/* Form input enhancements for mobile */
-@media (max-width: 768px) {
-  .mobile-safe-form input,
-  .mobile-safe-form button,
-  .mobile-safe-form select {
-    font-size: 16px; /* Prevent zoom on iOS */
-    min-height: 44px; /* iOS recommended touch target size */
-  }
-  
-  .mobile-safe-form .grid-cols-2 {
-    grid-template-columns: 1fr; /* Stack on mobile */
-    gap: 1rem;
-  }
-}
+/* ===== COMMAND PALETTE FIXES ===== */
 
-/* Popover z-index fixes for mobile */
-[data-radix-popper-content-wrapper] {
-  z-index: 70 !important;
-  pointer-events: auto !important;
-}
-
-/* Command palette mobile fixes */
 [cmdk-root] {
   touch-action: manipulation;
 }
@@ -130,4 +152,22 @@
   min-height: 44px;
   display: flex;
   align-items: center;
+}
+
+/* ===== MOBILE RESPONSIVE FORM ENHANCEMENTS ===== */
+
+@media (max-width: 768px) {
+
+  .mobile-safe-form input,
+  .mobile-safe-form button,
+  .mobile-safe-form select {
+    font-size: 16px;
+    /* Prevent zoom on iOS */
+    min-height: 44px;
+  }
+
+  .mobile-safe-form .grid-cols-2 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }

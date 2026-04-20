@@ -568,16 +568,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         <button
           type="button"
           onClick={() => goToStep(1)}
-          className="flex items-center cursor-pointer group"
+          className="flex items-center cursor-pointer group touch-manipulation"
         >
           <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50",
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
             currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           )}>
             1
           </div>
           <span className={cn(
-            "ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary",
+            "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
             currentStep === 1 ? 'text-primary' : 'text-muted-foreground'
           )}>
             Tipo
@@ -591,16 +591,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         <button
           type="button"
           onClick={() => goToStep(2)}
-          className="flex items-center cursor-pointer group"
+          className="flex items-center cursor-pointer group touch-manipulation"
         >
           <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50",
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
             currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           )}>
             2
           </div>
           <span className={cn(
-            "ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary",
+            "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
             currentStep === 2 ? 'text-primary' : 'text-muted-foreground'
           )}>
             Productos
@@ -614,16 +614,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         <button
           type="button"
           onClick={() => goToStep(3)}
-          className="flex items-center cursor-pointer group"
+          className="flex items-center cursor-pointer group touch-manipulation"
         >
           <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50",
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
             currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           )}>
             3
           </div>
           <span className={cn(
-            "ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary",
+            "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
             currentStep === 3 ? 'text-primary' : 'text-muted-foreground'
           )}>
             Ruta
@@ -637,16 +637,16 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         <button
           type="button"
           onClick={() => goToStep(4)}
-          className="flex items-center cursor-pointer group"
+          className="flex items-center cursor-pointer group touch-manipulation"
         >
           <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50",
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
             currentStep >= 4 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
           )}>
             4
           </div>
           <span className={cn(
-            "ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary",
+            "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
             currentStep === 4 ? 'text-primary' : 'text-muted-foreground'
           )}>
             Confirmar
@@ -698,10 +698,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             type="button"
             onClick={() => handleTypeSelect('online')}
             className={cn(
-              "p-3 rounded-xl border-2 text-left transition-all sm:hover:shadow-md group touch-manipulation",
+              "p-3 rounded-xl border-2 text-left transition-all hover:shadow-md group touch-manipulation",
               formRequestType === 'online'
                 ? 'border-primary bg-primary/5 shadow-md'
-                : 'border-border sm:hover:border-primary/50'
+                : 'border-border hover:border-primary/50'
             )}
           >
             <div className="flex flex-row items-center gap-3 space-y-0">
@@ -709,7 +709,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 "w-10 h-10 rounded-full flex items-center justify-center transition-colors flex-shrink-0",
                 formRequestType === 'online'
                   ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted sm:group-hover:bg-primary/20'
+                  : 'bg-muted group-hover:bg-primary/20'
               )}>
                 <ShoppingCart className="h-5 w-5" />
               </div>
@@ -732,10 +732,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             type="button"
             onClick={() => handleTypeSelect('personal')}
             className={cn(
-              "p-3 rounded-xl border-2 text-left transition-all sm:hover:shadow-md group touch-manipulation",
+              "p-3 rounded-xl border-2 text-left transition-all hover:shadow-md group touch-manipulation",
               formRequestType === 'personal'
                 ? 'border-primary bg-primary/5 shadow-md'
-                : 'border-border sm:hover:border-primary/50'
+                : 'border-border hover:border-primary/50'
             )}
           >
             <div className="flex flex-row items-center gap-3 space-y-0">
@@ -743,7 +743,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 "w-10 h-10 rounded-full flex items-center justify-center transition-colors flex-shrink-0",
                 formRequestType === 'personal'
                   ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted sm:group-hover:bg-primary/20'
+                  : 'bg-muted group-hover:bg-primary/20'
               )}>
                 <Package className="h-5 w-5" />
               </div>
@@ -771,17 +771,27 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               onValueChange={(value) => setIsReturn(value === 'yes')}
               className="mt-3 space-y-2"
             >
-              <div className="flex items-center space-x-3">
+              <div
+                className="flex items-center space-x-3 cursor-pointer touch-manipulation min-h-[44px]"
+                onClick={() => setIsReturn(false)}
+                role="button"
+                tabIndex={0}
+              >
                 <RadioGroupItem value="no" id="return-no" />
-                <Label htmlFor="return-no" className="cursor-pointer">
+                <span className="cursor-pointer text-sm">
                   No - Es un pedido normal
-                </Label>
+                </span>
               </div>
-              <div className="flex items-center space-x-3">
+              <div
+                className="flex items-center space-x-3 cursor-pointer touch-manipulation min-h-[44px]"
+                onClick={() => setIsReturn(true)}
+                role="button"
+                tabIndex={0}
+              >
                 <RadioGroupItem value="yes" id="return-yes" />
-                <Label htmlFor="return-yes" className="cursor-pointer">
+                <span className="cursor-pointer text-sm">
                   Sí - Necesito devolver un producto
-                </Label>
+                </span>
               </div>
             </RadioGroup>
             {isReturn && (
@@ -801,7 +811,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               : "Donde comprarás tu producto (ej: Amazon USA, eBay)"}
           </p>
           <Select value={formData.purchaseOrigin} onValueChange={(value) => handleInputChange('purchaseOrigin', value)}>
-            <SelectTrigger>
+            <SelectTrigger className="touch-manipulation">
               <SelectValue placeholder="Selecciona el país de origen" />
             </SelectTrigger>
             <SelectContent>
@@ -890,7 +900,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       variant="outline"
                       size="sm"
                       onClick={() => removeProduct(index)}
-                      className="flex items-center space-x-1 text-destructive sm:hover:text-destructive h-7 px-2"
+                      className="flex items-center space-x-1 text-destructive hover:text-destructive h-7 px-2 touch-manipulation"
                     >
                       <Trash2 className="h-3 w-3" />
                       <span className="text-xs">Eliminar</span>
@@ -902,7 +912,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
               <div className="grid grid-cols-1 gap-3">
                 {formRequestType === 'online' ? (
                   <>
-                    {/* Online Purchase Fields */}
                     <div>
                       <Label htmlFor={`itemLink-${index}`} className="text-xs text-muted-foreground">Link del producto *</Label>
                       <div className="relative">
@@ -965,7 +974,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       </div>
                     </div>
 
-                    {/* Necesita empaque original */}
                     <div className="pt-3 border-t border-border/50 mt-3">
                       <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
                         <div className="flex items-start gap-2">
@@ -982,21 +990,30 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                           onValueChange={(value) => updateProduct(index, 'needsOriginalPackaging', value === 'yes')}
                           className="grid grid-cols-2 gap-2"
                         >
-                          <label htmlFor={`packaging-yes-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer sm:hover:bg-muted/50 transition-colors min-h-[44px]">
+                          <div
+                            onClick={() => updateProduct(index, 'needsOriginalPackaging', true)}
+                            className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors min-h-[44px] touch-manipulation"
+                            role="button"
+                            tabIndex={0}
+                          >
                             <RadioGroupItem value="yes" id={`packaging-yes-${index}`} />
                             <span className="text-sm">Sí, lo necesito</span>
-                          </label>
-                          <label htmlFor={`packaging-no-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer sm:hover:bg-muted/50 transition-colors min-h-[44px]">
+                          </div>
+                          <div
+                            onClick={() => updateProduct(index, 'needsOriginalPackaging', false)}
+                            className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors min-h-[44px] touch-manipulation"
+                            role="button"
+                            tabIndex={0}
+                          >
                             <RadioGroupItem value="no" id={`packaging-no-${index}`} />
                             <span className="text-sm">No lo necesito</span>
-                          </label>
+                          </div>
                         </RadioGroup>
                       </div>
                     </div>
                   </>
                 ) : (
                   <>
-                    {/* Personal Order Fields */}
                     <div>
                       <Label htmlFor={`itemDescription-${index}`} className="text-xs text-muted-foreground">Detalles completos del pedido *</Label>
                       <Textarea
@@ -1084,7 +1101,6 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                       />
                     </div>
 
-                    {/* Necesita empaque original */}
                     <div className="pt-3 border-t border-border/50 mt-3">
                       <div className="space-y-3 p-3 bg-muted/30 rounded-lg">
                         <div className="flex items-start gap-2">
@@ -1101,14 +1117,24 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                           onValueChange={(value) => updateProduct(index, 'needsOriginalPackaging', value === 'yes')}
                           className="grid grid-cols-2 gap-2"
                         >
-                          <label htmlFor={`packaging-personal-yes-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer sm:hover:bg-muted/50 transition-colors min-h-[44px]">
+                          <div
+                            onClick={() => updateProduct(index, 'needsOriginalPackaging', true)}
+                            className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors min-h-[44px] touch-manipulation"
+                            role="button"
+                            tabIndex={0}
+                          >
                             <RadioGroupItem value="yes" id={`packaging-personal-yes-${index}`} />
                             <span className="text-sm">Sí, lo necesito</span>
-                          </label>
-                          <label htmlFor={`packaging-personal-no-${index}`} className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer sm:hover:bg-muted/50 transition-colors min-h-[44px]">
+                          </div>
+                          <div
+                            onClick={() => updateProduct(index, 'needsOriginalPackaging', false)}
+                            className="flex items-center gap-2 p-2.5 rounded-md border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors min-h-[44px] touch-manipulation"
+                            role="button"
+                            tabIndex={0}
+                          >
                             <RadioGroupItem value="no" id={`packaging-personal-no-${index}`} />
                             <span className="text-sm">No lo necesito</span>
-                          </label>
+                          </div>
                         </RadioGroup>
                       </div>
                     </div>
@@ -1125,7 +1151,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             variant="shopper"
             size="sm"
             onClick={addProduct}
-            className="flex items-center space-x-1 font-semibold shadow-sm w-fit"
+            className="flex items-center space-x-1 font-semibold shadow-sm w-fit touch-manipulation"
           >
             <Plus className="h-4 w-4" />
             <span>Agregar más productos</span>
@@ -1165,7 +1191,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             handleInputChange('deliveryMethod', ''); // Reset delivery method when country changes
           }}
         >
-          <SelectTrigger>
+          <SelectTrigger className="touch-manipulation">
             <SelectValue placeholder="Selecciona el país de destino" />
           </SelectTrigger>
           <SelectContent>
@@ -1185,7 +1211,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
         {selectedCountry && (
           <>
             <Select value={formData.packageDestination} onValueChange={(value) => handleInputChange('packageDestination', value)}>
-              <SelectTrigger>
+              <SelectTrigger className="touch-manipulation">
                 <SelectValue placeholder="Selecciona la ciudad" />
               </SelectTrigger>
               <SelectContent>
@@ -1224,10 +1250,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             <button type="button"
               onClick={() => handleInputChange('deliveryMethod', 'return_dropoff')}
               className={cn(
-                "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
+                "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation w-full text-left",
                 formData.deliveryMethod === 'return_dropoff'
                   ? 'border-primary bg-primary/5'
-                  : 'border-border sm:hover:border-muted-foreground'
+                  : 'border-border hover:border-muted-foreground'
               )}
             >
               <div className="flex items-start gap-3">
@@ -1250,10 +1276,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             <button type="button"
               onClick={() => handleInputChange('deliveryMethod', 'return_pickup')}
               className={cn(
-                "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
+                "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation w-full text-left",
                 formData.deliveryMethod === 'return_pickup'
                   ? 'border-primary bg-primary/5'
-                  : 'border-border sm:hover:border-muted-foreground'
+                  : 'border-border hover:border-muted-foreground'
               )}
             >
               <div className="flex items-start gap-3">
@@ -1298,10 +1324,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 <button type="button"
                   onClick={() => handleInputChange('deliveryMethod', 'pickup')}
                   className={cn(
-                    "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
+                    "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation w-full text-left",
                     formData.deliveryMethod === 'pickup'
                       ? 'border-primary bg-primary/5'
-                      : 'border-border sm:hover:border-muted-foreground'
+                      : 'border-border hover:border-muted-foreground'
                   )}
                 >
                   <div className="flex items-center justify-between">
@@ -1323,10 +1349,10 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             <button type="button"
               onClick={() => handleInputChange('deliveryMethod', 'delivery')}
               className={cn(
-                "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation",
+                "border-2 rounded-lg p-4 cursor-pointer transition-all touch-manipulation w-full text-left",
                 formData.deliveryMethod === 'delivery'
                   ? 'border-primary bg-primary/5'
-                  : 'border-border sm:hover:border-muted-foreground'
+                  : 'border-border hover:border-muted-foreground'
               )}
             >
               <div className="flex items-center justify-between">
@@ -1366,7 +1392,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                 variant="outline"
                 size="sm"
                 onClick={() => setShowAddressForm(true)}
-                className="mt-2"
+                className="mt-2 touch-manipulation"
               >
                 Editar dirección
               </Button>
@@ -1428,7 +1454,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
                         href={product.itemLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-primary sm:hover:underline"
+                        className="text-xs text-primary hover:underline"
                       >
                         link
                       </a>
@@ -1545,19 +1571,19 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
     return (
       <div className="flex space-x-3 pt-4 border-t border-border">
         {currentStep === 1 ? (
-          <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1">
+          <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1 touch-manipulation">
             <ChevronLeft className="h-4 w-4 mr-1" />
             Atrás
           </Button>
         ) : (
-          <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1">
+          <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1 touch-manipulation">
             <ChevronLeft className="h-4 w-4 mr-1" />
             Atrás
           </Button>
         )}
 
         {currentStep !== 4 ? (
-          <Button type="button" variant="shopper" onClick={handleNextStep} className="flex-1">
+          <Button type="button" variant="shopper" onClick={handleNextStep} className="flex-1 touch-manipulation">
             Siguiente
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
@@ -1565,7 +1591,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
           <Button
             type="button"
             variant="shopper"
-            className="flex-1"
+            className="flex-1 touch-manipulation"
             disabled={isSubmitting}
             onClick={handleManualSubmit}
           >
@@ -1582,8 +1608,8 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
 
   const renderPackageForm = () => {
     return (
-      <Dialog modal={false} open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DialogContent className="h-[100dvh] max-h-[100dvh] w-full max-w-full m-0 p-0 flex flex-col rounded-t-2xl inset-0 translate-x-0 translate-y-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:inset-auto sm:left-[50%] sm:top-[50%] sm:max-w-xl md:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-[--radius] sm:p-6 sm:translate-x-[-50%] sm:translate-y-[-50%]">
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+        <DialogContent className="mobile-safe-form h-[100dvh] max-h-[100dvh] w-full max-w-full m-0 p-0 flex flex-col rounded-t-2xl inset-0 translate-x-0 translate-y-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:inset-auto sm:left-[50%] sm:top-[50%] sm:max-w-xl md:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-[--radius] sm:p-6 sm:translate-x-[-50%] sm:translate-y-[-50%]">
           <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-2 sm:px-0 sm:pt-0 sm:pb-0">
             <DialogTitle className="flex items-center space-x-2">
               <Package className="h-5 w-5 text-primary" />
@@ -1613,7 +1639,7 @@ const PackageRequestForm = ({ isOpen, onClose, onSubmit, editMode = false, initi
             {renderNavigationButtons()}
           </div>
         </DialogContent>
-      </Dialog >
+      </Dialog>
     );
   };
 
