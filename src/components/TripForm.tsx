@@ -479,74 +479,87 @@ const TripForm = ({
         <button
           type="button"
           onClick={() => goToStep(1)}
-          className="flex items-center cursor-pointer group"
+          className="flex items-center cursor-pointer group touch-manipulation"
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-            }`}>
+          <div className={cn(
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
+            currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+          )}>
             1
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${currentStep === 1 ? 'text-primary' : 'text-muted-foreground'
-            }`}>
+          <span className={cn(
+            "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
+            currentStep === 1 ? 'text-primary' : 'text-muted-foreground'
+          )}>
             Viaje
           </span>
         </button>
 
         {/* Connector 1-2 */}
-        <div className={`w-6 sm:w-10 h-0.5 transition-colors ${currentStep >= 2 ? 'bg-primary' : 'bg-muted'
-          }`} />
+        <div className={cn("w-6 sm:w-10 h-0.5 transition-colors", currentStep >= 2 ? 'bg-primary' : 'bg-muted')} />
 
         {/* Step 2 */}
         <button
           type="button"
           onClick={() => goToStep(2)}
-          className="flex items-center cursor-pointer group"
+          className="flex items-center cursor-pointer group touch-manipulation"
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-            }`}>
+          <div className={cn(
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
+            currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+          )}>
             2
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${currentStep === 2 ? 'text-primary' : 'text-muted-foreground'
-            }`}>
+          <span className={cn(
+            "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
+            currentStep === 2 ? 'text-primary' : 'text-muted-foreground'
+          )}>
             Dirección
           </span>
         </button>
 
         {/* Connector 2-3 */}
-        <div className={`w-6 sm:w-8 h-0.5 transition-colors ${currentStep >= 3 ? 'bg-primary' : 'bg-muted'
-          }`} />
+        <div className={cn("w-6 sm:w-8 h-0.5 transition-colors", currentStep >= 3 ? 'bg-primary' : 'bg-muted')} />
 
         {/* Step 3 */}
         <button
           type="button"
           onClick={() => goToStep(3)}
-          className="flex items-center cursor-pointer group"
+          className="flex items-center cursor-pointer group touch-manipulation"
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-            }`}>
+          <div className={cn(
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
+            currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+          )}>
             3
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${currentStep === 3 ? 'text-primary' : 'text-muted-foreground'
-            }`}>
+          <span className={cn(
+            "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
+            currentStep === 3 ? 'text-primary' : 'text-muted-foreground'
+          )}>
             Entrega
           </span>
         </button>
 
         {/* Connector 3-4 */}
-        <div className={`w-6 sm:w-8 h-0.5 transition-colors ${currentStep >= 4 ? 'bg-primary' : 'bg-muted'
-          }`} />
+        <div className={cn("w-6 sm:w-8 h-0.5 transition-colors", currentStep >= 4 ? 'bg-primary' : 'bg-muted')} />
 
         {/* Step 4 */}
         <button
           type="button"
           onClick={() => goToStep(4)}
-          className="flex items-center cursor-pointer group"
+          className="flex items-center cursor-pointer group touch-manipulation"
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all sm:hover:ring-2 sm:hover:ring-primary/50 ${currentStep >= 4 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-            }`}>
+          <div className={cn(
+            "w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm transition-all hover:ring-2 hover:ring-primary/50",
+            currentStep >= 4 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+          )}>
             4
           </div>
-          <span className={`ml-2 text-sm font-medium hidden sm:inline transition-colors sm:group-hover:text-primary ${currentStep === 4 ? 'text-primary' : 'text-muted-foreground'
-            }`}>
+          <span className={cn(
+            "ml-2 text-sm font-medium hidden sm:inline transition-colors group-hover:text-primary",
+            currentStep === 4 ? 'text-primary' : 'text-muted-foreground'
+          )}>
             Confirmar
           </span>
         </button>
@@ -584,7 +597,7 @@ const TripForm = ({
                     }
                   }}
                 >
-                  <SelectTrigger className="w-full text-sm h-9">
+                  <SelectTrigger className="w-full text-sm h-9 touch-manipulation">
                     <SelectValue placeholder="País de origen">
                       {formData.fromCountry && MAIN_COUNTRIES.find(c => c.value === formData.fromCountry)?.label}
                     </SelectValue>
@@ -669,7 +682,7 @@ const TripForm = ({
                     }
                   }}
                 >
-                  <SelectTrigger className="w-full text-sm h-9">
+                  <SelectTrigger className="w-full text-sm h-9 touch-manipulation">
                     <SelectValue placeholder="País de destino">
                       {formData.toCountry && MAIN_COUNTRIES.find(c => c.value === formData.toCountry)?.label}
                     </SelectValue>
@@ -785,10 +798,10 @@ const TripForm = ({
 
       {/* Navigation buttons */}
       <div className="flex space-x-3 pt-4">
-        <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+        <Button type="button" variant="outline" onClick={onClose} className="flex-1 touch-manipulation">
           Cancelar
         </Button>
-        <Button type="button" variant="traveler" onClick={handleNextStep} className="flex-1">
+        <Button type="button" variant="traveler" onClick={handleNextStep} className="flex-1 touch-manipulation">
           Siguiente
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
@@ -830,7 +843,7 @@ const TripForm = ({
           <div className="space-y-2">
             <Label htmlFor="accommodationType" className="text-xs text-muted-foreground">Tipo de alojamiento *</Label>
             <Select value={formData.packageReceivingAddress.accommodationType} onValueChange={value => handleAddressChange('accommodationType', value)}>
-              <SelectTrigger>
+              <SelectTrigger className="touch-manipulation">
                 <SelectValue placeholder="Selecciona tipo" />
               </SelectTrigger>
               <SelectContent className="bg-background z-50">
@@ -978,8 +991,8 @@ const TripForm = ({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button type="button">
-                  <Info className="h-3.5 w-3.5 text-muted-foreground sm:hover:text-foreground cursor-help" />
+                <button type="button" className="touch-manipulation">
+                  <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-help" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-xs">
@@ -1038,11 +1051,11 @@ const TripForm = ({
 
       {/* Navigation buttons */}
       <div className="flex space-x-3 pt-4">
-        <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1">
+        <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1 touch-manipulation">
           <ChevronLeft className="mr-2 h-4 w-4" />
           Atrás
         </Button>
-        <Button type="button" variant="traveler" onClick={handleNextStep} className="flex-1">
+        <Button type="button" variant="traveler" onClick={handleNextStep} className="flex-1 touch-manipulation">
           Siguiente
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
@@ -1076,15 +1089,21 @@ const TripForm = ({
               {hasOfficialDeliveryOptions && (
                 <>
                   <div
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${formData.deliveryMethod === 'oficina'
-                      ? 'border-primary bg-primary/5 shadow-md'
-                      : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
-                      }`}
+                    className={cn(
+                      "border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation",
+                      formData.deliveryMethod === 'oficina'
+                        ? 'border-primary bg-primary/5 shadow-md'
+                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                    )}
                     onClick={() => handleInputChange('deliveryMethod', 'oficina')}
+                    role="button"
+                    tabIndex={0}
                   >
                     <div className="flex items-center space-x-3">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.deliveryMethod === 'oficina' ? 'border-primary bg-primary' : 'border-border'
-                        }`}>
+                      <div className={cn(
+                        "w-5 h-5 rounded-full border-2 flex items-center justify-center",
+                        formData.deliveryMethod === 'oficina' ? 'border-primary bg-primary' : 'border-border'
+                      )}>
                         {formData.deliveryMethod === 'oficina' && (
                           <div className="w-2 h-2 rounded-full bg-primary-foreground" />
                         )}
@@ -1103,15 +1122,21 @@ const TripForm = ({
                   {/* Opción 2: Mensajero - SOLO para Guatemala */}
                   {isDestinationGuatemala && (
                     <div
-                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${formData.deliveryMethod === 'mensajero'
-                        ? 'border-primary bg-primary/5 shadow-md'
-                        : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
-                        }`}
+                      className={cn(
+                        "border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation",
+                        formData.deliveryMethod === 'mensajero'
+                          ? 'border-primary bg-primary/5 shadow-md'
+                          : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                      )}
                       onClick={() => handleInputChange('deliveryMethod', 'mensajero')}
+                      role="button"
+                      tabIndex={0}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.deliveryMethod === 'mensajero' ? 'border-primary bg-primary' : 'border-border'
-                          }`}>
+                        <div className={cn(
+                          "w-5 h-5 rounded-full border-2 flex items-center justify-center",
+                          formData.deliveryMethod === 'mensajero' ? 'border-primary bg-primary' : 'border-border'
+                        )}>
                           {formData.deliveryMethod === 'mensajero' && (
                             <div className="w-2 h-2 rounded-full bg-primary-foreground" />
                           )}
@@ -1127,15 +1152,21 @@ const TripForm = ({
                   {/* Opción 2 alternativa: Coordinación - para destinos internacionales con delivery point */}
                   {!isDestinationGuatemala && (
                     <div
-                      className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${formData.deliveryMethod === 'coordinacion'
-                        ? 'border-primary bg-primary/5 shadow-md'
-                        : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
-                        }`}
+                      className={cn(
+                        "border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation",
+                        formData.deliveryMethod === 'coordinacion'
+                          ? 'border-primary bg-primary/5 shadow-md'
+                          : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                      )}
                       onClick={() => handleInputChange('deliveryMethod', 'coordinacion')}
+                      role="button"
+                      tabIndex={0}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.deliveryMethod === 'coordinacion' ? 'border-primary bg-primary' : 'border-border'
-                          }`}>
+                        <div className={cn(
+                          "w-5 h-5 rounded-full border-2 flex items-center justify-center",
+                          formData.deliveryMethod === 'coordinacion' ? 'border-primary bg-primary' : 'border-border'
+                        )}>
                           {formData.deliveryMethod === 'coordinacion' && (
                             <div className="w-2 h-2 rounded-full bg-primary-foreground" />
                           )}
@@ -1153,15 +1184,21 @@ const TripForm = ({
               {!hasOfficialDeliveryOptions && (
                 <>
                   <div
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${formData.deliveryMethod === 'correo'
-                      ? 'border-primary bg-primary/5 shadow-md'
-                      : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
-                      }`}
+                    className={cn(
+                      "border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation",
+                      formData.deliveryMethod === 'correo'
+                        ? 'border-primary bg-primary/5 shadow-md'
+                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                    )}
                     onClick={() => handleInputChange('deliveryMethod', 'correo')}
+                    role="button"
+                    tabIndex={0}
                   >
                     <div className="flex items-center space-x-3">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.deliveryMethod === 'correo' ? 'border-primary bg-primary' : 'border-border'
-                        }`}>
+                      <div className={cn(
+                        "w-5 h-5 rounded-full border-2 flex items-center justify-center",
+                        formData.deliveryMethod === 'correo' ? 'border-primary bg-primary' : 'border-border'
+                      )}>
                         {formData.deliveryMethod === 'correo' && (
                           <div className="w-2 h-2 rounded-full bg-primary-foreground" />
                         )}
@@ -1174,15 +1211,21 @@ const TripForm = ({
                   </div>
 
                   <div
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation ${formData.deliveryMethod === 'coordinacion_shopper'
-                      ? 'border-primary bg-primary/5 shadow-md'
-                      : 'border-border sm:hover:border-primary/50 sm:hover:bg-primary/5'
-                      }`}
+                    className={cn(
+                      "border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 touch-manipulation",
+                      formData.deliveryMethod === 'coordinacion_shopper'
+                        ? 'border-primary bg-primary/5 shadow-md'
+                        : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                    )}
                     onClick={() => handleInputChange('deliveryMethod', 'coordinacion_shopper')}
+                    role="button"
+                    tabIndex={0}
                   >
                     <div className="flex items-center space-x-3">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.deliveryMethod === 'coordinacion_shopper' ? 'border-primary bg-primary' : 'border-border'
-                        }`}>
+                      <div className={cn(
+                        "w-5 h-5 rounded-full border-2 flex items-center justify-center",
+                        formData.deliveryMethod === 'coordinacion_shopper' ? 'border-primary bg-primary' : 'border-border'
+                      )}>
                         {formData.deliveryMethod === 'coordinacion_shopper' && (
                           <div className="w-2 h-2 rounded-full bg-primary-foreground" />
                         )}
@@ -1209,7 +1252,7 @@ const TripForm = ({
               <div className="bg-green-50 border border-green-200 rounded p-3">
                 <p className="text-sm font-medium text-green-800 mb-1">✓ Información de recolección confirmada</p>
                 <p className="text-xs text-green-700">{messengerData.streetAddress}, {messengerData.cityArea}</p>
-                <Button type="button" variant="outline" size="sm" onClick={() => setShowMessengerForm(true)} className="mt-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setShowMessengerForm(true)} className="mt-2 touch-manipulation">
                   Editar información
                 </Button>
               </div>
@@ -1247,11 +1290,11 @@ const TripForm = ({
 
       {/* Navigation buttons */}
       <div className="flex space-x-3 pt-4">
-        <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1">
+        <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1 touch-manipulation">
           <ChevronLeft className="mr-2 h-4 w-4" />
           Atrás
         </Button>
-        <Button type="button" variant="traveler" onClick={handleNextStep} className="flex-1">
+        <Button type="button" variant="traveler" onClick={handleNextStep} className="flex-1 touch-manipulation">
           Siguiente
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
@@ -1411,22 +1454,36 @@ const TripForm = ({
         </div>
 
         {/* Terms and Conditions Checkbox */}
-        <div className="bg-gradient-to-r from-primary/5 to-primary/10 border-2 border-primary/20 rounded-lg p-3 sm:hover:border-primary/40 transition-all duration-200 group">
+        <div
+          className="bg-gradient-to-r from-primary/5 to-primary/10 border-2 border-primary/20 rounded-lg p-3 hover:border-primary/40 transition-all duration-200 group cursor-pointer touch-manipulation"
+          onClick={() => setAcceptedTerms(!acceptedTerms)}
+          role="button"
+          tabIndex={0}
+        >
           <div className="flex items-start space-x-3">
             <Checkbox
               id="acceptTerms"
               checked={acceptedTerms}
               onCheckedChange={checked => setAcceptedTerms(!!checked)}
               className="mt-1"
+              onClick={(e) => e.stopPropagation()}
             />
             <div className="flex-1">
-              <Label htmlFor="acceptTerms" className="text-sm font-medium text-black cursor-pointer sm:group-hover:text-black/80 transition-colors">
+              <span className="text-sm font-medium text-black cursor-pointer group-hover:text-black/80 transition-colors">
                 Entiendo y acepto los términos y condiciones de Favorón
-              </Label>
+              </span>
               <p className="text-xs text-black/70 mt-1">
                 Al registrar este viaje, confirmas que has leído y aceptas nuestros términos de servicio.
               </p>
-              <Button type="button" variant="link" className="h-auto p-0 text-xs text-black sm:hover:text-black/80" onClick={() => setShowTermsModal(true)}>
+              <Button
+                type="button"
+                variant="link"
+                className="h-auto p-0 text-xs text-black hover:text-black/80 touch-manipulation"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowTermsModal(true);
+                }}
+              >
                 <FileText className="h-3 w-3 mr-1" />
                 Leer términos y condiciones
               </Button>
@@ -1436,14 +1493,14 @@ const TripForm = ({
 
         {/* Navigation buttons */}
         <div className="flex space-x-3 pt-4">
-          <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1">
+          <Button type="button" variant="outline" onClick={handlePrevStep} className="flex-1 touch-manipulation">
             <ChevronLeft className="mr-2 h-4 w-4" />
             Atrás
           </Button>
           <Button
             type="submit"
             variant="traveler"
-            className="flex-1"
+            className="flex-1 touch-manipulation"
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Enviando...' : 'Registrar Viaje'}
@@ -1468,8 +1525,8 @@ const TripForm = ({
     );
 
     return (
-      <Dialog modal={false} open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DialogContent className="h-[100dvh] max-h-[100dvh] w-full max-w-full m-0 p-0 flex flex-col rounded-t-2xl inset-0 translate-x-0 translate-y-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:inset-auto sm:left-[50%] sm:top-[50%] sm:max-w-xl md:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-[--radius] sm:p-6 sm:px-6 md:px-8 sm:translate-x-[-50%] sm:translate-y-[-50%]">
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+        <DialogContent className="mobile-safe-form h-[100dvh] max-h-[100dvh] w-full max-w-full m-0 p-0 flex flex-col rounded-t-2xl inset-0 translate-x-0 translate-y-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:inset-auto sm:left-[50%] sm:top-[50%] sm:max-w-xl md:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-[--radius] sm:p-6 sm:px-6 md:px-8 sm:translate-x-[-50%] sm:translate-y-[-50%]">
           <DialogHeader className="px-6 pt-6 pb-2 sm:px-0 sm:pt-0 sm:pb-0">
             <DialogTitle className="flex items-center space-x-2">
               <Plane className="h-5 w-5 text-traveler" />
